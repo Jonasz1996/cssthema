@@ -29,6 +29,7 @@ UV_VERSION="uv==0.8.17"  # dezelfde versie die backend/uv.lock schreef
 
 step() { printf '\n\033[1m==> %s\033[0m\n' "$*"; }
 die() { printf 'cssthema-install: %s\n' "$*" >&2; exit 1; }
+trap 'printf "cssthema-install: mislukt (regel %s), zie de melding hierboven\n" "$LINENO" >&2' ERR
 
 [ "$(id -u)" -eq 0 ] || die "draai dit script als root"
 command -v apt-get >/dev/null || die "alleen Debian (of Ubuntu) met apt wordt ondersteund"
@@ -140,14 +141,18 @@ if [ "$("$NODE_DIR/bin/node" --version 2>/dev/null | cut -d. -f1)" != "v$NODE_MA
     curl -fsSL "$base/$tarball" -o "$tmp/$tarball"
     (cd "$tmp" && echo "$line" | sha256sum -c --quiet -)
     rm -rf "$NODE_DIR" && mkdir -p "$NODE_DIR"
-    tar -xJf "$tmp/$tarball" -C "$NODE_DIR" --strip-components=1
+    tar -xJf "$tmp/$tarball" -C "$NODE_DIR" --strip-components=1 --no-same-owner
     rm -rf "$tmp"
 fi
+# Het archief is van uid 1000; root draait deze binaries, dus root moet eigenaar zijn.
+chown -R root:root "$NODE_DIR"
 (
     cd "$APP_DIR/frontend"
     export PATH=$NODE_DIR/bin:$PATH CI=true COREPACK_ENABLE_DOWNLOAD_PROMPT=0
-    corepack pnpm install --frozen-lockfile --reporter=silent
-    corepack pnpm build >/dev/null
+    corepack pnpm install --frozen-lockfile
+    log=$(mktemp)
+    corepack pnpm build >"$log" 2>&1 || { cat "$log" >&2; rm -f "$log"; die "dashboard bouwen mislukt"; }
+    rm -f "$log"
 )
 
 step "nginx"
