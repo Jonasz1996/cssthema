@@ -62,7 +62,7 @@ test.describe("mobiel (390 × 844)", () => {
       const overflow = await page.evaluate(
         () => document.documentElement.scrollWidth - document.documentElement.clientWidth,
       );
-      expect(overflow, `${path} scrolt horizontaal`).toBeLessThanOrEqual(0);
+      expect.soft(overflow, `${path} scrolt horizontaal`).toBeLessThanOrEqual(0);
     }
   });
 });

@@ -15,9 +15,17 @@ export function Pre({ className, ...props }: ComponentProps<"pre">) {
   );
 }
 
-/** Inline code in lichtblauw. */
+/**
+ * Inline code in lichtblauw. Lange paden en URL's breken af waar nodig (`overflow-wrap:
+ * anywhere`), zodat ze op mobiel geen horizontale scroll geven.
+ */
 export function Code({ className, ...props }: ComponentProps<"code">) {
-  return <code className={cn("font-mono text-[0.93em] text-code", className)} {...props} />;
+  return (
+    <code
+      className={cn("font-mono text-[0.93em] [overflow-wrap:anywhere] text-code", className)}
+      {...props}
+    />
+  );
 }
 
 export type TerminalLineKind = "out" | "cmd" | "dim" | "ok" | "err";
