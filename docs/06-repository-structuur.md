@@ -160,6 +160,7 @@ cssthema/
 │       └── docker-compose.minio.yml  # optionele S3-storage
 │
 ├── deploy/
+│   ├── debian/                       # installatie zonder Docker: install.sh + systemd-units
 │   └── k8s/                          # Kustomize (productiefase)
 │       ├── base/
 │       └── overlays/{homelab,ha}/

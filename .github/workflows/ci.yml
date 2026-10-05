@@ -12,6 +12,10 @@ concurrency:
 jobs:
   backend:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        # 3.12 zoals in de Docker-image, 3.13 zoals in Debian 13 (deploy/debian).
+        python: ["3.12", "3.13"]
     defaults:
       run:
         working-directory: backend
@@ -35,12 +39,13 @@ jobs:
     env:
       DATABASE_URL: postgresql+asyncpg://cssthema:cssthema@localhost:5432/cssthema
       REDIS_URL: redis://localhost:6379/0
+      UV_PYTHON: ${{ matrix.python }}
     steps:
       - uses: actions/checkout@v4
       - uses: astral-sh/setup-uv@v6
         with:
           enable-cache: true
-      - run: uv python install 3.12
+      - run: uv python install
       - run: uv sync --frozen
       - name: Lint
         run: uv run ruff check . && uv run ruff format --check .
@@ -59,6 +64,7 @@ jobs:
           uv run python -m cssthema.openapi openapi.json
           git diff --exit-code openapi.json || (echo "::error::backend/openapi.json is verouderd: draai 'make openapi'" && exit 1)
       - uses: actions/upload-artifact@v4
+        if: matrix.python == '3.12'
         with:
           name: openapi
           path: backend/openapi.json
@@ -121,3 +127,43 @@ jobs:
       - name: Opruimen
         if: always()
         run: docker compose -f docker/compose/docker-compose.yml --env-file .env.ci down -v
+
+  debian-install:
+    name: Installatie zonder Docker (Debian 13)
+    runs-on: ubuntu-latest
+    needs: [backend, frontend]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Debian 13-container met systemd
+        run: |
+          docker run -d --name deb --privileged --cgroupns=private --tmpfs /run --tmpfs /run/lock \
+            debian:trixie bash -c 'apt-get update -qq && apt-get install -y -qq systemd systemd-sysv >/dev/null && exec /sbin/init'
+          for i in $(seq 1 90); do
+            docker exec deb systemctl is-system-running 2>/dev/null | grep -qE '^(running|degraded)$' && break
+            sleep 2
+          done
+          docker exec deb systemctl is-system-running || true
+          docker cp . deb:/opt/cssthema
+      - name: install.sh, eerste keer
+        run: docker exec -e TRUSTED_PROXIES=192.0.2.10 deb bash /opt/cssthema/deploy/debian/install.sh
+      - name: install.sh, nog een keer (bijwerken)
+        run: docker exec -e PUBLIC_BASE_URL=https://css.example.test deb bash /opt/cssthema/deploy/debian/install.sh
+      - name: Rooktest
+        run: |
+          docker exec deb bash -euxc '
+            curl -fsS http://127.0.0.1/readyz
+            curl -fsS http://127.0.0.1/api/v1/meta | grep -q "\"public_base_url\":\"https://css.example.test\""
+            curl -fsS http://127.0.0.1/ | grep -q "<div id=\"root\">"
+            grep -q "set_real_ip_from 192.0.2.10;" /etc/nginx/conf.d/cssthema-real-ip.conf
+            # Handgemaakte CSS-bestanden gaan voor, ook met een naam die geen slug is.
+            printf ":root{}\n" > /var/lib/cssthema/css-files/proxmox.css
+            printf ":root{}\n" > /var/lib/cssthema/css-files/Home_Assistant.css
+            curl -fsS -o /dev/null -w "%{content_type}" http://127.0.0.1/proxmox.css | grep -q "^text/css"
+            curl -fsS -o /dev/null http://127.0.0.1/Home_Assistant.css
+            test "$(curl -s -o /dev/null -w "%{http_code}" http://127.0.0.1/onbekend.css)" = 404
+            test "$(curl -s -o /dev/null -w "%{http_code}" http://127.0.0.1/Bad_Slug.css)" = 404
+            systemctl is-active cssthema-api cssthema-worker nginx
+          '
+      - name: Logs bij falen
+        if: failure()
+        run: docker exec deb journalctl -u cssthema-api -u cssthema-worker -u nginx --no-pager -n 200 || true

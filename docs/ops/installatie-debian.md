@@ -1,153 +1,154 @@
-# Installatie op een lege Debian-container
+# Installatie op Debian (zonder Docker)
 
-Deze handleiding zet cssthema op een verse Debian 13 (trixie): een LXC-container op Proxmox VE, of een VM. Alle commando's draai je als `root` in de container.
+cssthema draait als gewone services op één Debian 13-machine: nginx, de api (FastAPI in een Python-venv), een worker, PostgreSQL en Redis. Eén script installeert alles en werkt het later ook bij. Nginx Proxy Manager (NPM) staat op een andere machine en stuurt je CSS-domein naar deze container.
 
-> **Stand van zaken (fase 0).** Je krijgt de draaiende stack: dashboard, api, worker, PostgreSQL en Redis. Thema's maken en publiceren komt in fase 1, inloggen via Authentik in fase 3. Tot dan heeft cssthema **geen login**. Zet het dus niet open naar internet; laat NPM het alleen binnen je LAN aanbieden (of met een Access List).
+> **Stand van zaken (fase 0).** Je krijgt een draaiende stack, en de CSS-bestanden die je nu met de hand maakt, blijven werken (§ 3). Thema's maken in het dashboard komt in fase 1, de eigen login in fase 3. Tot dan heeft het dashboard **geen login**: zet het in NPM achter Authentik (§ 4). De CSS-bestanden zelf blijven publiek, want je apps laden ze ook op hun loginpagina.
 
-## 1. Container aanmaken (Proxmox)
+## 1. Container (Proxmox)
 
 | Instelling | Waarde |
 |---|---|
-| Template | `debian-13-standard` (via *local* → *CT Templates* → *Templates*) |
+| Template | `debian-13-standard` |
 | Unprivileged | ja |
-| CPU | 2 cores |
-| RAM / swap | 4096 MB / 1024 MB (het bouwen van de images heeft het meeste nodig) |
-| Disk | 20 GB |
-| Netwerk | vast IP-adres of een DHCP-reservering, NPM moet het kunnen bereiken |
+| CPU / RAM / swap | 2 cores / 2048 MB / 512 MB |
+| Disk | 8 GB |
+| Netwerk | vast IP of DHCP-reservering, bereikbaar vanaf NPM |
 
-Docker in een LXC heeft twee *features* nodig. Zet ze aan vóór je de container start: *Options* → *Features* → **nesting** en **keyctl** aanvinken. Of op de Proxmox-host:
+## 2. Installeren
 
-```bash
-pct set <CTID> --features nesting=1,keyctl=1
-```
-
-Start de container en log in als root (console of SSH).
-
-## 2. Docker installeren
-
-De officiële Docker-pakketten, niet `docker.io` uit Debian (die is te oud voor de compose-plugin die we gebruiken):
+Als root in de container. Vervang het IP door dat van je NPM-host en het domein door je CSS-domein:
 
 ```bash
-apt update && apt upgrade -y
-apt install -y ca-certificates curl git make
-
-install -m 0755 -d /etc/apt/keyrings
-curl -fsSL https://download.docker.com/linux/debian/gpg -o /etc/apt/keyrings/docker.asc
-chmod a+r /etc/apt/keyrings/docker.asc
-cat > /etc/apt/sources.list.d/docker.sources <<EOF
-Types: deb
-URIs: https://download.docker.com/linux/debian
-Suites: $(. /etc/os-release && echo "$VERSION_CODENAME")
-Components: stable
-Signed-By: /etc/apt/keyrings/docker.asc
-EOF
-
-apt update
-apt install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
-```
-
-Controleer:
-
-```bash
-docker run --rm hello-world
-docker compose version
-```
-
-## 3. cssthema ophalen
-
-```bash
+apt update && apt install -y git
 git clone https://github.com/Jonasz1996/cssthema.git /opt/cssthema
-cd /opt/cssthema
+TRUSTED_PROXIES=192.168.1.10 PUBLIC_BASE_URL=https://css.jouwdomein.be \
+  bash /opt/cssthema/deploy/debian/install.sh
 ```
 
-## 4. Configureren
+Het script ([`deploy/debian/install.sh`](../../deploy/debian/install.sh)):
 
-Maak `.env` aan en vul de geheimen met willekeurige waarden. Vervang `cssthema.jouwdomein.be` door het domein dat je in NPM gaat gebruiken.
+- installeert nginx, PostgreSQL, Redis (of Valkey) en Python uit Debian;
+- maakt `/etc/cssthema/cssthema.env` aan met willekeurige wachtwoorden en sleutels;
+- zet de backend in een venv (`/usr/local/lib/cssthema/venv`) en bouwt het dashboard met een eigen Node.js (alleen voor de build, raakt Debian niet);
+- installeert de nginx-site en de systemd-services `cssthema-api` en `cssthema-worker`;
+- eindigt met een controle: `{"status":"ok","checks":{"database":"ok","redis":"ok"}}`.
+
+De eerste keer duurt het een paar minuten. `TRUSTED_PROXIES` is het adres waarmee NPM bij deze container aankomt (het LAN-IP van de NPM-host); alleen daarvan neemt nginx het echte client-IP uit `X-Forwarded-For` over.
+
+## 3. Je bestaande CSS-bestanden
+
+Zet ze in `/var/lib/cssthema/css-files/`. Daar werk je verder zoals nu, met `nano`:
 
 ```bash
-cp .env.example .env
-sed -i \
-  -e "s|^POSTGRES_PASSWORD=.*|POSTGRES_PASSWORD=$(openssl rand -hex 24)|" \
-  -e "s|^SECRET_KEY=.*|SECRET_KEY=$(openssl rand -hex 32)|" \
-  -e "s|^PUBLIC_BASE_URL=.*|PUBLIC_BASE_URL=https://cssthema.jouwdomein.be|" \
-  .env
-chmod 600 .env
+scp oude-css-server:/pad/naar/css/*.css root@<ip-van-deze-container>:/var/lib/cssthema/css-files/
 ```
 
-Zet daarna in `.env` het IP-adres van je Nginx Proxy Manager bij `TRUSTED_PROXIES` (zie [§ 6](#6-nginx-proxy-manager-koppelen)), bijvoorbeeld:
+`/var/lib/cssthema/css-files/proxmox.css` is dan `https://css.jouwdomein.be/proxmox.css`. Een wijziging is meteen zichtbaar na een herlaadbeurt (`Cache-Control: no-cache`). Een bestand in deze map gaat voor op een thema met dezelfde naam in cssthema; vanaf fase 1 importeer je het en verwijder je het bestand.
 
-```bash
-sed -i "s|^TRUSTED_PROXIES=.*|TRUSTED_PROXIES=172.16.0.0/12,192.168.1.10|" .env
-```
+## 4. Nginx Proxy Manager
 
-De overige waarden in `.env` mogen blijven staan. `POSTGRES_PASSWORD` geldt alleen bij de eerste start: daarna staat het in de database, en een nieuw wachtwoord in `.env` werkt dan niet meer.
-
-## 5. Starten
-
-```bash
-make up
-```
-
-Dat bouwt de images en start de vijf containers. De eerste keer duurt het een aantal minuten (Node- en Python-afhankelijkheden downloaden). Daarna:
-
-```bash
-docker compose -f docker/compose/docker-compose.yml --env-file .env ps   # alles "healthy"
-curl -fsS http://localhost:8080/readyz
-# {"status":"ok","checks":{"database":"ok","redis":"ok"}}
-```
-
-Open `http://<IP-van-de-container>:8080` in je browser: je ziet het dashboard met *System status* op groen.
-
-## 6. Nginx Proxy Manager koppelen
-
-In NPM: *Hosts* → *Proxy Hosts* → *Add Proxy Host*:
+Pas de bestaande proxy host van je CSS-domein aan (of maak er een):
 
 | Tab | Veld | Waarde |
 |---|---|---|
-| Details | Domain Names | `cssthema.jouwdomein.be` |
-| | Scheme | `http` |
-| | Forward Hostname / IP | IP van de cssthema-container |
-| | Forward Port | `8080` |
+| Details | Scheme / Forward IP / Port | `http` / IP van deze container / `80` |
 | | Cache Assets | **uit** (cssthema regelt zijn eigen cache) |
-| | Block Common Exploits | aan |
-| | Websockets Support | aan |
-| SSL | SSL Certificate | *Request a new SSL Certificate* (Let's Encrypt) |
-| | Force SSL, HTTP/2 Support | aan |
+| | Block Common Exploits, Websockets Support | aan |
+| SSL | | zoals je andere hosts (Let's Encrypt, Force SSL) |
 
-Zolang er geen login is (tot fase 3): kies bij *Access List* een lijst die alleen je LAN toelaat.
+Bij **Advanced** het volgende. CSS blijft publiek, de rest (dashboard en api) gaat via Authentik. Vervang het adres van de outpost door het jouwe:
 
-**TRUSTED_PROXIES.** cssthema neemt het client-IP uit `X-Forwarded-For` alleen over van adressen in `TRUSTED_PROXIES`. Dat moet het adres zijn waarmee NPM bij cssthema aankomt:
+```nginx
+# Thema-CSS: publiek, want apps laden het ook op hun loginpagina.
+location ~ \.css$ {
+    proxy_pass $forward_scheme://$server:$port;
+    proxy_set_header Host $host;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto $scheme;
+}
 
-- NPM in een andere LXC of VM: het LAN-IP van die container (`hostname -I` daar).
-- NPM in Docker op dezelfde machine als cssthema: de standaardwaarde `172.16.0.0/12` volstaat.
+# Dashboard en api: alleen na Authentik-login (tot cssthema zelf een login heeft).
+location / {
+    proxy_pass $forward_scheme://$server:$port;
+    proxy_http_version 1.1;
+    proxy_set_header Upgrade $http_upgrade;
+    proxy_set_header Connection "upgrade";
+    proxy_set_header Host $host;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto $scheme;
+    proxy_buffers 8 16k;
+    proxy_buffer_size 32k;
 
-Na een wijziging: `make up`.
+    auth_request /outpost.goauthentik.io/auth/nginx;
+    error_page 401 = @goauthentik_proxy_signin;
+    auth_request_set $auth_cookie $upstream_http_set_cookie;
+    add_header Set-Cookie $auth_cookie;
+}
 
-## 7. Bijwerken
+location /outpost.goauthentik.io {
+    proxy_pass http://192.168.1.20:9000/outpost.goauthentik.io;
+    proxy_set_header Host $host;
+    proxy_set_header X-Original-URL $scheme://$http_host$request_uri;
+    add_header Set-Cookie $auth_cookie;
+    auth_request_set $auth_cookie $upstream_http_set_cookie;
+    proxy_pass_request_body off;
+    proxy_set_header Content-Length "";
+}
 
-```bash
-cd /opt/cssthema
-git pull
-make up
+location @goauthentik_proxy_signin {
+    internal;
+    add_header Set-Cookie $auth_cookie;
+    return 302 /outpost.goauthentik.io/start?rd=$request_uri;
+}
 ```
 
-Migraties draaien automatisch bij het starten van de api. Je data staat in Docker-volumes (`cssthema_pgdata`, `cssthema_storage`) en blijft bewaard.
+Authentik moet het domein kennen: gebruik je forward auth per domein (*domain level*), dan is dat al zo; anders maak je in Authentik een applicatie met een *Proxy Provider* (*Forward auth, single application*) voor `https://css.jouwdomein.be` en hang je die aan je outpost.
 
-## 8. Handige commando's
+Controle:
+
+```bash
+curl -I https://css.jouwdomein.be/proxmox.css   # 200, content-type: text/css, zonder login
+```
+
+`https://css.jouwdomein.be/` in de browser stuurt je eerst naar Authentik en toont daarna het dashboard. De `sub_filter`-regels in je andere proxy hosts hoeven niet te veranderen.
+
+## 5. Bijwerken
+
+```bash
+git -C /opt/cssthema pull && bash /opt/cssthema/deploy/debian/install.sh
+```
+
+Configuratie, wachtwoorden, database en CSS-bestanden blijven staan; databasemigraties draaien vanzelf. Wil je `TRUSTED_PROXIES` of `PUBLIC_BASE_URL` veranderen, geef ze dan opnieuw mee vóór `bash` (zoals in § 2), of pas ze aan in `/etc/cssthema/cssthema.env` en draai het script opnieuw.
+
+## 6. Waar staat wat
+
+| Wat | Waar |
+|---|---|
+| Code | `/opt/cssthema` |
+| Configuratie en geheimen | `/etc/cssthema/cssthema.env` (alleen leesbaar voor root en de dienst) |
+| Eigen CSS-bestanden | `/var/lib/cssthema/css-files/` |
+| Uploads en exports | `/var/lib/cssthema/storage/` |
+| Python-venv en Node.js | `/usr/local/lib/cssthema/` |
+| nginx-site | `/etc/nginx/sites-available/cssthema` (wordt bij elke run overschreven: pas `docker/nginx/conf.d/cssthema.conf` in de repo aan) |
+
+Een back-up van de container in Proxmox (vzdump) neemt alles mee. Alleen de database: `runuser -u postgres -- pg_dump cssthema > cssthema.sql`.
+
+## 7. Handige commando's en problemen
 
 | Wat | Commando |
 |---|---|
-| Logs volgen | `make logs` |
-| Stoppen | `make down` |
-| Status | `docker compose -f docker/compose/docker-compose.yml --env-file .env ps` |
-| Logs van één service | `docker compose -f docker/compose/docker-compose.yml --env-file .env logs -f api` |
-
-## 9. Problemen
+| Status | `systemctl status cssthema-api cssthema-worker nginx` |
+| Logs volgen | `journalctl -u cssthema-api -u cssthema-worker -f` |
+| Herstarten | `systemctl restart cssthema-api cssthema-worker` |
+| Gezondheid | `curl http://127.0.0.1/readyz` |
 
 | Symptoom | Oorzaak en oplossing |
 |---|---|
-| `docker run` geeft *permission denied* of een fout over `sysctl` | De LXC-features ontbreken: zet **nesting** en **keyctl** aan (§ 1) en herstart de container. |
-| Bouwen stopt met *Killed* of *exit code 137* | Te weinig geheugen: geef de container meer RAM of swap. |
-| Poort 8080 is al bezet | Zet `HTTP_PORT` in `.env` op een andere poort en gebruik die in NPM. |
-| NPM geeft *502 Bad Gateway* | Controleer IP en poort in NPM, en of `curl http://<IP>:8080/healthz` vanaf de NPM-machine werkt. |
-| `/readyz` geeft `"database":"error"` | Kijk in `make logs` naar de `postgres`- en `api`-regels. |
+| NPM geeft *502 Bad Gateway* | Controleer IP en poort in NPM, en of `curl http://<ip>/healthz` vanaf de NPM-host werkt. |
+| Het script stopt bij *Controle* | Het toont de laatste api-logs. Vaak is PostgreSQL of Redis niet gestart: `systemctl status postgresql redis-server`. |
+| Een CSS-bestand geeft 404 | Staat het in `/var/lib/cssthema/css-files/` en klopt de naam exact (hoofdletters tellen)? |
+| nginx start niet (*Address already in use*) | Er draait al een andere webserver op poort 80, bijvoorbeeld `apache2`: stop en verwijder die, en draai het script opnieuw. |
+
+## Alternatief: Docker
+
+Wie liever Docker gebruikt: `cp .env.example .env`, vul `POSTGRES_PASSWORD`, `SECRET_KEY` en `TRUSTED_PROXIES` in, en start met `make up`. De stack luistert dan op poort 8080 (zie [`docker/compose/`](../../docker/compose/)). Map in dat geval je CSS-bestanden als volume naar `/var/lib/cssthema/css-files` in de `nginx`-container.

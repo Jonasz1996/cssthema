@@ -9,7 +9,18 @@ https://cssthema.domain.be/proxmox.css   → gepubliceerd Proxmox-thema
 
 **Status:** fase 0 (fundament) staat. Er is nog geen functionaliteit voor eindgebruikers; die komt vanaf fase 1. Zie [`docs/`](docs/README.md) voor het ontwerp en de [MVP-roadmap](docs/07-mvp-roadmap.md).
 
-## Snel starten
+## Installeren
+
+Op een lege Debian 13-container, zonder Docker (volledige uitleg en NPM-config in [`docs/ops/installatie-debian.md`](docs/ops/installatie-debian.md)):
+
+```bash
+apt update && apt install -y git
+git clone https://github.com/Jonasz1996/cssthema.git /opt/cssthema
+TRUSTED_PROXIES=<ip-van-npm> PUBLIC_BASE_URL=https://cssthema.domain.be \
+  bash /opt/cssthema/deploy/debian/install.sh
+```
+
+Met Docker:
 
 ```bash
 cp .env.example .env        # vul minstens POSTGRES_PASSWORD en SECRET_KEY in
@@ -29,8 +40,9 @@ make lint typecheck test
 
 | Map | Inhoud |
 |---|---|
-| `backend/` | FastAPI-api en arq-worker (Python 3.12, SQLAlchemy 2, Alembic) |
+| `backend/` | FastAPI-api en arq-worker (Python 3.12 of 3.13, SQLAlchemy 2, Alembic) |
 | `frontend/` | React 19 + TypeScript SPA (Vite, Tailwind, TanStack Query) |
 | `docker/` | Dockerfiles, nginx-configuratie, compose-bestanden |
+| `deploy/` | Installatie zonder Docker (`deploy/debian/`: script en systemd-units) |
 | `scripts/` | Hulpscripts en spike-prototypes |
 | `docs/` | Ontwerp, spikes en (later) operationele handleidingen |
