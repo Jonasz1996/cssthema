@@ -332,7 +332,10 @@ Alles via omgevingsvariabelen (12-factor), gevalideerd met `pydantic-settings`. 
 | `STORAGE_BACKEND` | `filesystem` / `s3` | |
 | `AI_PROVIDER` / `AI_MODEL` / `AI_API_KEY` | `anthropic` / `claude-sonnet-5-5` | Ook via UI-instellingen (versleuteld) |
 | `FETCH_ALLOWED_CIDRS` | `10.0.0.0/8,192.168.0.0/16` | SSRF-allowlist |
-| `CSS_URL_ALLOWLIST` | `fonts.googleapis.com,fonts.gstatic.com` | Security-lint |
+| `CSS_URL_ALLOWLIST` | `fonts.googleapis.com,fonts.gstatic.com` (standaard) | Security-lint: hosts die `url()`/`@import` mogen gebruiken; de host van `PUBLIC_BASE_URL` mag altijd |
+| `CSS_MAX_BYTES` | `524288` (standaard, 512 KB) | Maximale grootte van de CSS van één thema (draft, import, publicatie) |
+| `CSS_REFRESH_URL` | `http://127.0.0.1:8081` (standaard); compose: `http://nginx:8081` | Interne refresh-server van nginx, aangeroepen na elke wijziging van publieke CSS (spike S3); leeg = niet verversen |
+| `CSS_FILES_DIR` | `/var/lib/cssthema/css-files` (standaard) | Handgemaakte CSS die nginx vóór de api serveert; bron voor *lokale bestanden importeren* (na import gearchiveerd in `.geimporteerd/`) |
 
 ## 7. Deployment
 

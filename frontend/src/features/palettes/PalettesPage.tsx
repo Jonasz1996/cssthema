@@ -1,6 +1,7 @@
 import { PlaceholderPage } from "@/components/PlaceholderPage";
-import { t } from "@/lib/i18n";
+import { useI18n } from "@/lib/i18n";
 
 export function PalettesPage() {
-  return <PlaceholderPage title={t("nav.palettes")} />;
+  const { t } = useI18n();
+  return <PlaceholderPage title={t("palettes.title")} hint={t("palettes.hint")} />;
 }

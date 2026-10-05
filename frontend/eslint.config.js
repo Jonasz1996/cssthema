@@ -23,7 +23,7 @@ export default tseslint.config(
     },
   },
   {
-    // shadcn/ui convention: components export their cva variants alongside the component.
+    // UI-componenten exporteren ook hun cva-varianten en helpers (toast, tabIds, useRipple).
     files: ["src/components/ui/**/*.tsx"],
     rules: { "react-refresh/only-export-components": "off" },
   },

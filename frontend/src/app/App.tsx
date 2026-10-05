@@ -6,6 +6,10 @@ import { routes } from "./routes";
 
 const router = createBrowserRouter(routes);
 
+/**
+ * Een taalwissel remount hier niets: componenten vertalen met `useI18n()` en renderen zelf
+ * opnieuw, zodat focus, formulieren en open dialogen blijven staan.
+ */
 export function App() {
   const [queryClient] = useState(createQueryClient);
   return (

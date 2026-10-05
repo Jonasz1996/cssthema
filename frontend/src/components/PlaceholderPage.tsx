@@ -1,18 +1,23 @@
-import { Construction } from "lucide-react";
 import type { ReactNode } from "react";
-import { Card, CardContent } from "@/components/ui/card";
-import { t } from "@/lib/i18n";
+import { Callout, PageHeader } from "@/components/ui";
+import { useI18n } from "@/lib/i18n";
 
-export function PlaceholderPage({ title, children }: { title: string; children?: ReactNode }) {
+export interface PlaceholderPageProps {
+  title: string;
+  hint?: ReactNode;
+  children?: ReactNode;
+}
+
+/** Pagina voor een scherm dat in een volgende versie komt: titel, hint en een melding. */
+export function PlaceholderPage({ title, hint, children }: PlaceholderPageProps) {
+  const { t } = useI18n();
   return (
-    <section className="flex flex-col gap-4">
-      <h1 className="text-2xl font-semibold">{title}</h1>
-      <Card>
-        <CardContent className="flex items-center gap-3 pt-4 text-muted-foreground">
-          <Construction className="size-5 text-accent" aria-hidden />
-          <p>{t("app.comingLater")}</p>
-        </CardContent>
-      </Card>
+    <section>
+      <PageHeader title={title} hint={hint} />
+      <Callout>
+        <span aria-hidden>🚧 </span>
+        {t("common.comingLater")}
+      </Callout>
       {children}
     </section>
   );

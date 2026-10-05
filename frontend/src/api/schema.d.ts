@@ -55,10 +55,489 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/dashboard": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Dashboard */
+        get: operations["dashboard_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/themes": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Themes */
+        get: operations["themes_list"];
+        put?: never;
+        /** Create Theme */
+        post: operations["themes_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/themes/import": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Import Theme */
+        post: operations["themes_import"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/themes/local-files": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Handgemaakte CSS-bestanden in CSS_FILES_DIR */
+        get: operations["themes_list_local_files"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/themes/local-files/import": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Handgemaakte CSS-bestanden als thema importeren (en archiveren) */
+        post: operations["themes_import_local_files"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/themes/{theme_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Theme */
+        get: operations["themes_get"];
+        put?: never;
+        post?: never;
+        /** Delete Theme */
+        delete: operations["themes_delete"];
+        options?: never;
+        head?: never;
+        /** Update Theme */
+        patch: operations["themes_update"];
+        trace?: never;
+    };
+    "/api/v1/themes/{theme_id}/restore": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Restore Theme */
+        post: operations["themes_restore"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/themes/{theme_id}/duplicate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Duplicate Theme */
+        post: operations["themes_duplicate"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/themes/{theme_id}/draft": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Draft */
+        get: operations["themes_get_draft"];
+        /** Draft opslaan (autosave) */
+        put: operations["themes_update_draft"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/themes/{theme_id}/draft/reset": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Draft terugzetten naar een versie (zonder publiceren) */
+        post: operations["themes_reset_draft"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/themes/{theme_id}/lint": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Lint Theme */
+        post: operations["themes_lint"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/themes/{theme_id}/publish": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Publish Theme */
+        post: operations["themes_publish"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/themes/{theme_id}/rollback": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Rollback Theme
+         * @description Nieuwe live versie met de inhoud van versie N; vervangt ook de draft (`If-Match`).
+         */
+        post: operations["themes_rollback"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/themes/{theme_id}/versions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Versions */
+        get: operations["themes_list_versions"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/themes/{theme_id}/versions/{version_number}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Version */
+        get: operations["themes_get_version"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/themes/{theme_id}/diff": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Diff Theme */
+        get: operations["themes_diff"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/themes/{theme_id}/export": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Export Theme */
+        get: operations["themes_export"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/palettes": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List Palettes
+         * @description Alle paletten; de ingebouwde eerst, daarna op naam.
+         */
+        get: operations["palettes_list"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/palettes/{palette_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Palette */
+        get: operations["palettes_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/{ref}.css": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Gepubliceerde CSS van een thema */
+        get: operations["public_css"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/themes/{ref}.css": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Gepubliceerde CSS (`{slug}`) of een vaste versie (`{slug}@{n}`) */
+        get: operations["public_theme_css"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        /** Body_themes_import */
+        Body_themes_import: {
+            /**
+             * File
+             * @description `.css` of `.cssthema.zip`
+             */
+            file: string;
+            /**
+             * On Conflict
+             * @description Slug bestaat al: `rename` (`-2`, `-3`, …), `new_version` (nieuwe draft en versie op het bestaande thema) of `fail` (409).
+             * @default rename
+             * @enum {string}
+             */
+            on_conflict: "rename" | "new_version" | "fail";
+            /**
+             * Publish
+             * @description `.css`: v1 meteen live (standaard niet). Bundel: standaard de live versie uit het manifest; `false` publiceert niets, `true` desnoods de laatste versie.
+             */
+            publish?: boolean | null;
+            /**
+             * Name
+             * @description Naam (en slug).
+             */
+            name?: string | null;
+        };
+        /** Dashboard */
+        Dashboard: {
+            /**
+             * Themes Total
+             * @description Niet-verwijderde thema's.
+             */
+            themes_total: number;
+            /** Themes Published */
+            themes_published: number;
+            /**
+             * Themes Draft Dirty
+             * @description Thema's met niet-gepubliceerde wijzigingen.
+             */
+            themes_draft_dirty: number;
+            /** Themes Deleted */
+            themes_deleted: number;
+            /** Palettes Total */
+            palettes_total: number;
+            /**
+             * Recent
+             * @description De 5 laatst gewijzigde thema's.
+             */
+            recent: components["schemas"]["Theme"][];
+            local_files: components["schemas"]["LocalFilesSummary"];
+        };
+        /** DiffStats */
+        DiffStats: {
+            /** Added */
+            added: number;
+            /** Removed */
+            removed: number;
+        };
+        /** Draft */
+        Draft: {
+            /** Css */
+            css: string;
+            /** Lock Version */
+            lock_version: number;
+            /** Size Bytes */
+            size_bytes: number;
+            /** Updated At */
+            updated_at: string | null;
+            updated_by: components["schemas"]["UserRef"] | null;
+        };
+        /** DraftReset */
+        DraftReset: {
+            /** Version Number */
+            version_number: number;
+        };
+        /** DraftUpdate */
+        DraftUpdate: {
+            /** Css */
+            css: string;
+        };
+        /** DuplicateRequest */
+        DuplicateRequest: {
+            /** Name */
+            name: string;
+            /** Slug */
+            slug?: string | null;
+            /** Service Id */
+            service_id?: string | null;
+        };
+        /**
+         * EtagState
+         * @description Huidige toestand van een thema, meegestuurd bij 412 (docs/05 § 5.1).
+         */
+        EtagState: {
+            /**
+             * Etag
+             * @example "lv-14"
+             */
+            etag: string;
+            /** Lock Version */
+            lock_version: number;
+            updated_by?: components["schemas"]["UserRef"] | null;
+            /**
+             * Updated At
+             * Format: date-time
+             */
+            updated_at: string;
+        };
+        /** HTTPValidationError */
+        HTTPValidationError: {
+            /** Detail */
+            detail?: components["schemas"]["ValidationError"][];
+        };
         /** HealthStatus */
         HealthStatus: {
             /**
@@ -74,6 +553,215 @@ export interface components {
                 [key: string]: "ok" | "error";
             };
         };
+        /** ImportedTheme */
+        ImportedTheme: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Slug */
+            slug: string;
+            /** Name */
+            name: string;
+            /** Description */
+            description: string | null;
+            /** Service Id */
+            service_id: string | null;
+            /** Palette Id */
+            palette_id: string | null;
+            status: components["schemas"]["ThemeStatus"];
+            /** Tags */
+            tags: string[];
+            published_version: components["schemas"]["VersionSummary"] | null;
+            /** Latest Version Number */
+            latest_version_number: number;
+            /**
+             * Lock Version
+             * @description Voor `If-Match: "lv-<n>"` bij de volgende wijziging.
+             */
+            lock_version: number;
+            /**
+             * Draft Dirty
+             * @description De draft (of het gekoppelde palet) verschilt van de live versie; zonder live versie: de draft is niet leeg.
+             */
+            draft_dirty: boolean;
+            /** Draft Size Bytes */
+            draft_size_bytes: number;
+            /** Draft Updated At */
+            draft_updated_at: string | null;
+            draft_updated_by: components["schemas"]["UserRef"] | null;
+            /**
+             * Public Url
+             * @example https://cssthema.domain.be/proxmox.css
+             */
+            public_url: string;
+            /**
+             * Shadowed By File
+             * @description Er staat een handgemaakt bestand `<slug>.css` in de css-files-map; nginx serveert dat in plaats van dit thema.
+             */
+            shadowed_by_file: boolean;
+            /** Deleted At */
+            deleted_at: string | null;
+            created_by: components["schemas"]["UserRef"] | null;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /**
+             * Updated At
+             * Format: date-time
+             */
+            updated_at: string;
+            /** Source File */
+            source_file: string;
+            /**
+             * Archive Error
+             * @description Het bestand is niet gearchiveerd (mislukt, of het thema is niet live); het blijft voorgaan op het thema.
+             */
+            archive_error?: string | null;
+        };
+        /**
+         * LintFailedProblem
+         * @description 422 `theme_lint_failed`: `errors[]` bevat de lint-fouten (docs/05 § 2).
+         */
+        LintFailedProblem: {
+            /** Type */
+            type: string;
+            /** Title */
+            title: string;
+            /** Status */
+            status: number;
+            /** Code */
+            code: string;
+            /** Detail */
+            detail?: string | null;
+            /** Instance */
+            instance?: string | null;
+            /** Request Id */
+            request_id?: string | null;
+            /** Errors */
+            errors?: {
+                [key: string]: unknown;
+            }[] | null;
+        };
+        /** LintIssueOut */
+        LintIssueOut: {
+            /** Line */
+            line: number;
+            /** Column */
+            column: number;
+            /**
+             * Rule
+             * @example external-url
+             */
+            rule: string;
+            /**
+             * Severity
+             * @example error
+             */
+            severity: string;
+            /** Message */
+            message: string;
+        };
+        /** LintRequest */
+        LintRequest: {
+            /**
+             * Css
+             * @description Standaard: de opgeslagen draft.
+             */
+            css?: string | null;
+        };
+        /** LintResult */
+        LintResult: {
+            /** Ok */
+            ok: boolean;
+            /** Errors */
+            errors: components["schemas"]["LintIssueOut"][];
+            /** Warnings */
+            warnings: components["schemas"]["LintIssueOut"][];
+            /** Size Bytes */
+            size_bytes: number;
+            /**
+             * Unmatched Selectors
+             * @description Selectors zonder match in de snapshot (fase 2).
+             */
+            unmatched_selectors?: string[];
+        };
+        /** LocalCssFile */
+        LocalCssFile: {
+            /**
+             * Name
+             * @example proxmox.css
+             */
+            name: string;
+            /**
+             * Slug
+             * @description De slug die het thema zou krijgen (als geldig).
+             */
+            slug: string | null;
+            /** Size Bytes */
+            size_bytes: number;
+            /**
+             * Modified At
+             * Format: date-time
+             */
+            modified_at: string;
+            /** Importable */
+            importable: boolean;
+            /**
+             * Reason
+             * @description Waarom niet importeerbaar.
+             */
+            reason?: string | null;
+            /**
+             * Theme Id
+             * @description Bestaand thema met dezelfde slug.
+             */
+            theme_id?: string | null;
+        };
+        /** LocalFilesSummary */
+        LocalFilesSummary: {
+            /**
+             * Dir
+             * @example /var/lib/cssthema/css-files
+             */
+            dir: string;
+            /**
+             * Total
+             * @description Aantal handgemaakte .css-bestanden in de map.
+             */
+            total: number;
+            /**
+             * Importable
+             * @description Waarvan direct als thema te importeren.
+             */
+            importable: number;
+        };
+        /** LocalImportRequest */
+        LocalImportRequest: {
+            /** Names */
+            names: string[];
+            /**
+             * Publish
+             * @default true
+             */
+            publish: boolean;
+            /**
+             * Archive
+             * @description Verplaats het bestand na de import naar `.geimporteerd/`, zodat nginx naar het thema doorvalt. Alleen als het thema live is (`publish`); anders blijft het bestand staan en staat de reden in `archive_error`.
+             * @default true
+             */
+            archive: boolean;
+        };
+        /** LocalImportResult */
+        LocalImportResult: {
+            /** Imported */
+            imported: components["schemas"]["ImportedTheme"][];
+            /** Skipped */
+            skipped: components["schemas"]["SkippedFile"][];
+        };
         /** MetaInfo */
         MetaInfo: {
             /** Name */
@@ -84,6 +772,64 @@ export interface components {
             environment: string;
             /** Public Base Url */
             public_base_url: string;
+        };
+        /** Palette */
+        Palette: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Slug */
+            slug: string;
+            /** Name */
+            name: string;
+            /**
+             * Tokens
+             * @description Design tokens; in gecompileerde CSS als `--ct-<naam>`.
+             * @example {
+             *       "bg": "#2e3440",
+             *       "fg": "#eceff4",
+             *       "radius": "6px"
+             *     }
+             */
+            tokens: {
+                [key: string]: string;
+            };
+            /** Is Builtin */
+            is_builtin: boolean;
+            /**
+             * Theme Count
+             * @description Aantal (niet-verwijderde) thema's met dit palet.
+             */
+            theme_count: number;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+        };
+        /** PreconditionFailedProblem */
+        PreconditionFailedProblem: {
+            /** Type */
+            type: string;
+            /** Title */
+            title: string;
+            /** Status */
+            status: number;
+            /** Code */
+            code: string;
+            /** Detail */
+            detail?: string | null;
+            /** Instance */
+            instance?: string | null;
+            /** Request Id */
+            request_id?: string | null;
+            /** Errors */
+            errors?: {
+                [key: string]: unknown;
+            }[] | null;
+            current: components["schemas"]["EtagState"];
         };
         /** Problem */
         Problem: {
@@ -105,6 +851,288 @@ export interface components {
             errors?: {
                 [key: string]: unknown;
             }[] | null;
+        };
+        /** PublishRequest */
+        PublishRequest: {
+            /** Message */
+            message?: string | null;
+            /**
+             * Expected Lock Version
+             * @description lock_version van de draft die je publiceert.
+             */
+            expected_lock_version: number;
+        };
+        /** RollbackRequest */
+        RollbackRequest: {
+            /** Version Number */
+            version_number: number;
+            /** Message */
+            message?: string | null;
+        };
+        /** SkippedFile */
+        SkippedFile: {
+            /** Name */
+            name: string;
+            /** Reason */
+            reason: string;
+        };
+        /** Theme */
+        Theme: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Slug */
+            slug: string;
+            /** Name */
+            name: string;
+            /** Description */
+            description: string | null;
+            /** Service Id */
+            service_id: string | null;
+            /** Palette Id */
+            palette_id: string | null;
+            status: components["schemas"]["ThemeStatus"];
+            /** Tags */
+            tags: string[];
+            published_version: components["schemas"]["VersionSummary"] | null;
+            /** Latest Version Number */
+            latest_version_number: number;
+            /**
+             * Lock Version
+             * @description Voor `If-Match: "lv-<n>"` bij de volgende wijziging.
+             */
+            lock_version: number;
+            /**
+             * Draft Dirty
+             * @description De draft (of het gekoppelde palet) verschilt van de live versie; zonder live versie: de draft is niet leeg.
+             */
+            draft_dirty: boolean;
+            /** Draft Size Bytes */
+            draft_size_bytes: number;
+            /** Draft Updated At */
+            draft_updated_at: string | null;
+            draft_updated_by: components["schemas"]["UserRef"] | null;
+            /**
+             * Public Url
+             * @example https://cssthema.domain.be/proxmox.css
+             */
+            public_url: string;
+            /**
+             * Shadowed By File
+             * @description Er staat een handgemaakt bestand `<slug>.css` in de css-files-map; nginx serveert dat in plaats van dit thema.
+             */
+            shadowed_by_file: boolean;
+            /** Deleted At */
+            deleted_at: string | null;
+            created_by: components["schemas"]["UserRef"] | null;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /**
+             * Updated At
+             * Format: date-time
+             */
+            updated_at: string;
+        };
+        /** ThemeCreate */
+        ThemeCreate: {
+            /** Name */
+            name: string;
+            /**
+             * Slug
+             * @description Standaard afgeleid van de naam.
+             */
+            slug?: string | null;
+            /** Description */
+            description?: string | null;
+            /** Service Id */
+            service_id?: string | null;
+            /** Palette Id */
+            palette_id?: string | null;
+            /** Tags */
+            tags?: string[];
+            /**
+             * Css
+             * @description Startinhoud van de draft.
+             */
+            css?: string | null;
+            template?: components["schemas"]["ThemeTemplate"] | null;
+        };
+        /** ThemePage */
+        ThemePage: {
+            /** Items */
+            items: components["schemas"]["Theme"][];
+            /** Next Cursor */
+            next_cursor?: string | null;
+        };
+        /**
+         * ThemeStatus
+         * @enum {string}
+         */
+        ThemeStatus: "draft" | "published" | "archived";
+        /**
+         * ThemeTemplate
+         * @description Startinhoud: leeg, de draft van een ander thema, of een versie van een thema.
+         */
+        ThemeTemplate: {
+            /**
+             * Kind
+             * @default empty
+             * @enum {string}
+             */
+            kind: "empty" | "theme" | "version";
+            /**
+             * Id
+             * @description Thema-ID (bij `theme`/`version`).
+             */
+            id?: string | null;
+            /** Version Number */
+            version_number?: number | null;
+        };
+        /**
+         * ThemeUpdate
+         * @description Alleen de meegestuurde velden veranderen; `null` maakt een optioneel veld leeg.
+         */
+        ThemeUpdate: {
+            /** Name */
+            name?: string | null;
+            /** Slug */
+            slug?: string | null;
+            /** Description */
+            description?: string | null;
+            /** Service Id */
+            service_id?: string | null;
+            /** Palette Id */
+            palette_id?: string | null;
+            /** Tags */
+            tags?: string[] | null;
+        };
+        /** UserRef */
+        UserRef: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Display Name */
+            display_name: string;
+        };
+        /** ValidationError */
+        ValidationError: {
+            /** Location */
+            loc: (string | number)[];
+            /** Message */
+            msg: string;
+            /** Error Type */
+            type: string;
+            /** Input */
+            input?: unknown;
+            /** Context */
+            ctx?: Record<string, never>;
+        };
+        /** Version */
+        Version: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Version Number */
+            version_number: number;
+            source: components["schemas"]["VersionSource"];
+            /** Message */
+            message: string | null;
+            /**
+             * Sha256
+             * @description SHA-256 (hex) van de gecompileerde CSS; basis van de ETag.
+             */
+            sha256: string;
+            /**
+             * Size Bytes
+             * @description Grootte van de gecompileerde CSS in bytes.
+             */
+            size_bytes: number;
+            created_by: components["schemas"]["UserRef"] | null;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Is Live */
+            is_live: boolean;
+            /**
+             * Source Version Number
+             * @description Bij een rollback: de versie waarvan gekopieerd is.
+             */
+            source_version_number?: number | null;
+            /** Css Source */
+            css_source: string;
+            /** Css Compiled */
+            css_compiled: string;
+            /** Lint Warnings */
+            lint_warnings: components["schemas"]["LintIssueOut"][];
+        };
+        /** VersionDiff */
+        VersionDiff: {
+            /** From */
+            from: number | "draft";
+            /** To */
+            to: number | "draft";
+            /** Unified */
+            unified: string;
+            stats: components["schemas"]["DiffStats"];
+        };
+        /** VersionPage */
+        VersionPage: {
+            /** Items */
+            items: components["schemas"]["VersionSummary"][];
+            /** Next Cursor */
+            next_cursor?: string | null;
+        };
+        /**
+         * VersionSource
+         * @enum {string}
+         */
+        VersionSource: "manual" | "rollback" | "import" | "duplicate" | "ai";
+        /** VersionSummary */
+        VersionSummary: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Version Number */
+            version_number: number;
+            source: components["schemas"]["VersionSource"];
+            /** Message */
+            message: string | null;
+            /**
+             * Sha256
+             * @description SHA-256 (hex) van de gecompileerde CSS; basis van de ETag.
+             */
+            sha256: string;
+            /**
+             * Size Bytes
+             * @description Grootte van de gecompileerde CSS in bytes.
+             */
+            size_bytes: number;
+            created_by: components["schemas"]["UserRef"] | null;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Is Live */
+            is_live: boolean;
+            /**
+             * Source Version Number
+             * @description Bij een rollback: de versie waarvan gekopieerd is.
+             */
+            source_version_number?: number | null;
         };
     };
     responses: never;
@@ -198,6 +1226,1461 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["MetaInfo"];
+                };
+            };
+            /** @description Interne fout */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    dashboard_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Dashboard"];
+                };
+            };
+            /** @description Interne fout */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    themes_list: {
+        parameters: {
+            query?: {
+                /** @description Zoekt in naam, slug en beschrijving. */
+                q?: string | null;
+                status?: components["schemas"]["ThemeStatus"] | null;
+                palette_id?: string | null;
+                service_id?: string | null;
+                tag?: string | null;
+                include_deleted?: boolean;
+                sort?: "-updated_at" | "name" | "-created_at";
+                limit?: number;
+                cursor?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ThemePage"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+            /** @description Interne fout */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    themes_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ThemeCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Theme"];
+                };
+            };
+            /** @description Conflict (slug of status) */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description CSS groter dan CSS_MAX_BYTES */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Ongeldig */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Interne fout */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    themes_import: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": components["schemas"]["Body_themes_import"];
+            };
+        };
+        responses: {
+            /** @description Nieuwe versie op een bestaand thema */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Theme"];
+                };
+            };
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Theme"];
+                };
+            };
+            /** @description Conflict (slug of status) */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description CSS groter dan CSS_MAX_BYTES */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Geen .css of .cssthema.zip */
+            415: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Lint-fouten of ongeldige invoer */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LintFailedProblem"];
+                };
+            };
+            /** @description Interne fout */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    themes_list_local_files: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LocalCssFile"][];
+                };
+            };
+            /** @description Interne fout */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    themes_import_local_files: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["LocalImportRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LocalImportResult"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+            /** @description Interne fout */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    themes_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                theme_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Theme"];
+                };
+            };
+            /** @description Thema niet gevonden */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+            /** @description Interne fout */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    themes_delete: {
+        parameters: {
+            query?: {
+                /** @description Definitief verwijderen, inclusief alle versies. */
+                hard?: boolean;
+            };
+            header?: {
+                /** @description ETag van de laatst gelezen toestand, bv. `"lv-12"` (docs/05 § 5.1). Optioneel. */
+                "If-Match"?: string | null;
+            };
+            path: {
+                theme_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Thema niet gevonden */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description If-Match komt niet overeen */
+            412: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PreconditionFailedProblem"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+            /** @description Interne fout */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    themes_update: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description ETag van de laatst gelezen toestand, bv. `"lv-12"` (docs/05 § 5.1). Verplicht; zonder: 428. */
+                "If-Match"?: string | null;
+            };
+            path: {
+                theme_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ThemeUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Theme"];
+                };
+            };
+            /** @description Thema niet gevonden */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Conflict (slug of status) */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description If-Match komt niet overeen */
+            412: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PreconditionFailedProblem"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+            /** @description If-Match ontbreekt */
+            428: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Interne fout */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    themes_restore: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                theme_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Theme"];
+                };
+            };
+            /** @description Thema niet gevonden */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Slug intussen bezet */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+            /** @description Interne fout */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    themes_duplicate: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                theme_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DuplicateRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Theme"];
+                };
+            };
+            /** @description Thema niet gevonden */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Conflict (slug of status) */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+            /** @description Interne fout */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    themes_get_draft: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                theme_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Draft"];
+                };
+            };
+            /** @description Thema niet gevonden */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+            /** @description Interne fout */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    themes_update_draft: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description ETag van de laatst gelezen toestand, bv. `"lv-12"` (docs/05 § 5.1). Verplicht; zonder: 428. */
+                "If-Match"?: string | null;
+            };
+            path: {
+                theme_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DraftUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Draft"];
+                };
+            };
+            /** @description Thema niet gevonden */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Conflict (slug of status) */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description If-Match komt niet overeen */
+            412: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PreconditionFailedProblem"];
+                };
+            };
+            /** @description CSS groter dan CSS_MAX_BYTES */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+            /** @description If-Match ontbreekt */
+            428: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Interne fout */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    themes_reset_draft: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description ETag van de laatst gelezen toestand, bv. `"lv-12"` (docs/05 § 5.1). Verplicht; zonder: 428. */
+                "If-Match"?: string | null;
+            };
+            path: {
+                theme_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DraftReset"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Draft"];
+                };
+            };
+            /** @description Thema niet gevonden */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Conflict (slug of status) */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description If-Match komt niet overeen */
+            412: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PreconditionFailedProblem"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+            /** @description If-Match ontbreekt */
+            428: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Interne fout */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    themes_lint: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                theme_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["LintRequest"] | null;
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LintResult"];
+                };
+            };
+            /** @description Thema niet gevonden */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+            /** @description Interne fout */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    themes_publish: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                theme_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PublishRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Version"];
+                };
+            };
+            /** @description Thema niet gevonden */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Geen wijzigingen of thema verwijderd */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description If-Match komt niet overeen */
+            412: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PreconditionFailedProblem"];
+                };
+            };
+            /** @description Lint-fouten of ongeldige invoer */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LintFailedProblem"];
+                };
+            };
+            /** @description Interne fout */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    themes_rollback: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description ETag van de laatst gelezen toestand, bv. `"lv-12"` (docs/05 § 5.1). Verplicht; zonder: 428. */
+                "If-Match"?: string | null;
+            };
+            path: {
+                theme_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RollbackRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Version"];
+                };
+            };
+            /** @description Thema niet gevonden */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Die versie is al live */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description If-Match komt niet overeen */
+            412: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PreconditionFailedProblem"];
+                };
+            };
+            /** @description Lint-fouten of ongeldige invoer */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LintFailedProblem"];
+                };
+            };
+            /** @description If-Match ontbreekt */
+            428: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Interne fout */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    themes_list_versions: {
+        parameters: {
+            query?: {
+                limit?: number;
+                cursor?: string | null;
+            };
+            header?: never;
+            path: {
+                theme_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["VersionPage"];
+                };
+            };
+            /** @description Thema niet gevonden */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+            /** @description Interne fout */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    themes_get_version: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                theme_id: string;
+                version_number: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Version"];
+                };
+            };
+            /** @description Thema niet gevonden */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+            /** @description Interne fout */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    themes_diff: {
+        parameters: {
+            query: {
+                /** @description Versienummer of `draft`. */
+                from: string;
+                /** @description Versienummer of `draft`. */
+                to?: string;
+            };
+            header?: never;
+            path: {
+                theme_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["VersionDiff"];
+                };
+            };
+            /** @description Thema niet gevonden */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+            /** @description Interne fout */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    themes_export: {
+        parameters: {
+            query?: {
+                format?: "css" | "bundle";
+                /** @description Alleen bij `format=css`; standaard de live versie. */
+                version?: number | null;
+            };
+            header?: never;
+            path: {
+                theme_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Download (`Content-Disposition: attachment`) */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/css": string;
+                    "application/zip": string;
+                };
+            };
+            /** @description Thema niet gevonden */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Nog niet gepubliceerd (format=css) */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+            /** @description Interne fout */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    palettes_list: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Palette"][];
+                };
+            };
+            /** @description Interne fout */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    palettes_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                palette_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Palette"];
+                };
+            };
+            /** @description Palet niet gevonden */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+            /** @description Interne fout */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    public_css: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                ref: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description De CSS */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/css": string;
+                };
+            };
+            /** @description Oude slug (na hernoemen, < 90 dagen): naar de nieuwe slug */
+            301: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Niet gewijzigd (If-None-Match / If-Modified-Since) */
+            304: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Onbekend */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/css": string;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+            /** @description Interne fout */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    public_theme_css: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                ref: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description De CSS */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/css": string;
+                };
+            };
+            /** @description Oude slug (na hernoemen, < 90 dagen): naar de nieuwe slug */
+            301: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Niet gewijzigd (If-None-Match / If-Modified-Since) */
+            304: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Onbekend */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/css": string;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
             /** @description Interne fout */

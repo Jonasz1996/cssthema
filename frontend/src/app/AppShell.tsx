@@ -1,93 +1,80 @@
-import { Moon, Sun } from "lucide-react";
-import { NavLink, Outlet } from "react-router";
-import { Button } from "@/components/ui/button";
-import { t } from "@/lib/i18n";
-import { cn } from "@/lib/utils";
-import { type NavItem, primaryNav, secondaryNav } from "./nav";
+import { Outlet, ScrollRestoration, useLocation } from "react-router";
+import { BackgroundCanvas } from "@/components/BackgroundCanvas";
+import { ButtonLink, Card, CardBody, TerminalBar, Toaster } from "@/components/ui";
+import { SHAKE_TARGET_ID } from "@/lib/fx";
+import { useI18n } from "@/lib/i18n";
+import { useReducedMotion } from "@/lib/motion";
+import type { NetworkMode } from "@/lib/particles";
+import { isNavItemActive, isWideRoute, mainNav } from "./nav";
+import { routeCommand } from "./shell-command";
+import { BackgroundToggle, LanguageToggle, SystemStatus } from "./ShellControls";
 import { useUiStore } from "./ui-store";
 
-function SidebarLink({ item }: { item: NavItem }) {
-  const Icon = item.icon;
+function MainNav({ pathname }: { pathname: string }) {
+  const { t } = useI18n();
   return (
-    <NavLink
-      to={item.to}
-      end={item.to === "/"}
-      className={({ isActive }) =>
-        cn(
-          "flex items-center gap-2 rounded-md px-3 py-2 text-sm text-muted-foreground transition-colors hover:bg-muted hover:text-foreground",
-          isActive && "bg-accent-muted text-foreground",
-        )
-      }
-    >
-      <Icon className="size-4" aria-hidden />
-      <span>{t(item.labelKey)}</span>
-    </NavLink>
+    <nav aria-label={t("nav.label")} className="min-w-0">
+      <ul className="m-0 flex list-none flex-wrap gap-2.5 p-0">
+        {mainNav.map((item) => (
+          <li key={item.to}>
+            <ButtonLink to={item.to} active={isNavItemActive(item, pathname)}>
+              <span aria-hidden>{item.emoji}</span>
+              {t(item.labelKey)}
+            </ButtonLink>
+          </li>
+        ))}
+      </ul>
+    </nav>
   );
 }
 
-function Header() {
-  const colorMode = useUiStore((s) => s.colorMode);
-  const toggleColorMode = useUiStore((s) => s.toggleColorMode);
-  return (
-    <header className="flex h-14 shrink-0 items-center gap-4 border-b border-border bg-panel px-4">
-      <div className="flex w-52 items-center gap-2 font-semibold">
-        <span className="text-accent" aria-hidden>
-          ◆
-        </span>
-        {t("app.name")}
-      </div>
-      {/* Placeholder: the command palette arrives in a later phase. */}
-      <button
-        type="button"
-        className="flex h-9 w-full max-w-md items-center justify-between rounded-md border border-border bg-background px-3 text-sm text-muted-foreground hover:border-input"
-        aria-label={t("app.search")}
-      >
-        <span>{t("app.search")}</span>
-        <kbd className="rounded border border-border px-1.5 font-mono text-xs">⌘K</kbd>
-      </button>
-      <div className="ml-auto">
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={toggleColorMode}
-          aria-label={t("app.toggleTheme")}
-          title={t("app.toggleTheme")}
-        >
-          {colorMode === "dark" ? <Sun /> : <Moon />}
-        </Button>
-      </div>
-    </header>
-  );
-}
-
+/**
+ * App-shell zoals aiverslag: één gecentreerde glazen kaart met terminalbalk, daaronder de
+ * navigatieknoppen met rechts systeemstatus, achtergrond- en taalschakelaar, en de pagina.
+ */
 export function AppShell() {
+  const { t } = useI18n();
+  const { pathname } = useLocation();
+  const wide = isWideRoute(pathname);
+  const reducedMotion = useReducedMotion();
+  const backgroundEnabled = useUiStore((state) => state.backgroundEnabled);
+  const commandOverride = useUiStore((state) => state.commandOverride);
+  const mode: NetworkMode =
+    !backgroundEnabled || reducedMotion ? "off" : wide ? "paused" : "running";
+
   return (
-    <div className="flex h-full flex-col">
-      <Header />
-      <div className="flex min-h-0 flex-1">
-        <nav
-          aria-label="Main"
-          className="flex w-56 shrink-0 flex-col justify-between border-r border-border bg-panel p-2"
-        >
-          <ul className="flex flex-col gap-0.5">
-            {primaryNav.map((item) => (
-              <li key={item.to}>
-                <SidebarLink item={item} />
-              </li>
-            ))}
-          </ul>
-          <ul className="flex flex-col gap-0.5 border-t border-border pt-2">
-            {secondaryNav.map((item) => (
-              <li key={item.to}>
-                <SidebarLink item={item} />
-              </li>
-            ))}
-          </ul>
-        </nav>
-        <main className="min-w-0 flex-1 overflow-auto p-6">
-          <Outlet />
-        </main>
+    <div className="ui-stage">
+      <BackgroundCanvas mode={mode} />
+      <a
+        href="#main"
+        onClick={(event) => {
+          event.preventDefault();
+          document.getElementById("main")?.focus();
+        }}
+        className="sr-only rounded-[10px] bg-btn px-4 py-2 font-bold text-white focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-[90]"
+      >
+        {t("common.skipToContent")}
+      </a>
+      <div id={SHAKE_TARGET_ID} className="ui-wrap" data-wide={wide}>
+        <Card>
+          <TerminalBar command={commandOverride ?? routeCommand(pathname)} />
+          <CardBody>
+            <header className="mb-[22px] flex flex-wrap items-center gap-x-2.5 gap-y-3 border-b border-line pb-[18px]">
+              <MainNav pathname={pathname} />
+              <div className="ml-auto flex flex-wrap items-center gap-1.5">
+                <SystemStatus />
+                <BackgroundToggle />
+                <LanguageToggle />
+              </div>
+            </header>
+            <main id="main" tabIndex={-1} className="min-w-0 outline-none">
+              <Outlet />
+            </main>
+          </CardBody>
+        </Card>
       </div>
+      <Toaster />
+      <ScrollRestoration />
     </div>
   );
 }

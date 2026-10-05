@@ -1,0 +1,14 @@
+{
+  "title": "Dashboard",
+  "hint": "Overview of your themes and the CSS server.",
+  "kpiThemes": "Themes",
+  "kpiPublished": "Published",
+  "kpiDraftDirty": "Draft changed",
+  "kpiPalettes": "Palettes",
+  "kpiPending": "available with the theme API",
+  "systemStatus": "System status",
+  "liveness": "Liveness (/healthz)",
+  "readiness": "Readiness (/readyz)",
+  "livenessHint": "The API process responds.",
+  "readinessHint": "Database and Redis are reachable."
+}

@@ -8,7 +8,7 @@ from cssthema.db.models.palette import Palette
 from cssthema.db.models.service import Service
 from cssthema.db.models.setting import Setting
 from cssthema.db.models.snapshot import DomSnapshot, SnapshotSelector
-from cssthema.db.models.theme import Theme, ThemeVersion
+from cssthema.db.models.theme import Theme, ThemeSlugRedirect, ThemeVersion
 from cssthema.db.models.user import User
 
 __all__ = [
@@ -22,6 +22,7 @@ __all__ = [
     "Setting",
     "SnapshotSelector",
     "Theme",
+    "ThemeSlugRedirect",
     "ThemeVersion",
     "User",
 ]

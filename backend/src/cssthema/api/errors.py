@@ -11,6 +11,7 @@ from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from cssthema.api.middleware import REQUEST_ID_HEADER
 from cssthema.logging import get_logger
+from cssthema.services.errors import ServiceError
 
 PROBLEM_BASE = "https://cssthema.dev/problems/"
 PROBLEM_MEDIA_TYPE = "application/problem+json"
@@ -102,6 +103,19 @@ def problem_response(
 def install_error_handlers(app: FastAPI) -> None:
     @app.exception_handler(ProblemError)
     async def _problem(request: Request, exc: ProblemError) -> JSONResponse:
+        return problem_response(
+            request,
+            status=exc.status,
+            code=exc.code,
+            title=exc.title,
+            detail=exc.detail,
+            errors=exc.errors,
+            extra=exc.extra,
+            headers=exc.headers,
+        )
+
+    @app.exception_handler(ServiceError)
+    async def _service(request: Request, exc: ServiceError) -> JSONResponse:
         return problem_response(
             request,
             status=exc.status,

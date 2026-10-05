@@ -53,6 +53,8 @@ services:
     environment:
       <<: *backend-env
       RUN_MIGRATIONS_ON_START: ${RUN_MIGRATIONS_ON_START:-true}
+      # Interne refresh-server van nginx: na elke publicatie de CSS-cache verversen (spike S3).
+      CSS_REFRESH_URL: http://nginx:8081
     volumes:
       - storage:/data/storage
     depends_on:

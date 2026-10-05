@@ -1,0 +1,14 @@
+{
+  "title": "Dashboard",
+  "hint": "Overzicht van je thema's en de CSS-server.",
+  "kpiThemes": "Thema's",
+  "kpiPublished": "Gepubliceerd",
+  "kpiDraftDirty": "Draft gewijzigd",
+  "kpiPalettes": "Paletten",
+  "kpiPending": "beschikbaar met de thema-API",
+  "systemStatus": "Systeemstatus",
+  "liveness": "Liveness (/healthz)",
+  "readiness": "Readiness (/readyz)",
+  "livenessHint": "Het API-proces antwoordt.",
+  "readinessHint": "Database en Redis zijn bereikbaar."
+}

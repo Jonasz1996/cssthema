@@ -51,7 +51,10 @@ systemctl -q enable --now postgresql "$REDIS_SERVICE"
 step "Gebruiker en mappen"
 id cssthema >/dev/null 2>&1 ||
     useradd --system --home-dir "$DATA_DIR" --shell /usr/sbin/nologin cssthema
-install -d -m 0755 "$DATA_DIR" "$DATA_DIR/css-files" "$RUNTIME_DIR"
+install -d -m 0755 "$DATA_DIR" "$RUNTIME_DIR"
+# Handgemaakte CSS (bewerkbaar als root, bv. met nano). De api verplaatst een bestand na
+# de import als thema naar css-files/.geimporteerd/ en moet er dus in kunnen schrijven.
+install -d -m 0775 -o cssthema -g cssthema "$DATA_DIR/css-files"
 install -d -m 0750 -o cssthema -g cssthema "$DATA_DIR/storage"
 install -d -m 0750 -o root -g cssthema "$CONF_DIR"
 install -d -m 0700 -o www-data -g www-data /var/cache/nginx/css

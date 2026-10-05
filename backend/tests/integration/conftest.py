@@ -2,11 +2,16 @@ import os
 from collections.abc import AsyncIterator
 from pathlib import Path
 
+import httpx
 import pytest
+from httpx import ASGITransport, AsyncClient
+from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession, async_sessionmaker
 
 from cssthema.config import Settings
 from cssthema.db.session import create_engine
+from cssthema.main import create_app
+from tests.integration.api_helpers import Api
 
 if not os.environ.get("DATABASE_URL"):
     pytest.skip("DATABASE_URL niet gezet (integratietests)", allow_module_level=True)
@@ -42,3 +47,43 @@ async def session(engine: AsyncEngine) -> AsyncIterator[AsyncSession]:
         async with maker() as s:
             yield s
         await trans.rollback()
+
+
+# --- API-tests ------------------------------------------------------------------------------
+
+
+@pytest.fixture
+async def api(settings: Settings, engine: AsyncEngine, tmp_path: Path) -> AsyncIterator[Api]:
+    css_dir = tmp_path / "css-files"
+    css_dir.mkdir()
+    state = Api(client=None, app=None, css_dir=css_dir)  # type: ignore[arg-type]
+
+    def refresh(request: httpx.Request) -> httpx.Response:
+        state.refresh_calls.append(request.url.path)
+        if state.refresh_statuses:
+            return httpx.Response(state.refresh_statuses.pop(0))
+        return httpx.Response(state.refresh_status)
+
+    app = create_app(
+        settings.model_copy(
+            update={"css_files_dir": css_dir, "public_base_url": "https://css.example.be"}
+        ),
+        css_refresh_transport=httpx.MockTransport(refresh),
+    )
+    try:
+        async with (
+            app.router.lifespan_context(app),
+            AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client,
+        ):
+            state.client = client
+            state.app = app
+            yield state
+    finally:
+        await cleanup_test_themes(engine)
+
+
+async def cleanup_test_themes(engine: AsyncEngine) -> None:
+    # Versies en redirects verdwijnen mee (ON DELETE CASCADE); audit-rijen blijven
+    # (append-only) en verwijzen niet naar thema's.
+    async with engine.begin() as conn:
+        await conn.execute(text("DELETE FROM themes WHERE slug LIKE 'it-%'"))

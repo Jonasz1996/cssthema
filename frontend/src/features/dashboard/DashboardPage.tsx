@@ -1,58 +1,60 @@
 import { useHealth } from "@/api/queries/health";
-import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { type MessageKey, t } from "@/lib/i18n";
+import { Category, ItemRow, Kpi, KpiGrid, PageHeader, Tag } from "@/components/ui";
+import { type MessageKey, useI18n } from "@/lib/i18n";
 
-const stats: MessageKey[] = [
-  "dashboard.services",
-  "dashboard.themes",
-  "dashboard.published",
-  "dashboard.requests24h",
+const kpis: MessageKey[] = [
+  "dashboard.kpiThemes",
+  "dashboard.kpiPublished",
+  "dashboard.kpiDraftDirty",
+  "dashboard.kpiPalettes",
 ];
 
-function HealthRow({ path, label }: { path: "/healthz" | "/readyz"; label: MessageKey }) {
+function HealthRow({
+  path,
+  label,
+  hint,
+}: {
+  path: "/healthz" | "/readyz";
+  label: MessageKey;
+  hint: MessageKey;
+}) {
+  const { t } = useI18n();
   const { isPending, isError } = useHealth(path);
+  const state = isPending ? "checking" : isError ? "error" : "ok";
   return (
-    <li className="flex items-center justify-between py-2">
-      <span className="text-sm">{t(label)}</span>
-      {isPending ? (
-        <Badge variant="outline">{t("status.checking")}</Badge>
-      ) : isError ? (
-        <Badge variant="danger">{t("status.error")}</Badge>
-      ) : (
-        <Badge variant="success">{t("status.ok")}</Badge>
-      )}
-    </li>
+    <ItemRow
+      data-health={path}
+      severity={state === "ok" ? "ok" : state === "error" ? "err" : "default"}
+      title={t(label)}
+      tags={
+        <Tag tone={state === "ok" ? "ok" : state === "error" ? "err" : "default"}>
+          {state === "ok"
+            ? t("common.statusOk")
+            : state === "error"
+              ? t("common.statusError")
+              : t("common.statusChecking")}
+        </Tag>
+      }
+    >
+      {t(hint)}
+    </ItemRow>
   );
 }
 
 export function DashboardPage() {
+  const { t } = useI18n();
   return (
-    <section className="flex flex-col gap-6">
-      <h1 className="text-2xl font-semibold">{t("nav.dashboard")}</h1>
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        {stats.map((key) => (
-          <Card key={key}>
-            <CardHeader>
-              <CardTitle>{t(key)}</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-3xl font-semibold tabular-nums">—</p>
-            </CardContent>
-          </Card>
+    <section>
+      <PageHeader title={t("dashboard.title")} hint={t("dashboard.hint")} />
+      <KpiGrid className="mb-5">
+        {kpis.map((key) => (
+          <Kpi key={key} label={t(key)} value="—" sub={t("dashboard.kpiPending")} />
         ))}
-      </div>
-      <Card className="max-w-xl">
-        <CardHeader>
-          <CardTitle>{t("dashboard.systemStatus")}</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <ul className="divide-y divide-border">
-            <HealthRow path="/healthz" label="dashboard.liveness" />
-            <HealthRow path="/readyz" label="dashboard.readiness" />
-          </ul>
-        </CardContent>
-      </Card>
+      </KpiGrid>
+      <Category title={t("dashboard.systemStatus")} storageKey="dashboard.system">
+        <HealthRow path="/healthz" label="dashboard.liveness" hint="dashboard.livenessHint" />
+        <HealthRow path="/readyz" label="dashboard.readiness" hint="dashboard.readinessHint" />
+      </Category>
     </section>
   );
 }

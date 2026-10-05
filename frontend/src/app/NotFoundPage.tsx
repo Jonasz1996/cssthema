@@ -1,13 +1,24 @@
-import { Link } from "react-router";
-import { t } from "@/lib/i18n";
+import { useLocation } from "react-router";
+import { ButtonLink, PageHeader, Terminal } from "@/components/ui";
+import { useI18n } from "@/lib/i18n";
 
 export function NotFoundPage() {
+  const { t } = useI18n();
+  const { pathname } = useLocation();
   return (
-    <section className="flex flex-col gap-2">
-      <h1 className="text-2xl font-semibold">{t("notFound.title")}</h1>
-      <Link to="/" className="text-accent hover:underline">
-        {t("notFound.back")}
-      </Link>
+    <section>
+      <PageHeader title={t("common.notFoundTitle")} hint={t("common.notFoundHint")} />
+      <Terminal
+        className="mb-4"
+        lines={[
+          { kind: "cmd", text: `$ cssthema open ${pathname}` },
+          { kind: "err", text: t("common.notFoundError", { path: pathname }) },
+          { kind: "dim", text: "# exit 404" },
+        ]}
+      />
+      <ButtonLink to="/" variant="primary">
+        {t("common.notFoundBack")}
+      </ButtonLink>
     </section>
   );
 }

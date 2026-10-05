@@ -17,6 +17,7 @@ def test_all_mvp_tables_are_registered() -> None:
         "palettes",
         "themes",
         "theme_versions",
+        "theme_slug_redirects",
         "jobs",
         "audit_logs",
         "settings",

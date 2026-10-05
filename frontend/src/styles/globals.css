@@ -1,89 +1,348 @@
 @import "tailwindcss";
+/* De build-config noemt CSS-eigenschappen als tekst; geen utility-klassen daaruit afleiden. */
+@source not "../../vite.config.ts";
 
 /*
- * cssthema design tokens — dark-first (docs/04 §1).
- * Default (no class / `.dark`) = dark: zinc-950 background, zinc-900 panels, violet accent.
- * Add `.light` on <html> for light mode.
+ * cssthema-UI in de stijl van aiverslag: donker, alles monospace, glazen kaarten met een
+ * draaiende rand, scanlines over het scherm en een deeltjesnetwerk op de achtergrond.
+ * Alleen dark (color-scheme: dark); er is geen light mode meer.
+ *
+ * Ontwerptokens staan op :root als --ui-*; Tailwind krijgt ze via @theme inline
+ * (bv. text-muted, bg-btn, border-line-strong, shadow-glow). De --ct-*-variabelen horen
+ * bij de thema's van gebruikers (gecompileerde CSS, preview), niet bij deze UI.
+ *
+ * z-index-schaal: achtergrond 0 · app 1 · dialoog 65 · toasts 66 · effecten 70 ·
+ * flits 75 · scanlines 80.
  */
-@custom-variant light (&:where(.light, .light *));
-/* Tailwind's default `dark:` follows the OS preference; tie it to the in-app toggle instead. */
-@custom-variant dark (&:where(:root:not(.light), :root:not(.light) *));
 
 :root {
-  --background: #09090b; /* zinc-950 */
-  --foreground: #fafafa; /* zinc-50 */
-  --panel: #18181b; /* zinc-900 */
-  --panel-foreground: #fafafa;
-  --muted: #27272a; /* zinc-800 */
-  --muted-foreground: #a1a1aa; /* zinc-400 */
-  --border: #27272a; /* zinc-800 */
-  --input: #3f3f46; /* zinc-700 */
-  --ring: #8b5cf6;
-  --accent: #8b5cf6; /* violet-500 */
-  --accent-foreground: #ffffff;
-  --accent-muted: rgb(139 92 246 / 0.15);
-  --success: #22c55e;
-  --warning: #f59e0b;
-  --danger: #ef4444;
-  --radius: 0.5rem;
+  --ui-bg: radial-gradient(circle, #3a3a3a, #2d2d2d, #202020, #141414, #000);
+  --ui-text: #ddd;
+  --ui-text-h: #fff;
+  --ui-muted: #999;
+  --ui-dim: #777;
+  --ui-body: #bbb;
+  --ui-btn: #7a7a7a;
+  --ui-btn-h: #9b9b9b;
+  --ui-danger: #a84a4a;
+  --ui-ok: #8fd6a4;
+  --ui-err: #e58b8b;
+  --ui-mid: #e6b56b;
+  --ui-code: #d6e6ff;
+  --ui-term: #9cffb0;
+  --ui-line: rgb(255 255 255 / 0.08);
+  --ui-line-strong: rgb(255 255 255 / 0.14);
+  --ui-focus: #aaa;
+  --ui-glow: 0 0 22px rgb(255 255 255 / 0.22);
+  --ui-card-bg: rgb(16 16 16 / 0.8);
+  --ui-card-shadow: 0 30px 80px rgb(0 0 0 / 0.65);
+  --ui-mono: ui-monospace, "Cascadia Code", "SF Mono", Consolas, "Liberation Mono", monospace;
   color-scheme: dark;
 }
 
-:root.light {
-  --background: #ffffff;
-  --foreground: #09090b;
-  --panel: #fafafa; /* zinc-50 */
-  --panel-foreground: #09090b;
-  --muted: #f4f4f5; /* zinc-100 */
-  --muted-foreground: #52525b; /* zinc-600 */
-  --border: #e4e4e7; /* zinc-200 */
-  --input: #d4d4d8; /* zinc-300 */
-  --ring: #7c3aed;
-  --accent: #7c3aed; /* violet-600 for contrast on white */
-  --accent-foreground: #ffffff;
-  --accent-muted: rgb(124 58 237 / 0.1);
-  --success: #16a34a;
-  --warning: #d97706;
-  --danger: #dc2626;
-  color-scheme: light;
+@theme inline {
+  --color-fg: var(--ui-text);
+  --color-heading: var(--ui-text-h);
+  --color-muted: var(--ui-muted);
+  --color-dim: var(--ui-dim);
+  --color-body: var(--ui-body);
+  --color-btn: var(--ui-btn);
+  --color-btn-hover: var(--ui-btn-h);
+  --color-danger: var(--ui-danger);
+  --color-ok: var(--ui-ok);
+  --color-err: var(--ui-err);
+  --color-mid: var(--ui-mid);
+  --color-code: var(--ui-code);
+  --color-term: var(--ui-term);
+  --color-line: var(--ui-line);
+  --color-line-strong: var(--ui-line-strong);
+  --color-focus: var(--ui-focus);
+  --font-sans: var(--ui-mono);
+  --font-mono: var(--ui-mono);
+  --shadow-glow: var(--ui-glow);
+  --shadow-card: var(--ui-card-shadow);
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --color-panel: var(--panel);
-  --color-panel-foreground: var(--panel-foreground);
-  --color-muted: var(--muted);
-  --color-muted-foreground: var(--muted-foreground);
-  --color-border: var(--border);
-  --color-input: var(--input);
-  --color-ring: var(--ring);
-  --color-accent: var(--accent);
-  --color-accent-foreground: var(--accent-foreground);
-  --color-accent-muted: var(--accent-muted);
-  --color-success: var(--success);
-  --color-warning: var(--warning);
-  --color-danger: var(--danger);
-  --radius-sm: calc(var(--radius) - 2px);
-  --radius-md: var(--radius);
-  --radius-lg: calc(var(--radius) + 2px);
-  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
-  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
+/* Hoek voor de draaiende kaartrand; moet buiten een @layer staan. */
+@property --ui-angle {
+  syntax: "<angle>";
+  initial-value: 0deg;
+  inherits: false;
 }
 
 @layer base {
-  * {
-    border-color: var(--color-border);
-  }
   html,
-  body,
-  #root {
-    height: 100%;
+  body {
+    min-height: 100%;
   }
   body {
-    background-color: var(--color-background);
-    color: var(--color-foreground);
-    font-family: var(--font-sans);
+    margin: 0;
+    background: var(--ui-bg) center / cover no-repeat fixed;
+    background-color: #000;
+    color: var(--ui-text);
+    font-family: var(--ui-mono);
+    overflow-x: hidden;
     -webkit-font-smoothing: antialiased;
+    scrollbar-color: #4a4a4a transparent;
+  }
+  /* Scanlines over alles, klikken gaan erdoorheen. */
+  body::after {
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: 80;
+    pointer-events: none;
+    opacity: 0.5;
+    background: repeating-linear-gradient(0deg, rgb(0 0 0 / 0.18) 0 1px, transparent 1px 3px);
+  }
+  ::selection {
+    background: rgb(255 255 255 / 0.25);
+    color: #fff;
+  }
+  :focus-visible {
+    outline: 2px solid #fff;
+    outline-offset: 2px;
+  }
+  button,
+  summary,
+  [role="button"],
+  label:has(> input[type="checkbox"]) {
+    cursor: pointer;
+  }
+  button:disabled {
+    cursor: default;
+  }
+  input::placeholder,
+  textarea::placeholder {
+    color: var(--ui-dim);
+  }
+}
+
+@layer components {
+  /* App-pagina: één gecentreerde kaart zoals aiverslag. */
+  .ui-stage {
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    min-height: 100vh;
+    padding: min(5vh, 40px) 14px 50px;
+  }
+  .ui-wrap {
+    position: relative;
+    z-index: 1;
+    width: 100%;
+    max-width: 1240px;
+    min-width: 0;
+  }
+  .ui-wrap[data-wide="true"] {
+    max-width: none;
+  }
+  .ui-shake {
+    animation: ui-shake 0.45s;
+  }
+
+  /*
+   * Glazen kaart met draaiende conic-gradient-rand.
+   * Geen handgeschreven `-webkit-backdrop-filter`: Lightning CSS (Tailwind) zet het voorvoegsel
+   * zelf, en een voorvoegsel ná de gewone eigenschap laat de build die gewone eigenschap
+   * weggooien (dan geen blur in Chrome/Firefox). `pnpm build` controleert dit (vite.config.ts).
+   */
+  .ui-card {
+    position: relative;
+    isolation: isolate;
+    border-radius: 16px;
+    background: var(--ui-card-bg);
+    backdrop-filter: blur(14px);
+    box-shadow: var(--ui-card-shadow);
+    transition: transform 0.15s ease-out;
+  }
+  .ui-card::before {
+    content: "";
+    position: absolute;
+    inset: -1px;
+    z-index: -1;
+    border-radius: 17px;
+    padding: 1px;
+    pointer-events: none;
+    background: conic-gradient(
+      from var(--ui-angle),
+      rgb(255 255 255 / 0.05),
+      rgb(255 255 255 / 0.75),
+      rgb(255 255 255 / 0.05) 40%,
+      rgb(255 255 255 / 0.05)
+    );
+    -webkit-mask:
+      linear-gradient(#000 0 0) content-box,
+      linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+    mask:
+      linear-gradient(#000 0 0) content-box exclude,
+      linear-gradient(#000 0 0);
+    animation: ui-spin 6s linear infinite;
+  }
+
+  /* Hoofdtitel met glanzende gradient. */
+  .ui-shine {
+    margin: 0;
+    font-weight: 700;
+    letter-spacing: -0.03em;
+    line-height: 1.2;
+    font-size: clamp(18px, 3.4vw, 27px);
+    background: linear-gradient(100deg, #777 20%, #fff 45%, #777 70%);
+    background-size: 250% 100%;
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    animation: ui-shine 5s ease-in-out infinite;
+  }
+
+  /* Knipperende tekstcursor achter een hint-regel. */
+  .ui-cursor {
+    display: inline-block;
+    width: 8px;
+    height: 14px;
+    margin-left: 4px;
+    vertical-align: -2px;
+    background: var(--ui-text-h);
+    animation: ui-blink 1s steps(2) infinite;
+  }
+
+  /* Ripple bij klik op een knop (span wordt door Button geplaatst). */
+  .ui-ripple {
+    position: absolute;
+    border-radius: 50%;
+    background: rgb(255 255 255 / 0.45);
+    transform: scale(0);
+    pointer-events: none;
+    animation: ui-ripple 0.6s ease-out forwards;
+  }
+
+  /* Element dat "weggezapt" wordt (fx.zap). */
+  .ui-zap {
+    animation: ui-zap 0.3s steps(6) forwards;
+  }
+
+  /* details.cat / details.more: eigen ▸/▾-marker. */
+  .ui-summary {
+    list-style: none;
+  }
+  .ui-summary::-webkit-details-marker {
+    display: none;
+  }
+  .ui-summary::before {
+    content: "▸";
+    color: var(--ui-dim);
+    flex: none;
+  }
+  details[open] > .ui-summary::before {
+    content: "▾";
+  }
+
+  .ui-select option,
+  .ui-select optgroup {
+    background: #2a2a2a;
+    color: #fff;
+  }
+
+  .ui-pop {
+    animation: ui-pop 0.18s ease-out;
+  }
+  .ui-toast {
+    animation: ui-toast-in 0.2s ease-out;
+  }
+
+  /* Canvassen en flits (achtergrond + effecten). */
+  .ui-bg-canvas {
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    transition: opacity 0.4s;
+  }
+  .ui-bg-canvas[data-mode="paused"] {
+    opacity: 0.45;
+  }
+  .ui-bg-canvas[data-mode="off"] {
+    opacity: 0;
+  }
+}
+
+@keyframes ui-spin {
+  to {
+    --ui-angle: 360deg;
+  }
+}
+@keyframes ui-shine {
+  0%,
+  100% {
+    background-position: 100% 0;
+  }
+  50% {
+    background-position: 0 0;
+  }
+}
+@keyframes ui-blink {
+  50% {
+    opacity: 0;
+  }
+}
+@keyframes ui-ripple {
+  to {
+    transform: scale(4);
+    opacity: 0;
+  }
+}
+@keyframes ui-shake {
+  10% {
+    transform: translate(-9px, 5px);
+  }
+  30% {
+    transform: translate(8px, -6px);
+  }
+  50% {
+    transform: translate(-6px, -4px);
+  }
+  70% {
+    transform: translate(5px, 5px);
+  }
+  90% {
+    transform: translate(-2px, 1px);
+  }
+}
+@keyframes ui-zap {
+  0% {
+    background: #fff;
+    color: #000;
+  }
+  50% {
+    background: #9cc9ff;
+  }
+  100% {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+}
+@keyframes ui-pop {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.985);
+  }
+}
+@keyframes ui-toast-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  ::before,
+  ::after {
+    animation: none !important;
+    transition: none !important;
   }
 }

@@ -1,36 +1,35 @@
-import {
-  Briefcase,
-  Download,
-  LayoutDashboard,
-  type LucideIcon,
-  Palette,
-  PenSquare,
-  Search,
-  Server,
-  Settings,
-  Sparkles,
-} from "lucide-react";
 import type { MessageKey } from "@/lib/i18n";
 
 export interface NavItem {
   to: string;
+  emoji: string;
   labelKey: MessageKey;
-  icon: LucideIcon;
+  /** Extra padvoorvoegsels waarop dit item actief is (bv. de editor hoort bij Thema's). */
+  alsoActiveOn?: readonly string[];
 }
 
-/** Primary sidebar navigation (docs/04 §3.1). */
-export const primaryNav: NavItem[] = [
-  { to: "/", labelKey: "nav.dashboard", icon: LayoutDashboard },
-  { to: "/services", labelKey: "nav.services", icon: Server },
-  { to: "/themes", labelKey: "nav.themes", icon: PenSquare },
-  { to: "/import", labelKey: "nav.import", icon: Download },
-  { to: "/discovery", labelKey: "nav.discovery", icon: Search },
-  { to: "/ai", labelKey: "nav.ai", icon: Sparkles },
-  { to: "/palettes", labelKey: "nav.palettes", icon: Palette },
-  { to: "/jobs", labelKey: "nav.jobs", icon: Briefcase },
+/**
+ * Navigatieknoppen bovenaan de app-kaart. Routes van latere fases (services, discovery, ai,
+ * jobs, settings) bestaan wel, maar staan hier (nog) niet in.
+ */
+export const mainNav: readonly NavItem[] = [
+  { to: "/", emoji: "📊", labelKey: "nav.dashboard" },
+  { to: "/themes", emoji: "🎨", labelKey: "nav.themes", alsoActiveOn: ["/editor"] },
+  { to: "/palettes", emoji: "🖌️", labelKey: "nav.palettes" },
+  { to: "/import", emoji: "📥", labelKey: "nav.import" },
 ];
 
-/** Pinned to the bottom of the sidebar. */
-export const secondaryNav: NavItem[] = [
-  { to: "/settings", labelKey: "nav.settings", icon: Settings },
-];
+function underPath(pathname: string, prefix: string): boolean {
+  return pathname === prefix || pathname.startsWith(`${prefix}/`);
+}
+
+/** Of een navigatie-item actief is voor dit pad (dashboard alleen exact op `/`). */
+export function isNavItemActive(item: NavItem, pathname: string): boolean {
+  if (item.to === "/") return pathname === "/";
+  return [item.to, ...(item.alsoActiveOn ?? [])].some((prefix) => underPath(pathname, prefix));
+}
+
+/** De editor krijgt bijna de volle breedte en een stilstaande achtergrond (CPU voor Monaco). */
+export function isWideRoute(pathname: string): boolean {
+  return pathname.startsWith("/editor/");
+}

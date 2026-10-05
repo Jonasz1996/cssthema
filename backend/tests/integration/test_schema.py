@@ -119,7 +119,9 @@ async def test_orm_delete_theme_lets_database_cascade_versions(session: AsyncSes
 
 async def test_palette_in_a_version_cannot_be_hard_deleted(session: AsyncSession) -> None:
     user = await _user(session)
-    palette = Palette(slug="nord", name="Nord", tokens={"bg": "#2e3440"}, created_by=user.id)
+    palette = Palette(
+        slug="test-schema-palet", name="Testpalet", tokens={"bg": "#2e3440"}, created_by=user.id
+    )
     theme = Theme(slug="grafana", name="Grafana", created_by=user.id)
     session.add_all([palette, theme])
     await session.flush()

@@ -18,15 +18,22 @@ from sqlalchemy import (
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from cssthema.db.base import Base, SoftDeleteMixin, TimestampMixin, UUIDPrimaryKeyMixin
+from cssthema.db.base import (
+    Base,
+    CreatedAtMixin,
+    SoftDeleteMixin,
+    TimestampMixin,
+    UUIDPrimaryKeyMixin,
+)
 from cssthema.db.models._types import pg_enum
 from cssthema.db.models.enums import ThemeStatus, VersionSource
+from cssthema.domain.css.slugs import SLUG_PATTERN
 
 if TYPE_CHECKING:
     from cssthema.db.models.palette import Palette
     from cssthema.db.models.service import Service
 
-SLUG_PATTERN = r"^[a-z0-9][a-z0-9-]{0,62}[a-z0-9]$"
+__all__ = ["SLUG_PATTERN", "Theme", "ThemeSlugRedirect", "ThemeVersion"]
 
 
 class Theme(UUIDPrimaryKeyMixin, TimestampMixin, SoftDeleteMixin, Base):
@@ -120,3 +127,17 @@ class ThemeVersion(UUIDPrimaryKeyMixin, Base):
     theme: Mapped[Theme] = relationship(
         back_populates="versions", foreign_keys=[theme_id], lazy="raise"
     )
+
+
+class ThemeSlugRedirect(CreatedAtMixin, Base):
+    """Oude slug na een slug-wijziging: `/{old_slug}.css` geeft 90 dagen een 301.
+
+    De rij verdwijnt zodra een thema (een ander of hetzelfde) die slug weer gebruikt;
+    oudere rijen dan 90 dagen worden genegeerd.
+    """
+
+    __tablename__ = "theme_slug_redirects"
+    __table_args__ = (Index("ix_theme_slug_redirects_theme_id", "theme_id"),)
+
+    old_slug: Mapped[str] = mapped_column(String(64), primary_key=True)
+    theme_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("themes.id", ondelete="CASCADE"))
