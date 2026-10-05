@@ -76,7 +76,7 @@ jobs:
         working-directory: frontend
     steps:
       - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4
+      - uses: pnpm/action-setup@v6
         with:
           # pnpm-versie uit "packageManager" in frontend/package.json (niet de repo-root).
           package_json_file: frontend/package.json
@@ -132,7 +132,7 @@ jobs:
       - name: Backend-afhankelijkheden
         working-directory: backend
         run: uv python install && uv sync --frozen
-      - uses: pnpm/action-setup@v4
+      - uses: pnpm/action-setup@v6
         with:
           package_json_file: frontend/package.json
       - uses: actions/setup-node@v4
