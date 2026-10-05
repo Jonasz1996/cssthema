@@ -208,6 +208,18 @@ Legenda kolom **Rol**: V = Viewer, E = Editor, A = Admin (en hoger); P = publiek
 | POST | `/themes/{id}/draft/reset` | E | Draft terugzetten naar versie `{ version_number }` zonder publiceren | 200 `Draft` |
 | GET | `/themes/{id}/export?format=css\|bundle&version=` | V | `css` → `text/css` download; `bundle` → `application/zip` | 200 |
 | POST | `/themes/import` | E | multipart `file` (`.css` / `.cssthema.zip`), `on_conflict: rename\|new_version\|fail`, `service_id?` | 201 `Theme`, 409, 422 |
+| GET | `/themes/local-files` | V | Handgemaakte `*.css` in `CSS_FILES_DIR` (native install: `/var/lib/cssthema/css-files`): `[{name, slug, size_bytes, modified_at, importable, reason?, theme_id?}]` | 200 |
+| POST | `/themes/local-files/import` | E | `{ names, publish: true, archive: true }` → per bestand een thema (v1 bron `import`, live bij `publish`); daarna verplaatst naar `.geimporteerd/`, zodat nginx naar de api doorvalt | 200 `{ imported: [Theme + source_file, archive_error?], skipped: [{name, reason}] }`, 422 |
+
+Preciseringen (fase 1, 2026-10-05):
+- ETag van thema en draft is `"lv-<lock_version>"`; `Theme` bevat ook `lock_version`, `draft_size_bytes`, `shadowed_by_file` (er staat een handgemaakt bestand met deze naam in `CSS_FILES_DIR`, dat nginx vóór het thema serveert) en `deleted_at`.
+- `If-Match` is verplicht (428) bij `PATCH /themes/{id}`, `PUT …/draft`, `POST …/draft/reset` en `POST …/rollback`; bij `DELETE` wordt een meegestuurde `If-Match` gecontroleerd.
+- Publiceren zonder wijziging t.o.v. de live versie → 409 `state_conflict`. Rollback lint de doelversie opnieuw.
+- `GET …/export?format=css` zonder live versie → 409 (gebruik `version=n`).
+- `POST /themes/import`: `publish` weggelaten = `.css` niet publiceren, bundel publiceert zijn `live_version`; `on_conflict=new_version` geeft 200 (bestaand thema).
+- `GET /palettes` en `GET /themes/local-files` geven een lijst, geen `Page`.
+- `GET /api/v1/dashboard` → `{ themes_total, themes_published, themes_draft_dirty, themes_deleted, palettes_total, recent: [Theme], local_files: {dir, total, importable} }`.
+- Fase 1 heeft nog geen login: alle verzoeken gelden als de ingebouwde gebruiker *Beheerder* (admin). Fase 3 vervangt dat door OIDC.
 
 ### 4.7 Paletten
 

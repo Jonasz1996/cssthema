@@ -83,7 +83,7 @@ flowchart LR
 | ADR-11 | **Same-origin injectie als standaardadvies** (NPM `location /__cssthema/` + `sub_filter`) | `<link>` naar `cssthema.domain.be` | Omzeilt CSP van apps als Nextcloud; geen CORS; zie [10-theme-injectie](10-theme-injectie.md). |
 | ADR-12 | **AI-provider-abstractie met gestructureerde JSON-output + selector-validatie** | Vrije tekst-CSS | Betrouwbaar parsebaar, geen gehallucineerde selectors in productie-CSS. |
 | ADR-13 | **Problem Details (RFC 9457)** voor alle API-fouten | Eigen formaat | Standaard, goed te typen in de frontend. |
-| ADR-14 | **Frontend: Vite + React 19 + TS, TanStack Query, Zustand, Tailwind + shadcn/ui** | Next.js, Redux | Pure SPA volstaat (geen SSR nodig), kleine bundle, toegankelijke Radix-componenten, dark-first. |
+| ADR-14 | **Frontend: Vite + React 19 + TS, TanStack Query, Zustand, Tailwind + eigen componenten** | Next.js, Redux, shadcn/ui | Pure SPA volstaat (geen SSR nodig), kleine bundle. De look volgt aiverslag (sinds 2026-10-05), daarom eigen componenten i.p.v. shadcn/ui. |
 | ADR-15 | **API-client gegenereerd uit OpenAPI** (`openapi-typescript` + `openapi-fetch`) | Handgeschreven | Eén bron van waarheid voor schema's, compile-time fouten bij API-wijziging. |
 
 ## 3. Backend
@@ -264,7 +264,7 @@ Het product moet interne hosts bereiken — SSRF is hier een *feature* die begre
 | Onderdeel | Keuze |
 |---|---|
 | Build | Vite 6, TypeScript strict |
-| UI | React 19, Tailwind CSS 4, shadcn/ui (Radix), lucide-icons; dark-first met light mode |
+| UI | React 19, Tailwind CSS 4, eigen componenten in aiverslag-stijl (alleen dark, monospace) |
 | Routing | React Router 7 (data routers) |
 | Server state | TanStack Query 5 (cache, optimistic updates) |
 | Client state | Zustand (editor-tabs, layout, preview-instellingen) |

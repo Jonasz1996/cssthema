@@ -128,9 +128,9 @@ cssthema/
 │   │   │   ├── palettes/
 │   │   │   ├── jobs/                 # SSE-hook useJobEvents
 │   │   │   └── settings/             # users, api-keys, audit, integraties
-│   │   ├── components/ui/            # shadcn/ui-componenten
+│   │   ├── components/ui/            # eigen componenten in aiverslag-stijl (README.md)
 │   │   ├── lib/                      # utils, format, i18n
-│   │   ├── locales/                  # en.json, nl.json
+│   │   ├── locales/                  # {nl,en}/<namespace>.json, nl standaard
 │   │   └── styles/
 │   └── tests/
 │       ├── unit/
