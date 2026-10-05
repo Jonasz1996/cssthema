@@ -11,7 +11,7 @@ COPY frontend/ ./
 RUN pnpm build
 
 # nginx >= 1.27.3 is nodig voor `server api:8000 resolve` in de upstream.
-FROM nginx:1.30-alpine AS web
+FROM nginx:1.31-alpine AS web
 RUN rm /etc/nginx/conf.d/default.conf
 COPY docker/nginx/nginx.conf /etc/nginx/nginx.conf
 COPY docker/nginx/conf.d/ /etc/nginx/conf.d/
