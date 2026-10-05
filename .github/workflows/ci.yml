@@ -63,7 +63,7 @@ jobs:
         run: |
           uv run python -m cssthema.openapi openapi.json
           git diff --exit-code openapi.json || (echo "::error::backend/openapi.json is verouderd: draai 'make openapi'" && exit 1)
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         if: matrix.python == '3.12'
         with:
           name: openapi
@@ -148,7 +148,7 @@ jobs:
       - name: Playwright (api :8020 + vite build/preview :4173)
         working-directory: frontend
         run: pnpm e2e
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         if: failure()
         with:
           name: playwright-report
