@@ -315,7 +315,7 @@ Genormaliseerde uitsplitsing van classes/IDs/variabelen voor snelle autocomplete
 - Ingebouwde paletten (`is_builtin = true`) worden via een data-migratie geseed en zijn niet bewerkbaar (wel dupliceerbaar).
 
 ### 4.9 `themes`
-- `slug` uniek (partial) en CHECK `slug ~ '^[a-z0-9](?:[a-z0-9-]{0,62}[a-z0-9])?$'`; gereserveerde slugs worden in de applicatie geweigerd.
+- `slug` uniek (partial) en CHECK `slug ~ '^[a-z0-9][a-z0-9-]{0,62}[a-z0-9]$'`; gereserveerde slugs worden in de applicatie geweigerd.
 - `published_version_id` FK naar `theme_versions` (`use_alter=True`, circulaire FK) — de bron voor publieke levering.
 - `latest_version_number` om het volgende versienummer zonder `MAX()`-query en race-vrij te bepalen (`UPDATE … SET latest_version_number = latest_version_number + 1 RETURNING`).
 - `lock_version` voor optimistic locking op de draft (`If-Match`).
@@ -337,7 +337,7 @@ Genormaliseerde uitsplitsing van classes/IDs/variabelen voor snelle autocomplete
 - Retentie: geslaagde jobs na 30 dagen verwijderd, mislukte na 90.
 
 ### 4.13 `audit_logs`
-- Append-only: applicatie-DB-rol heeft alleen `INSERT, SELECT` op deze tabel (aparte grants in migratie).
+- Append-only: een trigger weigert `UPDATE` en `DELETE` (werkt ook als de applicatie als eigenaar van de tabel verbindt, waar grants niet helpen). Alleen een migratie kan dit tijdelijk opheffen met `SET LOCAL cssthema.allow_mutation = 'on'` (bv. voor retentie).
 - `action` als `<entity>.<werkwoord>`: `theme.create`, `theme.publish`, `theme.rollback`, `apikey.create`, `auth.login`, `settings.update`, …
 - `changes` JSONB: `{ "field": [oud, nieuw] }` — nooit geheimen of volledige CSS (alleen hashes/lengtes).
 - Partitionering per maand (declaratieve range partitioning op `at`) vanaf productiefase; retentie standaard 2 jaar.
@@ -371,7 +371,7 @@ class Theme(Base, TimestampMixin, SoftDeleteMixin):
     __table_args__ = (
         Index("uq_themes_slug_active", "slug", unique=True,
               postgresql_where=text("deleted_at IS NULL")),
-        CheckConstraint(r"slug ~ '^[a-z0-9](?:[a-z0-9-]{0,62}[a-z0-9])?$'", name="slug_format"),
+        CheckConstraint(r"slug ~ '^[a-z0-9][a-z0-9-]{0,62}[a-z0-9]$'", name="slug_format"),
     )
 
     id: Mapped[UUID] = mapped_column(primary_key=True, default=uuid7)
@@ -449,7 +449,7 @@ INSERT INTO audit_logs (…);
 ## 8. Migratiestrategie
 
 - Alembic met `naming_convention`, autogenerate als startpunt, altijd handmatig gereviewd.
-- Eerste migratie `0001_initial` maakt extensies (`pg_trgm`, `citext`), enums, tabellen, de onveranderlijkheidstrigger op `theme_versions` en grants op `audit_logs`.
+- Eerste migratie `0001_initial` maakt de extensie `pg_trgm`, enums, tabellen en de triggers die `theme_versions` onveranderlijk en `audit_logs` append-only maken.
 - Data-migratie `0002_seed_palettes` voor de ingebouwde paletten.
 - Regels: elke migratie heeft een werkende `downgrade()`; destructieve wijzigingen in twee releases (expand → contract); `CREATE INDEX CONCURRENTLY` voor indexen op grote tabellen.
 - CI draait `alembic upgrade head && alembic downgrade base && alembic upgrade head` op een lege DB, plus een check dat autogenerate geen verschil meer vindt.

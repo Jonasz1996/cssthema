@@ -1,0 +1,120 @@
+# cssthema — productie-stack. Start vanuit de repo-root:
+#   cp .env.example .env && docker compose -f docker/compose/docker-compose.yml --env-file .env up -d
+name: cssthema
+
+x-backend-env: &backend-env
+  ENVIRONMENT: production
+  PUBLIC_BASE_URL: ${PUBLIC_BASE_URL:-http://localhost:8080}
+  DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-cssthema}:${POSTGRES_PASSWORD:?zet POSTGRES_PASSWORD in .env}@postgres:5432/${POSTGRES_DB:-cssthema}
+  REDIS_URL: redis://redis:6379/0
+  SECRET_KEY: ${SECRET_KEY:?zet SECRET_KEY in .env}
+  ENCRYPTION_KEY: ${ENCRYPTION_KEY:-}
+  LOG_LEVEL: ${LOG_LEVEL:-INFO}
+  LOG_JSON: ${LOG_JSON:-true}
+
+services:
+  nginx:
+    build:
+      context: ../..
+      dockerfile: docker/frontend.Dockerfile
+      target: web
+    image: ghcr.io/jonasz1996/cssthema-web:${CSSTHEMA_VERSION:-latest}
+    restart: unless-stopped
+    ports:
+      - "${HTTP_PORT:-8080}:80"
+    volumes:
+      - nginx-cache:/var/cache/nginx
+    depends_on:
+      api:
+        condition: service_healthy
+    networks: [edge, internal]
+    deploy:
+      resources:
+        limits: { memory: 128m }
+
+  api:
+    build:
+      context: ../..
+      dockerfile: docker/backend.Dockerfile
+      target: api
+    image: ghcr.io/jonasz1996/cssthema-api:${CSSTHEMA_VERSION:-latest}
+    restart: unless-stopped
+    environment:
+      <<: *backend-env
+      RUN_MIGRATIONS_ON_START: ${RUN_MIGRATIONS_ON_START:-true}
+    volumes:
+      - storage:/data/storage
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks: [internal]
+    deploy:
+      resources:
+        limits: { memory: 512m }
+
+  worker:
+    build:
+      context: ../..
+      dockerfile: docker/backend.Dockerfile
+      target: worker
+    image: ghcr.io/jonasz1996/cssthema-worker:${CSSTHEMA_VERSION:-latest}
+    restart: unless-stopped
+    environment:
+      <<: *backend-env
+    volumes:
+      - storage:/data/storage
+    depends_on:
+      api:
+        condition: service_healthy
+    # De worker moet naar buiten (crawls van doel-apps, AI-provider).
+    networks: [internal, egress]
+    healthcheck:
+      test: ["CMD", "arq", "--check", "cssthema.worker.WorkerSettings"]
+      interval: 30s
+      timeout: 5s
+      start_period: 30s
+      retries: 3
+    deploy:
+      resources:
+        limits: { cpus: "2", memory: 2g }
+
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-cssthema}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?zet POSTGRES_PASSWORD in .env}
+      POSTGRES_DB: ${POSTGRES_DB:-cssthema}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    networks: [internal]
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    command: ["redis-server", "--save", "", "--appendonly", "no"]
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    networks: [internal]
+
+networks:
+  # Alleen nginx hangt aan `edge`; koppel dit eventueel aan het NPM-netwerk.
+  edge: {}
+  internal:
+    internal: true
+  egress: {}
+
+volumes:
+  pgdata: {}
+  storage: {}
+  nginx-cache: {}

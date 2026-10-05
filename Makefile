@@ -1,0 +1,58 @@
+# cssthema — veelgebruikte taken. `make help` toont een overzicht.
+COMPOSE      := docker compose -f docker/compose/docker-compose.yml --env-file .env
+COMPOSE_DEV  := $(COMPOSE) -f docker/compose/docker-compose.dev.yml
+
+.PHONY: help install dev up down logs lint fmt typecheck test test-backend test-frontend \
+        migrate migration openapi build
+
+help: ## Toon deze hulp
+	@grep -E '^[a-zA-Z_-]+:.*?## ' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "  %-16s %s\n", $$1, $$2}'
+
+install: ## Installeer backend- en frontend-afhankelijkheden
+	cd backend && uv sync
+	cd frontend && pnpm install
+
+dev: ## Start de dev-stack (postgres, redis, api met reload, worker, vite)
+	$(COMPOSE_DEV) up --build
+
+up: ## Start de productie-stack op de achtergrond
+	$(COMPOSE) up -d --build
+
+down: ## Stop de stack
+	$(COMPOSE) down
+
+logs: ## Volg de logs van de stack
+	$(COMPOSE) logs -f
+
+lint: ## Lint backend en frontend
+	cd backend && uv run ruff check . && uv run ruff format --check .
+	cd frontend && pnpm lint && pnpm exec prettier --check .
+
+fmt: ## Formatteer alle code
+	cd backend && uv run ruff check --fix . && uv run ruff format .
+	cd frontend && pnpm format
+
+typecheck: ## Typecheck backend (mypy strict) en frontend (tsc)
+	cd backend && uv run mypy
+	cd frontend && pnpm typecheck
+
+test: test-backend test-frontend ## Alle tests
+
+test-backend: ## Backend-tests (integratietests als DATABASE_URL gezet is)
+	cd backend && uv run pytest
+
+test-frontend: ## Frontend-tests
+	cd frontend && pnpm test
+
+migrate: ## Database migreren naar de laatste versie
+	cd backend && uv run alembic upgrade head
+
+migration: ## Nieuwe migratie genereren: make migration m="omschrijving"
+	cd backend && uv run alembic revision --autogenerate -m "$(m)"
+
+openapi: ## openapi.json en frontend-types regenereren
+	cd backend && uv run python -m cssthema.openapi openapi.json
+	cd frontend && pnpm openapi && pnpm exec prettier --write src/api/schema.d.ts
+
+build: ## Docker-images bouwen
+	$(COMPOSE) build
