@@ -2,7 +2,7 @@
 
 cssthema draait als gewone services op één Debian 13-machine: nginx, de api (FastAPI in een Python-venv), een worker, PostgreSQL en Redis. Eén script installeert alles en werkt het later ook bij. Nginx Proxy Manager (NPM) staat op een andere machine en stuurt je CSS-domein naar deze container.
 
-> **Stand van zaken (fase 0).** Je krijgt een draaiende stack, en de CSS-bestanden die je nu met de hand maakt, blijven werken (§ 3). Thema's maken in het dashboard komt in fase 1, de eigen login in fase 3. Tot dan heeft het dashboard **geen login**: zet het in NPM achter Authentik (§ 4). De CSS-bestanden zelf blijven publiek, want je apps laden ze ook op hun loginpagina.
+> **Stand van zaken (fase 1).** In het dashboard maak, bewerk en publiceer je thema's, met versies en terugzetten. De CSS-bestanden die je nu met de hand maakt, blijven werken en kan je importeren (§ 3). De eigen login komt in fase 3. Tot dan heeft het dashboard **geen login**: zet het in NPM achter Authentik (§ 4). De CSS-bestanden zelf blijven publiek, want je apps laden ze ook op hun loginpagina.
 
 ## 1. Container (Proxmox)
 
@@ -37,13 +37,17 @@ De eerste keer duurt het een paar minuten. `TRUSTED_PROXIES` is het adres waarme
 
 ## 3. Je bestaande CSS-bestanden
 
-Zet ze in `/var/lib/cssthema/css-files/`. Daar werk je verder zoals nu, met `nano`:
+Zet ze in `/var/lib/cssthema/css-files/`:
 
 ```bash
 scp oude-css-server:/pad/naar/css/*.css root@<ip-van-deze-container>:/var/lib/cssthema/css-files/
 ```
 
-`/var/lib/cssthema/css-files/proxmox.css` is dan `https://css.jouwdomein.be/proxmox.css`. Een wijziging is meteen zichtbaar na een herlaadbeurt (`Cache-Control: no-cache`). Een bestand in deze map gaat voor op een thema met dezelfde naam in cssthema; vanaf fase 1 importeer je het en verwijder je het bestand.
+`/var/lib/cssthema/css-files/proxmox.css` is dan meteen `https://css.jouwdomein.be/proxmox.css`. Een bestand in deze map gaat voor op een thema met dezelfde naam in cssthema.
+
+Om ze in het dashboard te bewerken, importeer je ze: **Import** → **CSS-bestanden op de server**, selecteer de bestanden en klik op **importeren**. Elk bestand wordt een thema met een eerste live versie en verhuist daarna naar `css-files/.geimporteerd/`; dezelfde URL serveert vanaf dan het thema. Vink je **Daarna archiveren** uit, dan blijft het bestand staan en blijft het voorgaan op het thema (het dashboard waarschuwt daar ook voor). Bestandsnamen moeten een geldige slug zijn (kleine letters, cijfers en streepjes): `Home_Assistant.css` hernoem je eerst naar `home-assistant.css` en pas je ook aan in de `sub_filter` van die app.
+
+Wil je liever met `nano` blijven werken, dan kan dat: laat de bestanden gewoon in deze map staan.
 
 ## 4. Nginx Proxy Manager
 
@@ -151,4 +155,13 @@ Een back-up van de container in Proxmox (vzdump) neemt alles mee. Alleen de data
 
 ## Alternatief: Docker
 
-Wie liever Docker gebruikt: `cp .env.example .env`, vul `POSTGRES_PASSWORD`, `SECRET_KEY` en `TRUSTED_PROXIES` in, en start met `make up`. De stack luistert dan op poort 8080 (zie [`docker/compose/`](../../docker/compose/)). Map in dat geval je CSS-bestanden als volume naar `/var/lib/cssthema/css-files` in de `nginx`-container.
+Wie liever Docker gebruikt: `cp .env.example .env`, vul `POSTGRES_PASSWORD`, `SECRET_KEY` en `TRUSTED_PROXIES` in, en start met `make up`. De stack luistert dan op poort 8080 (zie [`docker/compose/`](../../docker/compose/)).
+
+Je handgemaakte CSS-bestanden horen in één map op de host, die compose zowel in de `nginx`- als in de `api`-container op `/var/lib/cssthema/css-files` mount. Standaard is dat `css-files/` in de repo-root; een andere map zet je met een absoluut pad in `CSS_FILES_HOST_DIR` in `.env`. Mount de map niet alleen in `nginx`: dan serveert nginx het bestand, maar ziet de api het niet. Een thema met dezelfde slug staat dan als "live" in cssthema zonder waarschuwing, terwijl bezoekers het bestand krijgen, en importeren kan niet.
+
+```bash
+mkdir -p css-files && cp /pad/naar/je/*.css css-files/
+sudo chown -R 10001:10001 css-files   # de api (uid 10001) archiveert na een import naar .geimporteerd/
+```
+
+Zonder schrijfrechten voor uid 10001 lukt importeren nog wel, maar meldt cssthema per bestand dat archiveren mislukte; het bestand blijft dan voorgaan op het thema.

@@ -97,6 +97,66 @@ jobs:
       - run: pnpm test
       - run: pnpm build
 
+  e2e:
+    name: E2E (Playwright)
+    # Parallel met backend/frontend: de suite start zelf de api (:8020) en `vite preview`
+    # (:4173) tegen de productiebuild (frontend/playwright.config.ts).
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: cssthema
+          POSTGRES_PASSWORD: cssthema
+          POSTGRES_DB: cssthema
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U cssthema" --health-interval 5s
+          --health-timeout 3s --health-retries 10
+      redis:
+        image: redis:7-alpine
+        ports: ["6379:6379"]
+        options: >-
+          --health-cmd "redis-cli ping" --health-interval 5s
+          --health-timeout 3s --health-retries 10
+    env:
+      DATABASE_URL: postgresql+asyncpg://cssthema:cssthema@localhost:5432/cssthema
+      REDIS_URL: redis://localhost:6379/0
+      UV_PYTHON: "3.12"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+      - name: Backend-afhankelijkheden
+        working-directory: backend
+        run: uv python install && uv sync --frozen
+      - uses: pnpm/action-setup@v4
+        with:
+          package_json_file: frontend/package.json
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+          cache-dependency-path: frontend/pnpm-lock.yaml
+      - name: Frontend-afhankelijkheden en Chromium
+        working-directory: frontend
+        run: |
+          pnpm install --frozen-lockfile
+          pnpm exec playwright install --with-deps --only-shell chromium
+      - name: Playwright (api :8020 + vite build/preview :4173)
+        working-directory: frontend
+        run: pnpm e2e
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: playwright-report
+          path: |
+            frontend/playwright-report/
+            frontend/test-results/e2e/
+          retention-days: 7
+
   docker:
     runs-on: ubuntu-latest
     needs: [backend, frontend]

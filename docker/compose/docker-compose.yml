@@ -31,6 +31,9 @@ services:
       TRUSTED_PROXIES: ${TRUSTED_PROXIES:-172.16.0.0/12}
     volumes:
       - nginx-cache:/var/cache/nginx
+      # Handgemaakte CSS: een bestand <slug>.css hier gaat voor op het thema met die slug.
+      # Dezelfde map als bij de api (zie daar); nginx leest alleen.
+      - ${CSS_FILES_HOST_DIR:-../../css-files}:/var/lib/cssthema/css-files:ro
     depends_on:
       api:
         condition: service_healthy
@@ -57,6 +60,10 @@ services:
       CSS_REFRESH_URL: http://nginx:8081
     volumes:
       - storage:/data/storage
+      # Dezelfde map als nginx: zo ziet de api de handgemaakte bestanden (waarschuwing "gaat
+      # voor op dit thema", importeren op /import) en archiveert hij ze na een import naar
+      # .geimporteerd/. Daarvoor moet uid 10001 (de api) in de map mogen schrijven.
+      - ${CSS_FILES_HOST_DIR:-../../css-files}:/var/lib/cssthema/css-files
     depends_on:
       postgres:
         condition: service_healthy

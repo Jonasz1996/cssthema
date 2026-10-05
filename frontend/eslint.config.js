@@ -5,7 +5,16 @@ import globals from "globals";
 import tseslint from "typescript-eslint";
 
 export default tseslint.config(
-  { ignores: ["dist", "coverage", "src/api/schema.d.ts"] },
+  {
+    ignores: [
+      "dist",
+      "coverage",
+      "src/api/schema.d.ts",
+      "test-results",
+      "playwright-report",
+      "blob-report",
+    ],
+  },
   {
     files: ["**/*.{ts,tsx}"],
     extends: [js.configs.recommended, ...tseslint.configs.recommended],
@@ -35,5 +44,11 @@ export default tseslint.config(
   {
     files: ["*.config.{js,ts}"],
     languageOptions: { globals: globals.node },
+  },
+  {
+    // Playwright: Node-tests (geen React; `use` van de fixtures is geen React-hook).
+    files: ["tests/e2e/**/*.ts"],
+    languageOptions: { globals: { ...globals.node, ...globals.browser } },
+    rules: { "react-hooks/rules-of-hooks": "off" },
   },
 );

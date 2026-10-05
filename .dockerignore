@@ -12,4 +12,9 @@
 !**/.env.example
 storage
 backups
+css-files
 docs
+# Testuitvoer van Playwright (frontend/test-results, playwright-report).
+**/test-results
+**/playwright-report
+**/blob-report

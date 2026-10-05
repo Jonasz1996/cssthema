@@ -180,6 +180,33 @@ async def test_symlinks_are_not_followed(api: Api) -> None:
     assert outside.exists()
 
 
+async def test_file_name_that_is_not_utf8(api: Api) -> None:
+    # Bv. een Latin-1-naam via scp/SMB: de lijst mag daardoor niet stuk (was 500).
+    good = unique_slug()
+    (api.css_dir / f"{good}.css").write_text("a { color: red }")
+    # os.fsdecode geeft de ruwe byte 0xE9 als surrogaat terug; zo komt hij ongewijzigd op schijf.
+    (api.css_dir / os.fsdecode(b"caf\xe9.css")).write_bytes(b"a{}")
+
+    response = await api.client.get(LOCAL)
+    assert response.status_code == 200, response.text
+    files = {f["name"]: f for f in response.json()}
+    assert set(files) == {f"{good}.css", "caf\ufffd.css"}
+    assert files[f"{good}.css"]["importable"] is True
+    bad = files["caf\ufffd.css"]
+    assert bad["importable"] is False
+    assert bad["slug"] is None
+    assert "UTF-8" in bad["reason"]
+
+    dashboard = (await api.client.get("/api/v1/dashboard")).json()
+    assert dashboard["local_files"]["total"] == 2
+    assert dashboard["local_files"]["importable"] == 1
+
+    # De weergavenaam is niet de echte naam: importeren ervan doet niets.
+    response = await api.client.post(f"{LOCAL}/import", json={"names": ["caf\ufffd.css"]})
+    assert response.status_code == 200, response.text
+    assert response.json()["imported"] == []
+
+
 async def test_missing_directory_is_empty(api: Api) -> None:
     api.css_dir.rmdir()
     assert (await api.client.get(LOCAL)).json() == []

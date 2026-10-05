@@ -345,6 +345,9 @@ async def fixed_version_css(session: AsyncSession, slug: str, number: int) -> Pu
         .where(
             Theme.slug == slug,
             Theme.deleted_at.is_(None),
+            # Nooit gepubliceerd (bv. import met "alleen draft"): ook de vaste versies niet
+            # publiek. Zodra het thema live gaat, wordt zijn geschiedenis zoals bedoeld publiek.
+            Theme.published_version_id.is_not(None),
             ThemeVersion.version_number == number,
         )
     )

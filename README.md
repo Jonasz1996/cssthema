@@ -7,7 +7,7 @@ https://cssthema.domain.be/              → dashboard en editor
 https://cssthema.domain.be/proxmox.css   → gepubliceerd Proxmox-thema
 ```
 
-**Status:** fase 0 (fundament) staat. Er is nog geen functionaliteit voor eindgebruikers; die komt vanaf fase 1. Zie [`docs/`](docs/README.md) voor het ontwerp en de [MVP-roadmap](docs/07-mvp-roadmap.md).
+**Status:** fase 1 staat: thema's maken en bewerken met live preview, publiceren, versies en terugzetten, import van bestaande CSS en paletten. De eigen login volgt in fase 3. Zie [`docs/`](docs/README.md) voor het ontwerp en de [MVP-roadmap](docs/07-mvp-roadmap.md).
 
 ## Installeren
 
@@ -34,6 +34,7 @@ Ontwikkelen:
 make install                # backend (uv) en frontend (pnpm)
 make dev                    # dev-stack met hot reload; frontend: cd frontend && pnpm dev
 make lint typecheck test
+make test-e2e               # Playwright tegen de productiebuild (frontend/README.md)
 ```
 
 ## Structuur

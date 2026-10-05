@@ -336,13 +336,14 @@ Alles via omgevingsvariabelen (12-factor), gevalideerd met `pydantic-settings`. 
 | `CSS_MAX_BYTES` | `524288` (standaard, 512 KB) | Maximale grootte van de CSS van één thema (draft, import, publicatie) |
 | `CSS_REFRESH_URL` | `http://127.0.0.1:8081` (standaard); compose: `http://nginx:8081` | Interne refresh-server van nginx, aangeroepen na elke wijziging van publieke CSS (spike S3); leeg = niet verversen |
 | `CSS_FILES_DIR` | `/var/lib/cssthema/css-files` (standaard) | Handgemaakte CSS die nginx vóór de api serveert; bron voor *lokale bestanden importeren* (na import gearchiveerd in `.geimporteerd/`) |
+| `CSS_FILES_HOST_DIR` | `../../css-files` (standaard, t.o.v. `docker/compose/`) | Alleen Docker: hostmap die compose in `nginx` (alleen-lezen) én `api` op `/var/lib/cssthema/css-files` mount, zodat beide dezelfde handgemaakte bestanden zien; uid 10001 moet erin kunnen schrijven (archiveren) |
 
 ## 7. Deployment
 
 ### 7.1 Docker Compose (standaard)
 
 - Netwerken: `edge` (alleen `nginx`, gekoppeld aan het NPM-netwerk of een gepubliceerde poort; alias `cssthema-nginx`), `internal` (alle services, `internal: true`) en `egress` voor de twee services die naar buiten moeten: `worker` (crawls, AI) en `api` (OIDC-discovery, JWKS en token-uitwisseling met Authentik).
-- Volumes: `pgdata`, `storage`, `backups`.
+- Volumes: `pgdata`, `storage`, `backups`, en de hostmap met handgemaakte CSS (`CSS_FILES_HOST_DIR`) in `nginx` en `api`.
 - Healthchecks op elke service; `api` start pas als `postgres` healthy is; migraties met PostgreSQL advisory lock zodat meerdere api-replica's niet tegelijk migreren.
 - Resource limits: worker 2 GB RAM / 2 CPU (Chromium), api 512 MB, nginx 128 MB.
 - De uitwerking staat in `docker/compose/docker-compose.yml` (fase 0).

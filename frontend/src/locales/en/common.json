@@ -23,5 +23,12 @@
   "notFoundTitle": "Page not found",
   "notFoundHint": "This route does not exist (any more).",
   "notFoundError": "{path}: page not found",
-  "notFoundBack": "Back to dashboard"
+  "notFoundBack": "Back to dashboard",
+  "routeErrorTitle": "Something went wrong",
+  "routeErrorHint": "This page could not be shown. Reload the page or go back to the dashboard.",
+  "routeErrorLine": "Error while showing this page",
+  "staleTitle": "New version of cssthema",
+  "staleHint": "cssthema was updated while this tab was open. Reload the page to load the new version.",
+  "staleError": "Part of the previous version is no longer available",
+  "reload": "Reload"
 }

@@ -23,5 +23,12 @@
   "notFoundTitle": "Pagina niet gevonden",
   "notFoundHint": "Deze route bestaat niet (meer).",
   "notFoundError": "{path}: pagina niet gevonden",
-  "notFoundBack": "Terug naar het dashboard"
+  "notFoundBack": "Terug naar het dashboard",
+  "routeErrorTitle": "Er ging iets mis",
+  "routeErrorHint": "Deze pagina kon niet getoond worden. Herlaad de pagina of ga terug naar het dashboard.",
+  "routeErrorLine": "Fout bij het tonen van deze pagina",
+  "staleTitle": "Nieuwe versie van cssthema",
+  "staleHint": "cssthema is bijgewerkt terwijl dit tabblad openstond. Herlaad de pagina om de nieuwe versie te laden.",
+  "staleError": "Onderdeel van de vorige versie niet meer beschikbaar",
+  "reload": "Herladen"
 }

@@ -56,6 +56,46 @@ async def test_fixed_version_is_immutable(api: Api) -> None:
     assert (await api.client.get(f"/{theme['slug']}@1.css")).status_code == 404
 
 
+async def test_unpublished_imports_have_no_public_versions(api: Api) -> None:
+    """Import met "alleen draft": niets live, ook `@n` niet (404) tot het thema live gaat."""
+    source = await api.published_theme(css="a { color: red }")
+    bundle = (
+        await api.client.get(f"/api/v1/themes/{source['id']}/export", params={"format": "bundle"})
+    ).content
+    response = await api.client.post(
+        "/api/v1/themes/import",
+        files={"file": ("x.cssthema.zip", bundle, "application/zip")},
+        data={"publish": "false"},
+    )
+    assert response.status_code == 201, response.text
+    imported = response.json()
+    assert imported["published_version"] is None
+    assert imported["latest_version_number"] == 1
+    fixed = f"/themes/{imported['slug']}@1.css"
+    response = await api.client.get(fixed)
+    assert response.status_code == 404
+    assert response.headers["Cache-Control"] == "public, max-age=10"
+
+    # Handgemaakt bestand zonder "meteen publiceren": v1 bestaat, maar is niet publiek.
+    slug = unique_slug()
+    (api.css_dir / f"{slug}.css").write_text("a { color: blue }")
+    response = await api.client.post(
+        "/api/v1/themes/local-files/import",
+        json={"names": [f"{slug}.css"], "publish": False, "archive": False},
+    )
+    (local,) = response.json()["imported"]
+    assert local["published_version"] is None
+    assert local["latest_version_number"] == 1
+    assert (await api.client.get(f"/themes/{slug}@1.css")).status_code == 404
+
+    # Eenmaal gepubliceerd is de geschiedenis wel publiek (en onveranderlijk).
+    await api.publish(imported)
+    response = await api.client.get(fixed)
+    assert response.status_code == 200
+    assert response.headers["Cache-Control"] == IMMUTABLE
+    assert response.text.endswith("a{color:red}")
+
+
 async def test_conditional_requests(api: Api) -> None:
     theme = await api.published_theme()
     path = f"/{theme['slug']}.css"

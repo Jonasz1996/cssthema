@@ -14,8 +14,9 @@ cssthema/
 ├── .pre-commit-config.yaml           # ruff, mypy, prettier, eslint, gitleaks
 ├── .github/
 │   ├── workflows/
-│   │   ├── ci.yml                    # lint + typecheck + test backend & frontend, migratiecheck, openapi-diff
-│   │   ├── e2e.yml                   # compose-stack + Playwright e2e
+│   │   ├── ci.yml                    # lint + typecheck + test backend & frontend, migratiecheck, openapi-diff,
+│   │   │                             # e2e (Playwright tegen de productiebuild, sinds fase 1)
+│   │   ├── e2e.yml                   # (later) Playwright e2e tegen de volledige compose-stack
 │   │   ├── release.yml               # multi-arch images → ghcr.io, changelog, tag
 │   │   └── security.yml              # Trivy, pip-audit, npm audit, CodeQL (wekelijks + PR)
 │   ├── pull_request_template.md
@@ -134,7 +135,7 @@ cssthema/
 │   │   └── styles/
 │   └── tests/
 │       ├── unit/
-│       └── e2e/                      # Playwright
+│       └── e2e/                      # Playwright (`pnpm e2e`, zie frontend/README.md)
 │
 ├── scripts/
 │   ├── discover.py                   # CLI: NPM of URL-lijst → API (met API-key), voor cron
@@ -207,6 +208,7 @@ cp .env.example .env
 make dev        # compose dev-stack: postgres, redis, api (reload), worker; mock-OIDC volgt in fase 3
 cd frontend && pnpm dev   # vite dev server, proxyt /api naar :8000
 make test       # backend + frontend tests
+make test-e2e   # Playwright e2e tegen de productiebuild (api :8020, vite preview :4173)
 make openapi    # openapi.json + frontend types regenereren
 ```
 

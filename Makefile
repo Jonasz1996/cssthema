@@ -6,7 +6,7 @@ COMPOSE_DEV  := $(COMPOSE) -f docker/compose/docker-compose.dev.yml
 ENV_FILE     := $(if $(wildcard .env),--env-file ../.env)
 
 .PHONY: help install dev up down logs lint fmt typecheck test test-backend test-frontend \
-        migrate migration openapi build
+        test-e2e migrate migration openapi build
 
 help: ## Toon deze hulp
 	@grep -E '^[a-zA-Z_-]+:.*?## ' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "  %-16s %s\n", $$1, $$2}'
@@ -46,6 +46,9 @@ test-backend: ## Backend-tests (integratietests als DATABASE_URL gezet is)
 
 test-frontend: ## Frontend-tests
 	cd frontend && pnpm test
+
+test-e2e: ## Playwright e2e tegen de productiebuild (api op :8020, vite preview op :4173; zie frontend/README.md)
+	cd frontend && pnpm e2e
 
 migrate: ## Database migreren naar de laatste versie
 	cd backend && uv run $(ENV_FILE) alembic upgrade head

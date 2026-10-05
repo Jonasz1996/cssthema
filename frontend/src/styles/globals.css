@@ -346,3 +346,12 @@
     transition: none !important;
   }
 }
+
+/* Monaco: ook de widgets (suggesties, hover, "hidden lines" in de diff, zoeken) in monospace,
+   zoals de rest van de UI; de code zelf krijgt zijn lettertype uit de editoropties. Buiten
+   @layer en met :root ervoor, want Monaco's eigen (ongelaagde, later geladen) CSS zet hier
+   een systeemlettertype. */
+:root .monaco-editor,
+:root .monaco-diff-editor {
+  font-family: var(--ui-mono);
+}

@@ -69,6 +69,7 @@ REASON_BAD_NAME = (
 )
 REASON_EXISTS = "Er bestaat al een thema met deze slug."
 REASON_NOT_REGULAR = "Geen gewoon bestand (bv. een map)."
+REASON_NOT_UTF8 = "De bestandsnaam is geen geldige UTF-8; hernoem het bestand op de server."
 REASON_NOT_ARCHIVED = (
     "Niet gearchiveerd: het thema is niet gepubliceerd, dus het bestand blijft de URL "
     "bedienen. Publiceer het thema en verplaats het bestand daarna zelf naar "
@@ -460,6 +461,22 @@ class _LocalEntry:
     size: int
     modified_at: datetime
     symlink: bool
+    # Naam is geen geldige UTF-8 (bv. Latin-1 via scp/SMB): `name` is dan een leesbare weergave
+    # met U+FFFD, niet de echte naam, en het bestand is niet te importeren.
+    bad_name: bool = False
+
+
+def _scanned_name(name: str) -> tuple[str, bool]:
+    """Naam uit `os.scandir` als JSON-veilige tekst, en of hij geen geldige UTF-8 was.
+
+    Python geeft ongeldige bytes als surrogaten terug (surrogateescape); die kunnen niet naar
+    JSON en zouden de hele lijst laten mislukken.
+    """
+    try:
+        name.encode("utf-8")
+    except UnicodeEncodeError:
+        return os.fsencode(name).decode("utf-8", "replace"), True
+    return name, False
 
 
 class _LocalFileError(Exception):
@@ -483,12 +500,14 @@ def _scan_css_dir(directory: Path) -> list[_LocalEntry]:
                     info = entry.stat(follow_symlinks=False)
                 except OSError:
                     continue
+                name, bad_name = _scanned_name(entry.name)
                 entries.append(
                     _LocalEntry(
-                        name=entry.name,
+                        name=name,
                         size=info.st_size,
                         modified_at=datetime.fromtimestamp(info.st_mtime, UTC),
                         symlink=symlink,
+                        bad_name=bad_name,
                     )
                 )
     except OSError:
@@ -511,7 +530,10 @@ def _local_slug(name: str) -> tuple[str | None, str | None]:
 
 async def list_local_files(ctx: ServiceContext) -> list[schemas.LocalCssFile]:
     entries = await run_in_threadpool(_scan_css_dir, ctx.settings.css_files_dir)
-    slugs = {entry.name: _local_slug(entry.name) for entry in entries}
+    slugs = {
+        entry.name: (None, REASON_NOT_UTF8) if entry.bad_name else _local_slug(entry.name)
+        for entry in entries
+    }
     existing = await theme_repo.active_theme_ids_by_slugs(
         ctx.session, [slug for slug, _ in slugs.values() if slug]
     )
