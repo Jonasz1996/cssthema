@@ -21,7 +21,11 @@ FROM deps AS app
 COPY backend/ ./
 RUN --mount=type=cache,target=/root/.cache/uv \
     uv sync --frozen --no-dev
-RUN useradd --system --uid 10001 --home /app cssthema && chown -R cssthema /app
+# /data/storage bestaat al in de image met de juiste eigenaar, zodat een nieuw
+# named volume op dat pad die eigenaar overneemt (anders root:root).
+RUN useradd --system --uid 10001 --home /app cssthema \
+    && mkdir -p /data/storage \
+    && chown -R cssthema /app /data/storage
 USER cssthema
 
 FROM app AS api
@@ -29,7 +33,9 @@ EXPOSE 8000
 HEALTHCHECK --interval=15s --timeout=3s --start-period=20s --retries=3 \
     CMD python -c "import urllib.request,sys; sys.exit(0 if urllib.request.urlopen('http://127.0.0.1:8000/healthz').status==200 else 1)"
 ENTRYPOINT ["/app/docker-entrypoint.sh"]
-CMD ["uvicorn", "cssthema.main:app", "--host", "0.0.0.0", "--port", "8000", "--proxy-headers", "--forwarded-allow-ips", "*"]
+# nginx stuurt alleen het door real_ip bepaalde client-IP als X-Forwarded-For door, en
+# de api is alleen via nginx bereikbaar. Access-logs komen uit RequestContextMiddleware.
+CMD ["uvicorn", "cssthema.main:app", "--host", "0.0.0.0", "--port", "8000", "--proxy-headers", "--forwarded-allow-ips", "*", "--no-access-log"]
 
 FROM app AS worker
 CMD ["arq", "cssthema.worker.WorkerSettings"]

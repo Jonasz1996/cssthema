@@ -1,5 +1,6 @@
 """Liveness en readiness (buiten /api/v1, zie docs/05 § 4.11)."""
 
+import asyncio
 from typing import Literal
 
 from fastapi import APIRouter, Request, Response
@@ -7,6 +8,9 @@ from pydantic import BaseModel
 from sqlalchemy import text
 
 router = APIRouter(tags=["health"])
+
+# Een afhankelijkheid die de verbinding aanneemt maar niet antwoordt, telt als "error".
+PROBE_TIMEOUT_S = 2.0
 
 
 class HealthStatus(BaseModel):
@@ -28,13 +32,15 @@ async def healthz() -> HealthStatus:
 async def readyz(request: Request, response: Response) -> HealthStatus:
     checks: dict[str, Literal["ok", "error"]] = {}
     try:
-        async with request.app.state.engine.connect() as conn:
-            await conn.execute(text("SELECT 1"))
+        async with asyncio.timeout(PROBE_TIMEOUT_S):
+            async with request.app.state.engine.connect() as conn:
+                await conn.execute(text("SELECT 1"))
         checks["database"] = "ok"
-    except Exception:
+    except Exception:  # inclusief TimeoutError
         checks["database"] = "error"
     try:
-        await request.app.state.redis.ping()
+        async with asyncio.timeout(PROBE_TIMEOUT_S):
+            await request.app.state.redis.ping()
         checks["redis"] = "ok"
     except Exception:
         checks["redis"] = "error"

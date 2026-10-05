@@ -1,13 +1,13 @@
 # 06 — Repository-structuur
 
-> Status: **ontwerp, ter goedkeuring** · Versie 0.1 · 2026-10-05
+> Status: **goedgekeurd** · Versie 0.2 · 2026-10-05
 
 ## 1. Monorepo-indeling
 
 ```
 cssthema/
 ├── README.md                         # Wat, quickstart (docker compose up), links naar docs
-├── LICENSE
+├── LICENSE                         # nog te kiezen door de eigenaar
 ├── .env.example                      # Alle variabelen met uitleg (zie 02 § 6)
 ├── Makefile                          # make dev | test | lint | fmt | migrate | openapi | build
 ├── .editorconfig
@@ -203,7 +203,8 @@ cssthema/
 
 ```bash
 cp .env.example .env
-make dev        # compose dev-stack: postgres, redis, mock-OIDC, api (reload), worker, vite dev server
+make dev        # compose dev-stack: postgres, redis, api (reload), worker; mock-OIDC volgt in fase 3
+cd frontend && pnpm dev   # vite dev server, proxyt /api naar :8000
 make test       # backend + frontend tests
 make openapi    # openapi.json + frontend types regenereren
 ```

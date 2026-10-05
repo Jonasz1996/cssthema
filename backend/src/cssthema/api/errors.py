@@ -1,5 +1,6 @@
 """Problem Details (RFC 9457) voor alle API-fouten."""
 
+from collections.abc import Mapping
 from typing import Any
 
 from fastapi import FastAPI, Request
@@ -8,6 +9,7 @@ from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
+from cssthema.api.middleware import REQUEST_ID_HEADER
 from cssthema.logging import get_logger
 
 PROBLEM_BASE = "https://cssthema.dev/problems/"
@@ -38,6 +40,7 @@ class ProblemError(Exception):
         detail: str | None = None,
         errors: list[dict[str, Any]] | None = None,
         extra: dict[str, Any] | None = None,
+        headers: dict[str, str] | None = None,
     ) -> None:
         super().__init__(title)
         self.status = status
@@ -46,6 +49,7 @@ class ProblemError(Exception):
         self.detail = detail
         self.errors = errors
         self.extra = extra or {}
+        self.headers = headers
 
 
 _STATUS_CODES = {
@@ -72,8 +76,13 @@ def problem_response(
     detail: str | None = None,
     errors: list[dict[str, Any]] | None = None,
     extra: dict[str, Any] | None = None,
+    headers: Mapping[str, str] | None = None,
 ) -> JSONResponse:
     request_id = getattr(request.state, "request_id", None)
+    response_headers = dict(headers or {})
+    if request_id:
+        # Ook voor responses die buiten de request-ID-middleware worden verstuurd (500).
+        response_headers.setdefault(REQUEST_ID_HEADER, request_id)
     body = Problem(
         type=PROBLEM_BASE + code.replace("_", "-"),
         title=title,
@@ -85,7 +94,9 @@ def problem_response(
         errors=errors,
     ).model_dump(exclude_none=True)
     body.update(extra or {})
-    return JSONResponse(body, status_code=status, media_type=PROBLEM_MEDIA_TYPE)
+    return JSONResponse(
+        body, status_code=status, media_type=PROBLEM_MEDIA_TYPE, headers=response_headers
+    )
 
 
 def install_error_handlers(app: FastAPI) -> None:
@@ -99,16 +110,25 @@ def install_error_handlers(app: FastAPI) -> None:
             detail=exc.detail,
             errors=exc.errors,
             extra=exc.extra,
+            headers=exc.headers,
         )
 
     @app.exception_handler(StarletteHTTPException)
     async def _http(request: Request, exc: StarletteHTTPException) -> JSONResponse:
         code = _STATUS_CODES.get(exc.status_code, "error")
         title = exc.detail if isinstance(exc.detail, str) else code.replace("_", " ").capitalize()
-        return problem_response(request, status=exc.status_code, code=code, title=title)
+        # exc.headers doorgeven: Allow bij 405, later WWW-Authenticate (401) en Retry-After (429).
+        return problem_response(
+            request, status=exc.status_code, code=code, title=title, headers=exc.headers
+        )
 
     @app.exception_handler(RequestValidationError)
     async def _validation(request: Request, exc: RequestValidationError) -> JSONResponse:
+        if any(err["type"] == "json_invalid" for err in exc.errors()):
+            # Onleesbare body is 400 (docs/05 § 1), geen veldvalidatie.
+            return problem_response(
+                request, status=400, code="bad_request", title="Onleesbare body"
+            )
         errors = [
             {"loc": list(err["loc"]), "msg": err["msg"], "type": err["type"]}
             for err in exc.errors()

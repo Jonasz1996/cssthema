@@ -124,6 +124,11 @@ def upgrade() -> None:
         sa.ForeignKeyConstraint(
             ["user_id"], ["users.id"], name=op.f("fk_api_keys_user_id_users"), ondelete="CASCADE"
         ),
+        sa.CheckConstraint(
+            "scopes <@ ARRAY['themes:read', 'themes:write', 'themes:publish', 'services:read', "
+            "'services:write', 'discovery:run', 'ai:generate', 'audit:read']::varchar[]",
+            name=op.f("ck_api_keys_scopes_allowed"),
+        ),
         sa.PrimaryKeyConstraint("id", name=op.f("pk_api_keys")),
         sa.UniqueConstraint("prefix", name=op.f("uq_api_keys_prefix")),
     )
@@ -530,7 +535,6 @@ def upgrade() -> None:
             ["palette_id"],
             ["palettes.id"],
             name=op.f("fk_theme_versions_palette_id_palettes"),
-            ondelete="SET NULL",
         ),
         sa.ForeignKeyConstraint(
             ["source_version_id"],

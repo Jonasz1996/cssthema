@@ -3,6 +3,19 @@
 import enum
 
 
+class ApiKeyScope(enum.StrEnum):
+    """Scopes voor API-keys (docs/05 § 2); afgedwongen met een CHECK op api_keys.scopes."""
+
+    THEMES_READ = "themes:read"
+    THEMES_WRITE = "themes:write"
+    THEMES_PUBLISH = "themes:publish"
+    SERVICES_READ = "services:read"
+    SERVICES_WRITE = "services:write"
+    DISCOVERY_RUN = "discovery:run"
+    AI_GENERATE = "ai:generate"
+    AUDIT_READ = "audit:read"
+
+
 class UserRole(enum.StrEnum):
     ADMIN = "admin"
     EDITOR = "editor"

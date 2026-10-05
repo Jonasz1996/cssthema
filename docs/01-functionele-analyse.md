@@ -1,6 +1,6 @@
 # 01 — Functionele analyse
 
-> Status: **ontwerp, ter goedkeuring** · Versie 0.1 · 2026-10-05
+> Status: **goedgekeurd** · Versie 0.2 · 2026-10-05
 
 ## 1. Doel en context
 
@@ -58,7 +58,7 @@ Elke eis heeft een ID (gebruikt in roadmap en tests) en een prioriteit: **M** = 
 |---|---|---|
 | F-TM-01 | Thema aanmaken: naam, slug (auto uit naam, aanpasbaar, `[a-z0-9-]{2,64}`, uniek, gereserveerde woorden geblokkeerd zoals `api`, `themes`, `assets`, `healthz`), optioneel service, optioneel palet, optioneel startsjabloon (leeg / van AI-generatie / van ander thema). | M |
 | F-TM-02 | Thema dupliceren: kopie van draft + metadata met nieuwe slug; versiegeschiedenis wordt **niet** meegekopieerd, nieuwe versie 1 met bron `duplicate`. | M |
-| F-TM-03 | Thema verwijderen: soft delete (publieke URL geeft direct `404`), herstelbaar door Admin binnen 30 dagen; daarna purge-job. Hard delete alleen Admin. | M |
+| F-TM-03 | Thema verwijderen: soft delete (publieke URL geeft binnen enkele seconden `404`: de api ververst de nginx-cache, zie spike S3), herstelbaar door Admin binnen 30 dagen; daarna purge-job. Hard delete alleen Admin. | M |
 | F-TM-04 | Thema exporteren als `.css` (gepubliceerde of specifieke versie) of als bundel `.cssthema.zip` (manifest + draft + alle versies + palet). | M |
 | F-TM-05 | Thema importeren uit `.css` of `.cssthema.zip`; bij slug-conflict kiezen: hernoemen / nieuwe versie op bestaand thema / annuleren. | M |
 | F-TM-06 | Versiegeschiedenis: lijst met nummer, auteur, tijd, bericht, bron, grootte; side-by-side diff tussen twee willekeurige versies of tussen versie en draft. | M |
@@ -144,7 +144,7 @@ Elke eis heeft een ID (gebruikt in roadmap en tests) en een prioriteit: **M** = 
 | F-CD-03 | `Content-Type: text/css; charset=utf-8`, `X-Content-Type-Options: nosniff`. | M |
 | F-CD-04 | `ETag` = sterke hash (SHA-256, ingekort) van de gecompileerde CSS; `If-None-Match` → `304`. `Last-Modified` = publicatietijd. | M |
 | F-CD-05 | Caching: "latest" → `Cache-Control: public, max-age=60, stale-while-revalidate=600, stale-if-error=86400`; vaste versie → `public, max-age=31536000, immutable`. Configureerbaar. | M |
-| F-CD-06 | Nginx-microcache voor CSS-endpoints; bij publicatie wordt de cache voor die slug gepurged. | M |
+| F-CD-06 | Nginx-microcache voor CSS-endpoints; bij publicatie, rollback, verwijderen en slug-wijziging ververst de api de cache-entry voor die slug via de interne refresh-server (spike S3). | M |
 | F-CD-07 | CORS: `Access-Control-Allow-Origin: *` op CSS (nodig voor `@import`/`fetch` vanuit andere origins en voor userscripts). | M |
 | F-CD-08 | Gecomprimeerd (gzip, brotli waar beschikbaar) door Nginx. | M |
 | F-CD-09 | Afgeleide formaten: `/themes/{slug}.user.css` (Stylus UserCSS met `@updateURL`, automatische updates in de extensie), `/themes/{slug}.user.js` (Tampermonkey/Violentmonkey userscript dat ook Shadow DOM bereikt), `/themes/{slug}.ha.yaml` (Home Assistant theme met variabelen). | P |
@@ -243,7 +243,7 @@ sequenceDiagram
 
 1. Versiegeschiedenis openen → versie 4 selecteren → diff met huidige (6) bekijken.
 2. "Rollback naar v4" → bevestigen met optioneel bericht.
-3. Backend maakt v7 (= inhoud v4, bron `rollback`), publiceert, purget cache, logt audit.
+3. Backend maakt v7 (= inhoud v4, bron `rollback`), publiceert, ververst de nginx-cache, logt audit.
 4. Binnen max. 60 s (max-age) laden browsers v7; via NPM-injectie met `?v=`-hash direct.
 
 ### 6.3 Discovery via NPM

@@ -1,6 +1,6 @@
 # 04 — UI-wireframes
 
-> Status: **ontwerp, ter goedkeuring** · Versie 0.1 · 2026-10-05
+> Status: **goedgekeurd** · Versie 0.2 · 2026-10-05
 
 ## 1. Ontwerpprincipes
 

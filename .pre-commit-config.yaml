@@ -8,20 +8,26 @@ repos:
       - id: check-yaml
       - id: check-added-large-files
         args: [--maxkb=1024]
-  - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.8.4
-    hooks:
-      - id: ruff
-        args: [--fix]
-        files: ^backend/
-      - id: ruff-format
-        files: ^backend/
   - repo: https://github.com/gitleaks/gitleaks
     rev: v8.21.2
     hooks:
       - id: gitleaks
+  # Lokale hooks gebruiken de vastgezette versies uit uv.lock en pnpm-lock.yaml,
+  # dus precies dezelfde ruff/mypy/eslint als CI.
   - repo: local
     hooks:
+      - id: backend-ruff
+        name: backend ruff (lint + format)
+        entry: bash -c 'cd backend && uv run ruff check --fix . && uv run ruff format .'
+        language: system
+        files: ^backend/
+        pass_filenames: false
+      - id: backend-mypy
+        name: backend mypy
+        entry: bash -c 'cd backend && uv run mypy'
+        language: system
+        files: ^backend/
+        pass_filenames: false
       - id: frontend-lint
         name: frontend lint + format
         entry: bash -c 'cd frontend && pnpm lint && pnpm exec prettier --check .'

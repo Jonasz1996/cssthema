@@ -1,6 +1,6 @@
 # 08 — Productie-roadmap
 
-> Status: **ontwerp, ter goedkeuring** · Versie 0.1 · 2026-10-05
+> Status: **goedgekeurd** · Versie 0.2 · 2026-10-05
 
 Vertrekpunt: MVP v0.4 (zie [07-mvp-roadmap](07-mvp-roadmap.md)). Doel: **v1.0 = productieklaar** — alle hoofdfuncties uit de opdracht, betrouwbaar te beheren, met backups, monitoring en upgradepad. Daarna v1.x/v2 voor verdieping.
 

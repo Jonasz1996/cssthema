@@ -1,10 +1,13 @@
 import uuid
 from datetime import datetime
 
-from sqlalchemy import ARRAY, ForeignKey, Index, LargeBinary, String, text
+from sqlalchemy import ARRAY, CheckConstraint, ForeignKey, Index, LargeBinary, String, text
 from sqlalchemy.orm import Mapped, mapped_column
 
 from cssthema.db.base import Base, CreatedAtMixin, UUIDPrimaryKeyMixin
+from cssthema.db.models.enums import ApiKeyScope
+
+_ALLOWED_SCOPES = ", ".join(f"'{scope.value}'" for scope in ApiKeyScope)
 
 
 class ApiKey(UUIDPrimaryKeyMixin, CreatedAtMixin, Base):
@@ -13,6 +16,7 @@ class ApiKey(UUIDPrimaryKeyMixin, CreatedAtMixin, Base):
     __tablename__ = "api_keys"
     __table_args__ = (
         Index("ix_api_keys_user_active", "user_id", postgresql_where=text("revoked_at IS NULL")),
+        CheckConstraint(f"scopes <@ ARRAY[{_ALLOWED_SCOPES}]::varchar[]", name="scopes_allowed"),
     )
 
     user_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"))

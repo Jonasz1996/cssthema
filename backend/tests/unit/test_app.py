@@ -1,8 +1,10 @@
+import logging
 from collections.abc import AsyncIterator
 
 import pytest
 from fastapi import APIRouter
 from httpx import ASGITransport, AsyncClient
+from pydantic import BaseModel
 
 from cssthema.api.errors import ProblemError
 from cssthema.config import Settings
@@ -26,6 +28,13 @@ async def client(settings: Settings) -> AsyncIterator[AsyncClient]:
     @probe.get("/_probe/typed")
     async def typed(n: int) -> int:
         return n
+
+    class Body(BaseModel):
+        name: str
+
+    @probe.post("/_probe/body")
+    async def body(payload: Body) -> str:
+        return payload.name
 
     app.include_router(probe)
     # Geen lifespan nodig voor deze tests: ze raken DB/Redis niet.
@@ -91,6 +100,47 @@ async def test_unhandled_error_hides_details(client: AsyncClient) -> None:
     assert response.status_code == 500
     assert response.json()["code"] == "internal_error"
     assert "kapot" not in response.text
+
+
+async def test_unhandled_error_keeps_request_id_and_is_logged(
+    client: AsyncClient, caplog: pytest.LogCaptureFixture
+) -> None:
+    caplog.set_level(logging.INFO, logger="cssthema.access")
+    response = await client.get("/_probe/boom", headers={"X-Request-ID": "req-500"})
+    assert response.headers["X-Request-ID"] == "req-500"
+    assert response.json()["request_id"] == "req-500"
+    access = [
+        r.msg
+        for r in caplog.records
+        if r.name == "cssthema.access"
+        and isinstance(r.msg, dict)
+        and r.msg["path"] == "/_probe/boom"
+    ]
+    assert len(access) == 1
+    assert access[0]["status"] == 500
+
+
+async def test_method_not_allowed_keeps_allow_header(client: AsyncClient) -> None:
+    response = await client.get("/_probe/body")
+    assert response.status_code == 405
+    assert response.json()["code"] == "method_not_allowed"
+    assert response.headers["Allow"] == "POST"
+
+
+async def test_unreadable_body_is_bad_request(client: AsyncClient) -> None:
+    response = await client.post(
+        "/_probe/body", content=b"{geen json", headers={"Content-Type": "application/json"}
+    )
+    assert response.status_code == 400
+    body = response.json()
+    assert body["code"] == "bad_request"
+    assert "errors" not in body
+
+
+async def test_body_field_error_is_validation_error(client: AsyncClient) -> None:
+    response = await client.post("/_probe/body", json={"naam": "x"})
+    assert response.status_code == 422
+    assert response.json()["errors"][0]["loc"] == ["body", "name"]
 
 
 async def test_openapi_is_served_under_api_v1(client: AsyncClient) -> None:

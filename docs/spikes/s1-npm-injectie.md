@@ -45,7 +45,7 @@ Alles in Docker, lokaal:
 - **Nieuw punt (#9):** een stylesheet in `<head>` blokkeert het renderen. Ligt de hele cssthema-stack plat, dan wacht de pagina tot de timeout verloopt.
   - Valt alleen de api uit, dan serveert de cssthema-nginx stale CSS (spike S3) en speelt dit niet.
   - Maatregel: `proxy_connect_timeout 1s` in het gegenereerde snippet (was 2 s).
-  - Aanbeveling in de docs: koppel NPM en cssthema via hetzelfde Docker-netwerk (`proxy_pass http://cssthema-nginx/themes/`), zodat er geen DNS- of TLS-hairpin in het pad zit.
+  - Aanbeveling in de docs: koppel NPM aan het Docker-netwerk `cssthema_edge` (`proxy_pass http://cssthema-nginx/themes/`; `cssthema-nginx` is een netwerkalias in de compose), zodat er geen DNS- of TLS-hairpin in het pad zit.
 
 ## Nog open, alleen te testen in jouw omgeving
 

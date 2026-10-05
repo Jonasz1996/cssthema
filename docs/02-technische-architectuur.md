@@ -1,6 +1,6 @@
 # 02 — Technische architectuur
 
-> Status: **ontwerp, ter goedkeuring** · Versie 0.1 · 2026-10-05
+> Status: **goedgekeurd** · Versie 0.2 · 2026-10-05
 
 ## 1. Overzicht
 
@@ -52,7 +52,7 @@ flowchart LR
 
 | Container | Image (basis) | Verantwoordelijkheid | Schaal |
 |---|---|---|---|
-| `nginx` | `nginx:1.27-alpine` + gebouwde SPA | Serveert de React-build, routeert `/api` en CSS naar `api`, microcache voor CSS, gzip/brotli, security headers, rate limit op publieke endpoints | 1 (stateless, n mogelijk) |
+| `nginx` | `nginx:1.30-alpine` + gebouwde SPA | Serveert de React-build, routeert `/api` en CSS naar `api`, microcache voor CSS, gzip/brotli, security headers, rate limit op publieke endpoints | 1 (stateless, n mogelijk) |
 | `api` | `python:3.12-slim` | REST API, OIDC, RBAC, CSS-compilatie, publieke CSS bij cache-miss, SSE voor job-events, Alembic-migraties bij start | n (stateless) |
 | `worker` | `mcr.microsoft.com/playwright/python:v1.5x-noble` | Asynchrone jobs: snapshots, crawl/discovery, screenshots, AI, purge/retentie, gethemede screenshots | n (CPU/geheugen-zwaar) |
 | `postgres` | `postgres:16-alpine` | Primaire data | 1 (later replica) |
@@ -153,7 +153,7 @@ sequenceDiagram
     alt cache HIT (≤ 60 s oud)
         N-->>C: 304 of 200 uit cache
     else cache MISS
-        N->>A: GET /_public/css/proxmox
+        N->>A: GET /proxmox.css (pad ongewijzigd doorgegeven)
         A->>R: GET css:proxmox (hash, versie, body)
         alt redis miss
             A->>P: SELECT published version
@@ -165,7 +165,8 @@ sequenceDiagram
 ```
 
 - Nginx: `proxy_cache_valid 200 60s; proxy_cache_use_stale error timeout updating http_500 http_502 http_503 http_504; proxy_cache_lock on;` → backend-uitval heeft 24 u geen effect op reeds gecachede thema's.
-- Bij publicatie: API verwijdert `css:{slug}` uit Redis en roept de purge aan (nginx-cache-key per slug; implementatie via `proxy_cache_bypass` op een interne header of korte TTL — keuze in MVP-spike, zie roadmap). Met 60 s TTL is zelfs zonder purge de vertraging begrensd.
+- nginx geeft `/{slug}.css`, `/themes/{slug}.css` en `/themes/{slug}@{n}.css` ongewijzigd door aan de api.
+- Bij elke wijziging van publieke CSS (publiceren, rollback, soft delete, herstel, hard delete, slug-wijziging) verwijdert de API `css:{slug}` uit Redis en vraagt hij best effort `http://nginx:8081/{slug}.css` en `/themes/{slug}.css` op. Die interne refresh-server (`proxy_cache_bypass`) overschrijft de cache-entry, ook met een 404. Open-source nginx kent geen purge; zie [spike S3](spikes/s3-css-cache.md). Met 60 s TTL is de vertraging ook zonder refresh begrensd.
 - `@{n}`-URL's zijn onveranderlijk en worden 1 jaar gecachet.
 - Response headers: `Content-Type: text/css; charset=utf-8`, `ETag: "sha256-ab12…"`, `Last-Modified`, `Cache-Control`, `Access-Control-Allow-Origin: *`, `X-Content-Type-Options: nosniff`, `X-Cssthema-Version: 7`.
 
@@ -284,7 +285,7 @@ sequenceDiagram
 
     P->>A: GET /snapshots/{id}/document
     A-->>P: gesaneerde HTML (zonder scripts, assets herschreven)
-    P->>F: srcdoc = HTML + <style id="ct-live"></style> + bridge.js (eigen, enige script)
+    P->>F: srcdoc = <meta CSP> + HTML + <style id="ct-live"></style> + inline bridge.js
     E->>P: onChange (CSS)
     P->>F: postMessage({type:"css", css}) (requestAnimationFrame-throttled)
     F->>F: ct-live.textContent = css (+ adoptedStyleSheets in shadow roots)
@@ -293,7 +294,8 @@ sequenceDiagram
 
 - iframe attribuut `sandbox="allow-scripts"` **zonder** `allow-same-origin` → de snapshot draait in een opaque origin en kan niet bij cookies of de API.
 - `bridge.js` is het enige script in de preview; het injecteert de CSS ook in alle open shadow roots (zodat het effect zichtbaar wordt dat een userscript zou hebben) — instelbaar "simuleer injectiemethode: link in head / userscript".
-- Snapshot-documenten worden geserveerd met een strikte CSP: `default-src 'none'; style-src 'unsafe-inline' <api>/snapshots/; img-src data: <api>/snapshots/; font-src <api>/snapshots/; script-src 'sha256-<bridge>'`.
+- De CSP reist mee in de srcdoc zelf, als eerste element in `<head>`: `<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline' <api>/snapshots/; img-src data: <api>/snapshots/; font-src <api>/snapshots/; script-src 'sha256-<bridge>'">`. Een CSP-responseheader van `/snapshots/{id}/document` bereikt een srcdoc-document namelijk niet (dat erft de policy van de editorpagina). Het endpoint stuurt dezelfde header toch mee, voor wie de URL rechtstreeks opent.
+- De preview-component haalt `/preview-bridge.js` één keer op (absolute URL) en zet de tekst **inline** in de srcdoc, zodat de hash in `script-src` klopt. Geen `<script src>`: in een srcdoc wordt een relatieve URL opgelost tegen de editor-route en komt hij in de SPA-fallback terecht.
 
 ## 5. Data en opslag
 
@@ -317,7 +319,9 @@ Alles via omgevingsvariabelen (12-factor), gevalideerd met `pydantic-settings`. 
 | Variabele | Voorbeeld | Doel |
 |---|---|---|
 | `PUBLIC_BASE_URL` | `https://cssthema.domain.be` | Absolute URL's in snippets en UserCSS |
-| `DATABASE_URL` | `postgresql+asyncpg://cssthema:***@postgres/cssthema` | |
+| `POSTGRES_HOST` / `POSTGRES_USER` / `POSTGRES_PASSWORD` / `POSTGRES_DB` | `postgres` / `cssthema` / *** / `cssthema` | De api bouwt hier de database-URL uit (wachtwoord URL-gecodeerd) |
+| `DATABASE_URL` | `postgresql+asyncpg://cssthema:***@postgres/cssthema` | Optioneel: overschrijft de `POSTGRES_*`-delen |
+| `TRUSTED_PROXIES` | `172.16.0.0/12,192.168.1.10` | nginx: bronnen waarvan `X-Forwarded-For` vertrouwd wordt (NPM) |
 | `REDIS_URL` | `redis://redis:6379/0` | |
 | `SECRET_KEY` | 64 random bytes | Sessies, CSRF |
 | `ENCRYPTION_KEY` | Fernet-key | Versleuteling van geheimen in DB |
@@ -334,11 +338,11 @@ Alles via omgevingsvariabelen (12-factor), gevalideerd met `pydantic-settings`. 
 
 ### 7.1 Docker Compose (standaard)
 
-- Netwerken: `edge` (alleen `nginx`, gekoppeld aan het NPM-netwerk of een gepubliceerde poort), `internal` (alle services, `internal: true` behalve worker die naar buiten moet voor crawls/AI).
+- Netwerken: `edge` (alleen `nginx`, gekoppeld aan het NPM-netwerk of een gepubliceerde poort; alias `cssthema-nginx`), `internal` (alle services, `internal: true`) en `egress` voor de twee services die naar buiten moeten: `worker` (crawls, AI) en `api` (OIDC-discovery, JWKS en token-uitwisseling met Authentik).
 - Volumes: `pgdata`, `storage`, `backups`.
 - Healthchecks op elke service; `api` start pas als `postgres` healthy is; migraties met PostgreSQL advisory lock zodat meerdere api-replica's niet tegelijk migreren.
 - Resource limits: worker 2 GB RAM / 2 CPU (Chromium), api 512 MB, nginx 128 MB.
-- Volledige compose-uitwerking volgt in de implementatiefase (`docker/compose/docker-compose.yml`).
+- De uitwerking staat in `docker/compose/docker-compose.yml` (fase 0).
 
 ### 7.2 Kubernetes (optioneel, productiefase)
 

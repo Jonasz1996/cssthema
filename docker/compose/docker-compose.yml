@@ -5,7 +5,11 @@ name: cssthema
 x-backend-env: &backend-env
   ENVIRONMENT: production
   PUBLIC_BASE_URL: ${PUBLIC_BASE_URL:-http://localhost:8080}
-  DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-cssthema}:${POSTGRES_PASSWORD:?zet POSTGRES_PASSWORD in .env}@postgres:5432/${POSTGRES_DB:-cssthema}
+  # De api bouwt de database-URL zelf uit deze delen (wachtwoord URL-gecodeerd).
+  POSTGRES_HOST: postgres
+  POSTGRES_USER: ${POSTGRES_USER:-cssthema}
+  POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?zet POSTGRES_PASSWORD in .env}
+  POSTGRES_DB: ${POSTGRES_DB:-cssthema}
   REDIS_URL: redis://redis:6379/0
   SECRET_KEY: ${SECRET_KEY:?zet SECRET_KEY in .env}
   ENCRYPTION_KEY: ${ENCRYPTION_KEY:-}
@@ -22,12 +26,19 @@ services:
     restart: unless-stopped
     ports:
       - "${HTTP_PORT:-8080}:80"
+    environment:
+      # Bronnen waarvan nginx X-Forwarded-For vertrouwt (de reverse proxy, meestal NPM).
+      TRUSTED_PROXIES: ${TRUSTED_PROXIES:-172.16.0.0/12}
     volumes:
       - nginx-cache:/var/cache/nginx
     depends_on:
       api:
         condition: service_healthy
-    networks: [edge, internal]
+    networks:
+      edge:
+        # Vaste naam voor NPM op een gedeeld netwerk: proxy_pass http://cssthema-nginx/...
+        aliases: [cssthema-nginx]
+      internal: {}
     deploy:
       resources:
         limits: { memory: 128m }
@@ -49,7 +60,8 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
-    networks: [internal]
+    # `egress` voor OIDC (discovery, JWKS, token-uitwisseling met Authentik) vanaf fase 3.
+    networks: [internal, egress]
     deploy:
       resources:
         limits: { memory: 512m }
@@ -108,7 +120,8 @@ services:
     networks: [internal]
 
 networks:
-  # Alleen nginx hangt aan `edge`; koppel dit eventueel aan het NPM-netwerk.
+  # Alleen nginx hangt aan `edge` (in Docker heet het `cssthema_edge`); koppel dit
+  # eventueel aan het NPM-netwerk.
   edge: {}
   internal:
     internal: true

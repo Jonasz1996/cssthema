@@ -10,10 +10,12 @@ RUN --mount=type=cache,target=/root/.local/share/pnpm/store \
 COPY frontend/ ./
 RUN pnpm build
 
-FROM nginx:1.27-alpine AS web
+# nginx >= 1.27.3 is nodig voor `server api:8000 resolve` in de upstream.
+FROM nginx:1.30-alpine AS web
 RUN rm /etc/nginx/conf.d/default.conf
 COPY docker/nginx/nginx.conf /etc/nginx/nginx.conf
 COPY docker/nginx/conf.d/ /etc/nginx/conf.d/
 COPY docker/nginx/snippets/ /etc/nginx/snippets/
+COPY --chmod=0755 docker/nginx/entrypoint/ /docker-entrypoint.d/
 COPY --from=build /src/dist /usr/share/nginx/html
 HEALTHCHECK --interval=15s --timeout=3s --retries=3 CMD wget -qO- http://127.0.0.1/nginx-health || exit 1

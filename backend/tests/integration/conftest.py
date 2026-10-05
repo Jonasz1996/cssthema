@@ -1,5 +1,6 @@
 import os
 from collections.abc import AsyncIterator
+from pathlib import Path
 
 import pytest
 from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession, async_sessionmaker
@@ -10,7 +11,14 @@ from cssthema.db.session import create_engine
 if not os.environ.get("DATABASE_URL"):
     pytest.skip("DATABASE_URL niet gezet (integratietests)", allow_module_level=True)
 
-pytestmark = pytest.mark.integration
+_HERE = Path(__file__).parent
+
+
+def pytest_collection_modifyitems(items: list[pytest.Item]) -> None:
+    # `pytestmark` werkt niet in een conftest; markeer alles onder deze map expliciet.
+    for item in items:
+        if item.path.is_relative_to(_HERE):
+            item.add_marker(pytest.mark.integration)
 
 
 @pytest.fixture(scope="session")

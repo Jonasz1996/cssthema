@@ -1,6 +1,6 @@
 # 09 — Risicoanalyse
 
-> Status: **ontwerp, ter goedkeuring** · Versie 0.1 · 2026-10-05
+> Status: **goedgekeurd** · Versie 0.2 · 2026-10-05
 
 Schaal: **K**ans en **I**mpact 1 (laag) – 5 (hoog); **Score** = K × I. ≥ 12 = hoog (rood), 6–11 = middel, ≤ 5 = laag.
 
@@ -48,7 +48,7 @@ quadrantChart
 |---|---|:-:|:-:|:-:|---|---|
 | **R-03** | **CSS als aanvalsvector**: een kwaadwillige of gecompromitteerde editor (of AI-output) publiceert CSS die via attribuutselectors + `url()` tekens uit wachtwoordvelden lekt op de Authentik- of Proxmox-loginpagina; of overlays die UI misleiden. | 2 | 5 | 10 | Security-lint blokkeert externe `url()`/`@import` buiten allowlist (server-side, niet omzeilbaar); AI-output gaat door dezelfde lint; RBAC: alleen Editor+ publiceert; audit log; (v2) 4-ogen-review voor thema's van gevoelige services; aanbeveling in docs: geen thema's op loginpagina's van kritieke systemen zonder review. | Visuele misleiding (overlay-tekst via `content:`) blijft mogelijk voor wie mag publiceren. |
 | **R-06** | **SSRF** via importer/crawler naar interne diensten (Redis, Docker-API, router-admin, cloud metadata). | 2 | 5 | 10 | Allowlist van hosts/CIDR's, metadata/loopback/compose-services altijd geblokkeerd, controle per request (ook redirects/subresources) in Playwright, alleen Editor+, rate limit, audit. Worker in eigen netwerk zonder toegang tot `postgres`/`redis`-poorten buiten wat nodig is. | Allowlisted interne hosts zijn per definitie bereikbaar — dat is de functie. |
-| **R-14** | **Kwaadaardige HTML** in uploads/snapshots (XSS in de beheer-UI). | 2 | 4 | 8 | Scripts en `on*`-attributen gestript; preview in iframe zonder `allow-same-origin` + strikte CSP op document-endpoint; snapshot-HTML wordt nooit in de hoofd-origin gerenderd. | — |
+| **R-14** | **Kwaadaardige HTML** in uploads/snapshots (XSS in de beheer-UI). | 2 | 4 | 8 | Scripts en `on*`-attributen gestript; preview in iframe zonder `allow-same-origin` + strikte CSP als `<meta>` in de srcdoc (een responseheader bereikt srcdoc niet) en bridge inline met hash; snapshot-HTML wordt nooit in de hoofd-origin gerenderd. | — |
 | **R-15** | **Gelekte API-key** of sessie. | 2 | 4 | 8 | Scopes, vervaldatums, prefix voor herkenning (gitleaks-patroon), intrekken, `last_used_at` + IP in audit, httpOnly/Secure cookies. | — |
 | **R-16** | Opgeslagen **service-credentials/NPM-wachtwoord** uitgelekt bij DB-dump. | 2 | 4 | 8 | Fernet-versleuteling met key buiten de DB; aanbevolen: aparte NPM-gebruiker met alleen leesrechten; credentials optioneel. | Wie DB én `.env` heeft, heeft alles. |
 
@@ -58,7 +58,7 @@ quadrantChart
 |---|---|:-:|:-:|:-:|---|
 | **R-09** | **Lockout**: Authentik onbereikbaar of misgeconfigureerd → niemand kan inloggen; of Authentik zelf wordt via cssthema gethemed en breekt. | 2 | 4 | 8 | Break-glass account (env-gestuurd); thema-uitval breekt de app nooit (CSS is additief); rollback via API-key mogelijk; Authentik-thema's extra voorzichtig (staging-slug). |
 | **R-10** | **Verlies van `ENCRYPTION_KEY`/`SECRET_KEY`** → versleutelde instellingen onbruikbaar na restore. | 1 | 4 | 4 | Documentatie benadrukt aparte opslag; instellingen opnieuw invoerbaar; thema's zelf zijn niet versleuteld (geen dataverlies). |
-| **R-17** | **cssthema-uitval** → apps tonen standaard-look of trage paginalaad door hangende CSS-request. | 2 | 3 | 6 | `stale-if-error` + nginx `proxy_cache_use_stale` (24 u); NPM-location met korte `proxy_connect_timeout` (2 s) zodat een hangende backend de app niet vertraagt. |
+| **R-17** | **cssthema-uitval** → apps tonen standaard-look of trage paginalaad door hangende CSS-request. | 2 | 3 | 6 | `stale-if-error` + nginx `proxy_cache_use_stale` (24 u); NPM-location met korte `proxy_connect_timeout` (1 s, spike S1) zodat een hangende backend de app niet vertraagt. |
 | **R-12** | **Resourcegebruik Playwright** (RAM/CPU) op een kleine homelab-server, zeker bij discovery van 50+ services. | 3 | 2 | 6 | Aparte worker-container met limits, concurrency 3, één browser per worker, nachtelijke planning van re-crawls. |
 | **R-18** | **Dataverlies** door ontbrekende/onteste backups. | 2 | 4 | 8 | Backup-container, restic naar extern doel, maandelijkse geautomatiseerde restore-test, exporteer-alles-script. |
 | **R-19** | **Opslaggroei** door snapshots/screenshots. | 3 | 2 | 6 | Content-addressed assets, retentie (5 sets), WebP, metrics op storage-grootte. |

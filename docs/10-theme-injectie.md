@@ -1,6 +1,6 @@
 # 10 — Theme-injectie per applicatie
 
-> Status: **ontwerp, ter goedkeuring** · Versie 0.1 · 2026-10-05
+> Status: **goedgekeurd** · Versie 0.2 · 2026-10-05
 > ✓ Het NPM-mechanisme is gevalideerd in [spike S1](spikes/s1-npm-injectie.md) (NPM 2.16.0, lokaal). Per app volgt nog een test in de eigen omgeving. App-specifieke opties zijn gebaseerd op de huidige kennis van die apps en worden per app gemarkeerd met "laatst geverifieerd op versie X" in `docs/apps/` zodra dat getest is.
 
 ## 1. Methodes in één oogopslag
@@ -49,10 +49,12 @@ NPM → *Hosts* → *Proxy Hosts* → host bewerken → tab *Advanced* → *Cust
 ```nginx
 # --- cssthema: thema same-origin beschikbaar maken ---
 location /__cssthema/ {
-    # Tip: zit cssthema in hetzelfde Docker-netwerk als NPM, gebruik dan
+    # Tip: koppel NPM aan het Docker-netwerk `cssthema_edge` en gebruik dan
     # proxy_pass http://cssthema-nginx:80/themes/;  (geen hairpin via DNS/TLS)
     proxy_pass https://cssthema.domain.be/themes/;
     proxy_set_header Host cssthema.domain.be;
+    # Per-client rate limit en audit in cssthema: geef het echte client-IP door.
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
     proxy_ssl_server_name on;
     proxy_connect_timeout 1s;   # stylesheet blokkeert renderen: snel opgeven (spike S1)
     proxy_read_timeout 5s;

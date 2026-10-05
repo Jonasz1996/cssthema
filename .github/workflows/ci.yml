@@ -109,6 +109,12 @@ jobs:
           curl -fsS http://localhost:8080/api/v1/meta
           curl -fsS http://localhost:8080/ | grep -q '<div id="root">'
           test "$(curl -s -o /dev/null -w '%{http_code}' http://localhost:8080/Bad_Slug.css)" = 404
+          # Request-ID van de client komt via nginx terug van de api.
+          curl -fsS -D - -o /dev/null -H 'X-Request-ID: ci-smoke-1' http://localhost:8080/api/v1/meta \
+            | grep -qi '^x-request-id: ci-smoke-1'
+          # Het storage-volume is schrijfbaar voor de niet-root app-gebruiker.
+          docker compose -f docker/compose/docker-compose.yml --env-file .env.ci exec -T api touch /data/storage/.ci-write-test
+          docker compose -f docker/compose/docker-compose.yml --env-file .env.ci exec -T worker touch /data/storage/.ci-write-test
       - name: Logs bij falen
         if: failure()
         run: docker compose -f docker/compose/docker-compose.yml --env-file .env.ci logs

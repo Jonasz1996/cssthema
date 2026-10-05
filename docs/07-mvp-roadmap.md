@@ -1,6 +1,6 @@
 # 07 — MVP-roadmap
 
-> Status: **ontwerp, ter goedkeuring** · Versie 0.1 · 2026-10-05
+> Status: **goedgekeurd** · Versie 0.2 · 2026-10-05
 
 ## 1. Definitie van de MVP
 
@@ -45,7 +45,7 @@ Indicatief totaal: **± 12 werkweken** voor één ervaren full-stack ontwikkelaa
 | 0.6 | Frontend-skelet: Vite, router, shell, Tailwind/shadcn dark theme, gegenereerde API-client | |
 | **S1** | **Spike NPM-injectie**: `sub_filter` + same-origin `location /__cssthema/` testen op echte NPM met Proxmox, Nextcloud, Grafana (gzip, websockets, CSP) | Werkend snippet per app, of gedocumenteerd alternatief. Bepaalt [10-theme-injectie](10-theme-injectie.md) definitief. |
 | **S2** | **Spike snapshot-preview**: Playwright-capture van Proxmox (ExtJS), Immich (SvelteKit), Home Assistant (Shadow DOM); renderen in sandboxed iframe | Preview herkenbaar gelijk aan de echte pagina voor ≥ 2 van 3; bevindingen voor HA vastgelegd |
-| **S3** | **Spike nginx-cache-purge**: purge per slug vs. korte TTL | Gekozen mechanisme + test |
+| **S3** | **Spike nginx-cache-purge**: purge per slug vs. korte TTL | Gekozen mechanisme + test ([uitkomst](spikes/s3-css-cache.md): 60 s TTL + refresh-server) |
 
 **Go/no-go na fase 0:** als S1 voor een app niet werkt, wordt voor die app de native of userscript-methode de standaard — geen blokkade voor de MVP.
 
@@ -66,7 +66,7 @@ Indicatief totaal: **± 12 werkweken** voor één ervaren full-stack ontwikkelaa
 | 1.9 | Thema browser (zonder thumbnails), dashboard-basis | F-TM-09, F-PL-02 |
 | 1.10 | Preview-component met `bridge.js` op een **lege demo-pagina** (snapshots komen in fase 2) | F-ED-06, 08 |
 
-**Acceptatie:** e2e-test: thema maken → CSS typen → autosave → publiceren → `curl -I /slug.css` geeft 200 + ETag → tweede request met `If-None-Match` geeft 304 → rollback → nieuwe ETag. k6: ≥ 2.000 req/s op `/slug.css`.
+**Acceptatie:** e2e-test: thema maken → CSS typen → autosave → publiceren → `curl -I /slug.css` geeft 200 + ETag → tweede request met `If-None-Match` geeft 304 → rollback → nieuwe ETag. k6: ≥ 2.000 req/s op `/slug.css`, gemeten vanuit de nginx-container (`docker run --network container:cssthema-nginx-1 grafana/k6 …` op `http://127.0.0.1/slug.css`); 127.0.0.1 valt buiten de publieke rate limit van 50 r/s per IP.
 
 ## 5. Fase 2 — Importer en snapshot-preview (v0.2)
 

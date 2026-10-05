@@ -1,6 +1,6 @@
 # 03 — Database-ontwerp
 
-> Status: **ontwerp, ter goedkeuring** · Versie 0.1 · 2026-10-05
+> Status: **goedgekeurd** · Versie 0.2 · 2026-10-05
 > PostgreSQL 16 · SQLAlchemy 2.0 (async, `Mapped[]`-stijl) · Alembic
 
 ## 1. Conventies
@@ -395,7 +395,8 @@ class Theme(Base, TimestampMixin, SoftDeleteMixin):
     palette: Mapped["Palette | None"] = relationship()
     versions: Mapped[list["ThemeVersion"]] = relationship(
         back_populates="theme", foreign_keys="ThemeVersion.theme_id",
-        order_by="ThemeVersion.version_number.desc()", lazy="raise")
+        order_by="ThemeVersion.version_number.desc()", lazy="raise",
+        passive_deletes=True)  # DB-cascade; een ORM-UPDATE van versies weigert de trigger
     published_version: Mapped["ThemeVersion | None"] = relationship(
         foreign_keys=[published_version_id], post_update=True)
 
@@ -414,7 +415,9 @@ class ThemeVersion(Base):
     sha256: Mapped[bytes] = mapped_column(LargeBinary(32))
     size_bytes: Mapped[int]
     source: Mapped[VersionSource]
+    # Geen ON DELETE SET NULL op deze twee FK's: dat is een UPDATE, en versies zijn onveranderlijk.
     source_version_id: Mapped[UUID | None] = mapped_column(ForeignKey("theme_versions.id"))
+    palette_id: Mapped[UUID | None] = mapped_column(ForeignKey("palettes.id"))
     palette_snapshot: Mapped[dict | None] = mapped_column(JSONB)
     message: Mapped[str | None] = mapped_column(String(500))
     lint_warnings: Mapped[list[dict]] = mapped_column(JSONB, default=list)
@@ -443,7 +446,8 @@ UPDATE themes SET latest_version_number = latest_version_number + 1, lock_versio
 INSERT INTO theme_versions (…) VALUES (…);
 UPDATE themes SET published_version_id = $new, status = 'published' WHERE id = $1;
 INSERT INTO audit_logs (…);
--- na commit: Redis DEL css:{slug}, nginx purge, enqueue screenshot.capture (gethemed)
+-- na commit: Redis DEL css:{slug}, refresh via nginx:8081 (spike S3), enqueue screenshot.capture (gethemed)
+-- dezelfde refresh na rollback, soft delete, herstel, hard delete en slug-wijziging (oude én nieuwe slug)
 ```
 
 ## 8. Migratiestrategie

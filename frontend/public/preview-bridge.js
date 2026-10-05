@@ -2,9 +2,15 @@
  * cssthema preview bridge — the ONLY script allowed inside the preview iframe (docs/02 §4.2).
  *
  * The editor's preview component loads a sanitised snapshot into a sandboxed iframe
- * (`sandbox="allow-scripts"`, no `allow-same-origin`) together with:
+ * (`sandbox="allow-scripts"`, no `allow-same-origin`) via `srcdoc`. It fetches this file
+ * once from `/preview-bridge.js` and INLINES its text; the srcdoc then starts with:
+ *   <meta http-equiv="Content-Security-Policy"
+ *         content="default-src 'none'; script-src 'sha256-<hash of this file>'; ...">
  *   <style id="ct-live"></style>
- *   <script src="preview-bridge.js"></script>
+ *   <script>…contents of this file…</script>
+ * Not `<script src>`: inside srcdoc a relative URL resolves against the editor route
+ * (and hits the SPA fallback), and a CSP response header never reaches a srcdoc
+ * document, so the policy has to travel inside it as a meta tag.
  *
  * Protocol (parent -> iframe):
  *   postMessage({ type: "css", css: "<stylesheet text>" }, "*")

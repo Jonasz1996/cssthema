@@ -1,4 +1,5 @@
-# Dev-override: hot reload voor de api, poorten open voor lokale tools.
+# Dev-override: hot reload voor de api, poorten open voor lokale tools (alleen op
+# 127.0.0.1: Redis heeft geen wachtwoord).
 #   make dev   (of: docker compose -f docker/compose/docker-compose.yml \
 #                     -f docker/compose/docker-compose.dev.yml --env-file .env up --build)
 # De frontend draai je lokaal met `cd frontend && pnpm dev` (proxy naar :8000).
@@ -7,12 +8,12 @@ services:
     environment:
       ENVIRONMENT: development
       LOG_JSON: "false"
-    command: ["uvicorn", "cssthema.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload", "--reload-dir", "/app/src"]
+    command: ["uvicorn", "cssthema.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload", "--reload-dir", "/app/src", "--no-access-log"]
     volumes:
       - ../../backend/src:/app/src:ro
       - ../../backend/migrations:/app/migrations:ro
     ports:
-      - "8000:8000"
+      - "127.0.0.1:8000:8000"
     networks: [internal, edge]
 
   worker:
@@ -24,10 +25,10 @@ services:
 
   postgres:
     ports:
-      - "5432:5432"
+      - "127.0.0.1:5432:5432"
     networks: [internal, edge]
 
   redis:
     ports:
-      - "6379:6379"
+      - "127.0.0.1:6379:6379"
     networks: [internal, edge]

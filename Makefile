@@ -1,6 +1,9 @@
 # cssthema — veelgebruikte taken. `make help` toont een overzicht.
 COMPOSE      := docker compose -f docker/compose/docker-compose.yml --env-file .env
 COMPOSE_DEV  := $(COMPOSE) -f docker/compose/docker-compose.dev.yml
+# Host-commando's (alembic) lezen de POSTGRES_*-waarden uit de root-.env; de host is
+# dan localhost, waar de dev-stack postgres publiceert.
+ENV_FILE     := $(if $(wildcard .env),--env-file ../.env)
 
 .PHONY: help install dev up down logs lint fmt typecheck test test-backend test-frontend \
         migrate migration openapi build
@@ -12,7 +15,7 @@ install: ## Installeer backend- en frontend-afhankelijkheden
 	cd backend && uv sync
 	cd frontend && pnpm install
 
-dev: ## Start de dev-stack (postgres, redis, api met reload, worker, vite)
+dev: ## Start de dev-stack (postgres, redis, api met reload, worker); frontend: cd frontend && pnpm dev
 	$(COMPOSE_DEV) up --build
 
 up: ## Start de productie-stack op de achtergrond
@@ -45,10 +48,10 @@ test-frontend: ## Frontend-tests
 	cd frontend && pnpm test
 
 migrate: ## Database migreren naar de laatste versie
-	cd backend && uv run alembic upgrade head
+	cd backend && uv run $(ENV_FILE) alembic upgrade head
 
 migration: ## Nieuwe migratie genereren: make migration m="omschrijving"
-	cd backend && uv run alembic revision --autogenerate -m "$(m)"
+	cd backend && uv run $(ENV_FILE) alembic revision --autogenerate -m "$(m)"
 
 openapi: ## openapi.json en frontend-types regenereren
 	cd backend && uv run python -m cssthema.openapi openapi.json

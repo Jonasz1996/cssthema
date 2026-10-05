@@ -27,7 +27,9 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         engine = create_engine(settings)
         app.state.engine = engine
         app.state.sessionmaker = create_sessionmaker(engine)
-        app.state.redis = Redis.from_url(str(settings.redis_url))
+        # Alleen een connect-timeout: een socket_timeout zou later ook blokkerende
+        # reads (SSE voor job-events) afbreken. Health-probes hebben hun eigen timeout.
+        app.state.redis = Redis.from_url(str(settings.redis_url), socket_connect_timeout=2)
         log.info("startup", version=__version__, environment=settings.environment)
         try:
             yield

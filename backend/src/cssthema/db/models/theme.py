@@ -81,6 +81,9 @@ class Theme(UUIDPrimaryKeyMixin, TimestampMixin, SoftDeleteMixin, Base):
         foreign_keys="ThemeVersion.theme_id",
         order_by="ThemeVersion.version_number.desc()",
         lazy="raise",
+        # De database ruimt versies op (ON DELETE CASCADE). Zonder dit zou de ORM eerst
+        # theme_id op NULL zetten, en die UPDATE weigert de onveranderlijkheidstrigger.
+        passive_deletes=True,
     )
     published_version: Mapped["ThemeVersion | None"] = relationship(
         foreign_keys=[published_version_id], post_update=True, lazy="raise"
@@ -106,9 +109,8 @@ class ThemeVersion(UUIDPrimaryKeyMixin, Base):
     source: Mapped[VersionSource] = mapped_column(pg_enum(VersionSource, "version_source"))
     # Geen ON DELETE SET NULL: dat zou een UPDATE zijn, en versies zijn onveranderlijk.
     source_version_id: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("theme_versions.id"))
-    palette_id: Mapped[uuid.UUID | None] = mapped_column(
-        ForeignKey("palettes.id", ondelete="SET NULL")
-    )
+    # Ook hier geen SET NULL: een palet dat nog in een versie zit, kan niet hard weg (409).
+    palette_id: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("palettes.id"))
     palette_snapshot: Mapped[dict[str, Any] | None] = mapped_column(JSONB)
     message: Mapped[str | None] = mapped_column(String(500))
     lint_warnings: Mapped[list[Any]] = mapped_column(JSONB, default=list)

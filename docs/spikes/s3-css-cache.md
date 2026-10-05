@@ -12,8 +12,8 @@ Hoe zorgen we dat een nieuwe publicatie direct op `/{slug}.css` staat, terwijl n
 
 - De publieke server cachet CSS 60 s (`proxy_cache_valid 200 60s`) met `proxy_cache_revalidate on` (na afloop een goedkope conditionele request met ETag) en `proxy_cache_use_stale error timeout …` (verouderde CSS blijft beschikbaar als de api plat ligt).
 - De cache-sleutel is alleen `$uri`. `?v=…` en `Host` tellen niet mee.
-- Een tweede `server` op poort **8081** gebruikt dezelfde cache-zone en sleutel, met `proxy_cache_bypass 1`. Een `GET http://nginx:8081/{slug}.css` haalt de CSS dus altijd vers bij de api op en **overschrijft** de entry. De api roept dit na elke publicatie en rollback aan (fase 1).
-- Poort 8081 wordt niet gepubliceerd en is alleen binnen het compose-netwerk bereikbaar.
+- Een tweede `server` op poort **8081** gebruikt dezelfde cache-zone en sleutel, met `proxy_cache_bypass 1`. Een `GET http://nginx:8081/{slug}.css` haalt de CSS dus altijd vers bij de api op en **overschrijft** de entry. De api roept dit aan na elke wijziging van publieke CSS (zie hieronder).
+- Poort 8081 wordt niet gepubliceerd, maar is wel bereikbaar voor elke container op `edge` en `internal` (ook NPM als `edge` aan het NPM-netwerk hangt). Daarom heeft de refresh-server een eigen rate limit (10 r/s, burst 20).
 - Lukt de refresh-call niet, dan is de vertraging hooguit 60 s. Er is dus geen harde afhankelijkheid.
 
 Configuratie: `docker/nginx/conf.d/cssthema.conf` en `docker/nginx/snippets/css-cache.conf`.
@@ -35,6 +35,6 @@ Configuratie: `docker/nginx/conf.d/cssthema.conf` en `docker/nginx/snippets/css-
 
 ## Gevolgen voor fase 1
 
-- De publish-service roept na de commit `http://nginx:8081/{slug}.css` en `/themes/{slug}.css` aan (best effort, timeout 2 s, fout wordt gelogd).
+- Na elke wijziging van publieke CSS roept de api na de commit `http://nginx:8081/{slug}.css` en `/themes/{slug}.css` aan (best effort, timeout 2 s, fout wordt gelogd). Dat geldt voor publiceren en rollback, maar ook voor soft delete, herstel, hard delete, de purge-job en een slug-wijziging (oude én nieuwe slug). Bij verwijderen werkt dat omdat de refresh dan een `404` ophaalt, en `proxy_cache_valid 404 10s` die over de oude `200` heen zet; die regel is dus nodig.
 - De api moet `ETag` en `Last-Modified` meesturen, zodat `proxy_cache_revalidate` met `304` werkt.
-- `@{n}`-URL's zijn onveranderlijk en hebben geen refresh nodig.
+- `@{n}`-URL's zijn onveranderlijk zolang het thema bestaat. Bij verwijderen of een slug-wijziging ververst de api ook elke bestaande `/themes/{slug}@{n}.css`.

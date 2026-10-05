@@ -5,8 +5,8 @@ from sqlalchemy import select, text
 from sqlalchemy.exc import DBAPIError, IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from cssthema.db.models import AuditLog, Theme, ThemeVersion, User
-from cssthema.db.models.enums import ThemeStatus, UserRole, VersionSource
+from cssthema.db.models import ApiKey, AuditLog, Palette, Theme, ThemeVersion, User
+from cssthema.db.models.enums import ApiKeyScope, ThemeStatus, UserRole, VersionSource
 
 
 async def _user(session: AsyncSession) -> User:
@@ -104,4 +104,66 @@ async def test_slug_format_check(session: AsyncSession) -> None:
     with pytest.raises(IntegrityError, match="ck_themes_slug_format"):
         async with session.begin_nested():
             session.add(Theme(slug="Niet Geldig", name="x"))
+            await session.flush()
+
+
+async def test_orm_delete_theme_lets_database_cascade_versions(session: AsyncSession) -> None:
+    theme, version = await _theme_with_version(session)
+    await session.delete(theme)
+    await session.flush()
+    remaining = await session.execute(
+        text("SELECT count(*) FROM theme_versions WHERE id = :id"), {"id": version.id}
+    )
+    assert remaining.scalar_one() == 0
+
+
+async def test_palette_in_a_version_cannot_be_hard_deleted(session: AsyncSession) -> None:
+    user = await _user(session)
+    palette = Palette(slug="nord", name="Nord", tokens={"bg": "#2e3440"}, created_by=user.id)
+    theme = Theme(slug="grafana", name="Grafana", created_by=user.id)
+    session.add_all([palette, theme])
+    await session.flush()
+    css = ":root{}"
+    session.add(
+        ThemeVersion(
+            theme_id=theme.id,
+            version_number=1,
+            css_source=css,
+            css_compiled=css,
+            sha256=hashlib.sha256(css.encode()).digest(),
+            size_bytes=len(css),
+            source=VersionSource.MANUAL,
+            palette_id=palette.id,
+        )
+    )
+    await session.flush()
+    # Een nette FK-fout (later 409), geen abort door de onveranderlijkheidstrigger.
+    with pytest.raises(IntegrityError, match="fk_theme_versions_palette_id_palettes"):
+        async with session.begin_nested():
+            await session.execute(text("DELETE FROM palettes WHERE id = :id"), {"id": palette.id})
+
+
+async def test_api_key_scopes_are_checked(session: AsyncSession) -> None:
+    user = await _user(session)
+    session.add(
+        ApiKey(
+            user_id=user.id,
+            name="ci",
+            prefix="ok000001",
+            secret_hash=b"\0" * 32,
+            scopes=[ApiKeyScope.THEMES_READ, ApiKeyScope.THEMES_PUBLISH],
+        )
+    )
+    await session.flush()
+    with pytest.raises(IntegrityError, match="ck_api_keys_scopes_allowed"):
+        async with session.begin_nested():
+            session.add(
+                ApiKey(
+                    user_id=user.id,
+                    name="fout",
+                    prefix="bad00001",
+                    secret_hash=b"\0" * 32,
+                    scopes=["themes:read", "root:everything"],
+                )
+            )
             await session.flush()

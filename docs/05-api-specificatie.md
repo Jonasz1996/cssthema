@@ -1,6 +1,6 @@
 # 05 — API-specificatie
 
-> Status: **ontwerp, ter goedkeuring** · Versie 0.1 · 2026-10-05
+> Status: **goedgekeurd** · Versie 0.2 · 2026-10-05
 > REST · JSON · OpenAPI 3.1 (door FastAPI gegenereerd op `/api/v1/openapi.json`, Swagger UI op `/api/docs`, ReDoc op `/api/redoc`)
 
 ## 1. Algemene conventies
@@ -43,7 +43,7 @@
 
 | HTTP | `code` | Wanneer |
 |---|---|---|
-| 400 | `bad_request` | Onleesbare body, ongeldige query |
+| 400 | `bad_request` | Onleesbare body (geen geldige JSON); zonder `errors[]` |
 | 401 | `unauthenticated` | Geen/ongeldige sessie of key |
 | 403 | `forbidden` | Rol/scope onvoldoende |
 | 403 | `csrf_failed` | CSRF-token ontbreekt/onjuist |
@@ -170,7 +170,7 @@ Legenda kolom **Rol**: V = Viewer, E = Editor, A = Admin (en hoger); P = publiek
 | POST | `/imports/url` | E | `{ url, service_id? \| new_service?: ServiceCreate, page_kind, download_assets: true, screenshots: true, use_credentials: false }` | 202 `Job`, 422 `url_not_allowed` |
 | POST | `/imports/html` | E | multipart: `file`, `service_id`, `page_kind`, `base_url?` | 202 `Job`, 413, 415 |
 | GET | `/snapshots/{id}` | V | Analyse-detail | 200 `Snapshot` |
-| GET | `/snapshots/{id}/document` | V | Gesaneerde HTML voor preview (`text/html`, strikte CSP) | 200 |
+| GET | `/snapshots/{id}/document` | V | Gesaneerde HTML voor preview (`text/html`, strikte CSP-header; de preview zet dezelfde CSP als `<meta>` in de srcdoc, zie docs/02 § 4.2) | 200 |
 | GET | `/snapshots/{id}/assets/{sha256}` | V | Asset (cache immutable) | 200, 404 |
 | GET | `/snapshots/{id}/selectors?kind=&q=` | V | Alle selectors | 200 `Page<Selector>` |
 | DELETE | `/snapshots/{id}` | E | Verwijderen | 204 |

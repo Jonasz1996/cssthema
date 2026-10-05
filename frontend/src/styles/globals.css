@@ -6,6 +6,8 @@
  * Add `.light` on <html> for light mode.
  */
 @custom-variant light (&:where(.light, .light *));
+/* Tailwind's default `dark:` follows the OS preference; tie it to the in-app toggle instead. */
+@custom-variant dark (&:where(:root:not(.light), :root:not(.light) *));
 
 :root {
   --background: #09090b; /* zinc-950 */

@@ -18,9 +18,11 @@ describe("App shell", () => {
   beforeEach(() => {
     vi.stubGlobal(
       "fetch",
-      vi.fn((input: RequestInfo | URL) =>
-        Promise.resolve(new Response("{}", { status: String(input) === "/readyz" ? 503 : 200 })),
-      ),
+      vi.fn((input: RequestInfo | URL) => {
+        const url = input instanceof Request ? input.url : String(input);
+        const path = new URL(url, "http://localhost").pathname;
+        return Promise.resolve(new Response("{}", { status: path === "/readyz" ? 503 : 200 }));
+      }),
     );
   });
   afterEach(() => {
@@ -50,8 +52,9 @@ describe("App shell", () => {
 
   it("shows health status from /healthz and /readyz on the dashboard", async () => {
     renderAt("/");
-    expect(await screen.findByText("ok")).toBeInTheDocument();
-    expect(await screen.findByText("error")).toBeInTheDocument();
+    const row = (label: string) => screen.getByText(label).closest("li") as HTMLElement;
+    expect(await within(row("Liveness (/healthz)")).findByText("ok")).toBeInTheDocument();
+    expect(await within(row("Readiness (/readyz)")).findByText("error")).toBeInTheDocument();
   });
 
   it("renders a placeholder page for the editor route with the theme id", () => {
