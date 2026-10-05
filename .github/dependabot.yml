@@ -3,9 +3,21 @@ updates:
   - package-ecosystem: uv
     directory: /backend
     schedule: { interval: weekly }
+    ignore:
+      # arq 0.26 vereist redis-py < 6; pas bijwerken samen met arq.
+      - dependency-name: redis
+        update-types: ["version-update:semver-major"]
   - package-ecosystem: npm
     directory: /frontend
     schedule: { interval: weekly }
+    ignore:
+      # Bewust vastgezet in fase 0 (zie frontend/package.json); majors apart oppakken.
+      - dependency-name: react-router
+        update-types: ["version-update:semver-major"]
+      - dependency-name: eslint
+        update-types: ["version-update:semver-major"]
+      - dependency-name: typescript
+        update-types: ["version-update:semver-major"]
   - package-ecosystem: github-actions
     directory: /
     schedule: { interval: weekly }
