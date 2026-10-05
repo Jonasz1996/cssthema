@@ -1,7 +1,7 @@
 # cssthema — Ontwerpdocumentatie
 
-> Status: **ontwerp, ter goedkeuring** · Versie 0.1 · 2026-10-05
-> Conform de opdracht wordt pas code geschreven nadat dit ontwerp is goedgekeurd.
+> Status: **goedgekeurd** · Versie 0.2 · 2026-10-05
+> Ontwerp goedgekeurd op 2026-10-05; fase 0 (fundament en spikes) is uitgevoerd.
 
 ## Documenten
 
@@ -17,6 +17,14 @@
 | 8 | [Productie-roadmap](08-productie-roadmap.md) | v0.5 → v1.0 → v2, exitcriteria |
 | 9 | [Risicoanalyse](09-risicoanalyse.md) | 21 risico's met score en mitigatie, top-5 |
 | 10 | [Theme-injectie](10-theme-injectie.md) | Injectiemethodes per app (NPM, native, Stylus, userscript, extensie) — functie 8 uit de opdracht |
+
+## Spikes (fase 0)
+
+| Spike | Resultaat |
+|---|---|
+| [S1 — NPM-injectie](spikes/s1-npm-injectie.md) | `sub_filter` + same-origin location werkt op NPM 2.16.0; omzeilt CSP; `Accept-Encoding ""` is verplicht |
+| [S2 — Snapshot-preview](spikes/s2-snapshot-preview.md) | Statische snapshot van Home Assistant (34 shadow roots), Grafana en Uptime Kuma rendert vrijwel identiek zonder JavaScript |
+| [S3 — CSS-cache](spikes/s3-css-cache.md) | 60 s TTL + interne refresh-server; stale CSS bij uitval van de api |
 
 ## De belangrijkste ontwerpbeslissingen
 

@@ -1,7 +1,7 @@
 # 10 — Theme-injectie per applicatie
 
 > Status: **ontwerp, ter goedkeuring** · Versie 0.1 · 2026-10-05
-> ⚠ Alle snippets worden in **spike S1** (fase 0, zie [07](07-mvp-roadmap.md)) op een echte NPM-installatie gevalideerd. App-specifieke opties zijn gebaseerd op de huidige kennis van die apps en worden per app gemarkeerd met "laatst geverifieerd op versie X" in `docs/apps/` zodra dat getest is.
+> ✓ Het NPM-mechanisme is gevalideerd in [spike S1](spikes/s1-npm-injectie.md) (NPM 2.16.0, lokaal). Per app volgt nog een test in de eigen omgeving. App-specifieke opties zijn gebaseerd op de huidige kennis van die apps en worden per app gemarkeerd met "laatst geverifieerd op versie X" in `docs/apps/` zodra dat getest is.
 
 ## 1. Methodes in één oogopslag
 
@@ -54,7 +54,7 @@ location /__cssthema/ {
     proxy_pass https://cssthema.domain.be/themes/;
     proxy_set_header Host cssthema.domain.be;
     proxy_ssl_server_name on;
-    proxy_connect_timeout 2s;
+    proxy_connect_timeout 1s;   # stylesheet blokkeert renderen: snel opgeven (spike S1)
     proxy_read_timeout 5s;
     proxy_hide_header Set-Cookie;
 }
@@ -76,10 +76,15 @@ location / {
 }
 ```
 
-De snippet-generator (F-IN-02) vult `{{slug}}` en de juiste upstream in. Te valideren in spike S1:
-1. dat NPM bij een `location /` in *Advanced* zijn eigen standaardlocatie weglaat (gedrag kan per NPM-versie verschillen);
-2. dat de opties van de NPM-UI (*Block Common Exploits*, *Websockets Support*, *Force SSL*, access lists) correct blijven werken;
-3. dat apps die `</head>` in hoofdletters of met attributen schrijven ook geraakt worden (anders `sub_filter '<head>' '<head><link …>'`).
+De snippet-generator (F-IN-02) vult `{{slug}}` en de juiste upstream in.
+
+**Gevalideerd in [spike S1](spikes/s1-npm-injectie.md) op NPM 2.16.0:**
+- NPM laat zijn eigen `location /` weg als *Advanced* er een bevat.
+- `Accept-Encoding ""` is verplicht.
+- Same-origin omzeilt een `style-src 'self'`-CSP; een directe link naar een ander domein wordt geblokkeerd.
+- Websockets en *Block Common Exploits* blijven werken.
+
+Nog per app te controleren: apps die `</head>` anders schrijven (dan `sub_filter '<head>' '<head><link …>'`), plus *Force SSL* en access lists.
 
 ### 2.3 Afwijkingen per app
 
