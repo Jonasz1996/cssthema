@@ -505,9 +505,11 @@ def npm_diensten(npm_url: str, gebruiker: str | None) -> list[dict[str, Any]]:
         sys.exit(f"Inloggen bij NPM mislukt ({e.code}). Klopt het adres ({base}) en je wachtwoord?")
     except (urllib.error.URLError, OSError) as e:
         sys.exit(f"NPM niet bereikbaar op {base}: {e}. Gebruik het adres van de NPM-beheerpagina, bv. http://192.168.1.10:81")
+    if isinstance(tok, dict) and tok.get("requires_2fa"):
+        tok = npm_2fa(base, tok.get("challenge_token", ""))
     token = tok.get("token") if isinstance(tok, dict) else None
     if not token:
-        sys.exit("NPM gaf geen token terug (tweestapsverificatie?). Gebruik dan --lijst met een bestand vol URL's.")
+        sys.exit("NPM gaf geen token terug. Gebruik dan --lijst met een bestand vol URL's.")
     hosts = _http_json(f"{base}/api/nginx/proxy-hosts", token=token)
     diensten = []
     for h in hosts:
@@ -529,6 +531,21 @@ def npm_diensten(npm_url: str, gebruiker: str | None) -> list[dict[str, Any]]:
         })
     diensten.sort(key=lambda d: d["naam"])
     return diensten
+
+
+def npm_2fa(base: str, challenge: str) -> Any:
+    """Tweestapsverificatie van NPM: de code uit je authenticator-app (of een herstelcode)."""
+    for poging in range(3):
+        code = (os.environ.get("NPM_CODE") if poging == 0 else None) or input("NPM-code uit je authenticator-app: ")
+        code = code.strip().replace(" ", "")
+        try:
+            return _http_json(f"{base}/api/tokens/2fa", {"challenge_token": challenge, "code": code})
+        except urllib.error.HTTPError as e:
+            if e.code in (400, 401, 403) and poging < 2:
+                print("Die code klopt niet (of is verlopen). Probeer de volgende.")
+                continue
+            sys.exit(f"Tweestapsverificatie bij NPM mislukt ({e.code}).")
+    sys.exit("Tweestapsverificatie bij NPM mislukt.")
 
 
 def lijst_diensten(pad: Path) -> list[dict[str, Any]]:

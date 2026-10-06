@@ -33,7 +33,7 @@ Zet `vastleggen.py` in een lege map en open daar een terminal. Op Windows werkt 
 python vastleggen.py login --npm http://IP-VAN-NPM:81
 ```
 
-- Het vraagt je NPM-e-mailadres en -wachtwoord en haalt alle proxy hosts op. Het wachtwoord wordt niet bewaard; de lijst wel, in `diensten.json`.
+- Het vraagt je NPM-e-mailadres, -wachtwoord en, als je tweestapsverificatie aan hebt, de code uit je authenticator-app. Daarna haalt het alle proxy hosts op. Wachtwoord en code worden niet bewaard; de lijst wel, in `diensten.json`.
 - Er opent een browser met al je diensten als links. Log in op Authentik en op de apps met een eigen login (Proxmox, Home Assistant ...). **Niet** op wachtwoordkluizen zoals Vaultwarden.
 - Klaar: druk Enter in de terminal of sluit de browser. De logins blijven in de map `cssthema-profiel`. Deel die map met niemand.
 
