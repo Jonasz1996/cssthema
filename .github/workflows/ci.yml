@@ -222,6 +222,11 @@ jobs:
             curl -fsS -o /dev/null http://127.0.0.1/Home_Assistant.css
             test "$(curl -s -o /dev/null -w "%{http_code}" http://127.0.0.1/onbekend.css)" = 404
             test "$(curl -s -o /dev/null -w "%{http_code}" http://127.0.0.1/Bad_Slug.css)" = 404
+            # Thema-scripts uit css-files; het eigen preview-script van het dashboard blijft werken.
+            printf "void 0;\n" > /var/lib/cssthema/css-files/algemeen.js
+            curl -fsS -o /dev/null -w "%{content_type}" http://127.0.0.1/algemeen.js | grep -q "javascript"
+            curl -fsS -o /dev/null -w "%{content_type}" http://127.0.0.1/preview-bridge.js | grep -q "javascript"
+            test "$(curl -s -o /dev/null -w "%{http_code}" http://127.0.0.1/onbekend.js)" = 404
             systemctl is-active cssthema-api cssthema-worker nginx
           '
       - name: Logs bij falen

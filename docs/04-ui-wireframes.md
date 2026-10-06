@@ -4,7 +4,7 @@
 
 ## 1. Ontwerpprincipes
 
-- **Stijl zoals aiverslag** (Jonas' andere project, gekozen op 2026-10-05): alleen dark, grijs glas op een radiale gradient met scanlines en een bewegend deeltjesnetwerk (uit te zetten), alles in monospace, één gecentreerde kaart met een terminalbalk (`root@jbogaert:~# cssthema <route>`) en een draaiende rand. Status-kleuren alleen voor status: ok `#8fd6a4`, fout `#e58b8b`, midden `#e6b56b`. Effecten (bliksem bij verwijderen, sparkle bij publiceren) vallen weg bij *reduced motion*. De wireframes hieronder tonen de indeling; de navigatie is een rij knoppen in de kaart in plaats van een zijbalk.
+- **Stijl zoals aiverslag** (Jonas' andere project, gekozen op 2026-10-05): alleen dark, grijs glas op een radiale gradient met een bewegend deeltjesnetwerk (uit te zetten; de scanlines van aiverslag zijn op 2026-10-06 op vraag van Jonas weggelaten omdat ze het beeld minder scherp maken), alles in monospace, één gecentreerde kaart met een terminalbalk (`root@jbogaert:~# cssthema <route>`) en een draaiende rand. Status-kleuren alleen voor status: ok `#8fd6a4`, fout `#e58b8b`, midden `#e6b56b`. Effecten (bliksem bij verwijderen, sparkle bij publiceren) vallen weg bij *reduced motion*. De wireframes hieronder tonen de indeling; de navigatie is een rij knoppen in de kaart in plaats van een zijbalk.
 - **Editor-centraal**: de editorpagina is een IDE-achtige werkruimte (VS Code-gevoel); de rest van de app is klassieke beheer-UI.
 - **Toetsenbord eerst**: `Ctrl/⌘+K` command palette (ga naar thema/service, acties), `Ctrl+S` publiceren-dialoog, `Ctrl+P` snel thema openen, `Ctrl+\` preview tonen/verbergen.
 - **Altijd zichtbaar wat live is**: overal een badge `v7 live` / `draft gewijzigd` / `nooit gepubliceerd`.

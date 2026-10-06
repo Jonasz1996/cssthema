@@ -4,7 +4,7 @@ import { prefersReducedMotion } from "./motion";
  * Effecten "vuur + bliksem", overgenomen uit aiverslag: bliksem, vonken, explosies, een
  * schermflits, een schok van de app en het "wegzappen" van een element.
  *
- * Alles tekent op één vaste canvas `#fx-top` (boven de app, onder de scanlines) plus een
+ * Alles tekent op één vaste canvas `#fx-top` (boven de app) plus een
  * flits-laag `#fx-flash`; beide worden bij het eerste gebruik aan `<body>` toegevoegd. De
  * animatielus draait alleen zolang er iets te tekenen is. Bij `prefers-reduced-motion` is
  * elke functie een no-op (en `zap`/`remove` resolven meteen).

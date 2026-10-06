@@ -49,6 +49,8 @@ Om ze in het dashboard te bewerken, importeer je ze: **Import** → **CSS-bestan
 
 Wil je liever met `nano` blijven werken, dan kan dat: laat de bestanden gewoon in deze map staan.
 
+Thema-scripts horen in dezelfde map: `/var/lib/cssthema/css-files/algemeen.js` is `https://css.jouwdomein.be/algemeen.js` (alleen platte namen met kleine letters, cijfers en streepjes).
+
 ## 4. Nginx Proxy Manager
 
 Pas de bestaande proxy host van je CSS-domein aan (of maak er een):
@@ -60,11 +62,11 @@ Pas de bestaande proxy host van je CSS-domein aan (of maak er een):
 | | Block Common Exploits, Websockets Support | aan |
 | SSL | | zoals je andere hosts (Let's Encrypt, Force SSL) |
 
-Bij **Advanced** het volgende. CSS blijft publiek, de rest (dashboard en api) gaat via Authentik. Vervang het adres van de outpost door het jouwe:
+Bij **Advanced** het volgende. CSS en thema-scripts blijven publiek, de rest (dashboard en api) gaat via Authentik. Vervang het adres van de outpost door het jouwe:
 
 ```nginx
-# Thema-CSS: publiek, want apps laden het ook op hun loginpagina.
-location ~ \.css$ {
+# Thema-CSS en thema-scripts (bv. algemeen.js): publiek, want apps laden ze ook op hun loginpagina.
+location ~ \.(css|js)$ {
     proxy_pass $forward_scheme://$server:$port;
     proxy_set_header Host $host;
     proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;

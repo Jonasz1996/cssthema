@@ -4,7 +4,7 @@
 
 /*
  * cssthema-UI in de stijl van aiverslag: donker, alles monospace, glazen kaarten met een
- * draaiende rand, scanlines over het scherm en een deeltjesnetwerk op de achtergrond.
+ * draaiende rand en een deeltjesnetwerk op de achtergrond.
  * Alleen dark (color-scheme: dark); er is geen light mode meer.
  *
  * Ontwerptokens staan op :root als --ui-*; Tailwind krijgt ze via @theme inline
@@ -12,7 +12,7 @@
  * bij de thema's van gebruikers (gecompileerde CSS, preview), niet bij deze UI.
  *
  * z-index-schaal: achtergrond 0 · app 1 · dialoog 65 · toasts 66 · effecten 70 ·
- * flits 75 · scanlines 80.
+ * flits 75.
  */
 
 :root {
@@ -84,16 +84,6 @@
     overflow-x: hidden;
     -webkit-font-smoothing: antialiased;
     scrollbar-color: #4a4a4a transparent;
-  }
-  /* Scanlines over alles, klikken gaan erdoorheen. */
-  body::after {
-    content: "";
-    position: fixed;
-    inset: 0;
-    z-index: 80;
-    pointer-events: none;
-    opacity: 0.5;
-    background: repeating-linear-gradient(0deg, rgb(0 0 0 / 0.18) 0 1px, transparent 1px 3px);
   }
   ::selection {
     background: rgb(255 255 255 / 0.25);

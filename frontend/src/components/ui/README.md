@@ -2,7 +2,7 @@
 
 Bouwstenen voor alle schermen van cssthema, in de look van
 [aiverslag](https://github.com/Jonasz1996/aiverslag): donker, alles monospace, glazen kaarten
-met een draaiende rand, scanlines en een deeltjesnetwerk op de achtergrond. Alleen dark mode.
+met een draaiende rand en een deeltjesnetwerk op de achtergrond. Alleen dark mode.
 
 ```tsx
 import { Button, Card, PageHeader, Tag, toast } from "@/components/ui";
@@ -27,7 +27,7 @@ Op `:root` in `src/styles/globals.css` als `--ui-*`, in Tailwind beschikbaar als
 | `shadow-glow` / `shadow-card`        |                                    | knop-hover / kaart          |
 | `font-mono` (= `font-sans`)          | `ui-monospace, "Cascadia Code", …` | alles                       |
 
-z-index: achtergrond 0 · app 1 · dialoog 65 · toasts 66 · effecten 70 · flits 75 · scanlines 80.
+z-index: achtergrond 0 · app 1 · dialoog 65 · toasts 66 · effecten 70 · flits 75.
 De `--ct-*`-variabelen horen bij de thema's van gebruikers, niet bij deze UI.
 
 ## Componenten
