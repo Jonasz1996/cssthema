@@ -1,0 +1,26 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+.mypy_cache/
+.ruff_cache/
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Node
+node_modules/
+dist/
+*.tsbuildinfo
+
+# Omgeving en data
+.env
+storage/
+backups/
+# Handgemaakte CSS voor de Docker-stack (CSS_FILES_HOST_DIR, standaard in de repo-root).
+/css-files/
+
+# Editors/OS
+.idea/
+.vscode/
+.DS_Store

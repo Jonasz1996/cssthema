@@ -1,0 +1,20 @@
+**/node_modules
+**/dist
+**/.venv
+**/__pycache__
+**/.mypy_cache
+**/.ruff_cache
+**/.pytest_cache
+.git
+# Overal, niet alleen in de root (bv. backend/.env van lokaal ontwikkelen).
+**/.env
+**/.env.*
+!**/.env.example
+storage
+backups
+css-files
+docs
+# Testuitvoer van Playwright (frontend/test-results, playwright-report).
+**/test-results
+**/playwright-report
+**/blob-report

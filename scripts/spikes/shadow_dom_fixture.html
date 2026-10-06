@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<!-- Spike S2: minimale "Home Assistant-achtige" pagina met geneste open shadow roots
+     en constructable stylesheets (adoptedStyleSheets), zoals Lit-componenten die gebruiken. -->
+<html><head><meta charset="utf-8"><title>Shadow DOM fixture</title>
+<style>body{margin:0;font-family:sans-serif;background:#fafafa}</style></head>
+<body>
+<ha-app></ha-app>
+<script>
+const sheet = (css) => { const s = new CSSStyleSheet(); s.replaceSync(css); return s; };
+customElements.define("ha-card", class extends HTMLElement {
+  connectedCallback() {
+    const r = this.attachShadow({ mode: "open" });
+    r.adoptedStyleSheets = [sheet(`:host{display:block;margin:16px;border-radius:12px;
+      background:var(--card-background-color,#fff);box-shadow:0 2px 6px rgba(0,0,0,.15)}
+      .header{padding:16px;font-size:20px;color:var(--primary-text-color,#212121)}
+      .content{padding:0 16px 16px;color:#727272}`)];
+    r.innerHTML = `<div class="header">${this.getAttribute("title")}</div><div class="content"><slot></slot></div>`;
+  }
+});
+customElements.define("ha-app", class extends HTMLElement {
+  connectedCallback() {
+    const r = this.attachShadow({ mode: "open" });
+    r.adoptedStyleSheets = [sheet(`.toolbar{height:56px;background:var(--app-header-background-color,#03a9f4);
+      color:#fff;display:flex;align-items:center;padding:0 16px;font-size:20px}
+      .grid{display:grid;grid-template-columns:repeat(3,1fr)}`)];
+    r.innerHTML = `<div class="toolbar">Home</div><div class="grid">
+      <ha-card title="Woonkamer">21,5 °C</ha-card><ha-card title="Keuken">Licht aan</ha-card>
+      <ha-card title="Energie">3,2 kWh</ha-card></div>`;
+  }
+});
+</script>
+</body></html>
