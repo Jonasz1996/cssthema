@@ -1,5 +1,6 @@
 import { existsSync, rmSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
+import { makeZip } from "../../src/features/import/testing";
 import { expect, test, uniqueSlug } from "./support/fixtures";
 
 /**
@@ -87,4 +88,47 @@ test("CSS-bestand uploaden en meteen publiceren", async ({ page, api, request })
   const css = await request.get(`/${slug}.css`);
   expect(css.status()).toBe(200);
   expect(await css.text()).toContain("#c0ffee");
+});
+
+/**
+ * Een gewone zip met losse `.css`-bestanden (zoals Jonas' `alg-themas.zip`): de browser pakt hem
+ * uit en elk bestand wordt een eigen thema.
+ */
+test("zip met losse CSS-bestanden uploaden", async ({ page, api, request }) => {
+  const slugs = [uniqueSlug("zip-a"), uniqueSlug("zip-b")];
+  const zip = await makeZip([
+    { name: "themas/", data: "" },
+    ...slugs.map((slug, index) => ({
+      name: `themas/${slug}.css`,
+      data: `body { color: #0${index}c0ff; }\n`,
+    })),
+    { name: "themas/LEESMIJ.txt", data: "uitleg" },
+  ]);
+
+  await page.goto("/import");
+  await page.getByRole("tab", { name: "Uploaden" }).click();
+  await page.getByTestId("upload-input").setInputFiles({
+    name: "themas.zip",
+    mimeType: "application/zip",
+    buffer: Buffer.from(zip),
+  });
+  for (const slug of slugs) {
+    await expect(page.locator(`[data-upload-file="${slug}.css"]`)).toBeVisible();
+  }
+  await expect(page.locator('[data-upload-file="themas.zip"]')).toHaveCount(0);
+  await expect(page.getByText("themas.zip uitgepakt: 2 bestanden.")).toBeVisible();
+  await page.getByLabel("Publiceren").selectOption("yes");
+  await page.getByRole("button", { name: "2 bestanden importeren" }).click();
+
+  for (const [index, slug] of slugs.entries()) {
+    const result = page.locator(`[data-upload-result="${slug}.css"]`).first();
+    await expect(result).toContainText("nieuw thema");
+    await expect(result.locator('[data-badge="live"]')).toHaveText("v1 live");
+    const theme = await api.findBySlug(slug);
+    expect(theme).toBeDefined();
+    api.track(theme!.id);
+    const css = await request.get(`/${slug}.css`);
+    expect(css.status()).toBe(200);
+    expect(await css.text()).toContain(`#0${index}c0ff`);
+  }
 });

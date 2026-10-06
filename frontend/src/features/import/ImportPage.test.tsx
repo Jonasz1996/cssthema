@@ -15,6 +15,7 @@ import { createServer, currentUrl, renderPage, toastTexts } from "@/features/the
 import { fx } from "@/lib/fx";
 import { setLocale } from "@/lib/i18n";
 import { ImportPage } from "./ImportPage";
+import { makeZip, zipFile } from "./testing";
 
 const files = [
   makeLocalFile({ name: "grafana.css", size_bytes: 3482 }),
@@ -460,6 +461,100 @@ describe("Import: uploaden", () => {
         text: "Klaar: 1 thema geïmporteerd, 1 bestand mislukt.",
       }),
     );
+  });
+
+  it("een gewone zip wordt uitgepakt tot zijn .css- en .js-bestanden", async () => {
+    const api = scriptServer();
+    renderPage(<ImportPage />, { path: "/import?tab=upload", server: api });
+    const zip = await zipFile("alg-themas.zip", [
+      { name: "alg-themas/", data: "" },
+      { name: "alg-themas/alg-proxmox.css", data: "/* alg-proxmox.css */" },
+      { name: "alg-themas/algemeen.js", data: "/* algemeen.js */", method: 0 },
+      { name: "alg-themas/LEESMIJ.txt", data: "uitleg" },
+      { name: "__MACOSX/alg-themas/._alg-proxmox.css", data: "x" },
+      { name: "alg-themas/.DS_Store", data: "x" },
+    ]);
+    pick(uploadInput(), [zip, cssFile("los.css")]);
+
+    // Eerst staat de zip er, wordt uitgepakt, en kan er nog niet geüpload worden.
+    const zipRow = within(
+      document.querySelector<HTMLElement>('[data-upload-file="alg-themas.zip"]')!,
+    );
+    expect(zipRow.getByText("zip")).toBeInTheDocument();
+    expect(zipRow.getByText("wordt uitgepakt…")).toBeInTheDocument();
+    expect(uploadButton(1)).toBeDisabled();
+
+    await waitFor(() =>
+      expect(document.querySelector('[data-upload-file="alg-themas.zip"]')).toBeNull(),
+    );
+    expect(
+      [...document.querySelectorAll("[data-upload-file]")].map((el) =>
+        el.getAttribute("data-upload-file"),
+      ),
+    ).toEqual(["los.css", "alg-proxmox.css", "algemeen.js"]);
+    expect(toastTexts()).toContainEqual({
+      tone: "ok",
+      text: "alg-themas.zip uitgepakt: 2 bestanden. 1 bestand zonder .css of .js overgeslagen.",
+    });
+
+    fireEvent.click(uploadButton(3));
+    await resultRow("alg-proxmox.css");
+    await resultRow("algemeen.js");
+    const themes = api
+      .callsTo("POST", "/api/v1/themes/import")
+      .map((call) => call.body as FormData);
+    expect(await Promise.all(themes.map(uploadedName))).toEqual(["los.css", "alg-proxmox.css"]);
+    const scripts = api.callsTo("POST", "/api/v1/scripts").map((call) => call.body as FormData);
+    expect(await Promise.all(scripts.map(uploadedName))).toEqual(["algemeen.js"]);
+    expect(document.querySelector("[data-upload-file]")).toBeNull();
+  });
+
+  it("een zip met manifest.json blijft een bundel, ook met een andere naam", async () => {
+    renderPage(<ImportPage />, { path: "/import?tab=upload", server: uploadServer() });
+    const bundle = await zipFile("nord.cssthema (1).zip", [
+      { name: "manifest.json", data: "{}" },
+      { name: "draft.css", data: "a{}" },
+    ]);
+    pick(uploadInput(), [bundle]);
+    await waitFor(() => expect(uploadButton(1)).toBeEnabled());
+    const row = within(
+      document.querySelector<HTMLElement>('[data-upload-file="nord.cssthema (1).zip"]')!,
+    );
+    expect(row.getByText("bundel")).toBeInTheDocument();
+    expect(row.queryByText("wordt uitgepakt…")).toBeNull();
+    expect(toastTexts()).toEqual([]);
+  });
+
+  it("een zip zonder .css of .js, of een beschadigde zip, gaat weg met een melding", async () => {
+    renderPage(<ImportPage />, { path: "/import?tab=upload", server: uploadServer() });
+    const empty = await zipFile("foto's.zip", [{ name: "a.png", data: "png" }]);
+    const broken = await makeZip([{ name: "a.css", data: "body { color: red; }", method: 0 }]);
+    broken[35] = broken[35]! ^ 0xff;
+    pick(uploadInput(), [empty, new File([broken], "kapot.zip", { lastModified: 1 })]);
+    await waitFor(() => expect(document.querySelector("[data-upload-file]")).toBeNull());
+    expect(toastTexts()).toEqual(
+      expect.arrayContaining([
+        {
+          tone: "err",
+          text: "foto's.zip is geen cssthema-bundel en bevat geen .css- of .js-bestanden.",
+        },
+        {
+          tone: "err",
+          text: "kapot.zip kan niet uitgepakt worden: de zip is beschadigd (a.css).",
+        },
+      ]),
+    );
+  });
+
+  it("een zip die tijdens het uitpakken uit de lijst gaat, komt niet terug", async () => {
+    renderPage(<ImportPage />, { path: "/import?tab=upload", server: uploadServer() });
+    const zip = await zipFile("weg.zip", [{ name: "a.css", data: "/* a.css */" }]);
+    pick(uploadInput(), [zip]);
+    fireEvent.click(screen.getByRole("button", { name: "weg.zip uit de lijst halen" }));
+    // Het uitpakken loopt nog even door; daarna mag er niets verschijnen.
+    await new Promise((resolve) => setTimeout(resolve, 50));
+    expect(document.querySelector("[data-upload-file]")).toBeNull();
+    expect(toastTexts()).toEqual([]);
   });
 
   it("in het Engels legt de naamhint uit wat er bij een bundel gebeurt", () => {

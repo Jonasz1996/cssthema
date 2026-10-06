@@ -138,11 +138,16 @@ def read_bundle(data: bytes, *, max_css_bytes: int) -> Bundle:
         if len(infos) > MAX_ENTRIES:
             raise BundleError(f"De bundel bevat meer dan {MAX_ENTRIES} bestanden.")
         files = {info.filename: info for info in infos if not info.is_dir()}
+        # Eerst: is het wel een bundel? Een gewone zip met losse .css/.js-bestanden krijgt zo
+        # een begrijpelijke melding in plaats van een fout over een van zijn bestanden.
+        if MANIFEST_NAME not in files:
+            raise BundleError(
+                "manifest.json ontbreekt in de bundel: dit is geen cssthema-bundel. "
+                "Pak een zip met losse .css-bestanden eerst uit en upload die bestanden."
+            )
         for info in infos:
             _check_entry(info)
         reader = _Reader(archive)
-        if MANIFEST_NAME not in files:
-            raise BundleError("manifest.json ontbreekt in de bundel.")
         manifest = _parse_manifest(reader.read(files[MANIFEST_NAME], MAX_MANIFEST_BYTES))
 
         def css_file(name: object) -> str:

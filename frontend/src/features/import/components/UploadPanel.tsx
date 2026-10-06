@@ -34,15 +34,20 @@ import {
 import {
   ACCEPT,
   CONFLICT_CHOICES,
+  fileKey,
   isThemeFile,
   mergeFiles,
+  needsUnpacking,
   publishParam,
   type PublishChoice,
+  type Unpacked,
+  unpackUpload,
   type UploadKind,
   uploadKind,
   uploadProblem,
   type UploadProblem,
 } from "../lib/upload";
+import type { ZipErrorCode } from "../lib/zip";
 import { LintIssueList } from "./LintIssueList";
 
 type UploadResult =
@@ -93,6 +98,17 @@ const NAME_ISSUE_LABELS: Record<ScriptNameIssue, MessageKey> = {
   reserved: "import.scriptNameReserved",
 };
 
+const ZIP_ERROR_LABELS: Record<ZipErrorCode, MessageKey> = {
+  notZip: "import.zipErrorCorrupt",
+  corrupt: "import.zipErrorCorrupt",
+  tooManyEntries: "import.zipErrorTooManyEntries",
+  encrypted: "import.zipErrorEncrypted",
+  zip64: "import.zipErrorZip64",
+  method: "import.zipErrorMethod",
+  tooLarge: "import.zipErrorTooLarge",
+  unsupported: "import.zipErrorUnsupported",
+};
+
 const KIND_LABELS: Record<UploadKind, MessageKey | null> = {
   css: null,
   bundle: "import.kindBundle",
@@ -105,8 +121,10 @@ let nextResultId = 1;
 /**
  * Tab "Uploaden": `.css`, `.cssthema.zip` of `.js` kiezen of slepen. Thema-bestanden gaan naar
  * de thema-import (met de keuze bij een bestaande slug en of er gepubliceerd wordt); een `.js`
- * gaat naar `POST /scripts` en vraagt bij een bestaande naam of hij vervangen mag worden. Elk
- * bestand krijgt een eigen resultaat (nieuw thema of script, nieuwe versie, vervangen of fout).
+ * gaat naar `POST /scripts` en vraagt bij een bestaande naam of hij vervangen mag worden. Een
+ * andere `.zip` zonder `manifest.json` wordt in de browser uitgepakt en vervangen door zijn
+ * `.css`- en `.js`-bestanden. Elk bestand krijgt een eigen resultaat (nieuw thema of script,
+ * nieuwe versie, vervangen of fout).
  */
 export function UploadPanel() {
   const i18n = useI18n();
@@ -116,6 +134,9 @@ export function UploadPanel() {
   const resultsRef = useRef<HTMLElement>(null);
   const nameId = useId();
   const [files, setFiles] = useState<File[]>([]);
+  /** Zips die nog uitgepakt worden; de ref is voor de afhandeling na het `await`. */
+  const [reading, setReading] = useState<ReadonlySet<File>>(() => new Set());
+  const readingRef = useRef(new Set<File>());
   const [dragging, setDragging] = useState(false);
   const [conflict, setConflict] = useState<ImportConflict>("rename");
   const [publish, setPublish] = useState<PublishChoice>("auto");
@@ -130,7 +151,9 @@ export function UploadPanel() {
   const targetOf = (file: File) => scriptTarget(file.name, single ? name : undefined);
   const nameIssue = (file: File) =>
     uploadKind(file.name) === "script" ? targetOf(file).issue : null;
-  const valid = files.filter((file) => !uploadProblem(file) && !nameIssue(file));
+  const valid = files.filter(
+    (file) => !reading.has(file) && !uploadProblem(file) && !nameIssue(file),
+  );
   // Alleen scripts gekozen: de thema-opties (slug, publiceren) doen dan niets.
   const scriptsOnly = files.length > 0 && files.every((file) => uploadKind(file.name) === "script");
   const singleScript = single && scriptsOnly;
@@ -141,11 +164,73 @@ export function UploadPanel() {
       : "cssthema import --upload",
   );
 
+  const stopReading = (file: File) => {
+    readingRef.current.delete(file);
+    setReading(new Set(readingRef.current));
+  };
+
+  const removeFile = (file: File) => {
+    stopReading(file);
+    setFiles((current) => current.filter((item) => item !== file));
+  };
+
+  const finishUnpack = (zip: File, outcome: Unpacked) => {
+    // Intussen uit de lijst gehaald: niets meer doen.
+    if (!readingRef.current.has(zip)) return;
+    stopReading(zip);
+    if (outcome.kind === "keep") return;
+    if (outcome.kind === "files") {
+      setFiles((current) =>
+        mergeFiles(
+          current.filter((item) => item !== zip),
+          outcome.files,
+        ),
+      );
+      const unpacked = tc("import.filesCount", outcome.files.length);
+      toast.ok(
+        outcome.skipped.length
+          ? t("import.zipUnpackedSkipped", {
+              file: zip.name,
+              files: unpacked,
+              skipped: tc("import.filesCount", outcome.skipped.length),
+            })
+          : t("import.zipUnpacked", { file: zip.name, files: unpacked }),
+      );
+      return;
+    }
+    setFiles((current) => current.filter((item) => item !== zip));
+    if (outcome.kind === "empty") {
+      toast.err(t("import.zipEmpty", { file: zip.name }));
+      return;
+    }
+    const reason = t(ZIP_ERROR_LABELS[outcome.code]);
+    toast.err(
+      t("import.zipError", {
+        file: zip.name,
+        reason: outcome.entry ? `${reason} (${outcome.entry})` : reason,
+      }),
+    );
+  };
+
   const add = (added: FileList | null) => {
     // Eerst kopiëren: de FileList van een <input> is live en wordt leeg zodra we de waarde
     // van het veld wissen (om hetzelfde bestand opnieuw te kunnen kiezen).
     const picked = Array.from(added ?? []);
-    if (picked.length) setFiles((current) => mergeFiles(current, picked));
+    if (!picked.length) return;
+    // Alleen zips die echt nieuw in de lijst komen, worden uitgepakt (dubbels vallen weg).
+    const known = new Set(files.map(fileKey));
+    const zips = picked.filter((file) => {
+      if (known.has(fileKey(file))) return false;
+      known.add(fileKey(file));
+      return needsUnpacking(file.name) && !uploadProblem(file);
+    });
+    setFiles((current) => mergeFiles(current, picked));
+    if (!zips.length) return;
+    for (const zip of zips) readingRef.current.add(zip);
+    setReading(new Set(readingRef.current));
+    for (const zip of zips) {
+      void unpackUpload(zip).then((outcome) => finishUnpack(zip, outcome));
+    }
   };
 
   const onDrop = (event: DragEvent<HTMLDivElement>) => {
@@ -191,7 +276,7 @@ export function UploadPanel() {
   };
 
   const run = async () => {
-    if (!valid.length || running) return;
+    if (!valid.length || running || reading.size) return;
     setRunning(true);
     const batch: UploadResult[] = [];
     const done = new Set<File>();
@@ -303,7 +388,8 @@ export function UploadPanel() {
           {files.map((file) => {
             const problem = uploadProblem(file);
             const kind = uploadKind(file.name);
-            const kindLabel = KIND_LABELS[kind];
+            const unpacking = reading.has(file);
+            const kindLabel = unpacking ? "import.kindZip" : KIND_LABELS[kind];
             const target = kind === "script" && !problem ? targetOf(file) : null;
             return (
               <li
@@ -317,6 +403,11 @@ export function UploadPanel() {
                 <Code className="min-w-0 break-all">{file.name}</Code>
                 <Tag>{kindLabel ? t(kindLabel) : kind === "css" ? "CSS" : "?"}</Tag>
                 <span className="text-[11.5px] text-dim">{formatBytes(file.size, locale)}</span>
+                {unpacking && (
+                  <span role="status" className="text-[11.5px] text-dim">
+                    {t("import.unpacking")}
+                  </span>
+                )}
                 {target && !target.issue && (
                   <span className="min-w-0 text-[11.5px] break-all text-dim">
                     → /{target.name}
@@ -332,7 +423,7 @@ export function UploadPanel() {
                   className="ml-auto size-6 text-[11px]"
                   aria-label={t("import.removeFile", { name: file.name })}
                   title={t("import.removeFile", { name: file.name })}
-                  onClick={() => setFiles((current) => current.filter((item) => item !== file))}
+                  onClick={() => removeFile(file)}
                   disabled={running}
                 >
                   ✕
@@ -406,8 +497,8 @@ export function UploadPanel() {
         <Button
           ref={submitRef}
           onClick={() => void run()}
-          disabled={!valid.length || running}
-          aria-busy={running || undefined}
+          disabled={!valid.length || running || reading.size > 0}
+          aria-busy={running || reading.size > 0 || undefined}
         >
           <span aria-hidden>⬆️</span>
           {running

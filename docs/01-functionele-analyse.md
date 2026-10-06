@@ -60,7 +60,7 @@ Elke eis heeft een ID (gebruikt in roadmap en tests) en een prioriteit: **M** = 
 | F-TM-02 | Thema dupliceren: kopie van draft + metadata met nieuwe slug; versiegeschiedenis wordt **niet** meegekopieerd, nieuwe versie 1 met bron `duplicate`. | M |
 | F-TM-03 | Thema verwijderen: soft delete (publieke URL geeft binnen enkele seconden `404`: de api ververst de nginx-cache, zie spike S3), herstelbaar door Admin binnen 30 dagen; daarna purge-job. Hard delete alleen Admin. | M |
 | F-TM-04 | Thema exporteren als `.css` (gepubliceerde of specifieke versie) of als bundel `.cssthema.zip` (manifest + draft + alle versies + palet). | M |
-| F-TM-05 | Thema importeren uit `.css` of `.cssthema.zip`; bij slug-conflict kiezen: hernoemen / nieuwe versie op bestaand thema / annuleren. | M |
+| F-TM-05 | Thema importeren uit `.css` of `.cssthema.zip`; bij slug-conflict kiezen: hernoemen / nieuwe versie op bestaand thema / annuleren. Een gewone `.zip` met losse `.css`/`.js`-bestanden pakt het dashboard eerst uit (elk bestand apart). | M |
 | F-TM-06 | Versiegeschiedenis: lijst met nummer, auteur, tijd, bericht, bron, grootte; side-by-side diff tussen twee willekeurige versies of tussen versie en draft. | M |
 | F-TM-07 | Rollback: kies versie N → er ontstaat een **nieuwe** versie (N+k) met de inhoud van N en bron `rollback`, die direct gepubliceerd wordt. Geschiedenis blijft lineair en volledig auditbaar. | M |
 | F-TM-08 | Publiceren met optioneel versiebericht. Validatie (zie F-ED-05) moet slagen; waarschuwingen mogen genegeerd worden, fouten niet. | M |

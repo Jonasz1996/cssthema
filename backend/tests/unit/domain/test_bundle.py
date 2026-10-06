@@ -94,6 +94,7 @@ def test_layout_and_determinism() -> None:
     ("files", "fragment"),
     [
         ({"draft.css": ""}, "manifest.json ontbreekt"),
+        ({"alg-a.css": "", "algemeen.js": "", "LEESMIJ.txt": ""}, "geen cssthema-bundel"),
         ({"manifest.json": "{nee"}, "geen geldige JSON"),
         ({"manifest.json": "[]"}, "object"),
         ({"manifest.json": manifest(format="iets")}, "geen cssthema-bundel"),
