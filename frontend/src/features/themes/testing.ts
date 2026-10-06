@@ -33,6 +33,7 @@ export function createServer(): FetchMock {
     .on("GET", "/api/v1/palettes", () => json([]))
     .on("GET", "/api/v1/dashboard", () => json(makeDashboard()))
     .on("GET", "/api/v1/themes/local-files", () => json([]))
+    .on("GET", "/api/v1/scripts", () => json([]))
     .on("DELETE", "/api/v1/themes/:id", () => noContent());
 }
 

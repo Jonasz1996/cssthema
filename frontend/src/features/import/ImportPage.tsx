@@ -3,22 +3,32 @@ import { useShellCommand } from "@/app/shell-command";
 import { PageHeader, TabPanel, Tabs } from "@/components/ui";
 import { useI18n } from "@/lib/i18n";
 import { LocalFilesPanel } from "./components/LocalFilesPanel";
+import { ScriptsPanel } from "./components/ScriptsPanel";
 import { UploadPanel } from "./components/UploadPanel";
 
-type ImportTab = "server" | "upload";
+type ImportTab = "server" | "upload" | "scripts";
 
 const TABS_ID = "import";
 
+function tabOf(value: string | null): ImportTab {
+  return value === "upload" || value === "scripts" ? value : "server";
+}
+
 /**
- * Import (`/import`): handgemaakte CSS-bestanden van de server binnenhalen, of een `.css` /
- * `.cssthema.zip` uploaden. Exporteren staat bij het thema zelf (menu op de kaart).
+ * Import (`/import`): handgemaakte CSS-bestanden van de server binnenhalen, een `.css` /
+ * `.cssthema.zip` / `.js` uploaden, en de thema-scripts (`/<naam>.js`) beheren. Exporteren staat
+ * bij het thema zelf (menu op de kaart).
  */
 export function ImportPage() {
   const { t } = useI18n();
   const [params, setParams] = useSearchParams();
-  const tab: ImportTab = params.get("tab") === "upload" ? "upload" : "server";
+  const tab = tabOf(params.get("tab"));
 
-  useShellCommand(tab === "upload" ? "cssthema import --upload" : "cssthema import --local");
+  // De tab Uploaden zet zijn eigen commando (`cssthema scripts upload …` als er alleen
+  // scripts gekozen zijn).
+  useShellCommand(
+    tab === "server" ? "cssthema import --local" : tab === "scripts" && "cssthema scripts",
+  );
 
   const setTab = (next: ImportTab) =>
     setParams(
@@ -42,6 +52,7 @@ export function ImportPage() {
         items={[
           { value: "server", label: `🗄️ ${t("import.tabServer")}` },
           { value: "upload", label: `⬆️ ${t("import.tabUpload")}` },
+          { value: "scripts", label: `📜 ${t("import.tabScripts")}` },
         ]}
         className="mb-3.5"
       />
@@ -50,6 +61,9 @@ export function ImportPage() {
       </TabPanel>
       <TabPanel id={TABS_ID} value="upload" selected={tab} className="p-0.5">
         <UploadPanel />
+      </TabPanel>
+      <TabPanel id={TABS_ID} value="scripts" selected={tab} className="p-0.5">
+        <ScriptsPanel />
       </TabPanel>
     </section>
   );

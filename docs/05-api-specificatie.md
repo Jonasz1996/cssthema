@@ -10,7 +10,8 @@
 | Basis-URL | `https://cssthema.domain.be/api/v1` |
 | Versiebeheer | Major in pad (`/v1`). Additieve wijzigingen zonder nieuwe versie; breaking → `/v2` met 6 maanden overlap. |
 | Authenticatie | Sessiecookie `cssthema_session` (browser) **of** `Authorization: Bearer ct_…` (API-key). |
-| CSRF | Bij cookie-auth op `POST/PUT/PATCH/DELETE` header `X-CSRF-Token` verplicht (waarde uit cookie `cssthema_csrf`). |
+| CSRF | Op `POST/PUT/PATCH/DELETE` weigert de api verzoeken van een andere pagina: `Sec-Fetch-Site` anders dan `same-origin`/`none`, of (zonder Fetch Metadata, bv. gewone http naar een IP) een `Origin` die niet de eigen host is (`Host` of `PUBLIC_BASE_URL`) → `403 csrf_failed`. Zonder beide headers (curl, scripts) gaat het door. Vanaf fase 3 bij cookie-auth bovendien header `X-CSRF-Token` verplicht (waarde uit cookie `cssthema_csrf`). |
+| Schrijven via de proxy | nginx van cssthema aanvaardt `POST/PUT/PATCH/DELETE` op `/api/` alleen van `TRUSTED_PROXIES` (Nginx Proxy Manager) en van de machine zelf; anders `403 proxy_required` (zie docs/ops/installatie-debian.md § 4). |
 | Content-Type | `application/json; charset=utf-8`, uploads `multipart/form-data`. |
 | Namen | JSON-velden `snake_case`; ID's als UUID-strings; tijden ISO 8601 UTC (`2026-10-05T12:00:00Z`). |
 | Paginering | Cursor-gebaseerd: `?limit=50&cursor=<opaque>` → `{ "items": [...], "next_cursor": "…" | null }`. Max. `limit` 200. |
@@ -46,20 +47,25 @@
 | 400 | `bad_request` | Onleesbare body (geen geldige JSON); zonder `errors[]` |
 | 401 | `unauthenticated` | Geen/ongeldige sessie of key |
 | 403 | `forbidden` | Rol/scope onvoldoende |
-| 403 | `csrf_failed` | CSRF-token ontbreekt/onjuist |
+| 403 | `csrf_failed` | Verzoek van een andere pagina (`Sec-Fetch-Site`/`Origin`, § 1); vanaf fase 3 ook: CSRF-token ontbreekt/onjuist |
+| 403 | `proxy_required` | Schrijfactie die niet via de reverse proxy komt (nginx, bron niet in `TRUSTED_PROXIES`) |
 | 404 | `not_found` | Resource bestaat niet (of is soft-deleted voor niet-admins) |
 | 409 | `slug_conflict` | Slug al in gebruik |
 | 409 | `state_conflict` | Actie niet mogelijk in huidige status (bv. rollback naar live versie) |
+| 409 | `script_conflict` | Script met die naam bestaat al (upload zonder `replace`) |
 | 412 | `precondition_failed` | `If-Match` komt niet overeen (iemand anders heeft gewijzigd) — body bevat huidige `etag` en `updated_by` |
-| 413 | `payload_too_large` | CSS > limiet, upload > 25 MB |
+| 413 | `payload_too_large` | CSS > limiet, script > 512 KB, upload > 25 MB |
 | 415 | `unsupported_media_type` | Verkeerd uploadformaat |
 | 422 | `validation_error` | Pydantic-validatie (veldfouten in `errors[]` met `loc`) |
 | 422 | `theme_lint_failed` | CSS-security-/syntaxfouten bij publiceren |
 | 422 | `url_not_allowed` | URL valt buiten SSRF-allowlist |
+| 422 | `invalid_script_name` | Scriptnaam past niet in `/<naam>.js` of is gereserveerd |
 | 428 | `precondition_required` | `If-Match` ontbreekt |
 | 429 | `rate_limited` | Te veel verzoeken |
 | 502 | `upstream_error` | Doel-app, NPM of AI-provider gaf fout |
 | 503 | `ai_disabled` / `ai_budget_exceeded` | Geen provider of maandbudget op |
+| 503 | `storage_unavailable` | `CSS_FILES_DIR` ontbreekt of is niet schrijfbaar/leesbaar voor de api (uitleg in `detail`) |
+| 500 | `storage_error` | Onverwachte fout van het bestandssysteem (bv. schijf vol), zonder stacktrace |
 | 500 | `internal_error` | Onverwacht; details alleen in logs |
 
 ## 3. Kern-schema's
@@ -220,6 +226,26 @@ Preciseringen (fase 1, 2026-10-05):
 - `GET /palettes` en `GET /themes/local-files` geven een lijst, geen `Page`.
 - `GET /api/v1/dashboard` → `{ themes_total, themes_published, themes_draft_dirty, themes_deleted, palettes_total, recent: [Theme], local_files: {dir, total, importable} }`.
 - Fase 1 heeft nog geen login: alle verzoeken gelden als de ingebouwde gebruiker *Beheerder* (admin). Fase 3 vervangt dat door OIDC.
+
+### 4.6a Thema-scripts
+
+Scripts (bv. `algemeen.js`, de netwerkachtergrond die NPM met `sub_filter` naast de CSS in apps laadt) zijn gewone bestanden `<naam>.js` in `CSS_FILES_DIR`, die nginx publiek op `/<naam>.js` serveert. Geen database, versies of linter: een upload is meteen live.
+
+| Methode | Pad | Rol | Beschrijving | Responses |
+|---|---|---|---|---|
+| GET | `/scripts` | V | Scripts in de map (alleen gewone bestanden met een naam die nginx serveert; geen verborgen bestanden, mappen of symlinks): `[ScriptFile]`, gesorteerd op naam. Ontbreekt de map, dan `[]` | 200, 503 |
+| POST | `/scripts` | E | multipart `file` (`.js`, ≤ 512 KB, UTF-8 zonder NUL), `name?` (standaard de bestandsnaam zonder `.js`; genormaliseerd zoals een slug), `replace=false` | 201 `ScriptFile` (nieuw), 200 (vervangen), 409 `script_conflict` / `state_conflict`, 413, 415, 422 `invalid_script_name` / `validation_error`, 500 `storage_error`, 503 `storage_unavailable` |
+| GET | `/scripts/{name}?download=` | V | Inhoud als `text/javascript; charset=utf-8`; met `download=1` als bijlage | 200, 404 |
+| DELETE | `/scripts/{name}` | E | Verplaatst naar `.scripts-archief/` (niet echt wissen) | 204, 404 |
+
+```yaml
+ScriptFile: { name, filename, size_bytes, modified_at, url,   # url = PUBLIC_BASE_URL + /<name>.js
+              sha256?, world_readable }                       # world_readable: anders 403 via nginx
+```
+
+- Naam: 2 tot 64 tekens `[a-z0-9-]`, begint en eindigt met een letter of cijfer (dezelfde regex als de location in nginx). `preview-bridge` is gereserveerd (script van het dashboard). Een pad (`../x`, `a/b`) of verborgen naam (`.x`) → 422 `invalid_script_name`.
+- Bestanden worden atomisch geschreven (tijdelijk bestand, fsync, rename) met modus `0644`, ongeacht de umask. Vervangen kopieert de vorige versie eerst naar `.scripts-archief/<naam>.<YYYYMMDDTHHMMSSZ>.js`. Een symlink of map met dezelfde naam wordt nooit overschreven (409 `state_conflict`).
+- Audit-log: `script.upload` (`{name, file, size_bytes, sha256, replaced, archived_as}`) en `script.delete` (`{name, archived_as}`), met `entity_type: script`.
 
 ### 4.7 Paletten
 

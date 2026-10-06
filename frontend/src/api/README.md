@@ -23,7 +23,7 @@ Teksten: `message` is de (Nederlandse) tekst van de server. Wil je een eigen tek
 
 ## Hooks (`queries/`)
 
-Query-keys staan in `queries/keys.ts` (`themeKeys`, `paletteKeys`, `dashboardKeys`); mutaties werken de cache zelf
+Query-keys staan in `queries/keys.ts` (`themeKeys`, `paletteKeys`, `scriptKeys`, `dashboardKeys`); mutaties werken de cache zelf
 bij (`queries/cache.ts`). Elke muterende call die de lock verschuift geeft `Locked<T>` terug: bewaar `lockVersion`
 en stuur hem mee bij de volgende wijziging. Lees-hooks nemen optioneel `{ enabled, staleTime, refetchInterval }`;
 een `null`/`undefined`-id betekent "nog niet laden".
@@ -34,6 +34,10 @@ een `null`/`undefined`-id betekent "nog niet laden".
 - `editor.ts`: `useDraft`, `useSaveDraft`, `useLint`, `usePublishTheme`, `useVersions`, `useVersionsInfinite`,
   `useVersion`, `useDiff`, `useRollback`, `useResetDraft`.
 - `palettes.ts`: `usePalettes`, `usePalette`. `dashboard.ts`: `useDashboard`. `health.ts`: `useHealth`.
+- `scripts.ts` (thema-scripts, `/<naam>.js` uit de css-files-map): `useScripts`, `useScriptContent` (tekst),
+  `useUploadScript` (`{ data, created }`; 409 `script_conflict` zonder `replace`), `useDeleteScript`,
+  `useDownloadScript`. Geven `useScriptContent`, `useDeleteScript` of `useDownloadScript` 404
+  (`isScriptGone`: bv. met de hand verwijderd), dan verdwijnt het script ook uit de lijst.
 
 Elke hook heeft ook een gewone async functie (`fetchTheme`, `saveDraft`, `lintTheme`, …) en waar nuttig
 query-opties (`themeQueries`, `editorQueries`, `paletteQueries`, `dashboardQueries`) voor `prefetchQuery`/
@@ -47,5 +51,5 @@ en faalt dan meteen met `network_error`, zodat de editor zelf kan bufferen.
 ## Tests (`testing/`)
 
 Alleen voor tests: `createFetchMock()` (routes per methode/pad, `calls`, `callsTo`, `unhandled`), `json`,
-`problem`, `etag`, `noContent`; fixtures `makeTheme`, `makeDraft`, `makeVersion`, `makePalette`, `makeDashboard`,
+`problem`, `etag`, `noContent`; fixtures `makeTheme`, `makeDraft`, `makeVersion`, `makePalette`, `makeScript`, `makeDashboard`,
 … en `createTestQueryClient` / `createQueryWrapper` voor `renderHook`. Voorbeelden: `tests/unit/api-*.test.tsx`.

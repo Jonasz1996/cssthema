@@ -2075,6 +2075,303 @@
         }
       }
     },
+    "/api/v1/scripts": {
+      "get": {
+        "tags": [
+          "scripts"
+        ],
+        "summary": "Scripts in CSS_FILES_DIR (publiek op /<naam>.js)",
+        "operationId": "scripts_list",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/ScriptFile"
+                  },
+                  "type": "array",
+                  "title": "Response Scripts List"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Interne fout",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "`storage_unavailable`: CSS_FILES_DIR ontbreekt of is niet schrijfbaar",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "scripts"
+        ],
+        "summary": "Script uploaden of vervangen",
+        "operationId": "scripts_upload",
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/Body_scripts_upload"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ScriptFile"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "`storage_error`: onverwachte fout bij het schrijven",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "Bestaand script vervangen (`replace`)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ScriptFile"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "`script_conflict`: de naam bestaat al en `replace` staat niet aan; `state_conflict`: op die naam staat een map of symbolische link",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "Groter dan 512 KB",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "Geen `.js`-bestand",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "`invalid_script_name` (naam) of `validation_error` (leeg, geen UTF-8, NUL)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "`storage_unavailable`: CSS_FILES_DIR ontbreekt of is niet schrijfbaar",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/scripts/{name}": {
+      "get": {
+        "tags": [
+          "scripts"
+        ],
+        "summary": "Inhoud van een script",
+        "operationId": "scripts_get",
+        "parameters": [
+          {
+            "name": "name",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "maxLength": 200,
+              "description": "Naam zonder `.js`",
+              "title": "Name"
+            },
+            "description": "Naam zonder `.js`"
+          },
+          {
+            "name": "download",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "description": "Als download (`Content-Disposition: attachment`)",
+              "default": false,
+              "title": "Download"
+            },
+            "description": "Als download (`Content-Disposition: attachment`)"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "De inhoud; met `download` als bijlage",
+            "content": {
+              "text/javascript": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Interne fout",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Script niet gevonden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Bestand niet leesbaar voor de api",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "scripts"
+        ],
+        "summary": "Script verwijderen (naar .scripts-archief/)",
+        "operationId": "scripts_delete",
+        "parameters": [
+          {
+            "name": "name",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "maxLength": 200,
+              "description": "Naam zonder `.js`",
+              "title": "Name"
+            },
+            "description": "Naam zonder `.js`"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "500": {
+            "description": "`storage_error`: onverwachte fout bij het schrijven",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Script niet gevonden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "`storage_unavailable`: CSS_FILES_DIR ontbreekt of is niet schrijfbaar",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/{ref}.css": {
       "get": {
         "tags": [
@@ -2214,6 +2511,40 @@
   },
   "components": {
     "schemas": {
+      "Body_scripts_upload": {
+        "properties": {
+          "file": {
+            "type": "string",
+            "contentMediaType": "application/octet-stream",
+            "title": "File",
+            "description": "`.js`, hoogstens 512 KB, UTF-8"
+          },
+          "name": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 200
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Name",
+            "description": "Naam (en URL `/<naam>.js`); standaard de bestandsnaam zonder `.js`. Wordt genormaliseerd zoals een slug: `Netwerk Achtergrond` → `netwerk-achtergrond`."
+          },
+          "replace": {
+            "type": "boolean",
+            "title": "Replace",
+            "description": "Een bestaand script vervangen (200); de vorige versie gaat naar `.scripts-archief/`. Zonder: 409 `script_conflict`.",
+            "default": false
+          }
+        },
+        "type": "object",
+        "required": [
+          "file"
+        ],
+        "title": "Body_scripts_upload"
+      },
       "Body_themes_import": {
         "properties": {
           "file": {
@@ -3345,6 +3676,70 @@
           "version_number"
         ],
         "title": "RollbackRequest"
+      },
+      "ScriptFile": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "title": "Name",
+            "description": "Naam zonder `.js`; ook het pad van de publieke URL (`/<name>.js`).",
+            "examples": [
+              "algemeen"
+            ]
+          },
+          "filename": {
+            "type": "string",
+            "title": "Filename",
+            "examples": [
+              "algemeen.js"
+            ]
+          },
+          "size_bytes": {
+            "type": "integer",
+            "title": "Size Bytes"
+          },
+          "modified_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Modified At"
+          },
+          "url": {
+            "type": "string",
+            "title": "Url",
+            "description": "Publieke URL (`PUBLIC_BASE_URL` + `/<name>.js`) voor de `<script>`-tag.",
+            "examples": [
+              "https://css.jbogaert.be/algemeen.js"
+            ]
+          },
+          "sha256": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Sha256",
+            "description": "SHA-256 van de inhoud (hex); null als de api het bestand niet kan lezen."
+          },
+          "world_readable": {
+            "type": "boolean",
+            "title": "World Readable",
+            "description": "Leesbaar voor iedereen (modus o+r), dus ook voor nginx. Zo niet, dan geeft de publieke URL 403 (bv. een bestand dat met de hand met modus 0600 is gezet)."
+          }
+        },
+        "type": "object",
+        "required": [
+          "name",
+          "filename",
+          "size_bytes",
+          "modified_at",
+          "url",
+          "sha256",
+          "world_readable"
+        ],
+        "title": "ScriptFile"
       },
       "SkippedFile": {
         "properties": {

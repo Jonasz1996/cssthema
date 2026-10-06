@@ -1,26 +1,38 @@
 import type { ImportConflict } from "@/api/types";
 
 /**
- * Uploads op `/import`: `.css` (één thema, draft = inhoud) of `.cssthema.zip` (bundel met alle
- * versies, docs/05 § 4.6). De server controleert alles opnieuw; dit is alleen om meteen te
- * melden wat zeker niet gaat.
+ * Uploads op `/import`: `.css` (één thema, draft = inhoud), `.cssthema.zip` (bundel met alle
+ * versies, docs/05 § 4.6) of `.js` (thema-script, gaat naar `POST /scripts` en niet naar de
+ * thema-import). De server controleert alles opnieuw; dit is alleen om meteen te melden wat
+ * zeker niet gaat.
  */
 
-export type UploadKind = "css" | "bundle" | "unsupported";
+export type UploadKind = "css" | "bundle" | "script" | "unsupported";
 
 /** Maximale grootte van een bundel (vast in de backend). CSS-limiet: server (`CSS_MAX_BYTES`). */
 export const MAX_BUNDLE_BYTES = 25 * 1024 * 1024;
 
-export const ACCEPT = ".css,.zip,text/css,application/zip";
+/** Maximale grootte van een script (vast in de backend, `MAX_SCRIPT_BYTES`). */
+export const MAX_SCRIPT_BYTES = 512 * 1024;
+
+export const ACCEPT =
+  ".css,.zip,.js,text/css,application/zip,text/javascript,application/javascript";
 
 export function uploadKind(name: string): UploadKind {
   const lower = name.toLowerCase();
   if (lower.endsWith(".css")) return "css";
   if (lower.endsWith(".zip")) return "bundle";
+  if (lower.endsWith(".js")) return "script";
   return "unsupported";
 }
 
-export type UploadProblem = "type" | "empty" | "tooLarge";
+/** Een thema-bestand (`.css` of bundel), dus voor `POST /themes/import`. */
+export function isThemeFile(name: string): boolean {
+  const kind = uploadKind(name);
+  return kind === "css" || kind === "bundle";
+}
+
+export type UploadProblem = "type" | "empty" | "tooLarge" | "scriptTooLarge";
 
 /** Wat er zeker mis is met een bestand vóór het uploaden, of `null`. */
 export function uploadProblem(file: Pick<File, "name" | "size">): UploadProblem | null {
@@ -28,6 +40,7 @@ export function uploadProblem(file: Pick<File, "name" | "size">): UploadProblem 
   if (kind === "unsupported") return "type";
   if (file.size === 0) return "empty";
   if (kind === "bundle" && file.size > MAX_BUNDLE_BYTES) return "tooLarge";
+  if (kind === "script" && file.size > MAX_SCRIPT_BYTES) return "scriptTooLarge";
   return null;
 }
 

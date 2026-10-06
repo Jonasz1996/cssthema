@@ -44,6 +44,12 @@ class StateConflictError(ServiceError):
     status, code = 409, "state_conflict"
 
 
+class ScriptConflictError(ServiceError):
+    """Er bestaat al een script met die naam en `replace` staat niet aan."""
+
+    status, code = 409, "script_conflict"
+
+
 class PreconditionFailedError(ServiceError):
     status, code = 412, "precondition_failed"
 
@@ -70,8 +76,26 @@ class LintFailedError(ServiceError):
     status, code = 422, "theme_lint_failed"
 
 
+class InvalidScriptNameError(ServiceError):
+    """Scriptnaam past niet in de URL die nginx serveert (`/<naam>.js`) of is gereserveerd."""
+
+    status, code = 422, "invalid_script_name"
+
+
 class PreconditionRequiredError(ServiceError):
     status, code = 428, "precondition_required"
+
+
+class StorageError(ServiceError):
+    """Onverwachte fout van het bestandssysteem (bv. schijf vol); details staan in `detail`."""
+
+    status, code = 500, "storage_error"
+
+
+class StorageUnavailableError(ServiceError):
+    """Een map op de server ontbreekt of is niet schrijfbaar voor de api (configuratie)."""
+
+    status, code = 503, "storage_unavailable"
 
 
 def field_error(field: str, message: str, *, kind: str = "value_error") -> dict[str, Any]:

@@ -4,6 +4,7 @@ import type {
   LintResult,
   LocalCssFile,
   Palette,
+  ScriptFile,
   Theme,
   UserRef,
   Version,
@@ -143,6 +144,20 @@ export function makeLocalFile(overrides: Partial<LocalCssFile> = {}): LocalCssFi
     importable: true,
     reason: null,
     theme_id: null,
+    ...overrides,
+  };
+}
+
+export function makeScript(overrides: Partial<ScriptFile> = {}): ScriptFile {
+  const name = overrides.name ?? "algemeen";
+  return {
+    name,
+    filename: `${name}.js`,
+    size_bytes: 1561,
+    modified_at: NOW,
+    url: `https://css.example/${name}.js`,
+    sha256: "a5e330f6b1a4".padEnd(64, "0"),
+    world_readable: true,
     ...overrides,
   };
 }

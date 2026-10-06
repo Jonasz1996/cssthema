@@ -4,6 +4,7 @@ import { json, problem } from "@/api/testing/fetch-mock";
 import {
   makeDashboard,
   makeLocalFile,
+  makeScript,
   makeTheme,
   makeVersionSummary,
   testId,
@@ -333,7 +334,7 @@ describe("Import: uploaden", () => {
       within(document.querySelector<HTMLElement>(`[data-upload-file="${name}"]`)!);
     expect(item("proxmox.css").getByText("CSS")).toBeInTheDocument();
     expect(item("nord.cssthema.zip").getByText("bundel")).toBeInTheDocument();
-    expect(item("notities.txt").getByText("geen .css of .zip")).toBeInTheDocument();
+    expect(item("notities.txt").getByText("geen .css, .zip of .js")).toBeInTheDocument();
     expect(item("leeg.css").getByText("leeg bestand")).toBeInTheDocument();
     // Alleen de twee geldige tellen mee; de naam kan alleen bij één bestand.
     expect(uploadButton(2)).toBeEnabled();
@@ -477,3 +478,219 @@ describe("Import: uploaden", () => {
 function uploadButton1En() {
   return screen.getByRole("button", { name: "Import 1 file" });
 }
+
+/** Een `.js`-bestand; de inhoud is de naam (zie `cssFile`). */
+function jsFile(name: string, content = `/* ${name} */`) {
+  return new File([content], name, { type: "text/javascript", lastModified: 1 });
+}
+
+/**
+ * Nep-api voor scripts: de naam komt uit het naamveld of de (in de inhoud bewaarde)
+ * bestandsnaam. `existing` geeft zonder `replace` 409 `script_conflict`.
+ */
+function scriptServer(existing: string[] = []) {
+  return uploadServer().on("POST", "/api/v1/scripts", async ({ body }) => {
+    const form = body as FormData;
+    const file = await uploadedName(form);
+    const raw = String(form.get("name") ?? "") || file.replace(/\.js$/i, "");
+    const name = raw
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/^-|-$/g, "");
+    const replace = form.get("replace") === "true";
+    if (name === "vol") {
+      return problem(503, "storage_unavailable", {
+        title: "CSS_FILES_DIR is niet schrijfbaar voor de api",
+        detail: "De api kan niet schrijven in /srv/css-files (Permission denied).",
+      });
+    }
+    if (existing.includes(name) && !replace) {
+      return problem(409, "script_conflict", {
+        detail: `Er staat al een script ${name}.js.`,
+        name,
+      });
+    }
+    return json(makeScript({ name }), { status: existing.includes(name) ? 200 : 201 });
+  });
+}
+
+function resultRow(file: string) {
+  return waitFor(() => {
+    const el = document.querySelector<HTMLElement>(`[data-upload-result="${file}"]`);
+    if (!el) throw new Error(`nog geen resultaat voor ${file}`);
+    return within(el);
+  });
+}
+
+describe("Import: scripts uploaden", () => {
+  it("een .js gaat naar /scripts, een .css naar de thema-import", async () => {
+    const api = scriptServer();
+    renderPage(<ImportPage />, { path: "/import?tab=upload", server: api });
+    pick(uploadInput(), [cssFile("proxmox.css"), jsFile("algemeen.js")]);
+    const script = within(document.querySelector<HTMLElement>('[data-upload-file="algemeen.js"]')!);
+    expect(script.getByText("script")).toBeInTheDocument();
+    expect(script.getByText("→ /algemeen.js")).toBeInTheDocument();
+    // Gemengd: de thema-opties blijven staan.
+    expect(screen.getByLabelText("Als de slug al bestaat")).toBeInTheDocument();
+    fireEvent.click(uploadButton(2));
+
+    const row = await resultRow("algemeen.js");
+    expect(api.callsTo("POST", "/api/v1/themes/import")).toHaveLength(1);
+    expect(
+      await uploadedName(api.callsTo("POST", "/api/v1/themes/import")[0]!.body as FormData),
+    ).toBe("proxmox.css");
+    const scriptCalls = api.callsTo("POST", "/api/v1/scripts");
+    expect(scriptCalls).toHaveLength(1);
+    const form = scriptCalls[0]!.body as FormData;
+    expect(await uploadedName(form)).toBe("algemeen.js");
+    // Thema-opties gaan niet mee naar de scripts.
+    expect(form.has("on_conflict")).toBe(false);
+    expect(form.has("publish")).toBe(false);
+    expect(form.has("replace")).toBe(false);
+
+    expect(row.getByText("nieuw script")).toBeInTheDocument();
+    expect(row.getByText("https://css.example/algemeen.js")).toBeInTheDocument();
+    expect(row.getByRole("link", { name: /Naar Scripts/ })).toHaveAttribute(
+      "href",
+      "/import?tab=scripts",
+    );
+    expect(toastTexts()).toContainEqual({
+      tone: "ok",
+      text: "Klaar: 1 thema, 1 script geïmporteerd.",
+    });
+  });
+
+  it("alleen scripts: geen thema-opties, het naamveld wordt de scriptnaam", async () => {
+    const publishFx = vi.spyOn(fx, "publish");
+    const api = scriptServer();
+    renderPage(<ImportPage />, { path: "/import?tab=upload", server: api });
+    pick(uploadInput(), [jsFile("Klok Widget.js")]);
+    expect(screen.queryByLabelText("Als de slug al bestaat")).toBeNull();
+    expect(screen.queryByLabelText("Publiceren")).toBeNull();
+    expect(screen.getByText(/Scripts staan meteen live op \/<naam>\.js/)).toBeInTheDocument();
+    expect(
+      screen.getByText("In plaats van de bestandsnaam; wordt de URL /<naam>.js."),
+    ).toBeInTheDocument();
+    expect(useUiStore.getState().commandOverride).toBe("cssthema scripts upload 'Klok Widget.js'");
+    expect(screen.getByText("→ /klok-widget.js")).toBeInTheDocument();
+
+    fireEvent.change(screen.getByLabelText("Naam (optioneel)"), {
+      target: { value: "Netwerk Achtergrond" },
+    });
+    expect(screen.getByText("→ /netwerk-achtergrond.js")).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "1 script uploaden" }));
+
+    const row = await resultRow("Klok Widget.js");
+    const form = api.callsTo("POST", "/api/v1/scripts")[0]!.body as FormData;
+    expect(form.get("name")).toBe("Netwerk Achtergrond");
+    expect(row.getByText("netwerk-achtergrond.js")).toBeInTheDocument();
+    expect(publishFx).toHaveBeenCalled();
+    expect(toastTexts()).toContainEqual({
+      tone: "ok",
+      text: "netwerk-achtergrond.js staat live op https://css.example/netwerk-achtergrond.js",
+    });
+    expect(document.querySelector("[data-upload-file]")).toBeNull();
+    // Zonder gekozen bestanden staan de thema-opties er weer.
+    expect(screen.getByLabelText("Als de slug al bestaat")).toBeInTheDocument();
+  });
+
+  it("meldt een ongeldige scriptnaam en een te groot script meteen", () => {
+    renderPage(<ImportPage />, { path: "/import?tab=upload", server: scriptServer() });
+    pick(uploadInput(), [
+      jsFile("a.js"),
+      jsFile("preview-bridge.js"),
+      new File([new Uint8Array(512 * 1024 + 1)], "groot.js", { lastModified: 1 }),
+    ]);
+    const item = (name: string) =>
+      within(document.querySelector<HTMLElement>(`[data-upload-file="${name}"]`)!);
+    expect(
+      item("a.js").getByText("naam: 2 tot 64 letters, cijfers of streepjes"),
+    ).toBeInTheDocument();
+    expect(item("preview-bridge.js").getByText("naam is gereserveerd")).toBeInTheDocument();
+    expect(item("groot.js").getByText("groter dan 512 KB")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "0 scripts uploaden" })).toBeDisabled();
+  });
+
+  it("slepen kan ook met een .js", () => {
+    renderPage(<ImportPage />, { path: "/import?tab=upload", server: scriptServer() });
+    const zone = document.querySelector<HTMLElement>("[data-dropzone]")!;
+    fireEvent.drop(zone, { dataTransfer: { files: [jsFile("algemeen.js")] } });
+    expect(document.querySelector('[data-upload-file="algemeen.js"]')).not.toBeNull();
+    expect(screen.getByRole("button", { name: "1 script uploaden" })).toBeEnabled();
+  });
+
+  it("bestaande naam: vragen, en na 'Vervangen' opnieuw met replace=true", async () => {
+    const api = scriptServer(["algemeen"]);
+    renderPage(<ImportPage />, { path: "/import?tab=upload", server: api });
+    pick(uploadInput(), [jsFile("Algemeen.JS")]);
+    fireEvent.click(screen.getByRole("button", { name: "1 script uploaden" }));
+
+    const dialog = await screen.findByRole("dialog", { name: "algemeen.js bestaat al" });
+    expect(dialog).toHaveTextContent(
+      "Algemeen.JS vervangt het script op /algemeen.js en is meteen live. De huidige versie gaat naar .scripts-archief/ op de server.",
+    );
+    // Veilige keuze heeft de focus.
+    expect(within(dialog).getByRole("button", { name: "Niet vervangen" })).toHaveFocus();
+    fireEvent.click(within(dialog).getByRole("button", { name: "⟳ Vervangen" }));
+
+    const row = await resultRow("Algemeen.JS");
+    const calls = api.callsTo("POST", "/api/v1/scripts");
+    expect(calls).toHaveLength(2);
+    expect((calls[0]!.body as FormData).has("replace")).toBe(false);
+    expect((calls[1]!.body as FormData).get("replace")).toBe("true");
+    expect(row.getByText("vervangen")).toBeInTheDocument();
+    expect(screen.queryByRole("dialog")).toBeNull();
+    expect(toastTexts()).toContainEqual({
+      tone: "ok",
+      text: "algemeen.js vervangen; de vorige versie staat in .scripts-archief/.",
+    });
+  });
+
+  it("bestaande naam: 'Niet vervangen' laat het script staan en het bestand in de lijst", async () => {
+    const api = scriptServer(["algemeen"]);
+    renderPage(<ImportPage />, { path: "/import?tab=upload", server: api });
+    pick(uploadInput(), [jsFile("algemeen.js")]);
+    fireEvent.click(screen.getByRole("button", { name: "1 script uploaden" }));
+    const dialog = await screen.findByRole("dialog", { name: "algemeen.js bestaat al" });
+    fireEvent.click(within(dialog).getByRole("button", { name: "Niet vervangen" }));
+
+    const row = await resultRow("algemeen.js");
+    expect(api.callsTo("POST", "/api/v1/scripts")).toHaveLength(1);
+    expect(row.getByText("niet vervangen")).toBeInTheDocument();
+    expect(
+      row.getByText("Er staat al een script /algemeen.js; dat is ongemoeid gelaten."),
+    ).toBeInTheDocument();
+    // Het bestand blijft gekozen: met een andere naam opnieuw proberen kan meteen.
+    expect(document.querySelector('[data-upload-file="algemeen.js"]')).not.toBeNull();
+    expect(toastTexts()).toContainEqual({ tone: "default", text: "Niets vervangen." });
+    // De focus valt niet op <body> (de uploadknop was uit tijdens de vraag).
+    await waitFor(() => expect(document.activeElement).not.toBe(document.body));
+  });
+
+  it("een fout van de server staat bij het script", async () => {
+    renderPage(<ImportPage />, { path: "/import?tab=upload", server: scriptServer() });
+    pick(uploadInput(), [jsFile("vol.js")]);
+    fireEvent.click(screen.getByRole("button", { name: "1 script uploaden" }));
+    const row = await resultRow("vol.js");
+    expect(row.getByText("mislukt")).toBeInTheDocument();
+    expect(
+      row.getByText("De api kan niet schrijven in /srv/css-files (Permission denied)."),
+    ).toBeInTheDocument();
+    expect(toastTexts()).toContainEqual({
+      tone: "mid",
+      text: "Klaar: 0 scripts geïmporteerd, 1 bestand mislukt.",
+    });
+  });
+
+  it("in het Engels krijgen scriptfouten een eigen tekst", async () => {
+    setLocale("en");
+    const api = scriptServer().on("POST", "/api/v1/scripts", () =>
+      problem(415, "unsupported_media_type", { detail: "Upload een bestand dat op .js eindigt." }),
+    );
+    renderPage(<ImportPage />, { path: "/import?tab=upload", server: api });
+    pick(uploadInput(), [jsFile("algemeen.js")]);
+    fireEvent.click(screen.getByRole("button", { name: "Upload 1 script" }));
+    const row = await resultRow("algemeen.js");
+    expect(row.getByText("Not JavaScript: upload a .js file.")).toBeInTheDocument();
+  });
+});

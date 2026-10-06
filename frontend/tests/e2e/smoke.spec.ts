@@ -6,6 +6,8 @@ const PAGES = [
   ["/themes", "Thema's"],
   ["/palettes", "Paletten"],
   ["/import", "Import"],
+  ["/import?tab=upload", "Import"],
+  ["/import?tab=scripts", "Import"],
 ] as const;
 
 /**

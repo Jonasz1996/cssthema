@@ -15,8 +15,9 @@ pnpm lint && pnpm exec prettier --check . && pnpm typecheck && pnpm test && pnpm
 Playwright-tests in `tests/e2e/` tegen de **productiebuild**: de acceptatieflow van fase 1
 (docs/07 § 4: thema maken → CSS typen → autosave → publiceren → `/<slug>.css` 200 + ETag →
 `If-None-Match` → 304 → rollback → nieuwe ETag), de conflictdialoog, verwijderen en herstellen,
-import van een handgemaakt bestand en upload, en een rooktest (pagina's, Monaco-workers uit
-`/assets/`, preview, mobiel zonder horizontale scroll).
+import van een handgemaakt bestand en upload, thema-scripts (`.js` uploaden, URL kopiëren,
+vervangen na de vraag, verwijderen) en een rooktest (pagina's, Monaco-workers uit `/assets/`,
+preview, mobiel zonder horizontale scroll).
 
 Nodig: PostgreSQL en Redis (zoals voor de backend-tests) en `uv` voor de backend. `pnpm e2e`
 start zelf:
@@ -33,6 +34,8 @@ E2E_BASE_URL=http://localhost:8080 pnpm e2e  # tegen een draaiende stack (docker
 ```
 
 Draait er al iets op 8020/4173, dan wordt dat hergebruikt (behalve in CI). De tests maken
-thema's met slugs `e2e-…` en verwijderen ze daarna definitief: **nooit tegen productie draaien**.
+thema's en scripts met namen `e2e-…` en verwijderen ze daarna (thema's definitief, scripts naar
+`.scripts-archief/`): **nooit tegen productie draaien**. Via `vite preview` bestaat `/<naam>.js`
+niet (alleen nginx serveert scripts); met `E2E_BASE_URL` controleert de scripttest ook die URL.
 Bij een fout staan screenshot en trace in `test-results/e2e/`
 (`pnpm exec playwright show-trace <trace.zip>`).

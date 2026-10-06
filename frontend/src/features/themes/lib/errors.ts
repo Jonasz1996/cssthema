@@ -16,9 +16,23 @@ const ERROR_KEYS: Readonly<Record<string, MessageKey>> = {
   unsupported_media_type: "themes.errorUnsupported",
   theme_lint_failed: "themes.errorLint",
   validation_error: "themes.errorValidation",
+  // Schrijven geweigerd: van een andere pagina (api) of niet via de reverse proxy (nginx).
+  csrf_failed: "themes.errorCsrf",
+  proxy_required: "themes.errorProxyRequired",
 };
 
-export function errorText(error: unknown, i18n: Pick<I18n, "t" | "locale">): string {
+/** Eigen Engelse teksten per foutcode voor één scherm (bv. scripts in plaats van thema's). */
+export type ErrorKeys = Readonly<Partial<Record<string, MessageKey>>>;
+
+/**
+ * `keys` gaat voor op de standaardvertalingen (alleen in het Engels; in het Nederlands blijft
+ * de specifieke tekst van de server staan).
+ */
+export function errorText(
+  error: unknown,
+  i18n: Pick<I18n, "t" | "locale">,
+  keys?: ErrorKeys,
+): string {
   if (!isApiError(error)) return i18n.t("themes.errorUnknown");
   return apiErrorText(
     {
@@ -28,6 +42,7 @@ export function errorText(error: unknown, i18n: Pick<I18n, "t" | "locale">): str
       fromServer: error.problem !== null,
     },
     i18n,
+    keys,
   );
 }
 
@@ -48,6 +63,7 @@ export interface ApiErrorParts {
 export function apiErrorText(
   { code, status, message, fromServer }: ApiErrorParts,
   { t, locale }: Pick<I18n, "t" | "locale">,
+  keys?: ErrorKeys,
 ): string {
   if (code === NETWORK_ERROR) return t("themes.errorNetwork");
   if (!fromServer) {
@@ -56,6 +72,6 @@ export function apiErrorText(
     return status > 0 ? t("themes.errorHttp", { status }) : t("themes.errorUnknown");
   }
   if (locale === "nl") return message;
-  const key = ERROR_KEYS[code];
+  const key = keys?.[code] ?? ERROR_KEYS[code];
   return key ? t(key) : message;
 }

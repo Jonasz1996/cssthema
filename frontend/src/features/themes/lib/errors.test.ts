@@ -54,6 +54,25 @@ describe("errorText", () => {
     expect(errorText(error, { t, locale: "en" })).toBe(t("themes.errorStateConflict"));
   });
 
+  it("eigen sleutels per scherm gaan in het Engels voor; Nederlands blijft de servertekst", () => {
+    const error = apiError(404, "not_found", "Script niet gevonden.");
+    const keys = { not_found: "import.scriptErrorNotFound" } as const;
+    expect(errorText(error, { t, locale: "en" }, keys)).toBe(t("import.scriptErrorNotFound"));
+    expect(errorText(error, { t, locale: "en" })).toBe(t("themes.errorNotFound"));
+    expect(errorText(error, { t, locale: "nl" }, keys)).toBe("Script niet gevonden.");
+  });
+
+  it("geweigerde schrijfacties (CSRF, niet via de proxy) krijgen een uitleg", () => {
+    const csrf = apiError(403, "csrf_failed", "Verzoek van een andere site geweigerd");
+    expect(errorText(csrf, { t, locale: "en" })).toBe(t("themes.errorCsrf"));
+    // De 403 van nginx is ook een Problem; in het Nederlands blijft zijn eigen uitleg staan.
+    const proxy = apiError(403, "proxy_required", "cssthema aanvaardt wijzigingen alleen via NPM.");
+    expect(errorText(proxy, { t, locale: "en" })).toBe(t("themes.errorProxyRequired"));
+    expect(errorText(proxy, { t, locale: "nl" })).toBe(
+      "cssthema aanvaardt wijzigingen alleen via NPM.",
+    );
+  });
+
   it("een gewone fout is onbekend", () => {
     expect(errorText(new Error("boem"), { t, locale: "nl" })).toBe(t("themes.errorUnknown"));
   });

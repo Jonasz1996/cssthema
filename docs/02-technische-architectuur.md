@@ -321,7 +321,7 @@ Alles via omgevingsvariabelen (12-factor), gevalideerd met `pydantic-settings`. 
 | `PUBLIC_BASE_URL` | `https://cssthema.domain.be` | Absolute URL's in snippets en UserCSS |
 | `POSTGRES_HOST` / `POSTGRES_USER` / `POSTGRES_PASSWORD` / `POSTGRES_DB` | `postgres` / `cssthema` / *** / `cssthema` | De api bouwt hier de database-URL uit (wachtwoord URL-gecodeerd) |
 | `DATABASE_URL` | `postgresql+asyncpg://cssthema:***@postgres/cssthema` | Optioneel: overschrijft de `POSTGRES_*`-delen |
-| `TRUSTED_PROXIES` | `172.16.0.0/12,192.168.1.10` | nginx: bronnen waarvan `X-Forwarded-For` vertrouwd wordt (NPM) |
+| `TRUSTED_PROXIES` | `172.16.0.0/12,192.168.1.10` | nginx: bronnen waarvan `X-Forwarded-For` vertrouwd wordt (NPM); alleen zij (en nginx' eigen machine) mogen via `/api/` schrijven |
 | `REDIS_URL` | `redis://redis:6379/0` | |
 | `SECRET_KEY` | 64 random bytes | Sessies, CSRF |
 | `ENCRYPTION_KEY` | Fernet-key | Versleuteling van geheimen in DB |

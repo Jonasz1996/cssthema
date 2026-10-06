@@ -388,6 +388,42 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/scripts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Scripts in CSS_FILES_DIR (publiek op /<naam>.js) */
+        get: operations["scripts_list"];
+        put?: never;
+        /** Script uploaden of vervangen */
+        post: operations["scripts_upload"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/scripts/{name}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Inhoud van een script */
+        get: operations["scripts_get"];
+        put?: never;
+        post?: never;
+        /** Script verwijderen (naar .scripts-archief/) */
+        delete: operations["scripts_delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/{ref}.css": {
         parameters: {
             query?: never;
@@ -426,6 +462,25 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        /** Body_scripts_upload */
+        Body_scripts_upload: {
+            /**
+             * File
+             * @description `.js`, hoogstens 512 KB, UTF-8
+             */
+            file: string;
+            /**
+             * Name
+             * @description Naam (en URL `/<naam>.js`); standaard de bestandsnaam zonder `.js`. Wordt genormaliseerd zoals een slug: `Netwerk Achtergrond` → `netwerk-achtergrond`.
+             */
+            name?: string | null;
+            /**
+             * Replace
+             * @description Een bestaand script vervangen (200); de vorige versie gaat naar `.scripts-archief/`. Zonder: 409 `script_conflict`.
+             * @default false
+             */
+            replace: boolean;
+        };
         /** Body_themes_import */
         Body_themes_import: {
             /**
@@ -868,6 +923,43 @@ export interface components {
             version_number: number;
             /** Message */
             message?: string | null;
+        };
+        /** ScriptFile */
+        ScriptFile: {
+            /**
+             * Name
+             * @description Naam zonder `.js`; ook het pad van de publieke URL (`/<name>.js`).
+             * @example algemeen
+             */
+            name: string;
+            /**
+             * Filename
+             * @example algemeen.js
+             */
+            filename: string;
+            /** Size Bytes */
+            size_bytes: number;
+            /**
+             * Modified At
+             * Format: date-time
+             */
+            modified_at: string;
+            /**
+             * Url
+             * @description Publieke URL (`PUBLIC_BASE_URL` + `/<name>.js`) voor de `<script>`-tag.
+             * @example https://css.jbogaert.be/algemeen.js
+             */
+            url: string;
+            /**
+             * Sha256
+             * @description SHA-256 van de inhoud (hex); null als de api het bestand niet kan lezen.
+             */
+            sha256: string | null;
+            /**
+             * World Readable
+             * @description Leesbaar voor iedereen (modus o+r), dus ook voor nginx. Zo niet, dan geeft de publieke URL 403 (bv. een bestand dat met de hand met modus 0600 is gezet).
+             */
+            world_readable: boolean;
         };
         /** SkippedFile */
         SkippedFile: {
@@ -2559,6 +2651,250 @@ export interface operations {
             };
             /** @description Interne fout */
             500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    scripts_list: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ScriptFile"][];
+                };
+            };
+            /** @description Interne fout */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description `storage_unavailable`: CSS_FILES_DIR ontbreekt of is niet schrijfbaar */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    scripts_upload: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": components["schemas"]["Body_scripts_upload"];
+            };
+        };
+        responses: {
+            /** @description Bestaand script vervangen (`replace`) */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ScriptFile"];
+                };
+            };
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ScriptFile"];
+                };
+            };
+            /** @description `script_conflict`: de naam bestaat al en `replace` staat niet aan; `state_conflict`: op die naam staat een map of symbolische link */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Groter dan 512 KB */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Geen `.js`-bestand */
+            415: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description `invalid_script_name` (naam) of `validation_error` (leeg, geen UTF-8, NUL) */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description `storage_error`: onverwachte fout bij het schrijven */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description `storage_unavailable`: CSS_FILES_DIR ontbreekt of is niet schrijfbaar */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    scripts_get: {
+        parameters: {
+            query?: {
+                /** @description Als download (`Content-Disposition: attachment`) */
+                download?: boolean;
+            };
+            header?: never;
+            path: {
+                /** @description Naam zonder `.js` */
+                name: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description De inhoud; met `download` als bijlage */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/javascript": string;
+                };
+            };
+            /** @description Script niet gevonden */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+            /** @description Interne fout */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Bestand niet leesbaar voor de api */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    scripts_delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Naam zonder `.js` */
+                name: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Script niet gevonden */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+            /** @description `storage_error`: onverwachte fout bij het schrijven */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description `storage_unavailable`: CSS_FILES_DIR ontbreekt of is niet schrijfbaar */
+            503: {
                 headers: {
                     [name: string]: unknown;
                 };

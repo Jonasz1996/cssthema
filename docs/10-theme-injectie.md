@@ -86,7 +86,9 @@ De snippet-generator (F-IN-02) vult `{{slug}}` en de juiste upstream in.
 - Same-origin omzeilt een `style-src 'self'`-CSP; een directe link naar een ander domein wordt geblokkeerd.
 - Websockets en *Block Common Exploits* blijven werken.
 
-Nog per app te controleren: apps die `</head>` anders schrijven (dan `sub_filter '<head>' '<head><link …>'`), plus *Force SSL* en access lists.
+Nog per app te controleren: apps die `</head>` anders schrijven (dan `sub_filter '<head>' '<head><link …>'`), plus *Force SSL*.
+
+**Access Lists vallen weg.** NPM zet een Access List van de proxy host (basic auth, allow/deny, `satisfy`) alleen in zijn eigen `location /`. Bevat *Advanced* een `location /`, dan laat NPM die weg, en daarmee de Access List: de app staat open. Kopieer die regels uit `/data/nginx/proxy_host/<id>.conf` in de eigen location. Het snippet uit het dashboard (Import → Scripts) zegt dat in een commentaarregel. HSTS blijft gelden (NPM zet het op serverniveau).
 
 ### 2.3 Afwijkingen per app
 

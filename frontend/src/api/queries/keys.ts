@@ -15,6 +15,8 @@ import type { DiffRef, ThemeListFilters } from "../types";
  * ["themes", "diff", id, from, to]             VersionDiff
  * ["themes", "local-files"]                    handgemaakte bestanden op de server
  * ["palettes", "list"] / ["palettes", "detail", id]
+ * ["scripts", "list"]                          thema-scripts (`.js` in css-files)
+ * ["scripts", "content", name]                 inhoud van één script
  * ["dashboard"]
  * ```
  *
@@ -49,6 +51,13 @@ export const paletteKeys = {
   all: ["palettes"] as const,
   list: () => [...paletteKeys.all, "list"] as const,
   detail: (paletteId: string) => [...paletteKeys.all, "detail", paletteId] as const,
+};
+
+export const scriptKeys = {
+  all: ["scripts"] as const,
+  list: () => [...scriptKeys.all, "list"] as const,
+  contents: () => [...scriptKeys.all, "content"] as const,
+  content: (name: string) => [...scriptKeys.contents(), name] as const,
 };
 
 export const dashboardKeys = {

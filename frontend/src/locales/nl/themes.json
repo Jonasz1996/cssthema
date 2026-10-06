@@ -114,5 +114,7 @@
   "errorTooLarge": "Het bestand is te groot.",
   "errorUnsupported": "Bestandstype niet ondersteund: gebruik .css of .cssthema.zip.",
   "errorLint": "De CSS bevat fouten.",
-  "errorValidation": "Sommige velden zijn ongeldig."
+  "errorValidation": "Sommige velden zijn ongeldig.",
+  "errorCsrf": "Geweigerd: wijzigingen kunnen alleen vanuit het dashboard zelf, niet vanaf een andere pagina.",
+  "errorProxyRequired": "Geweigerd: wijzigingen kunnen alleen via Nginx Proxy Manager (TRUSTED_PROXIES). Open het dashboard via je domein."
 }

@@ -29,6 +29,7 @@ export type LocalImportRequest = Schemas["LocalImportRequest"];
 export type LocalImportResult = Schemas["LocalImportResult"];
 export type ImportedTheme = Schemas["ImportedTheme"];
 export type SkippedFile = Schemas["SkippedFile"];
+export type ScriptFile = Schemas["ScriptFile"];
 export type UserRef = Schemas["UserRef"];
 export type EtagState = Schemas["EtagState"];
 export type Problem = Schemas["Problem"];

@@ -28,6 +28,7 @@ services:
       - "${HTTP_PORT:-8080}:80"
     environment:
       # Bronnen waarvan nginx X-Forwarded-For vertrouwt (de reverse proxy, meestal NPM).
+      # Alleen zij mogen via /api/ schrijven (fase 1 heeft geen login), anders 403.
       TRUSTED_PROXIES: ${TRUSTED_PROXIES:-172.16.0.0/12}
     volumes:
       - nginx-cache:/var/cache/nginx

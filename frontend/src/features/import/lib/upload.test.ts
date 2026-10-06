@@ -1,17 +1,47 @@
 import { describe, expect, it } from "vitest";
-import { MAX_BUNDLE_BYTES, mergeFiles, publishParam, uploadKind, uploadProblem } from "./upload";
+import {
+  ACCEPT,
+  isThemeFile,
+  MAX_BUNDLE_BYTES,
+  MAX_SCRIPT_BYTES,
+  mergeFiles,
+  publishParam,
+  uploadKind,
+  uploadProblem,
+} from "./upload";
 
 function file(name: string, content = "body{}", lastModified = 1) {
   return new File([content], name, { lastModified });
 }
 
 describe("uploadKind / uploadProblem", () => {
-  it("herkent .css en .zip (hoofdletterongevoelig)", () => {
+  it("herkent .css, .zip en .js (hoofdletterongevoelig)", () => {
     expect(uploadKind("proxmox.css")).toBe("css");
     expect(uploadKind("PROXMOX.CSS")).toBe("css");
     expect(uploadKind("proxmox.cssthema.zip")).toBe("bundle");
+    expect(uploadKind("algemeen.js")).toBe("script");
+    expect(uploadKind("Algemeen.JS")).toBe("script");
     expect(uploadKind("notes.txt")).toBe("unsupported");
+    expect(uploadKind("algemeen.json")).toBe("unsupported");
     expect(uploadKind("css")).toBe("unsupported");
+    expect(uploadKind("js")).toBe("unsupported");
+  });
+
+  it("alleen .css en bundels gaan naar de thema-import, .js naar de scripts", () => {
+    expect(isThemeFile("proxmox.css")).toBe(true);
+    expect(isThemeFile("nord.cssthema.zip")).toBe(true);
+    expect(isThemeFile("algemeen.js")).toBe(false);
+    expect(isThemeFile("notes.txt")).toBe(false);
+  });
+
+  it("de bestandskiezer laat ook .js toe", () => {
+    expect(ACCEPT.split(",")).toEqual(expect.arrayContaining([".css", ".zip", ".js"]));
+  });
+
+  it("een script mag hoogstens 512 KB zijn", () => {
+    expect(uploadProblem({ name: "a.js", size: MAX_SCRIPT_BYTES })).toBeNull();
+    expect(uploadProblem({ name: "a.js", size: MAX_SCRIPT_BYTES + 1 })).toBe("scriptTooLarge");
+    expect(uploadProblem({ name: "a.js", size: 0 })).toBe("empty");
   });
 
   it("meldt verkeerd type, leeg bestand en te grote bundel", () => {

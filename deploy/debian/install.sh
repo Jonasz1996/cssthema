@@ -52,8 +52,9 @@ step "Gebruiker en mappen"
 id cssthema >/dev/null 2>&1 ||
     useradd --system --home-dir "$DATA_DIR" --shell /usr/sbin/nologin cssthema
 install -d -m 0755 "$DATA_DIR" "$RUNTIME_DIR"
-# Handgemaakte CSS (bewerkbaar als root, bv. met nano). De api verplaatst een bestand na
-# de import als thema naar css-files/.geimporteerd/ en moet er dus in kunnen schrijven.
+# Handgemaakte CSS en thema-scripts (bewerkbaar als root, bv. met nano). De api moet erin
+# kunnen schrijven: scripts uploaden (altijd modus 0644, zodat nginx als www-data ze kan
+# lezen), en na een import of vervangen archiveren naar .geimporteerd/ en .scripts-archief/.
 install -d -m 0775 -o cssthema -g cssthema "$DATA_DIR/css-files"
 install -d -m 0750 -o cssthema -g cssthema "$DATA_DIR/storage"
 install -d -m 0750 -o root -g cssthema "$CONF_DIR"
@@ -205,12 +206,14 @@ ip=$(hostname -I 2>/dev/null | awk '{print $1}' || true)
 cat <<EOF
 
 cssthema draait.
-  Dashboard:        http://${ip:-<ip>}/
+  Dashboard:        via je domein in NPM (op http://${ip:-<ip>}/ alleen lezen)
   Eigen CSS-files:  $DATA_DIR/css-files/<naam>.css  ->  http://${ip:-<ip>}/<naam>.css
+  Thema-scripts:    dashboard > Import > Scripts     ->  http://${ip:-<ip>}/<naam>.js
   Configuratie:     $ENV_FILE
   Logs:             journalctl -u cssthema-api -u cssthema-worker -f
 EOF
 if [ "$TRUSTED_PROXIES" = 127.0.0.1 ]; then
     echo
     echo "Let op: zet het IP van Nginx Proxy Manager bij TRUSTED_PROXIES in $ENV_FILE en draai dit script opnieuw."
+    echo "Tot dan kan je via NPM niets opslaan of uploaden: nginx aanvaardt wijzigingen alleen van TRUSTED_PROXIES."
 fi
