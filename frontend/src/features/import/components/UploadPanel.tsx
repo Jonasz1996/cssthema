@@ -1,4 +1,4 @@
-import { type DragEvent, useId, useRef, useState } from "react";
+import { type DragEvent, useEffect, useId, useRef, useState } from "react";
 import { lintIssuesOf } from "@/api/client";
 import { useImportTheme } from "@/api/queries/themes";
 import type { ImportConflict, LintIssue, ScriptFile, Theme } from "@/api/types";
@@ -41,13 +41,13 @@ import {
   publishParam,
   type PublishChoice,
   type Unpacked,
+  type UnpackErrorCode,
   unpackUpload,
   type UploadKind,
   uploadKind,
   uploadProblem,
   type UploadProblem,
 } from "../lib/upload";
-import type { ZipErrorCode } from "../lib/zip";
 import { LintIssueList } from "./LintIssueList";
 
 type UploadResult =
@@ -98,7 +98,7 @@ const NAME_ISSUE_LABELS: Record<ScriptNameIssue, MessageKey> = {
   reserved: "import.scriptNameReserved",
 };
 
-const ZIP_ERROR_LABELS: Record<ZipErrorCode, MessageKey> = {
+const ZIP_ERROR_LABELS: Record<UnpackErrorCode, MessageKey> = {
   notZip: "import.zipErrorCorrupt",
   corrupt: "import.zipErrorCorrupt",
   tooManyEntries: "import.zipErrorTooManyEntries",
@@ -107,6 +107,7 @@ const ZIP_ERROR_LABELS: Record<ZipErrorCode, MessageKey> = {
   method: "import.zipErrorMethod",
   tooLarge: "import.zipErrorTooLarge",
   unsupported: "import.zipErrorUnsupported",
+  nestedBundle: "import.zipErrorNestedBundle",
 };
 
 const KIND_LABELS: Record<UploadKind, MessageKey | null> = {
@@ -117,6 +118,21 @@ const KIND_LABELS: Record<UploadKind, MessageKey | null> = {
 };
 
 let nextResultId = 1;
+
+/**
+ * React-sleutel per `File`: twee bestanden uit één zip kunnen dezelfde naam, grootte en datum
+ * hebben (`licht/thema.css` en `donker/thema.css`).
+ */
+const fileIds = new WeakMap<File, number>();
+let nextFileId = 1;
+function fileId(file: File): number {
+  let id = fileIds.get(file);
+  if (id === undefined) {
+    id = nextFileId++;
+    fileIds.set(file, id);
+  }
+  return id;
+}
 
 /**
  * Tab "Uploaden": `.css`, `.cssthema.zip` of `.js` kiezen of slepen. Thema-bestanden gaan naar
@@ -137,6 +153,11 @@ export function UploadPanel() {
   /** Zips die nog uitgepakt worden; de ref is voor de afhandeling na het `await`. */
   const [reading, setReading] = useState<ReadonlySet<File>>(() => new Set());
   const readingRef = useRef(new Set<File>());
+  // Weg van de tab of pagina: een zip die nog uitgepakt wordt, toont daarna niets meer.
+  useEffect(() => {
+    const pending = readingRef.current;
+    return () => pending.clear();
+  }, []);
   const [dragging, setDragging] = useState(false);
   const [conflict, setConflict] = useState<ImportConflict>("rename");
   const [publish, setPublish] = useState<PublishChoice>("auto");
@@ -180,12 +201,13 @@ export function UploadPanel() {
     stopReading(zip);
     if (outcome.kind === "keep") return;
     if (outcome.kind === "files") {
-      setFiles((current) =>
-        mergeFiles(
-          current.filter((item) => item !== zip),
-          outcome.files,
-        ),
-      );
+      // Alleen tegen de lijst ontdubbelen, niet onderling: bestanden uit verschillende mappen
+      // mogen dezelfde naam, grootte en datum hebben.
+      setFiles((current) => {
+        const rest = current.filter((item) => item !== zip);
+        const known = new Set(rest.map(fileKey));
+        return [...rest, ...outcome.files.filter((item) => !known.has(fileKey(item)))];
+      });
       const unpacked = tc("import.filesCount", outcome.files.length);
       toast.ok(
         outcome.skipped.length
@@ -393,7 +415,7 @@ export function UploadPanel() {
             const target = kind === "script" && !problem ? targetOf(file) : null;
             return (
               <li
-                key={`${file.name}:${file.size}:${file.lastModified}`}
+                key={fileId(file)}
                 data-upload-file={file.name}
                 className={cn(
                   "flex flex-wrap items-center gap-2 rounded-lg border border-white/8 border-l-[3px] bg-white/5 px-3 py-2 text-[12.5px]",

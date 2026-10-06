@@ -509,6 +509,19 @@ describe("Import: uploaden", () => {
     expect(document.querySelector("[data-upload-file]")).toBeNull();
   });
 
+  it("bestanden met dezelfde naam uit verschillende mappen staan er allebei", async () => {
+    renderPage(<ImportPage />, { path: "/import?tab=upload", server: uploadServer() });
+    const zip = await zipFile("twee.zip", [
+      { name: "licht/thema.css", data: "/* thema.css */ a{color:#111}" },
+      { name: "donker/thema.css", data: "/* thema.css */ a{color:#eee}" },
+    ]);
+    pick(uploadInput(), [zip]);
+    await waitFor(() =>
+      expect(document.querySelectorAll('[data-upload-file="thema.css"]')).toHaveLength(2),
+    );
+    expect(uploadButton(2)).toBeEnabled();
+  });
+
   it("een zip met manifest.json blijft een bundel, ook met een andere naam", async () => {
     renderPage(<ImportPage />, { path: "/import?tab=upload", server: uploadServer() });
     const bundle = await zipFile("nord.cssthema (1).zip", [

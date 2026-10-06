@@ -54,6 +54,8 @@ const CENTRAL_SIGNATURE = 0x02014b50;
 const LOCAL_SIGNATURE = 0x04034b50;
 const EOCD_SIZE = 22;
 const MAX_COMMENT = 0xffff;
+/** Gecomprimeerde bytes per stap naar `DecompressionStream`. */
+const INFLATE_CHUNK = 16 * 1024;
 
 interface RawEntry extends ZipEntry {
   method: number;
@@ -105,7 +107,11 @@ export function openZip(buffer: ArrayBuffer, limits: ZipLimits = ZIP_LIMITS): Zi
     const localOffset = view.getUint32(pos + 42, true);
     const end = pos + 46 + nameLength + extraLength + commentLength;
     if (end > eocd) throw new ZipError("corrupt");
-    const name = decodeName(bytes.subarray(pos + 46, pos + 46 + nameLength), (flags & 0x800) !== 0);
+    // Sommige Windows-programma's (PowerShell 5.1, oude .NET) schrijven `\` als scheiding.
+    const name = decodeName(
+      bytes.subarray(pos + 46, pos + 46 + nameLength),
+      (flags & 0x800) !== 0,
+    ).replace(/\\/g, "/");
     if (compressedSize === 0xffffffff || size === 0xffffffff || localOffset === 0xffffffff) {
       throw new ZipError("zip64", name);
     }
@@ -174,12 +180,22 @@ function findEndOfCentralDirectory(view: DataView): number {
   return -1;
 }
 
+/** Tekens 0x80-0xFF van codepagina 437, zoals Windows Verkenner en Python `zipfile` die lezen. */
+export const CP437_HIGH =
+  "ÇüéâäàåçêëèïîìÄÅÉæÆôöòûùÿÖÜ¢£¥₧ƒáíóúñÑªº¿⌐¬½¼¡«»░▒▓│┤╡╢╖╕╣║╗╝╜╛┐" +
+  "└┴┬├─┼╞╟╚╔╩╦╠═╬╧╨╤╥╙╘╒╓╫╪┘┌█▄▌▐▀αßΓπΣσµτΦΘΩδ∞φε∩≡±≥≤⌠⌡÷≈°∙·√ⁿ²■\u00a0";
+
 function decodeName(raw: Uint8Array, utf8: boolean): string {
+  if (utf8) return new TextDecoder("utf-8").decode(raw);
   try {
+    // Zonder vlag schrijven veel programma's toch UTF-8 (7-Zip, macOS).
     return new TextDecoder("utf-8", { fatal: true }).decode(raw);
   } catch {
-    // Zonder UTF-8-vlag is het de OEM-codepagina van de maker; windows-1252 benadert dat.
-    return new TextDecoder(utf8 ? "utf-8" : "windows-1252").decode(raw);
+    // Anders de OEM-codepagina (437) van Windows Verkenner.
+    let name = "";
+    for (const byte of raw)
+      name += byte < 0x80 ? String.fromCharCode(byte) : CP437_HIGH[byte - 0x80];
+    return name;
   }
 }
 
@@ -206,12 +222,23 @@ async function inflateRaw(
   if (typeof DecompressionStream === "undefined") throw new ZipError("unsupported", name);
   let stream: ReadableStream<Uint8Array<ArrayBuffer>>;
   try {
-    stream = new ReadableStream<BufferSource>({
-      start(controller) {
-        controller.enqueue(packed);
-        controller.close();
+    // In kleine stukken en zonder buffer: Chromium pakt een aangeboden stuk in één keer uit,
+    // dus met de hele invoer als één stuk zou een zip-bom eerst helemaal in het geheugen komen
+    // voor de groottecontrole hieronder iets kan doen.
+    let offset = 0;
+    stream = new ReadableStream<BufferSource>(
+      {
+        pull(controller) {
+          if (offset >= packed.length) {
+            controller.close();
+            return;
+          }
+          controller.enqueue(packed.subarray(offset, offset + INFLATE_CHUNK));
+          offset += INFLATE_CHUNK;
+        },
       },
-    }).pipeThrough(new DecompressionStream("deflate-raw"));
+      { highWaterMark: 0 },
+    ).pipeThrough(new DecompressionStream("deflate-raw"));
   } catch {
     throw new ZipError("unsupported", name);
   }

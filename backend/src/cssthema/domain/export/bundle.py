@@ -141,6 +141,10 @@ def read_bundle(data: bytes, *, max_css_bytes: int) -> Bundle:
         # Eerst: is het wel een bundel? Een gewone zip met losse .css/.js-bestanden krijgt zo
         # een begrijpelijke melding in plaats van een fout over een van zijn bestanden.
         if MANIFEST_NAME not in files:
+            if any(name.count("/") == 1 and name.endswith("/" + MANIFEST_NAME) for name in files):
+                raise BundleError(
+                    "manifest.json staat in een map: zip de inhoud van die map, niet de map zelf."
+                )
             raise BundleError(
                 "manifest.json ontbreekt in de bundel: dit is geen cssthema-bundel. "
                 "Pak een zip met losse .css-bestanden eerst uit en upload die bestanden."

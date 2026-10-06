@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { makeZip } from "../testing";
-import { crc32, openZip, ZIP_LIMITS, ZipError } from "./zip";
+import { CP437_HIGH, crc32, openZip, ZIP_LIMITS, ZipError } from "./zip";
 
 const text = (data: Uint8Array) => new TextDecoder().decode(data);
 
@@ -42,9 +42,38 @@ describe("openZip", () => {
   });
 
   it("vindt het einde ook met commentaar achteraan", async () => {
-    const zip = await makeZip([{ name: "a.css", data: "a{}" }], { comment: "PK\u0005\u0006 nep" });
+    // Een nep-handtekening met genoeg bytes erachter: alleen de lengtecontrole houdt die tegen.
+    const zip = await makeZip([{ name: "a.css", data: "a{}" }], {
+      comment: `PK\u0005\u0006${"x".repeat(30)}`,
+    });
     const archive = openZip(zip.buffer);
     expect(text(await archive.read(archive.entries[0]!))).toBe("a{}");
+  });
+
+  it("backslash als scheiding wordt een slash", async () => {
+    const zip = await makeZip([
+      { name: "thema\\", data: "" },
+      { name: "thema\\alg-a.css", data: "a{}" },
+    ]);
+    const archive = openZip(zip.buffer);
+    expect(archive.entries.map((entry) => [entry.name, entry.directory])).toEqual([
+      ["thema/", true],
+      ["thema/alg-a.css", false],
+    ]);
+  });
+
+  it("namen zonder UTF-8-vlag: UTF-8 als het kan, anders codepagina 437", async () => {
+    const zip = await makeZip([
+      // café.css zoals Windows Verkenner het schrijft (é = 0x82 in CP437).
+      { name: "", nameBytes: Uint8Array.from([0x63, 0x61, 0x66, 0x82, 0x2e, 0x63, 0x73, 0x73]) },
+      // crème.css als UTF-8, maar zonder vlag (7-Zip, macOS).
+      { name: "", nameBytes: new TextEncoder().encode("crème.css") },
+    ]);
+    expect(openZip(zip.buffer).entries.map((entry) => entry.name)).toEqual([
+      "café.css",
+      "crème.css",
+    ]);
+    expect([...CP437_HIGH]).toHaveLength(128);
   });
 
   it("geen zip: notZip", async () => {

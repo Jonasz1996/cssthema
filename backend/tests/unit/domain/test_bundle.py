@@ -95,6 +95,7 @@ def test_layout_and_determinism() -> None:
     [
         ({"draft.css": ""}, "manifest.json ontbreekt"),
         ({"alg-a.css": "", "algemeen.js": "", "LEESMIJ.txt": ""}, "geen cssthema-bundel"),
+        ({"thema/manifest.json": manifest(), "thema/draft.css": ""}, "niet de map zelf"),
         ({"manifest.json": "{nee"}, "geen geldige JSON"),
         ({"manifest.json": "[]"}, "object"),
         ({"manifest.json": manifest(format="iets")}, "geen cssthema-bundel"),

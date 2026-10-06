@@ -109,6 +109,38 @@ describe("needsUnpacking / unpackUpload", () => {
     expect(result.skipped).toEqual(["notities.md"]);
   });
 
+  it("twee bestanden met dezelfde naam in verschillende mappen blijven allebei", async () => {
+    const zip = await zipFile("t.zip", [
+      { name: "licht/thema.css", data: "a{color:#111}" },
+      { name: "donker/thema.css", data: "a{color:#eee}" },
+    ]);
+    const result = await unpackUpload(zip);
+    if (result.kind !== "files") throw new Error(result.kind);
+    expect(await Promise.all(result.files.map((f) => f.text()))).toEqual([
+      "a{color:#111}",
+      "a{color:#eee}",
+    ]);
+  });
+
+  it("een bundel die in een map gezipt is, wordt niet opgesplitst", async () => {
+    const zip = await zipFile("mijn-thema.zip", [
+      { name: "mijn-thema/manifest.json", data: "{}" },
+      { name: "mijn-thema/draft.css", data: "a{}" },
+      { name: "mijn-thema/versions/v1.css", data: "a{}" },
+    ]);
+    expect(await unpackUpload(zip)).toEqual({
+      kind: "error",
+      code: "nestedBundle",
+      entry: "mijn-thema/manifest.json",
+    });
+    // Een manifest.json zonder draft.css (bv. van een web-app) houdt het uitpakken niet tegen.
+    const app = await zipFile("app.zip", [
+      { name: "app/manifest.json", data: "{}" },
+      { name: "app/stijl.css", data: "a{}" },
+    ]);
+    expect((await unpackUpload(app)).kind).toBe("files");
+  });
+
   it("bundel, geen zip, leeg of te groot: blijft zoals het is", async () => {
     const bundle = await zipFile("b.zip", [{ name: "manifest.json", data: "{}" }]);
     expect(await unpackUpload(bundle)).toEqual({ kind: "keep" });

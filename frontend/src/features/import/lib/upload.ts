@@ -86,7 +86,10 @@ export type Unpacked =
   | { kind: "files"; files: File[]; skipped: string[] }
   /** Geen `.css` of `.js` en geen bundel. */
   | { kind: "empty"; skipped: string[] }
-  | { kind: "error"; code: ZipErrorCode; entry?: string };
+  | { kind: "error"; code: UnpackErrorCode; entry?: string };
+
+/** `nestedBundle`: een bundel die in een map gezipt is (`map/manifest.json` + `map/draft.css`). */
+export type UnpackErrorCode = ZipErrorCode | "nestedBundle";
 
 const MANIFEST = "manifest.json";
 
@@ -104,7 +107,15 @@ export async function unpackUpload(file: File, limits: ZipLimits = ZIP_LIMITS): 
   if (file.size === 0 || file.size > MAX_BUNDLE_BYTES) return { kind: "keep" };
   try {
     const archive = openZip(await file.arrayBuffer(), limits);
-    if (archive.entries.some((entry) => entry.name === MANIFEST)) return { kind: "keep" };
+    const names = new Set(archive.entries.map((entry) => entry.name));
+    if (names.has(MANIFEST)) return { kind: "keep" };
+    // Een uitgepakte bundel die als map opnieuw gezipt is: niet in draft/v1/v2 opsplitsen.
+    const nested = [...names].find(
+      (name) =>
+        /^[^/]+\/manifest\.json$/.test(name) &&
+        names.has(name.replace(/manifest\.json$/, "draft.css")),
+    );
+    if (nested) return { kind: "error", code: "nestedBundle", entry: nested };
     const files: File[] = [];
     const skipped: string[] = [];
     for (const entry of archive.entries) {

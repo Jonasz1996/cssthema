@@ -180,5 +180,6 @@
   "zipErrorZip64": "ZIP64 wordt niet ondersteund",
   "zipErrorMethod": "onbekende compressie",
   "zipErrorTooLarge": "uitgepakt te groot",
-  "zipErrorUnsupported": "deze browser kan geen zip uitpakken; pak hem zelf uit"
+  "zipErrorUnsupported": "deze browser kan geen zip uitpakken; pak hem zelf uit",
+  "zipErrorNestedBundle": "de bundel zit in een map; zip de inhoud van die map, niet de map zelf"
 }

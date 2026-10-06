@@ -9,6 +9,8 @@ export interface ZipSpec {
   method?: 0 | 8;
   /** Extra vlaggen (bv. 0x1 = versleuteld). */
   flags?: number;
+  /** Naam als ruwe bytes zonder UTF-8-vlag (bv. CP437 van Windows Verkenner). */
+  nameBytes?: Uint8Array;
 }
 
 async function deflateRaw(data: Uint8Array): Promise<Uint8Array> {
@@ -57,13 +59,13 @@ export async function makeZip(
   const centrals: Uint8Array[] = [];
   let offset = 0;
   for (const spec of specs) {
-    const name = encoder.encode(spec.name);
+    const name = spec.nameBytes ?? encoder.encode(spec.name);
     const raw =
       typeof spec.data === "string" ? encoder.encode(spec.data) : (spec.data ?? new Uint8Array());
     const method = spec.method ?? 8;
     const packed = method === 8 ? await deflateRaw(raw) : raw;
     const crc = crc32(raw);
-    const flags = 0x800 | (spec.flags ?? 0);
+    const flags = (spec.nameBytes ? 0 : 0x800) | (spec.flags ?? 0);
     const local = header(30, (view) => {
       view.setUint32(0, 0x04034b50, true);
       view.setUint16(4, 20, true);
