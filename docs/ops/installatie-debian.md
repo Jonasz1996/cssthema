@@ -79,6 +79,7 @@ Pas de bestaande proxy host van je CSS-domein aan (of maak er een):
 | | Cache Assets | **uit** (cssthema regelt zijn eigen cache) |
 | | Block Common Exploits, Websockets Support | aan |
 | SSL | | zoals je andere hosts (Let's Encrypt, Force SSL) |
+| Custom locations | | **leeg**: de Advanced-config hieronder heeft zelf een `location /` |
 
 Bij **Advanced** het volgende. CSS en thema-scripts blijven publiek, de rest (dashboard en api) gaat via Authentik. Vervang het adres van de outpost door het jouwe:
 
@@ -177,6 +178,8 @@ Een back-up van de container in Proxmox (vzdump) neemt alles mee. Alleen de data
 
 | Symptoom | Oorzaak en oplossing |
 |---|---|
+| NPM toont de proxy host als *Offline*, of de nieuwe Advanced-config doet niets | De configtest van NPM faalt: ga met de muis over *Offline* voor de fout. NPM blijft intussen de vorige config gebruiken. Bij `duplicate location "/"` staat er nog iets in de tab *Custom locations*: maak die leeg. |
+| `/<naam>.js` of `.css` geeft een 404 van een andere nginx dan die van deze container | Het domein komt niet bij cssthema uit. Met `server: openresty` in `curl -sI` stuurt NPM nog naar je oude server (Forward IP, of de host staat *Offline*); met een andere `server:` loopt het domein niet via NPM (DNS, port forward). |
 | NPM geeft *502 Bad Gateway* | Controleer IP en poort in NPM, en of `curl http://<ip>/healthz` vanaf de NPM-host werkt. |
 | Het script stopt bij *Controle* | Het toont de laatste api-logs. Vaak is PostgreSQL of Redis niet gestart: `systemctl status postgresql redis-server`. |
 | Een CSS-bestand geeft 404 | Staat het in `/var/lib/cssthema/css-files/` en klopt de naam exact (hoofdletters tellen)? |
