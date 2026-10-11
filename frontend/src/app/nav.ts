@@ -16,6 +16,7 @@ export const mainNav: readonly NavItem[] = [
   { to: "/", emoji: "📊", labelKey: "nav.dashboard" },
   { to: "/themes", emoji: "🎨", labelKey: "nav.themes", alsoActiveOn: ["/editor"] },
   { to: "/palettes", emoji: "🖌️", labelKey: "nav.palettes" },
+  { to: "/hosts", emoji: "🌐", labelKey: "nav.hosts" },
   { to: "/import", emoji: "📥", labelKey: "nav.import" },
 ];
 

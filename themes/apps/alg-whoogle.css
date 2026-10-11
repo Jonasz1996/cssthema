@@ -1,0 +1,125 @@
+/* ==========================================================================
+   alg-whoogle.css - Whoogle Search (1.2, Flask, eigen --whoogle-* variabelen)
+   Host: whoogle.jbogaert.be
+   Laadt NA algemeen.css. Whoogle kleurt alles via --whoogle-* (licht) en
+   --whoogle-dark-* (donker, bij prefers-color-scheme: dark) met !important
+   op de elementen. Beide sets krijgen hier dezelfde tokens, zodat het
+   resultaat niet afhangt van de thema-instelling of het systeem.
+
+   Wat het afwerkt:
+   - zwarte tekst (Configuration, labels) op het donkere verloop: leesbaar
+   - blauwe zoekknop en rand van het zoekveld: grijs, knop met gloed
+   - het gekleurde Google-achtige logo: effen lichtgrijs
+   - configuratiepaneel (was een blauw vlak): glas
+   - resultatenpagina: glazen resultaatkaarten, witte titels, grijze url's
+
+   Beperkingen: alleen de startpagina (met ingeklapte configuratie)
+   vastgelegd; de resultatenpagina volgt dezelfde variabelen maar is niet
+   getest. CSP: style-src 'self' weigert css.jbogaert.be; via /alg-thema/.
+   ========================================================================== */
+
+/* ---------- Variabelen (licht en donker gelijk) -------------------------- */
+:root {
+  --whoogle-logo: var(--alg-tekst-sterk);
+  --whoogle-page-bg: var(--alg-vlak);
+  --whoogle-element-bg: var(--alg-knop);
+  --whoogle-text: var(--alg-tekst);
+  --whoogle-contrast-text: var(--alg-knop-tekst);
+  --whoogle-secondary-text: var(--alg-gedempt);
+  --whoogle-result-bg: var(--alg-glas);
+  --whoogle-result-title: var(--alg-tekst-sterk);
+  --whoogle-result-url: var(--alg-link);
+  --whoogle-result-visited: var(--alg-gedempt);
+  --whoogle-divider: var(--alg-rand);
+
+  --whoogle-dark-logo: var(--alg-tekst-sterk);
+  --whoogle-dark-page-bg: var(--alg-vlak);
+  --whoogle-dark-element-bg: var(--alg-knop);
+  --whoogle-dark-text: var(--alg-tekst);
+  --whoogle-dark-contrast-text: var(--alg-knop-tekst);
+  --whoogle-dark-secondary-text: var(--alg-gedempt);
+  --whoogle-dark-result-bg: var(--alg-glas);
+  --whoogle-dark-result-title: var(--alg-tekst-sterk);
+  --whoogle-dark-result-url: var(--alg-link);
+  --whoogle-dark-result-visited: var(--alg-gedempt);
+  --whoogle-dark-divider: var(--alg-rand);
+}
+
+/* ---------- Logo: effen in plaats van merkkleuren ----------------------- */
+/* de letters hebben elk een eigen id-regel: alleen !important wint */
+.whoogle-svg path[id^="whoogle-"] {
+  fill: var(--alg-tekst-sterk) !important;
+}
+
+/* ---------- Zoekveld en zoekknop ---------------------------------------- */
+.home-search {
+  border-color: var(--alg-rand-hover) !important;
+  background-color: var(--alg-veld) !important;
+}
+
+#search-bar:focus {
+  border-color: var(--alg-accent-kleur) !important;
+}
+
+/* het veld stak 16px rechts voorbij de knop eronder (padding en rand
+   bovenop width: 100%); zo even breed als de knop, zoals live */
+#search-bar {
+  box-sizing: border-box;
+}
+
+#search-submit:hover {
+  background: var(--alg-knop-hover) !important;
+  border-color: var(--alg-knop-hover) !important;
+  box-shadow: var(--alg-gloed);
+}
+
+/* ---------- Configuratie: knop en paneel als glas ------------------------ */
+.collapsible:hover {
+  background-color: var(--alg-knop-zacht-hover);
+}
+
+.collapsible.active {
+  background-color: var(--alg-paneel) !important;
+  color: var(--alg-tekst-sterk) !important;
+}
+
+.content,
+.result-config {
+  background-color: var(--alg-glas) !important;
+  color: var(--alg-tekst) !important;
+  -webkit-backdrop-filter: var(--alg-blur);
+  backdrop-filter: var(--alg-blur);
+}
+
+/* ---------- Autocomplete-lijst ------------------------------------------ */
+.autocomplete-items {
+  border-color: var(--alg-rand-sterk);
+}
+
+.autocomplete-items div {
+  background-color: var(--alg-glas-sterk);
+  border-bottom-color: var(--alg-rand);
+}
+
+.autocomplete-items div:hover,
+.autocomplete-active {
+  background-color: var(--alg-rij-hover) !important;
+}
+
+/* ---------- Links ------------------------------------------------------- */
+/* .link kleurt met --whoogle-element-bg: knopgrijs is te donker als tekst */
+.footer .link,
+a.link {
+  color: var(--alg-link);
+}
+
+a.link:hover {
+  color: var(--alg-link-hover);
+}
+
+/* ---------- Resultatenpagina (niet getest) ------------------------------ */
+.ZINbbc,
+.ezO2md {
+  border: 1px solid var(--alg-rand);
+  box-shadow: none !important;
+}

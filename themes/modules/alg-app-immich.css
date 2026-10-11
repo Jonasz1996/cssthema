@@ -1,0 +1,11 @@
+/* alg-app-immich.css - gegenereerd uit algemeen.css door scripts/themes/modules.py;
+   niet met de hand aanpassen. Laadt na alg-kern.css (zie themes/README.md). */
+/* ==========================================================================
+   60 IMMICH
+   Ongetest, dus bewust nog geen regels (liever minder en correct).
+   SvelteKit + Tailwind, donkere modus via de klasse dark op html; heeft
+   een eigen schakelaar.
+   Tot er regels zijn: het eigen donkere thema van de app aanzetten; de
+   algemene delen (00-35) geven dan de achtergrond, velden en knoppen.
+   ========================================================================== */
+

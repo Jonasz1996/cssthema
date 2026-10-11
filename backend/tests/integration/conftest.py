@@ -87,3 +87,6 @@ async def cleanup_test_themes(engine: AsyncEngine) -> None:
     # (append-only) en verwijzen niet naar thema's.
     async with engine.begin() as conn:
         await conn.execute(text("DELETE FROM themes WHERE slug LIKE 'it-%'"))
+        await conn.execute(
+            text("DELETE FROM host_bindings WHERE hostname LIKE 'it-%' OR hostname = '*'")
+        )

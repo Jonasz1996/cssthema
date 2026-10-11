@@ -1,0 +1,306 @@
+/* alg-app-home-assistant.css - gegenereerd uit algemeen.css door scripts/themes/modules.py;
+   niet met de hand aanpassen. Laadt na alg-kern.css (zie themes/README.md). */
+/* ==========================================================================
+   60 HOME ASSISTANT (frontend 2025+, Lit-componenten in shadow DOM)
+   Herkenning: meta application-name "Home Assistant" (app), of het element
+   ha-authorize / ha-onboarding (login en eerste start).
+   Onze gewone regels komen niet in de shadow DOM; variabelen erven wel door.
+   Daarom: HA's eigen donkere modus altijd aan (dezelfde variabelen die HA in
+   donkere modus inline op html zet, dus !important), met onze stijl erover:
+   grijs in plaats van HA-blauw, glazen kaarten en zijbalk, monospace, en een
+   doorzichtige dashboardachtergrond zodat verloop en netwerk zichtbaar zijn.
+   Statuskleuren (aan/uit, energie, grafieken) en de kaartfilter blijven van HA.
+   Getest met homeassistant/home-assistant:stable 2026.9 (dashboard, meer-info,
+   instellingen, entiteiten, profiel, login).
+   ========================================================================== */
+
+html:is(:has(> head > meta[name="application-name"][content="Home Assistant"]), :has(ha-authorize), :has(ha-onboarding)) {
+  color-scheme: dark;
+  /* ---------- onze stijl ---------- */
+  /* kaarten: glas, radius 16 */
+  --ha-card-background: var(--alg-glas) !important; --ha-card-border-radius: 16px !important;
+  --ha-card-border-color: var(--alg-rand) !important;
+  /* dashboard: geen eigen vlak, dan tonen verloop en netwerk tussen de kaarten
+     (een achtergrond per view, --view-background, blijft werken) */
+  --lovelace-background: transparent !important;
+  /* overlays: glas met blur (dialogen, kopbalk), donkere scrim achter dialogen */
+  --ha-dialog-surface-background: var(--alg-glas-sterk) !important;
+  --ha-dialog-surface-backdrop-filter: var(--alg-blur) !important;
+  --mdc-dialog-scrim-color: var(--alg-overlay) !important;
+  --wa-color-overlay-modal: var(--alg-overlay) !important;
+  --app-header-backdrop-filter: var(--alg-blur) !important;
+  /* lettertype: monospace zoals allow (iconen zijn svg, geen icoonfont) */
+  --ha-font-family-body: var(--alg-font) !important;
+  --ha-font-family-heading: var(--alg-font) !important;
+  --ha-font-family-longform: var(--alg-font) !important;
+  --mdc-typography-font-family: var(--alg-font) !important;
+  --wa-font-family-body: var(--alg-font) !important;
+  --wa-font-family-heading: var(--alg-font) !important;
+  /* primair: lichtgrijs accent (tekst, iconen, schuifjes, schakelaars);
+     vlakken in primair krijgen donkere tekst (#111 op #aaa = 8:1) */
+  --primary-color: #aaa !important; --rgb-primary-color: 170,170,170 !important;
+  /* "info": ook de boog van een meter zonder ingestelde drempels (normaal);
+     grijs zoals ons accent in plaats van HA-blauw */
+  --info-color: #aaa !important; --rgb-info-color: 170,170,170 !important;
+  --dark-primary-color: #8a8a8a !important; --darker-primary-color: #6a6a6a !important;
+  --light-primary-color: #c8c8c8 !important;
+  --text-primary-color: #111 !important; --rgb-text-primary-color: 17,17,17 !important;
+  --mdc-theme-primary: #aaa !important; --mdc-theme-on-primary: #111 !important;
+  --slider-color: #aaa !important; --slider-secondary-color: rgba(170, 170, 170, .35) !important;
+  --sidebar-selected-text-color: #fff !important; --sidebar-selected-icon-color: #fff !important;
+  --state-icon-color: #9b9b9b !important;
+  /* accent (badges): onze waarschuwingskleur met donkere tekst (9:1) */
+  --accent-color: #e6b56b !important; --rgb-accent-color: 230,181,107 !important;
+  --text-accent-color: #111 !important;
+  --mdc-theme-secondary: #e6b56b !important; --mdc-theme-on-secondary: #111 !important;
+  /* HA's kleurenschaal "primary" in grijs: knoppen (ha-button), chips, focus */
+  --ha-color-primary-05: #0d0d0d !important; --ha-color-primary-10: #1a1a1a !important;
+  --ha-color-primary-20: #262626 !important; --ha-color-primary-30: #4a4a4a !important;
+  --ha-color-primary-40: #6a6a6a !important; --ha-color-primary-50: #8a8a8a !important;
+  --ha-color-primary-60: #aaa !important; --ha-color-primary-70: #c4c4c4 !important;
+  --ha-color-primary-80: #dadada !important; --ha-color-primary-90: #ececec !important;
+  --ha-color-primary-95: #f5f5f5 !important;
+  --ha-color-fill-primary-loud-resting: #6a6a6a !important;
+  --ha-color-fill-primary-loud-hover: #767676 !important;
+  --ha-color-fill-primary-loud-active: #6a6a6a !important;
+  --ha-color-on-primary-loud: #fff !important;
+  --ha-color-border-primary-loud: #aaa !important; --ha-color-border-primary-normal: #8a8a8a !important;
+  --ha-color-border-primary-quiet: #4a4a4a !important; --ha-color-focus: #aaa !important;
+  --wa-color-brand-fill-loud: #6a6a6a !important; --wa-color-brand-on-loud: #fff !important;
+  --wa-color-brand-border-loud: #aaa !important; --wa-color-brand-border-normal: #8a8a8a !important;
+  --wa-color-brand-border-quiet: #4a4a4a !important; --wa-focus-ring-color: #aaa !important;
+  /* ---------- naar Home Assistant's eigen donkere modus (Apache-2.0) ---------- */
+  --app-header-background-color: var(--alg-glas) !important;
+  --app-header-border-bottom: 1px solid #e1e1e11f !important;
+  --app-header-text-color: #e1e1e1 !important; --app-theme-color: #1c1c1c !important;
+  --bar-box-shadow: 0 2px 12px #0000007a !important; --card-background-color: #1c1c1c !important;
+  --chip-background-color: rgba(225,225,225, .15) !important;
+  --clear-background-color: #111 !important; --data-table-background-color: #1c1c1c !important;
+  --disabled-color: #464646 !important; --disabled-text-color: #6f6f6f !important;
+  --divider-color: #e1e1e11f !important; --energy-grid-return-color: #a280db !important;
+  --ha-assist-chip-filled-container-color: rgba(225,225,225, .15) !important;
+  --ha-box-shadow-l: 0 6px 12px -3px #0006, 0 16px 32px -6px #0000008c !important;
+  --ha-box-shadow-m: 0 3px 6px -1px #00000059, 0 8px 16px -2px #00000073 !important;
+  --ha-box-shadow-s: 0 1px 2px 0 #0006, 0 1px 3px 0 #00000080 !important;
+  --ha-button-neutral-color: #d9dae0 !important;
+  --ha-button-neutral-light-color: #6a7081 !important;
+  --ha-button-primary-light-color: rgba(170, 170, 170, .25) !important;
+  --ha-button-warning-light-color: #917b54c1 !important;
+  --ha-color-border-danger-loud: #dc3146 !important;
+  --ha-color-border-danger-normal: #dc3146 !important;
+  --ha-color-border-neutral-loud: #b1b1b1 !important;
+  --ha-color-border-neutral-normal: #7a7a7a !important;
+  --ha-color-border-neutral-quiet: #5e5e5e !important; --ha-color-border-normal: #8a8a8a !important;
+  --ha-color-border-warning-loud: #c94e00 !important;
+  --ha-color-border-warning-normal: #c94e00 !important;
+  --ha-color-fill-danger-loud-active: #b30532 !important;
+  --ha-color-fill-danger-loud-hover: #8a132c !important;
+  --ha-color-fill-danger-loud-resting: #b30532 !important;
+  --ha-color-fill-danger-normal-active: #3e0913 !important;
+  --ha-color-fill-danger-normal-hover: #631323 !important;
+  --ha-color-fill-danger-normal-resting: #3e0913 !important;
+  --ha-color-fill-danger-quiet-active: #2a040b !important;
+  --ha-color-fill-danger-quiet-hover: #3e0913 !important;
+  --ha-color-fill-danger-quiet-resting: #2a040b !important;
+  --ha-color-fill-disabled-loud-hover: #5e5e5e !important;
+  --ha-color-fill-disabled-loud-resting: #4a4a4a !important;
+  --ha-color-fill-disabled-normal-hover: #4a4a4a !important;
+  --ha-color-fill-disabled-normal-resting: #363636 !important;
+  --ha-color-fill-disabled-quiet-hover: #363636 !important;
+  --ha-color-fill-disabled-quiet-resting: #202020 !important;
+  --ha-color-fill-neutral-loud-active: #989898 !important;
+  --ha-color-fill-neutral-loud-hover: #b1b1b1 !important;
+  --ha-color-fill-neutral-loud-resting: #989898 !important;
+  --ha-color-fill-neutral-normal-active: #202020 !important;
+  --ha-color-fill-neutral-normal-hover: #363636 !important;
+  --ha-color-fill-neutral-normal-resting: #202020 !important;
+  --ha-color-fill-neutral-quiet-hover: #202020 !important;
+  --ha-color-fill-neutral-quiet-resting: #141414 !important;
+  --ha-color-fill-primary-normal-active: #262626 !important;
+  --ha-color-fill-primary-normal-hover: #303030 !important;
+  --ha-color-fill-primary-normal-resting: #262626 !important;
+  --ha-color-fill-primary-quiet-active: #1c1c1c !important;
+  --ha-color-fill-primary-quiet-hover: #262626 !important;
+  --ha-color-fill-primary-quiet-resting: #1c1c1c !important;
+  --ha-color-fill-success-loud-active: #036730 !important;
+  --ha-color-fill-success-loud-hover: #0a5027 !important;
+  --ha-color-fill-success-loud-resting: #036730 !important;
+  --ha-color-fill-success-normal-active: #052310 !important;
+  --ha-color-fill-success-normal-hover: #0a3a1d !important;
+  --ha-color-fill-success-normal-resting: #052310 !important;
+  --ha-color-fill-success-quiet-active: #031608 !important;
+  --ha-color-fill-success-quiet-hover: #052310 !important;
+  --ha-color-fill-success-quiet-resting: #031608 !important;
+  --ha-color-fill-warning-loud-active: #9d3800 !important;
+  --ha-color-fill-warning-loud-hover: #7e2900 !important;
+  --ha-color-fill-warning-loud-resting: #9d3800 !important;
+  --ha-color-fill-warning-normal-active: #3b0f00 !important;
+  --ha-color-fill-warning-normal-hover: #5e1c00 !important;
+  --ha-color-fill-warning-normal-resting: #3b0f00 !important;
+  --ha-color-fill-warning-quiet-active: #280700 !important;
+  --ha-color-fill-warning-quiet-hover: #3b0f00 !important;
+  --ha-color-fill-warning-quiet-resting: #280700 !important;
+  --ha-color-form-background: rgba(0, 0, 0, .4) !important;
+  --ha-color-form-background-disabled: rgba(255, 255, 255, .03) !important;
+  --ha-color-form-background-hover: rgba(255, 255, 255, .06) !important;
+  --ha-color-on-danger-normal: #f3676c !important; --ha-color-on-danger-quiet: #fd8f90 !important;
+  --ha-color-on-disabled-loud: #7a7a7a !important;
+  --ha-color-on-disabled-normal: #7a7a7a !important;
+  --ha-color-on-disabled-quiet: #5e5e5e !important;
+  --ha-color-on-neutral-normal: #989898 !important; --ha-color-on-neutral-quiet: #b1b1b1 !important;
+  --ha-color-on-primary-normal: #ccc !important; --ha-color-on-primary-quiet: #ddd !important;
+  --ha-color-on-success-normal: #00ac49 !important; --ha-color-on-success-quiet: #5dc36f !important;
+  --ha-color-on-surface-default: #f3f3f3 !important;
+  --ha-color-on-warning-normal: #f36d00 !important; --ha-color-on-warning-quiet: #ff9342 !important;
+  --ha-color-surface-default: #202020 !important;
+  --ha-color-surface-default-inverted: #fff !important; --ha-color-surface-low: #141414 !important;
+  --ha-color-surface-low-inverted: #f3f3f3 !important; --ha-color-surface-lower: #000 !important;
+  --ha-color-text-link: #c8c8c8 !important; --ha-color-text-primary: #fff !important;
+  --ha-color-text-primary-inverted: #000 !important; --ha-color-text-secondary: #ccc !important;
+  --ha-color-text-secondary-inverted: #5e5e5e !important;
+  --input-disabled-fill-color: #ffffff05 !important;
+  --input-disabled-ink-color: #ffffff5e !important;
+  --input-disabled-line-color: #ffffff0f !important;
+  --input-dropdown-icon-color: #ffffff8a !important; --input-fill-color: rgba(0, 0, 0, .4) !important;
+  --input-hover-line-color: #ffffffde !important; --input-idle-line-color: #ffffff6b !important;
+  --input-ink-color: #ffffffde !important; --input-label-ink-color: #fff9 !important;
+  --input-outlined-disabled-border-color: #ffffff0f !important;
+  --input-outlined-hover-border-color: #ffffffde !important;
+  --input-outlined-idle-border-color: #ffffff61 !important;
+  --label-badge-background-color: #1c1c1c !important;
+  --label-badge-text-color: rgba(225,225,225, .8) !important;
+  --markdown-code-background-color: #111 !important;
+  --mdc-button-disabled-ink-color: #6f6f6f !important;
+  --mdc-button-outline-color: #e1e1e11f !important;
+  --mdc-checkbox-disabled-color: #6f6f6f !important;
+  --mdc-checkbox-unchecked-color: rgba(225,225,225, .54) !important;
+  --mdc-dialog-content-ink-color: #e1e1e1 !important;
+  --mdc-dialog-heading-ink-color: #e1e1e1 !important;
+  --mdc-dialog-scroll-divider-color: #e1e1e11f !important;
+  --mdc-linear-progress-buffer-color: #ffffff1a !important;
+  --mdc-radio-disabled-color: #6f6f6f !important;
+  --mdc-radio-unchecked-color: rgba(225,225,225, .54) !important;
+  --mdc-ripple-color: #aaa !important;
+  --mdc-select-disabled-dropdown-icon-color: #ffffff5e !important;
+  --mdc-select-disabled-fill-color: #ffffff05 !important;
+  --mdc-select-disabled-ink-color: #ffffff5e !important;
+  --mdc-select-dropdown-icon-color: #ffffff8a !important;
+  --mdc-select-fill-color: rgba(0, 0, 0, .4) !important;
+  --mdc-select-hover-line-color: #ffffffde !important;
+  --mdc-select-idle-line-color: #ffffff6b !important; --mdc-select-ink-color: #ffffffde !important;
+  --mdc-select-label-ink-color: #fff9 !important;
+  --mdc-select-outlined-disabled-border-color: #ffffff0f !important;
+  --mdc-select-outlined-hover-border-color: #ffffffde !important;
+  --mdc-select-outlined-idle-border-color: #ffffff61 !important;
+  --mdc-tab-text-label-color-default: #e1e1e1 !important;
+  --mdc-text-field-disabled-fill-color: #ffffff05 !important;
+  --mdc-text-field-disabled-ink-color: #ffffff5e !important;
+  --mdc-text-field-disabled-line-color: #ffffff0f !important;
+  --mdc-text-field-fill-color: rgba(0, 0, 0, .4) !important;
+  --mdc-text-field-hover-line-color: #ffffffde !important;
+  --mdc-text-field-idle-line-color: #ffffff6b !important;
+  --mdc-text-field-ink-color: #ffffffde !important;
+  --mdc-text-field-label-ink-color: #fff9 !important;
+  --mdc-text-field-outlined-disabled-border-color: #ffffff0f !important;
+  --mdc-text-field-outlined-hover-border-color: #ffffffde !important;
+  --mdc-text-field-outlined-idle-border-color: #ffffff61 !important;
+  --mdc-theme-background: #111 !important; --mdc-theme-on-surface: #e1e1e1 !important;
+  --mdc-theme-surface: #1c1c1c !important; --mdc-theme-text-disabled-on-light: #6f6f6f !important;
+  --mdc-theme-text-hint-on-background: #9b9b9b !important;
+  --mdc-theme-text-icon-on-background: #9b9b9b !important;
+  --mdc-theme-text-primary-on-background: #e1e1e1 !important;
+  --mdc-theme-text-secondary-on-background: #9b9b9b !important;
+  --outline-color: #e1e1e11f !important; --outline-hover-color: #e1e1e13d !important;
+  --primary-background-color: #111 !important; --primary-text-color: #e1e1e1 !important;
+  --rgb-card-background-color: 28,28,28 !important;
+  --rgb-clear-background-color: 17,17,17 !important; --rgb-disabled-color: 70,70,70 !important;
+  --rgb-disabled-text-color: 111,111,111 !important; --rgb-divider-color: 225,225,225 !important;
+  --rgb-energy-grid-return-color: 162,128,219 !important;
+  --rgb-ha-button-neutral-color: 217,218,224 !important;
+  --rgb-ha-button-neutral-light-color: 106,112,129 !important;
+  --rgb-ha-button-primary-light-color: 170,170,170 !important;
+  --rgb-ha-button-warning-light-color: 145,123,84 !important;
+  --rgb-input-disabled-fill-color: 255,255,255 !important;
+  --rgb-input-disabled-ink-color: 255,255,255 !important;
+  --rgb-input-disabled-line-color: 255,255,255 !important;
+  --rgb-input-dropdown-icon-color: 255,255,255 !important;
+  --rgb-input-fill-color: 255,255,255 !important;
+  --rgb-input-hover-line-color: 255,255,255 !important;
+  --rgb-input-idle-line-color: 255,255,255 !important;
+  --rgb-input-ink-color: 255,255,255 !important;
+  --rgb-input-label-ink-color: 255,255,255 !important;
+  --rgb-input-outlined-disabled-border-color: 255,255,255 !important;
+  --rgb-input-outlined-hover-border-color: 255,255,255 !important;
+  --rgb-input-outlined-idle-border-color: 255,255,255 !important;
+  --rgb-mdc-linear-progress-buffer-color: 255,255,255 !important;
+  --rgb-mdc-ripple-color: 170,170,170 !important; --rgb-outline-color: 225,225,225 !important;
+  --rgb-outline-hover-color: 225,225,225 !important;
+  --rgb-primary-background-color: 17,17,17 !important;
+  --rgb-primary-text-color: 225,225,225 !important;
+  --rgb-scrollbar-thumb-color: 110,110,110 !important;
+  --rgb-secondary-background-color: 40,40,40 !important;
+  --rgb-secondary-text-color: 155,155,155 !important; --rgb-shadow-color: 0,0,0 !important;
+  --scrollbar-thumb-color: #6e6e6e !important; --secondary-background-color: #282828 !important;
+  --secondary-text-color: #9b9b9b !important; --shadow-color: #0000007a !important;
+  --sidebar-background-color: var(--alg-glas) !important;
+  --sidebar-icon-color: rgba(221, 221, 221, .65) !important; --sidebar-text-color: #ddd !important;
+  --slider-track-color: #6e6e6e !important; --state-unavailable-color: #6f6f6f !important;
+  --table-header-background-color: #ffffff0d !important;
+  --table-row-alternative-background-color: #282828 !important;
+  --table-row-background-color: #111 !important; --wa-color-brand-fill-normal: #262626 !important;
+  --wa-color-brand-fill-quiet: #1c1c1c !important; --wa-color-brand-on-normal: #ccc !important;
+  --wa-color-brand-on-quiet: #ddd !important; --wa-color-danger-border-loud: #dc3146 !important;
+  --wa-color-danger-border-normal: #dc3146 !important;
+  --wa-color-danger-fill-loud: #b30532 !important;
+  --wa-color-danger-fill-normal: #3e0913 !important;
+  --wa-color-danger-fill-quiet: #3e0913 !important; --wa-color-danger-on-normal: #f3676c !important;
+  --wa-color-danger-on-quiet: #fd8f90 !important;
+  --wa-color-neutral-border-loud: #b1b1b1 !important;
+  --wa-color-neutral-border-normal: #7a7a7a !important;
+  --wa-color-neutral-border-quiet: #5e5e5e !important;
+  --wa-color-neutral-fill-loud: #989898 !important;
+  --wa-color-neutral-fill-normal: #202020 !important;
+  --wa-color-neutral-fill-quiet: #202020 !important;
+  --wa-color-neutral-on-normal: #989898 !important; --wa-color-neutral-on-quiet: #b1b1b1 !important;
+  --wa-color-success-fill-loud: #036730 !important;
+  --wa-color-success-fill-normal: #052310 !important;
+  --wa-color-success-fill-quiet: #052310 !important;
+  --wa-color-success-on-normal: #00ac49 !important; --wa-color-success-on-quiet: #5dc36f !important;
+  --wa-color-surface-border: #5e5e5e !important; --wa-color-surface-default: #1c1c1c !important;
+  --wa-color-surface-raised: #1c1c1c !important; --wa-color-text-normal: #e1e1e1 !important;
+  --wa-color-text-quiet: #ccc !important; --wa-color-warning-border-loud: #c94e00 !important;
+  --wa-color-warning-border-normal: #c94e00 !important;
+  --wa-color-warning-fill-loud: #9d3800 !important;
+  --wa-color-warning-fill-normal: #3b0f00 !important;
+  --wa-color-warning-fill-quiet: #3b0f00 !important;
+  --wa-color-warning-on-normal: #f36d00 !important; --wa-color-warning-on-quiet: #ff9342 !important;
+  --wa-form-control-background-color: #1c1c1c !important;
+  --wa-form-control-border-color: #5e5e5e !important;
+  --wa-form-control-placeholder-color: #ccc !important;
+  --wa-form-control-value-color: #e1e1e1 !important;
+  --wa-shadow-l: 0 6px 12px -3px #0006, 0 16px 32px -6px #0000008c !important;
+  --wa-shadow-m: 0 3px 6px -1px #00000059, 0 8px 16px -2px #00000073 !important;
+  --wa-shadow-s: 0 1px 2px 0 #0006, 0 1px 3px 0 #00000080 !important;
+  --codemirror-atom: #f78c6c !important; --codemirror-attribute: #c792ea !important;
+  --codemirror-builtin: #ffcb6b !important; --codemirror-comment: #545454 !important;
+  --codemirror-def: #82aaff !important; --codemirror-keyword: #c792ea !important;
+  --codemirror-meta: #ffcb6b !important; --codemirror-number: #ff5370 !important;
+  --codemirror-operator: #89ddff !important; --codemirror-property: #c792ea !important;
+  --codemirror-qualifier: #decb6b !important; --codemirror-string: #c3e88d !important;
+  --codemirror-string-2: #f07178 !important; --codemirror-tag: #ff5370 !important;
+  --codemirror-type: #decb6b !important; --codemirror-variable: #f07178 !important;
+  --codemirror-variable-2: #eff !important; --codemirror-variable-3: #decb6b !important;
+  --rgb-codemirror-atom: 247,140,108 !important; --rgb-codemirror-attribute: 199,146,234 !important;
+  --rgb-codemirror-builtin: 255,203,107 !important; --rgb-codemirror-comment: 84,84,84 !important;
+  --rgb-codemirror-def: 130,170,255 !important; --rgb-codemirror-keyword: 199,146,234 !important;
+  --rgb-codemirror-meta: 255,203,107 !important; --rgb-codemirror-number: 255,83,112 !important;
+  --rgb-codemirror-operator: 137,221,255 !important;
+  --rgb-codemirror-property: 199,146,234 !important;
+  --rgb-codemirror-qualifier: 222,203,107 !important;
+  --rgb-codemirror-string: 195,232,141 !important;
+  --rgb-codemirror-string-2: 240,113,120 !important; --rgb-codemirror-tag: 255,83,112 !important;
+  --rgb-codemirror-type: 222,203,107 !important; --rgb-codemirror-variable: 240,113,120 !important;
+  --rgb-codemirror-variable-2: 238,255,255 !important;
+  --rgb-codemirror-variable-3: 222,203,107 !important;
+}
+

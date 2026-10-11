@@ -1,0 +1,71 @@
+/* ==========================================================================
+   alg-adguard.css - AdGuard Home (v0.107, eigen React-UI op Tabler/BS4)
+   Host: adguard.jbogaert.be
+   Laadt NA algemeen.css (dat al een AdGuard-deel heeft: variabelen, kop,
+   querylog, wizard, knoppen). Hier wat daarna nog niet klopte.
+
+   Wat het afwerkt:
+   - loginlogo (inline svg .login__logo) in geërfd zwart: wit, zoals AdGuard
+     het in zijn eigen donkere modus doet
+   - loginkaart als glazen paneel met grote radius
+   - actief thema-icoon in de voet: groen (merkkleur) wordt wit
+   - "Report an issue" en "Forgot password?" in de grijze stijl
+
+   Beperkingen: alleen het loginscherm vastgelegd. Het hoofdscherm wordt door
+   algemeen.css afgewerkt; de regels hier voor het hoofdscherm (actieve
+   voetknop) volgen AdGuards eigen klassen, niet getest.
+   ========================================================================== */
+
+/* ---------- Loginlogo ---------------------------------------------------- */
+svg.login__logo {
+  fill: var(--alg-tekst-sterk);
+  color: var(--alg-tekst-sterk);
+}
+
+/* ---------- Loginkaart --------------------------------------------------- */
+.login__form .card {
+  border-color: var(--alg-rand-sterk) !important;
+  border-radius: var(--alg-radius-groot);
+  box-shadow: var(--alg-schaduw);
+  -webkit-backdrop-filter: var(--alg-blur);
+  backdrop-filter: var(--alg-blur);
+}
+
+.login__link {
+  color: var(--alg-link) !important;
+}
+
+.login__link:hover {
+  color: var(--alg-link-hover) !important;
+}
+
+/* ---------- Voet --------------------------------------------------------- */
+/* gekozen thema (auto/donker/licht): groen merkicoon wordt wit */
+.footer__theme-icon {
+  color: var(--alg-gedempt);
+}
+
+.footer__theme-icon--active {
+  color: var(--alg-tekst-sterk) !important;
+}
+
+.btn-secondary.footer__theme-button {
+  background-color: var(--alg-knop-zacht) !important;
+  border-color: var(--alg-rand-sterk) !important;
+}
+
+.btn-secondary.footer__theme-button:hover {
+  background-color: var(--alg-knop-zacht-hover) !important;
+}
+
+/* "Report an issue": blauwe omlijnde knop wordt zachte grijze knop */
+.footer__link--report.btn-outline-primary {
+  background-color: var(--alg-knop-zacht) !important;
+  border-color: var(--alg-rand-sterk) !important;
+  color: var(--alg-tekst) !important;
+}
+
+.footer__link--report.btn-outline-primary:hover {
+  background-color: var(--alg-knop-zacht-hover) !important;
+  color: var(--alg-tekst-sterk) !important;
+}

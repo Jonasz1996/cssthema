@@ -1,0 +1,104 @@
+/* ==========================================================================
+   alg-weer.css - Weer Schendelbeke (eigen pagina, React + MUI v5)
+   Host: weer.jbogaert.be
+   Laadt na algemeen.css (sub_filter: eerst algemeen.css, dan dit bestand).
+
+   Werkt af: monospace in plaats van Unbounded (de app zet die op *), de
+   achtergrondfoto grijs en gedimd zodat hij bij de allow-stijl past en de
+   tekst leesbaar blijft, de weervakken als glazen tegels in aiverslag-stijl
+   (label klein in hoofdletters, waarde groot), het zoekveld als donker
+   veld met grijze focusrand in plaats van witte rand en indigo onderlijn.
+
+   Foto in kleur houden: haal de regel background-blend-mode bij .bg_img
+   weg (de verdonkering via de schaduw blijft dan).
+
+   Beperkingen: de render heeft geen netwerk, dus de foto (bg.*.jpg) en het
+   weericoon van openweathermap ontbreken; in de render is de achtergrond
+   daarom effen donker. De foto-behandeling is niet in beeld getest.
+   ========================================================================== */
+
+/* ---------- Lettertype -------------------------------------------------- */
+/* De app zet font-family: Unbounded op *; hier monospace op alles in #root
+   (er staan geen icoonfonts op deze pagina, het weericoon is een img). */
+#root * {
+  font-family: var(--alg-font);
+}
+
+/* ---------- Achtergrondfoto: grijs en gedimd ---------------------------- */
+/* luminosity mengt de foto met de effen grijze ondergrond: helderheid van
+   de foto, kleur (geen) van de ondergrond. De inset-schaduw ligt boven de
+   achtergrond maar onder de inhoud: verdonkering plus vignet. */
+.bg_img {
+  background-color: var(--alg-achtergrond-kleur);
+  background-blend-mode: luminosity;
+  box-shadow: inset 0 0 0 100vmax rgba(0, 0, 0, .5), inset 0 0 240px 80px rgba(0, 0, 0, .8);
+  color: var(--alg-tekst);
+}
+
+/* ---------- Titel en omschrijving ---------------------------------------- */
+.city {
+  color: var(--alg-tekst-sterk);
+  letter-spacing: -.02em;
+  text-shadow: 0 2px 14px rgba(0, 0, 0, .7);
+}
+
+.group h1 {
+  color: var(--alg-tekst);
+  text-shadow: 0 2px 12px rgba(0, 0, 0, .7);
+}
+
+/* ---------- Weervakken als glazen tegels -------------------------------- */
+.box {
+  background-color: var(--alg-glas);
+  border-radius: var(--alg-radius-groot);
+  box-shadow: inset 0 0 0 1px var(--alg-rand-sterk), var(--alg-schaduw-klein);
+  -webkit-backdrop-filter: var(--alg-blur);
+  backdrop-filter: var(--alg-blur);
+}
+
+.box:hover {
+  box-shadow: inset 0 0 0 1px var(--alg-rand-hover), var(--alg-gloed);
+}
+
+.box p {
+  color: var(--alg-gedempt);
+  font-size: .8rem;
+  text-transform: uppercase;
+  letter-spacing: .08em;
+}
+
+.box h1 {
+  color: var(--alg-tekst-sterk);
+}
+
+/* ---------- Zoekveld (MUI FilledInput) ---------------------------------- */
+.bg_img .MuiFilledInput-root {
+  border-color: var(--alg-rand-sterk);
+  border-radius: var(--alg-radius);
+  box-shadow: var(--alg-schaduw-klein);
+  -webkit-backdrop-filter: var(--alg-blur);
+  backdrop-filter: var(--alg-blur);
+}
+
+.bg_img .MuiFilledInput-root:hover {
+  border-color: var(--alg-rand-hover);
+}
+
+.bg_img .MuiFilledInput-root.Mui-focused {
+  border-color: var(--alg-accent-kleur);
+  box-shadow: var(--alg-focus-ring);
+}
+
+/* de onderlijn hoort bij het hoekige MUI-veld; het veld hier is rond en
+   toont focus via de rand hierboven */
+.bg_img .MuiFilledInput-underline::after {
+  border-bottom-color: transparent !important;
+}
+
+.bg_img .MuiFilledInput-input {
+  border-radius: var(--alg-radius);
+}
+
+.bg_img .MuiInputLabel-root.Mui-focused {
+  color: var(--alg-tekst) !important;
+}

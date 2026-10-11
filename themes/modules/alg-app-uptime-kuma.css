@@ -1,0 +1,138 @@
+/* alg-app-uptime-kuma.css - gegenereerd uit algemeen.css door scripts/themes/modules.py;
+   niet met de hand aanpassen. Laadt na alg-kern.css (zie themes/README.md). */
+/* ==========================================================================
+   60 UPTIME KUMA (v1, Vue 3 + Bootstrap 5 met eigen SCSS)
+   Herkenning: meta-beschrijving "Uptime Kuma monitoring tool" (beheer) of
+   het manifest /api/status-page/SLUG/manifest.json (statuspagina's: daar is
+   de beschrijving die van de statuspagina).
+   Uptime Kuma heeft geen variabelen voor zijn eigen onderdelen; de donkere
+   modus zijn vaste .dark-regels. Hier de plekken die in lichte modus licht
+   of onleesbaar blijven, naar Uptime Kuma's eigen .dark-regels (MIT).
+   Iconen zijn inline svg (vue-fontawesome): het lettertype van #app mag dus.
+   Getest met louislam/uptime-kuma:1 (thema auto, lichte modus).
+   ========================================================================== */
+
+/* ---------- Lettertype -------------------------------------------------- */
+/* #app zet zelf een systeemlettertype; ook hier monospace */
+html:has(> head > :is(meta[name="description"][content="Uptime Kuma monitoring tool"], link[rel="manifest"][href^="/api/status-page/"])) #app {
+  font-family: var(--alg-font);
+}
+
+/* ---------- Panelen (glas) ---------------------------------------------- */
+/* .shadow-box is in lichte modus doorzichtig (alleen een schaduw op wit):
+   zonder eigen vlak liep het netwerk dwars door lijsten en formulieren */
+html:has(> head > :is(meta[name="description"][content="Uptime Kuma monitoring tool"], link[rel="manifest"][href^="/api/status-page/"])) .shadow-box:not(.alert) {
+  background-color: var(--alg-glas) !important;
+  box-shadow: 0 0 0 1px var(--alg-rand), var(--alg-schaduw-midden) !important;
+  border-radius: var(--alg-radius-groot);
+}
+
+/* mobiel: rijen van de belangrijke-gebeurtenissentabel zijn herhaalde items */
+html:has(> head > :is(meta[name="description"][content="Uptime Kuma monitoring tool"], link[rel="manifest"][href^="/api/status-page/"])) .table-shadow-box tbody .shadow-box {
+  background-color: var(--alg-rij) !important;
+  box-shadow: none !important;
+}
+
+/* kop van de monitorlijst: lichte scheidingslijn */
+html:has(> head > :is(meta[name="description"][content="Uptime Kuma monitoring tool"], link[rel="manifest"][href^="/api/status-page/"])) .list-header {
+  border-bottom-color: var(--alg-rand) !important;
+}
+
+/* ---------- Kopbalk, onderbalken (vaste overlays: glas met blur) -------- */
+html:has(> head > :is(meta[name="description"][content="Uptime Kuma monitoring tool"], link[rel="manifest"][href^="/api/status-page/"])) header.border-bottom {
+  border-bottom-color: var(--alg-rand) !important;
+}
+
+/* logo als object (svg-document): met color-scheme dark op de pagina tekent
+   Chrome er een wit vlak achter; normaal = doorzichtig zoals zonder thema */
+html:has(> head > :is(meta[name="description"][content="Uptime Kuma monitoring tool"], link[rel="manifest"][href^="/api/status-page/"])) :is(object, embed) {
+  color-scheme: normal;
+}
+
+html:has(> head > :is(meta[name="description"][content="Uptime Kuma monitoring tool"], link[rel="manifest"][href^="/api/status-page/"])) .bottom-nav {
+  background-color: var(--alg-glas-sterk) !important;
+  box-shadow: 0 -1px 0 var(--alg-rand) !important;
+  -webkit-backdrop-filter: var(--alg-blur);
+  backdrop-filter: var(--alg-blur);
+}
+
+/* knoppenbalk onderaan formulieren (Opslaan): wit-doorzichtig met 2px blur */
+html:has(> head > :is(meta[name="description"][content="Uptime Kuma monitoring tool"], link[rel="manifest"][href^="/api/status-page/"])) .fixed-bottom-bar {
+  background-color: rgba(16, 16, 16, .9) !important;
+  box-shadow: 0 -1px 0 var(--alg-rand);
+  -webkit-backdrop-filter: var(--alg-blur);
+  backdrop-filter: var(--alg-blur);
+}
+
+/* ---------- Knoppen ----------------------------------------------------- */
+/* Pause / Edit / Clone: lichtgrijze .btn-normal */
+html:has(> head > :is(meta[name="description"][content="Uptime Kuma monitoring tool"], link[rel="manifest"][href^="/api/status-page/"])) .btn-normal {
+  background-color: var(--alg-knop-zacht) !important;
+  border-color: var(--alg-rand-sterk) !important;
+  color: var(--alg-tekst) !important;
+}
+
+html:has(> head > :is(meta[name="description"][content="Uptime Kuma monitoring tool"], link[rel="manifest"][href^="/api/status-page/"])) .btn-normal:hover {
+  background-color: var(--alg-knop-zacht-hover) !important;
+  color: var(--alg-tekst-sterk) !important;
+}
+
+/* filterknoppen boven de monitorlijst */
+html:has(> head > :is(meta[name="description"][content="Uptime Kuma monitoring tool"], link[rel="manifest"][href^="/api/status-page/"])) :is(.btn-outline-normal, .filter-dropdown-status) {
+  color: var(--alg-tekst) !important;
+  border-color: var(--alg-rand-sterk) !important;
+}
+
+html:has(> head > :is(meta[name="description"][content="Uptime Kuma monitoring tool"], link[rel="manifest"][href^="/api/status-page/"])) :is(.btn-outline-normal.active, .filter-dropdown-status.active, .filter-dropdown-status:focus) {
+  background-color: var(--alg-rij-actief) !important;
+}
+
+/* ---------- Lijsten ----------------------------------------------------- */
+/* monitorlijst, instellingenmenu, onderhoud, meldingen: lichtgroene vlakken */
+html:has(> head > :is(meta[name="description"][content="Uptime Kuma monitoring tool"], link[rel="manifest"][href^="/api/status-page/"])) :is(.item:hover, .settings-menu .menu-item:hover) {
+  background-color: var(--alg-rij-hover) !important;
+}
+
+html:has(> head > :is(meta[name="description"][content="Uptime Kuma monitoring tool"], link[rel="manifest"][href^="/api/status-page/"])) :is(.item.active, .settings-menu .active .menu-item) {
+  background-color: var(--alg-rij-actief) !important;
+}
+
+/* status "up": Uptime Kuma gebruikt .bg-primary (groen) voor up-badges en
+   uptimepercentages; 30 maakt primary grijs, hier dus het groene statusvlak
+   (knoppen .btn-primary blijven grijs) */
+html:has(> head > :is(meta[name="description"][content="Uptime Kuma monitoring tool"], link[rel="manifest"][href^="/api/status-page/"])) .badge.bg-primary {
+  background-color: var(--alg-ok-vlak) !important;
+  color: #fff !important;
+}
+
+/* lege hartslag in de grote balk: bijna wit */
+html:has(> head > :is(meta[name="description"][content="Uptime Kuma monitoring tool"], link[rel="manifest"][href^="/api/status-page/"])) .hp-bar-big .beat.empty {
+  background-color: #555 !important;
+}
+
+/* certificaat- en linkicoon bij een monitor: #111 (zoals .dark: lichtgrijs) */
+html:has(> head > :is(meta[name="description"][content="Uptime Kuma monitoring tool"], link[rel="manifest"][href^="/api/status-page/"])) :is(.cert-icon, .link-icon) {
+  color: #b1b8c0 !important;
+}
+
+/* navigatiepillen: gewone link licht (de actieve pil krijgt de knopkleur via 30) */
+html:has(> head > :is(meta[name="description"][content="Uptime Kuma monitoring tool"], link[rel="manifest"][href^="/api/status-page/"])) .nav-pills .nav-link:not(.active) {
+  color: var(--alg-tekst) !important;
+}
+
+/* gekozen waarden in keuzelijsten: groen vlak, donkere tekst (zoals .dark) */
+html:has(> head > :is(meta[name="description"][content="Uptime Kuma monitoring tool"], link[rel="manifest"][href^="/api/status-page/"])) .multiselect__tag {
+  color: #020b05 !important;
+}
+
+/* status "onderhoud": het donkerblauw is onleesbaar op donker */
+html:has(> head > :is(meta[name="description"][content="Uptime Kuma monitoring tool"], link[rel="manifest"][href^="/api/status-page/"])) .text-maintenance {
+  color: #7d9bff !important;
+}
+
+/* avatar met beginletter: wit op lichtgroen (1.7:1); donkere letter zoals
+   Uptime Kuma's eigen primaire knop in donkere modus */
+html:has(> head > :is(meta[name="description"][content="Uptime Kuma monitoring tool"], link[rel="manifest"][href^="/api/status-page/"])) .dropdown-profile-pic .profile-pic {
+  color: #020b05 !important;
+}
+

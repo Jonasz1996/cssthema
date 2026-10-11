@@ -63,6 +63,8 @@ jobs:
         run: |
           uv run python -m cssthema.openapi openapi.json
           git diff --exit-code openapi.json || (echo "::error::backend/openapi.json is verouderd: draai 'make openapi'" && exit 1)
+      - name: Thema-modules horen bij themes/algemeen.css
+        run: uv run python ../scripts/themes/modules.py --check
       - uses: actions/upload-artifact@v4
         if: matrix.python == '3.12'
         with:
@@ -263,6 +265,16 @@ jobs:
             curl -fsS http://127.0.0.1/readyz | grep -qF "\"database_encoding\":\"ok\""
             curl -fsS -D - -o /dev/null http://127.0.0.1/proxmox.css | grep -qi "^access-control-allow-origin: \*"
             test "$(curl -s -o /dev/null -w "%{http_code}" http://127.0.0.1/Foo.js)" = 404
+            # Eén regel voor alle hosts: /host/<hostnaam>.css|.js via nginx, met * als standaard.
+            curl -fsS -H "Content-Type: application/json" -d "{\"hostname\":\"*\",\"styles\":[\"proxmox\"],\"scripts\":[\"algemeen\"]}" http://127.0.0.1/api/v1/hosts | grep -qF "\"hostname\":\"*\""
+            curl -fsS -H "Content-Type: application/json" -d "{\"hostname\":\"ha.example.test\",\"styles\":[\"Home_Assistant\",\"ontbreekt\"]}" http://127.0.0.1/api/v1/hosts >/dev/null
+            curl -fsS http://127.0.0.1/host/app.example.test.css | grep -qF "proxmox (bestand)"
+            curl -fsS -D - -o /dev/null http://127.0.0.1/host/app.example.test.css | grep -qi "^access-control-allow-origin: \*"
+            curl -fsS -o /dev/null -w "%{content_type}" http://127.0.0.1/host/app.example.test.js | grep -q "javascript"
+            curl -fsS http://127.0.0.1/host/app.example.test.js | grep -qF "void 0;"
+            curl -fsS http://127.0.0.1/host/ha.example.test.css | grep -qF "Home_Assistant (bestand)"
+            curl -fsS http://127.0.0.1/host/ha.example.test.css | grep -qF "\"ontbreekt\" niet gevonden"
+            test "$(curl -s -o /dev/null -w "%{http_code}" "http://127.0.0.1/host/Bad_Host.css")" = 404
             # Back-ups: één vóór de tweede run, de timer staat aan, en terugzetten werkt.
             ls /var/backups/cssthema | grep -q -- "-voor-update$"
             systemctl is-enabled cssthema-backup.timer

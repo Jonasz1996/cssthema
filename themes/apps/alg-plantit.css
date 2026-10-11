@@ -1,0 +1,47 @@
+/* ==========================================================================
+   alg-plantit.css - PlantIt (Flutter web-app)
+   Host: plantit.jbogaert.be
+   Laadt na algemeen.css (sub_filter: eerst algemeen.css, dan dit bestand).
+
+   Flutter tekent de hele app in een canvas (CanvasKit/skwasm): knoppen,
+   tekst en kaarten zijn pixels, geen HTML-elementen. CSS kan die niet
+   kleuren; dat kan alleen in de app zelf (ThemeData/ColorScheme donker,
+   bv. ThemeData(brightness: Brightness.dark) met grijze tinten).
+
+   Dit bestand doet daarom alleen wat CSS wel kan:
+   - de pagina en de houders van Flutter doorzichtig op de algemeen-achtergrond
+     (zichtbaar tijdens het laden en waar de app zelf niets tekent);
+   - bescherming: de verborgen invoervelden waarmee Flutter tekstinvoer
+     opvangt, krijgen van algemeen.css een donker veld met witte tekst; dat
+     zou als een donker blok bovenop het getekende tekstveld staan. Hier
+     blijven ze onzichtbaar zoals Flutter ze bedoelt.
+
+   Beperkingen: de vastgelegde pagina was leeg (Flutter had nog niets
+   getekend, titel "app"); niets van de app-inhoud is getest. De regels
+   voor de Flutter-elementen komen uit kennis van Flutter web 3.x.
+   ========================================================================== */
+
+/* ---------- Houders van Flutter ----------------------------------------- */
+flutter-view,
+flt-glass-pane,
+flt-scene-host {
+  background-color: transparent;
+}
+
+/* ---------- Verborgen tekstinvoer van Flutter ---------------------------- */
+:is(flt-text-editing-host, flt-glass-pane, flutter-view) :is(input, textarea) {
+  background-color: transparent !important;
+  color: transparent !important;
+  caret-color: transparent !important;
+  border-color: transparent !important;
+  box-shadow: none !important;
+  outline: none !important;
+}
+
+/* ---------- Semantiekboom (toegankelijkheid) ----------------------------- */
+/* Flutter legt onzichtbare elementen over het canvas voor schermlezers;
+   die mogen geen achtergrond of knopkleur van algemeen.css krijgen. */
+flt-semantics-host :is(a, button, input, textarea, [role="button"]) {
+  background-color: transparent !important;
+  box-shadow: none !important;
+}

@@ -30,6 +30,7 @@ from redis.asyncio import Redis
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
 from cssthema.logging import get_logger
+from cssthema.repositories import hosts as host_repo
 from cssthema.repositories import themes as theme_repo
 from cssthema.repositories.themes import PublicCssRow
 
@@ -95,6 +96,14 @@ class CachedCss:
         return cls(row.version_number, bytes(row.sha256), row.published_at, row.css)
 
 
+@dataclass(frozen=True, slots=True)
+class HostBindingView:
+    hostname: str
+    styles: list[str]
+    scripts: list[str]
+    enabled: bool
+
+
 def latest_key(slug: str) -> str:
     return f"css:{slug}"
 
@@ -110,6 +119,10 @@ def generation_key(slug: str) -> str:
 def refresh_paths(slug: str, fixed_versions: Iterable[int] = ()) -> list[str]:
     """De publieke paden van een slug die nginx cachet."""
     return [f"/{slug}.css", f"/themes/{slug}.css", *fixed_refresh_paths(slug, fixed_versions)]
+
+
+def host_refresh_paths(hostname: str) -> list[str]:
+    return [f"/host/{hostname}.css", f"/host/{hostname}.js"]
 
 
 def fixed_refresh_paths(slug: str, fixed_versions: Iterable[int]) -> list[str]:
@@ -212,6 +225,49 @@ class CssDelivery:
             return
         await self._clear_redis(unique, fixed)
         await self._refresh_nginx(unique, fixed)
+        await self.refresh_hosts_using(styles=unique)
+
+    async def refresh_hosts_using(
+        self, *, styles: Iterable[str] = (), scripts: Iterable[str] = ()
+    ) -> None:
+        """Ververst `/host/<h>.css|.js` van elke host die een van deze namen gebruikt."""
+        if not self._refresh_url or self._http is None:
+            return
+        try:
+            async with self._sessionmaker() as session:
+                hostnames = await host_repo.hostnames_using(
+                    session, styles=list(styles), scripts=list(scripts)
+                )
+        except Exception as exc:
+            log.warning("host_refresh_lookup_failed", error=repr(exc))
+            return
+        await self.refresh_hosts(hostnames)
+
+    async def refresh_hosts(self, hostnames: Iterable[str]) -> None:
+        """Ververst de nginx-cache van deze hosts (na een gewijzigde koppeling).
+
+        Hosts zonder eigen koppeling (die `*` volgen) kent cssthema niet: die krijgen een
+        wijziging pas als hun cache-entry verloopt (60 s).
+        """
+        http = self._http
+        if not self._refresh_url or http is None:
+            return
+        paths = [path for name in dict.fromkeys(hostnames) for path in host_refresh_paths(name)]
+        if paths:
+            await self._refresh_many(http, paths)
+
+    async def host_binding(self, hostname: str) -> HostBindingView | None:
+        """De koppeling voor een host (of `*`), voor de publieke `/host/`-routes."""
+        async with self._sessionmaker() as session:
+            binding = await host_repo.resolve(session, hostname)
+            if binding is None:
+                return None
+            return HostBindingView(
+                hostname=binding.hostname,
+                styles=[str(name) for name in binding.styles],
+                scripts=[str(name) for name in binding.scripts],
+                enabled=binding.enabled,
+            )
 
     async def _clear_redis(self, slugs: list[str], fixed: Mapping[str, list[int]]) -> None:
         for attempt in range(1, INVALIDATE_ATTEMPTS + 1):

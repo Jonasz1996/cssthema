@@ -1,0 +1,745 @@
+/* alg-kern.css - gegenereerd uit algemeen.css door scripts/themes/modules.py;
+   niet met de hand aanpassen. Laadt na alg-kern.css (zie themes/README.md). */
+/* ==========================================================================
+   ALGEMEEN THEMA - jbogaert
+   Eén donker thema voor alle self-hosted services, in de stijl van allow en
+   aiverslag: radiale grijze achtergrond, glazen panelen, grijze knoppen met
+   gloed, monospace, en een bewegend netwerk van stippen en 0/1-tekens dat de
+   muis volgt (dat tekent algemeen.js; CSS alleen kan dat niet).
+
+   GEBRUIK
+   Link dit bestand via sub_filter op de sluitende head-tag in Nginx Proxy
+   Manager (Advanced, per proxy host), met proxy_set_header Accept-Encoding "".
+   Zet in dezelfde sub_filter na de link een script-tag met defer naar
+   algemeen.js (zelfde map). Het bestand komt zo als laatste stylesheet in de
+   head en wint van de app. Zonder het script werkt het thema ook, alleen
+   zonder netwerk; laat het script weg bij wachtwoordkluizen (Vaultwarden).
+
+   CSP: weigert een app stylesheets of scripts van een ander domein (header
+   Content-Security-Policy met style-src/script-src 'self', bv. qBittorrent,
+   Vaultwarden, Pi-hole; Portainer weigert alleen het script), laat dezelfde
+   proxy host de themabestanden dan zelf doorgeven op het eigen domein:
+     location ^~ /alg-thema/ {
+       proxy_pass https://css.jbogaert.be/;
+       proxy_set_header Host css.jbogaert.be;
+       proxy_ssl_server_name on;
+     }
+   en laat de sub_filter naar /alg-thema/algemeen.css (en .js) wijzen. Wat
+   van hetzelfde domein komt valt onder 'self': de CSP hoeft niet open.
+   Uitzondering: een script-src met nonce en 'strict-dynamic' (Nextcloud)
+   negeert 'self'; daar laadt zo alleen de stylesheet (thema zonder netwerk).
+
+   AANPASSEN (zet in een eigen stylesheet na dit bestand, of per app):
+   - geen monospace:  :root { --alg-font: system-ui, "Segoe UI", Roboto, sans-serif; }
+   - geen netwerk:    :root { --alg-netwerk: 0; }   (of het script weglaten)
+   - geen blur:       :root { --alg-blur: none; }
+   - andere accent:   :root { --alg-accent: 170, 170, 170; } (r, g, b)
+   - app blijft licht: de lichte set uit 01 inzetten (patroon in 10-basis)
+
+   OPBOUW
+   00 kop, 01 tokens, 10 basis, 11 formulieren, 12 tabellen, 20 hulpklassen,
+   30-35 frameworks, 40 ExtJS (Proxmox), 60 per app, 99 slot.
+
+   Met dank aan theme.park (MIT, github.com/themepark-dev/theme.park) voor
+   beproefde app-selectors; overgenomen regels staan gemarkeerd met
+   "naar theme.park".
+   ========================================================================== */
+
+/* ==========================================================================
+   01 TOKENS - alle kleuren en maten op één plek
+   Eigen tokens hebben het voorvoegsel --alg- en botsen met geen enkele app.
+   ========================================================================== */
+
+:root {
+  /* marker: de testopstelling ziet hieraan dat het thema geladen is */
+  --alg-geladen: 1;
+
+  /* achtergrond van de pagina */
+  --alg-achtergrond: radial-gradient(circle, #3a3a3a, #2d2d2d, #202020, #141414, #000) center / cover no-repeat fixed;
+  --alg-achtergrond-kleur: #141414;
+
+  /* oppervlakken */
+  --alg-glas: rgba(16, 16, 16, .78);          /* kaarten, panelen */
+  --alg-glas-sterk: rgba(20, 20, 20, .94);    /* menu's, dialogen, popovers */
+  --alg-vlak: #181818;                        /* ondoorzichtig, waar glas niet kan */
+  --alg-vlak-2: #222;                         /* iets lichter vlak (koppen, knoppenbalk) */
+  --alg-paneel: rgba(255, 255, 255, .04);     /* kop/voet binnen een kaart */
+  --alg-rij: rgba(255, 255, 255, .05);        /* lijstitems */
+  --alg-rij-hover: rgba(255, 255, 255, .09);
+  --alg-rij-actief: rgba(255, 255, 255, .14);
+  --alg-zebra: rgba(255, 255, 255, .025);
+  --alg-veld: rgba(8, 8, 8, .82);             /* invoervelden (ook leesbaar op wit) */
+  --alg-veld-uit: rgba(255, 255, 255, .04);   /* uitgeschakeld veld */
+  --alg-autofill: #151515;                    /* veld dat de browser invulde */
+  --alg-overlay: rgba(0, 0, 0, .6);           /* achter dialogen */
+
+  /* randen */
+  --alg-rand: rgba(255, 255, 255, .08);
+  --alg-rand-sterk: rgba(255, 255, 255, .14);
+  --alg-rand-hover: rgba(255, 255, 255, .18);
+
+  /* tekst */
+  --alg-tekst: #ddd;
+  --alg-tekst-sterk: #fff;
+  --alg-gedempt: #999;
+  --alg-zwak: #777;                           /* alleen decoratief, niet voor leestekst */
+  --alg-placeholder: #858585;
+  --alg-link: #b5b5b5;
+  --alg-link-hover: #fff;
+  --alg-code: #d6e6ff;                        /* tekst in pre-blokken */
+  --alg-code-vlak: rgba(255, 255, 255, .09);  /* inline code */
+  --alg-pre-vlak: rgba(0, 0, 0, .45);         /* codeblok */
+
+  /* knoppen (wit op #6a6a6a = 5.4:1, op #767676 = 4.5:1) */
+  --alg-knop: #6a6a6a;
+  --alg-knop-hover: #767676;
+  --alg-knop-tekst: #fff;
+  --alg-knop-tekst-hover: #fff;
+  --alg-knop-zacht: rgba(255, 255, 255, .06);
+  --alg-knop-zacht-hover: rgba(255, 255, 255, .12);
+  --alg-gloed: 0 0 22px rgba(255, 255, 255, .22);
+
+  /* accent en focus (r, g, b) */
+  --alg-accent: 170, 170, 170;
+  --alg-accent-kleur: rgb(var(--alg-accent));
+  --alg-focus-ring: 0 0 0 4px rgba(var(--alg-accent), .14);
+  --alg-focus-rand: #fff;
+
+  /* status: tekstkleuren (op donker) */
+  --alg-ok: #8fd6a4;
+  --alg-fout: #e58b8b;
+  --alg-waarschuwing: #e6b56b;
+  --alg-info: #9cc9ff;
+  /* status: vlakken met witte of donkere tekst (minstens 4.5:1) */
+  --alg-ok-vlak: #3d7a50;
+  --alg-fout-vlak: #a84a4a;
+  --alg-waarschuwing-vlak: #e6b56b;           /* met donkere tekst */
+  --alg-info-vlak: #9cc9ff;                   /* met donkere tekst */
+  --alg-donker-tekst: #111;
+  /* status: zachte tinten voor meldingen */
+  --alg-ok-tint: rgba(143, 214, 164, .12);
+  --alg-fout-tint: rgba(229, 139, 139, .12);
+  --alg-waarschuwing-tint: rgba(230, 181, 107, .12);
+  --alg-info-tint: rgba(156, 201, 255, .12);
+  --alg-ok-rand: rgba(143, 214, 164, .35);
+  --alg-fout-rand: rgba(229, 139, 139, .35);
+  --alg-waarschuwing-rand: rgba(230, 181, 107, .35);
+  --alg-info-rand: rgba(156, 201, 255, .35);
+
+  /* vorm */
+  --alg-radius: 10px;
+  --alg-radius-klein: 5px;
+  --alg-radius-midden: 8px;
+  --alg-radius-groot: 16px;
+  --alg-schaduw: 0 30px 80px rgba(0, 0, 0, .65);
+  --alg-schaduw-midden: 0 10px 30px rgba(0, 0, 0, .45);
+  --alg-schaduw-klein: 0 4px 14px rgba(0, 0, 0, .35);
+
+  /* lettertype */
+  --alg-font: ui-monospace, "Cascadia Code", "SF Mono", Consolas, "Liberation Mono", monospace;
+
+  /* effecten: --alg-netwerk 0 zet de bewegende netwerkachtergrond van
+     algemeen.js uit (per app), --alg-blur none zet de glasblur uit */
+  --alg-netwerk: 1;
+  --alg-blur: blur(14px);
+  --alg-scrollbar: #555;
+
+  /* lichte set: alleen voor een app die licht blijft omdat het thema haar
+     niet donker krijgt (bv. Grafana met thema Licht). Ongebruikt tot een
+     app-deel ze op html inzet; het patroon staat in 10-basis. */
+  --alg-licht-achtergrond: #f4f5f5;
+  --alg-licht-vlak: #fff;
+  --alg-licht-glas: rgba(255, 255, 255, .92);
+  --alg-licht-paneel: rgba(0, 0, 0, .03);
+  --alg-licht-rij: rgba(0, 0, 0, .04);
+  --alg-licht-rij-hover: rgba(0, 0, 0, .07);
+  --alg-licht-tekst: #24292e;                 /* 13.4:1 op de achtergrond */
+  --alg-licht-tekst-sterk: #111;
+  --alg-licht-gedempt: #5f6368;               /* 5.5:1 */
+  --alg-licht-placeholder: #6b6f73;           /* 4.6:1 */
+  --alg-licht-link: #1f62e0;                  /* 4.9:1 */
+  --alg-licht-link-hover: #1747a6;
+  --alg-licht-code: #24292e;
+  --alg-licht-code-vlak: rgba(0, 0, 0, .06);
+  --alg-licht-pre-vlak: rgba(0, 0, 0, .04);
+  --alg-licht-veld: #fff;
+  --alg-licht-veld-uit: rgba(0, 0, 0, .04);
+  --alg-licht-rand: rgba(0, 0, 0, .1);
+  --alg-licht-rand-sterk: rgba(0, 0, 0, .18);
+  --alg-licht-rand-hover: rgba(0, 0, 0, .28);
+  --alg-licht-accent: 90, 90, 90;             /* focusrand #5a5a5a, 6.3:1 */
+  --alg-licht-focus: #111;
+  --alg-licht-scrollbar: #aaa;
+
+  color-scheme: dark;
+}
+
+/* --------------------------------------------------------------------------
+   lightningcss: apps en frameworks die daarmee gebouwd zijn (NPM 2.13+,
+   recente Tabler, andere Vite-apps) zetten light-dark() om naar het paar
+   var(--lightningcss-light, X) var(--lightningcss-dark, Y). Daar heeft
+   color-scheme geen vat op; hier de schakelaar op donker, zoals native
+   light-dark() met de color-scheme hierboven. De namen zijn eigen aan
+   lightningcss (geen generieke variabelen). Leeg = uit, initial = aan.
+   -------------------------------------------------------------------------- */
+:root,
+:root > body,
+[data-bs-theme="light"],
+[data-theme="light"],
+.light {
+  --lightningcss-light: !important;
+  --lightningcss-dark: initial !important;
+}
+
+/* --------------------------------------------------------------------------
+   theme.park-namen (zoals in Jonas' Proxmox-thema). Via :where(:root) hebben
+   ze specificiteit 0: definieert een app zelf zo'n variabele, dan wint de app.
+   -------------------------------------------------------------------------- */
+:where(:root) {
+  --main-bg-color: var(--alg-achtergrond);
+  --modal-bg-color: var(--alg-glas-sterk);
+  --modal-header-color: var(--alg-paneel);
+  --modal-footer-color: var(--alg-paneel);
+  --panel-bg: var(--alg-glas);
+  --panel-header-bg: var(--alg-paneel);
+  --drop-down-menu-bg: var(--alg-glas-sterk);
+  --menu-bg: var(--alg-glas-sterk);
+  --menu-hover: var(--alg-rij-hover);
+
+  --button-color: var(--alg-knop);
+  --button-color-hover: var(--alg-knop-hover);
+  --button-text: var(--alg-knop-tekst);
+  --button-text-hover: var(--alg-knop-tekst-hover);
+
+  --accent-color: var(--alg-accent);
+  --accent-color-hover: rgba(255, 255, 255, .45);
+  --link-color: var(--alg-link);
+  --link-color-hover: var(--alg-link-hover);
+  --label-text-color: var(--alg-donker-tekst);
+
+  --text: var(--alg-tekst);
+  --text-hover: var(--alg-tekst-sterk);
+  --text-muted: var(--alg-gedempt);
+
+  --border-color: var(--alg-rand);
+  --border-light: var(--alg-rand-sterk);
+  --table-row: transparent;
+  --table-row-alt: var(--alg-zebra);
+  --table-row-hover: var(--alg-rij-hover);
+
+  --transparency-light-05: rgba(255, 255, 255, .05);
+  --transparency-light-10: rgba(255, 255, 255, .1);
+  --transparency-light-15: rgba(255, 255, 255, .15);
+  --transparency-light-25: rgba(255, 255, 255, .25);
+  --transparency-dark-10: rgba(0, 0, 0, .1);
+  --transparency-dark-25: rgba(0, 0, 0, .25);
+  --transparency-dark-45: rgba(0, 0, 0, .45);
+}
+
+/* ==========================================================================
+   10 BASIS - pagina, tekst, links, code, dialogen, netwerkachtergrond
+   Basisregels gebruiken :where() waar een app of framework moet kunnen winnen
+   (specificiteit 0). Alleen achtergrond, tekstkleur en lettertype van de
+   pagina worden afgedwongen. Nooit font-family op * of op icoon-elementen.
+
+   LICHTE SCOPE (voor app-delen)
+   Blijft een app licht omdat het thema haar niet donker krijgt (bv. Grafana
+   met thema Licht), zet dan in het app-deel de lichte set uit 01 in. Op
+   html zelf: de tokens worden op html uitgerekend en erven daarna door, een
+   herdefinitie op body zou de afgeleide tokens niet bijwerken.
+     html:has(> body.app-grafana.theme-light) {
+       --alg-netwerk: 0;
+       --alg-achtergrond: var(--alg-licht-achtergrond);
+       --alg-achtergrond-kleur: var(--alg-licht-achtergrond);
+       --alg-vlak: var(--alg-licht-vlak);
+       --alg-glas: var(--alg-licht-glas);
+       --alg-glas-sterk: var(--alg-licht-glas);
+       --alg-paneel: var(--alg-licht-paneel);
+       --alg-rij: var(--alg-licht-rij);
+       --alg-rij-hover: var(--alg-licht-rij-hover);
+       --alg-zebra: var(--alg-licht-paneel);
+       --alg-tekst: var(--alg-licht-tekst);
+       --alg-tekst-sterk: var(--alg-licht-tekst-sterk);
+       --alg-gedempt: var(--alg-licht-gedempt);
+       --alg-placeholder: var(--alg-licht-placeholder);
+       --alg-link: var(--alg-licht-link);
+       --alg-link-hover: var(--alg-licht-link-hover);
+       --alg-code: var(--alg-licht-code);
+       --alg-code-vlak: var(--alg-licht-code-vlak);
+       --alg-pre-vlak: var(--alg-licht-pre-vlak);
+       --alg-veld: var(--alg-licht-veld);
+       --alg-veld-uit: var(--alg-licht-veld-uit);
+       --alg-autofill: var(--alg-licht-veld);
+       --alg-rand: var(--alg-licht-rand);
+       --alg-rand-sterk: var(--alg-licht-rand-sterk);
+       --alg-rand-hover: var(--alg-licht-rand-hover);
+       --alg-accent: var(--alg-licht-accent);
+       --alg-focus-rand: var(--alg-licht-focus);
+       --alg-scrollbar: var(--alg-licht-scrollbar);
+       color-scheme: light;
+     }
+   Daarmee volgen alle regels in 10-20 (pagina, koppen, links, code,
+   velden, focus). Framework- en app-regels met vaste kleuren niet: die
+   blijven de zaak van het app-deel.
+   ========================================================================== */
+
+/* ---------- Pagina ------------------------------------------------------ */
+/* De verloopachtergrond zit op html (vult altijd het hele venster); body
+   wordt doorzichtig zodat een witte body van de app niet in de weg zit. */
+html {
+  background: var(--alg-achtergrond) !important;
+  background-color: var(--alg-achtergrond-kleur) !important;
+  color: var(--alg-tekst) !important;
+  font-family: var(--alg-font) !important;
+  accent-color: var(--alg-accent-kleur);
+  scrollbar-color: var(--alg-scrollbar) transparent;
+}
+
+body {
+  background: transparent !important;
+  color: var(--alg-tekst) !important;
+  font-family: var(--alg-font) !important;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ---------- Koppen en tekst --------------------------------------------- */
+:where(h1, h2, h3, h4, h5, h6) {
+  color: var(--alg-tekst-sterk);
+}
+
+:where(small, figcaption, caption) {
+  color: var(--alg-gedempt);
+}
+
+::selection {
+  background-color: rgba(var(--alg-accent), .35);
+  color: var(--alg-tekst-sterk);
+}
+
+/* ---------- Links ------------------------------------------------------- */
+/* Alle links: specificiteit van een element, dus wint van "a { }" van de app
+   maar niet van componentklassen (knoppen, menu-items). Links zonder klasse
+   zijn gewone tekstlinks en krijgen de kleur wat sterker. */
+a {
+  color: var(--alg-link);
+}
+
+a:where(:hover, :focus-visible) {
+  color: var(--alg-link-hover);
+}
+
+a:not([class]) {
+  color: var(--alg-link);
+}
+
+a:not([class]):hover,
+a:not([class]):focus-visible {
+  color: var(--alg-link-hover);
+}
+
+/* tekstlinks midden in lopende tekst: zonder kleurverschil (grijs op grijs)
+   lijken ze gewone tekst, dus een zachte onderlijn. Alleen links zonder
+   klasse in alinea's en hulpteksten, niet in menu's of lijsten. */
+:is(p, dd, small, figcaption, blockquote, .help-block, .form-text) a:not([class]) {
+  text-decoration-line: underline;
+  text-decoration-color: color-mix(in srgb, currentColor 45%, transparent);
+  text-underline-offset: 2px;
+}
+
+:is(p, dd, small, figcaption, blockquote, .help-block, .form-text) a:not([class]):hover {
+  text-decoration-color: currentColor;
+}
+
+/* ---------- Scrollbalken ------------------------------------------------ */
+:where(*) {
+  scrollbar-width: thin;
+}
+
+/* ---------- Focus: altijd zichtbaar ------------------------------------- */
+/* Niet op tabindex="-1": dat zijn houders (menu's, dialogen) die het script
+   zelf focus geeft; daar zou een witte rand om het hele vak komen. */
+:focus-visible:not([tabindex="-1"]) {
+  outline: 2px solid var(--alg-focus-rand) !important;
+  outline-offset: 2px;
+}
+
+/* ---------- Lijnen, citaten, details ------------------------------------ */
+:where(hr) {
+  border-color: var(--alg-rand-sterk);
+}
+
+:where(blockquote) {
+  border-left-color: var(--alg-rand-hover);
+  color: var(--alg-gedempt);
+}
+
+:where(summary) {
+  color: var(--alg-tekst-sterk);
+}
+
+:where(summary)::marker {
+  color: var(--alg-zwak);
+}
+
+:where(fieldset) {
+  border-color: var(--alg-rand-sterk);
+}
+
+:where(legend) {
+  color: var(--alg-tekst-sterk);
+}
+
+/* ---------- Code -------------------------------------------------------- */
+/* Inline code krijgt een vlakje; niet in pre-blokken en niet in de regels van
+   codeweergaven en diffs (Gitea, Forgejo, Gogs: code per tabelcel), anders
+   krijgt elke regel een grijze balk. De uitzonderingen in :where() houden de
+   specificiteit gelijk (0,0,2): een app-regel als ".markdown code" wint. */
+:is(code, samp):not(pre *, :where(td.lines-code *, .code-inner, td.blob-code *)) {
+  background-color: var(--alg-code-vlak);
+  color: var(--alg-tekst-sterk);
+  border-radius: var(--alg-radius-klein);
+}
+
+:where(kbd) {
+  border-color: var(--alg-rand-sterk);
+  box-shadow: inset 0 -1px 0 var(--alg-rand-sterk);
+}
+
+pre {
+  background-color: var(--alg-pre-vlak);
+  color: var(--alg-code);
+  border-color: var(--alg-rand);
+  border-radius: var(--alg-radius-midden);
+}
+
+:where(pre code) {
+  background-color: transparent;
+  color: inherit;
+}
+
+/* ---------- Ingebedde svg-documenten ------------------------------------ */
+/* Met color-scheme dark op de pagina tekent Chrome een ondoorzichtig wit vlak
+   achter een svg-document in object/embed (zijn eigen schema is licht), bv.
+   het logo van Uptime Kuma. Normaal = doorzichtig zoals zonder thema. Alleen
+   svg: een html- of tekstdocument (en een iframe) houdt zijn witte ondergrond,
+   anders staat zijn zwarte tekst op onze donkere pagina. */
+:where(object[data*=".svg" i], object[type="image/svg+xml"], embed[src*=".svg" i], embed[type="image/svg+xml"]) {
+  color-scheme: normal;
+}
+
+/* ---------- Markering --------------------------------------------------- */
+mark {
+  background-color: rgba(230, 181, 107, .35);
+  color: var(--alg-tekst-sterk);
+}
+
+/* ---------- Native dialoog (glas) --------------------------------------- */
+dialog {
+  background-color: var(--alg-glas-sterk);
+  color: var(--alg-tekst);
+  border-color: var(--alg-rand-sterk);
+  border-radius: var(--alg-radius-groot);
+  box-shadow: var(--alg-schaduw);
+  -webkit-backdrop-filter: var(--alg-blur);
+  backdrop-filter: var(--alg-blur);
+}
+
+dialog::backdrop {
+  background-color: var(--alg-overlay);
+}
+
+/* ---------- Netwerkachtergrond ----------------------------------------- */
+/* algemeen.js tekent een canvas#alg-netwerk als kind van html: vast over het
+   viewport, z-index -1, dus boven de gradient van html en onder alle inhoud;
+   klikt nergens tussen. Geen scanlijnen meer (op vraag van Jonas). */
+#alg-netwerk {
+  pointer-events: none !important;
+}
+
+@media print {
+  #alg-netwerk {
+    display: none !important;
+  }
+}
+
+/* ==========================================================================
+   11 FORMULIEREN - native invoervelden, knoppen, vinkjes, autofill
+   Tekstvelden krijgen achtergrond en tekstkleur samen afgedwongen (zo zijn ze
+   altijd leesbaar), maar via :where() met specificiteit 0: een framework of
+   app-regel met !important wint. Velden met een eigen inline achtergrond en
+   verborgen hulpvelden van editors (Monaco, Ace, xterm) blijven ongemoeid.
+   Randen: alleen de kleur, nooit de dikte (geen verschuivingen), en zonder
+   !important zodat rode/groene validatieranden van de app blijven.
+   ========================================================================== */
+
+/* ---------- Tekstvelden, keuzelijsten, tekstvakken ----------------------- */
+:where(
+  input:not([type]),
+  input[type="text"], input[type="search"], input[type="email"],
+  input[type="url"], input[type="tel"], input[type="password"],
+  input[type="number"], input[type="date"], input[type="datetime-local"],
+  input[type="month"], input[type="week"], input[type="time"],
+  textarea, select
+):where(:not([style*="background"], .inputarea, .ace_text-input, .xterm-helper-textarea, .CodeMirror textarea)) {
+  background-color: var(--alg-veld) !important;
+  color: var(--alg-tekst-sterk) !important;
+  border-color: var(--alg-rand-sterk);
+  border-radius: var(--alg-radius);
+  caret-color: var(--alg-tekst-sterk);
+}
+
+/* focus zoals in allow: lichte rand + zachte ring. De outline-regel heeft
+   dezelfde specificiteit (0,2,0) als de algemene focusregel in 10 en staat
+   later, dus wint hij voor tekstvelden: 1px #aaa op de rand (8.5:1 tegen
+   het veld) in plaats van de witte ring van 2px ernaast. */
+:where(
+  input:not([type]),
+  input[type="text"], input[type="search"], input[type="email"],
+  input[type="url"], input[type="tel"], input[type="password"],
+  input[type="number"], input[type="date"], input[type="datetime-local"],
+  input[type="month"], input[type="week"], input[type="time"],
+  textarea, select
+):where(:not([style*="background"], .inputarea, .ace_text-input, .xterm-helper-textarea, .CodeMirror textarea)):focus {
+  border-color: var(--alg-accent-kleur);
+  box-shadow: var(--alg-focus-ring);
+}
+
+:where(
+  input:not([type]),
+  input[type="text"], input[type="search"], input[type="email"],
+  input[type="url"], input[type="tel"], input[type="password"],
+  input[type="number"], input[type="date"], input[type="datetime-local"],
+  input[type="month"], input[type="week"], input[type="time"],
+  textarea, select
+):focus-visible:not([tabindex="-1"]) {
+  outline: 1px solid var(--alg-accent-kleur) !important;
+  outline-offset: -1px;
+}
+
+:where(
+  input:not([type]),
+  input[type="text"], input[type="search"], input[type="email"],
+  input[type="url"], input[type="tel"], input[type="password"],
+  input[type="number"], input[type="date"], input[type="datetime-local"],
+  input[type="month"], input[type="week"], input[type="time"],
+  textarea, select
+):where(:not([style*="background"], .inputarea, .ace_text-input, .xterm-helper-textarea)):disabled {
+  background-color: var(--alg-veld-uit) !important;
+  color: var(--alg-gedempt) !important;
+}
+
+::placeholder {
+  color: var(--alg-placeholder) !important;
+  opacity: 1;
+}
+/* Bootstrap-velden met zwevend label (form-floating) verbergen hun placeholder zelf; anders staat hij over het label */
+.form-floating > .form-control::placeholder,
+.form-floating > .form-control-plaintext::placeholder {
+  color: transparent !important;
+}
+
+:where(option, optgroup) {
+  background-color: var(--alg-vlak);
+  color: var(--alg-tekst);
+}
+
+/* ---------- Autofill van de browser (geen gele/blauwe vlakken) ---------- */
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+textarea:-webkit-autofill,
+select:-webkit-autofill {
+  -webkit-text-fill-color: var(--alg-tekst-sterk) !important;
+  -webkit-box-shadow: 0 0 0 1000px var(--alg-autofill) inset !important;
+  box-shadow: 0 0 0 1000px var(--alg-autofill) inset !important;
+  caret-color: var(--alg-tekst-sterk);
+}
+
+/* ---------- Lettertype -------------------------------------------------- */
+/* Formulierelementen erven het lettertype niet vanzelf. Specificiteit 0:
+   een icoonklasse (.fa, .mdi, .material-icons) op het element wint altijd. */
+:where(button, input, select, textarea, optgroup) {
+  font-family: inherit;
+}
+
+/* ---------- Knoppen zonder eigen stijl ---------------------------------- */
+/* Specificiteit 0: zodra de app of een framework de knop stijlt, wint die. */
+:where(button, input[type="button"], input[type="submit"], input[type="reset"]) {
+  background-color: var(--alg-knop);
+  color: var(--alg-knop-tekst);
+  border-color: transparent;
+  border-radius: var(--alg-radius);
+}
+
+:where(button, input[type="button"], input[type="submit"], input[type="reset"]):where(:hover:not(:disabled)) {
+  background-color: var(--alg-knop-hover);
+  color: var(--alg-knop-tekst-hover);
+  box-shadow: var(--alg-gloed);
+}
+
+:where(input[type="file"])::file-selector-button {
+  background-color: var(--alg-knop);
+  color: var(--alg-knop-tekst);
+  border-color: transparent;
+  border-radius: var(--alg-radius-midden);
+}
+
+:where(input[type="file"]) {
+  color: var(--alg-tekst);
+}
+
+/* ---------- Vinkjes, keuzerondjes, schuifbalken, voortgang -------------- */
+:where(input[type="checkbox"], input[type="radio"], input[type="range"], progress, meter) {
+  accent-color: var(--alg-accent-kleur);
+}
+
+/* ==========================================================================
+   12 TABELLEN - native tabellen
+   Alles met specificiteit 0: tabellen van frameworks en apps houden hun eigen
+   stijl (gekleurde of geselecteerde rijen blijven zichtbaar). Zebra en hover
+   alleen bij datatabellen (met een thead), zodat lay-outtabellen niet strepen.
+   ========================================================================== */
+
+:where(table, th, td, thead, tbody, tfoot, tr) {
+  border-color: var(--alg-rand);
+}
+
+:where(th) {
+  color: var(--alg-tekst-sterk);
+}
+
+:where(table:has(> thead) > tbody > tr:nth-child(even)) {
+  background-color: var(--alg-zebra);
+}
+
+:where(table:has(> thead) > tbody > tr:hover) {
+  background-color: rgba(255, 255, 255, .045);
+}
+
+/* ==========================================================================
+   20 HULPKLASSEN - lichte utility-klassen en inline witte achtergronden
+   Alleen kleur. Achtergrond en tekstkleur altijd samen, zodat tekst leesbaar
+   blijft. Uitgezonderd: ronde knopjes (schakelaars) en vlakken met direct een
+   afbeelding, svg of canvas erin (QR-codes hebben een witte rand nodig).
+   ========================================================================== */
+
+/* ---------- Tailwind: witte en lichtgrijze vlakken ----------------------- */
+:is(.bg-white, .bg-slate-50, .bg-gray-50, .bg-zinc-50, .bg-neutral-50, .bg-stone-50):not(.rounded-full, :has(> img, > svg, > canvas, > video)) {
+  background-color: var(--alg-glas) !important;
+  color: var(--alg-tekst) !important;
+}
+
+:is(.bg-slate-100, .bg-gray-100, .bg-zinc-100, .bg-neutral-100, .bg-stone-100,
+    .bg-slate-200, .bg-gray-200, .bg-zinc-200, .bg-neutral-200, .bg-stone-200):not(.rounded-full, :has(> img, > svg, > canvas, > video)) {
+  background-color: var(--alg-rij) !important;
+  color: var(--alg-tekst) !important;
+}
+
+/* een paginabrede wrapper: de verloopachtergrond laten doorschijnen */
+:is(.min-h-screen, .h-screen):is(.bg-white, .bg-gray-50, .bg-gray-100, .bg-slate-50, .bg-slate-100, .bg-zinc-50, .bg-zinc-100, .bg-neutral-50, .bg-neutral-100) {
+  background-color: transparent !important;
+}
+
+/* lichte hover-vlakken */
+:is(.hover\:bg-white, .hover\:bg-gray-50, .hover\:bg-gray-100, .hover\:bg-gray-200,
+    .hover\:bg-slate-50, .hover\:bg-slate-100, .hover\:bg-zinc-100, .hover\:bg-neutral-100):hover {
+  background-color: var(--alg-rij-hover) !important;
+  color: var(--alg-tekst-sterk) !important;
+}
+
+/* donkere tekstklassen leesbaar maken op donker */
+:is(.text-black, .text-gray-900, .text-gray-800, .text-gray-700,
+    .text-slate-900, .text-slate-800, .text-slate-700,
+    .text-zinc-900, .text-zinc-800, .text-zinc-700,
+    .text-neutral-900, .text-neutral-800, .text-neutral-700,
+    .text-stone-900, .text-stone-800, .text-stone-700) {
+  color: var(--alg-tekst) !important;
+}
+
+:is(.text-gray-600, .text-gray-500, .text-slate-600, .text-slate-500,
+    .text-zinc-600, .text-zinc-500, .text-neutral-600, .text-neutral-500) {
+  color: var(--alg-gedempt) !important;
+}
+
+/* lichte randen en scheidingslijnen */
+:is(.border-gray-100, .border-gray-200, .border-gray-300,
+    .border-slate-100, .border-slate-200, .border-slate-300,
+    .border-zinc-200, .border-neutral-200) {
+  border-color: var(--alg-rand) !important;
+}
+
+:is(.divide-gray-100, .divide-gray-200, .divide-gray-300, .divide-slate-200) > :not([hidden]) ~ :not([hidden]) {
+  border-color: var(--alg-rand) !important;
+}
+
+/* ---------- Bootstrap: lichte achtergrondklassen ------------------------ */
+:is(.bg-light, .bg-body, .bg-body-tertiary, .bg-body-secondary):not(.badge, .rounded-circle, .rounded-pill, :has(> img, > svg, > canvas, > video)) {
+  background-color: var(--alg-paneel) !important;
+  color: var(--alg-tekst) !important;
+}
+
+:is(.bg-white, .bg-light).text-dark,
+:is(.bg-white, .bg-light) .text-dark {
+  color: var(--alg-tekst) !important;
+}
+
+/* ---------- Inline witte achtergronden (style="background: #fff") ------- */
+/* Alleen vlakken met kind-elementen (geen kleurstalen) en zonder afbeelding,
+   svg of canvas als direct kind (geen QR-codes). */
+:is(
+  [style*="background-color: #fff;"], [style*="background-color:#fff;"],
+  [style*="background: #fff;"], [style*="background:#fff;"],
+  [style$="background-color: #fff"], [style$="background-color:#fff"],
+  [style$="background: #fff"], [style$="background:#fff"],
+  [style*="background-color: #ffffff"], [style*="background-color:#ffffff"],
+  [style*="background: #ffffff"], [style*="background:#ffffff"],
+  [style*="background-color: #FFF;"], [style*="background-color: #FFFFFF"],
+  [style*="background-color: white"], [style*="background-color:white"],
+  [style*="background: white"], [style*="background:white"],
+  [style*="background-color: rgb(255, 255, 255)"], [style*="background: rgb(255, 255, 255)"]
+):has(> *):not(:has(> img, > svg, > canvas, > video, > iframe)) {
+  background-color: var(--alg-glas) !important;
+  color: var(--alg-tekst) !important;
+}
+
+/* ==========================================================================
+   99 SLOT - toegankelijkheid (minder beweging, geforceerde kleuren)
+   Staat als laatste, zodat deze regels van alles hierboven winnen.
+   ========================================================================== */
+
+/* ---------- Minder beweging --------------------------------------------- */
+/* geen animaties of overgangen (ook niet van de app zelf); een korte duur
+   in plaats van "none", zodat scripts die op animationend of transitionend
+   wachten toch hun gebeurtenis krijgen */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+    animation-delay: 0s !important;
+    transition-duration: .01ms !important;
+    transition-delay: 0s !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* ---------- Geforceerde kleuren (Windows-contrastthema) ----------------- */
+/* het systeem kiest de kleuren; de netwerkachtergrond en glaseffecten moeten weg */
+@media (forced-colors: active) {
+  #alg-netwerk {
+    display: none !important;
+  }
+
+  html {
+    background: Canvas !important;
+  }
+
+  dialog,
+  .modal-content,
+  .dropdown-menu {
+    -webkit-backdrop-filter: none !important;
+    backdrop-filter: none !important;
+  }
+}
+

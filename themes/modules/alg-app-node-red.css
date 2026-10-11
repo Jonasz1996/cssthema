@@ -1,0 +1,347 @@
+/* alg-app-node-red.css - gegenereerd uit algemeen.css door scripts/themes/modules.py;
+   niet met de hand aanpassen. Laadt na alg-kern.css (zie themes/README.md). */
+/* ==========================================================================
+   60 NODE-RED (editor v4)
+   Herkenning: het mask-icon red/images/node-red-icon in de kop.
+   Node-RED 4 heeft een eigen donker thema (html.nr-theme-dark) met
+   --red-ui-* variabelen. Wij zetten die set altijd, met neutrale grijzen in
+   plaats van de blauwige tinten en grijs in plaats van het rode accent
+   (knoppen, selectie, focus). Kleuren van nodes in het canvas blijven.
+   Getest met nodered/node-red:latest (v5.0.7; v4 gebruikt dezelfde namen).
+   ========================================================================== */
+
+html:has(> head > link[rel="mask-icon"][href^="red/images/node-red-icon"]) {
+  color-scheme: dark;
+  /* naar Node-RED nr-theme-dark (Apache-2.0), aangepast aan onze kleuren */
+  --red-ui-scrollbar-handle-background: #333; --red-ui-secondary-color: #232323;
+  --red-ui-primary-color: #f0f0f0; --red-ui-primary-background: var(--alg-vlak);
+  --red-ui-secondary-background: #1b1b1b; --red-ui-secondary-background-selected: #232323;
+  --red-ui-secondary-background-inactive: #141414; --red-ui-secondary-background-hover: #1f1f1f;
+  --red-ui-secondary-background-disabled: #131313; --red-ui-tertiary-background: #171717;
+  --red-ui-primary-text-color: var(--alg-tekst); --red-ui-secondary-text-color: var(--alg-gedempt);
+  --red-ui-secondary-text-color-focus: #cccccc; --red-ui-secondary-text-color-hover: #fff;
+  --red-ui-secondary-text-color-active: #fff; --red-ui-secondary-text-color-selected: #dddddd;
+  /* "uitgeschakeld" ook voor sneltoetsen in menu's: minstens 4.5:1 op #151515 */
+  --red-ui-secondary-text-color-inactive: #aaaaaa; --red-ui-secondary-text-color-disabled: #8a8a8b;
+  --red-ui-secondary-text-color-disabled-active: #9a9a9b;
+  --red-ui-secondary-text-color-disabled-inactive: #858587; --red-ui-tertiary-text-color: #9a9a9a;
+  --red-ui-header-text-color: #e0e0e0; --red-ui-text-color-error: #ff6369;
+  --red-ui-text-color-warning: #f1a10d; --red-ui-text-color-success: #4cc38a;
+  --red-ui-text-color-code: #00d4c8; --red-ui-text-color-link: var(--alg-link);
+  --red-ui-text-color-markdown-alert-note: #aaaaaa; --red-ui-text-color-markdown-alert-tip: #4cc38a;
+  --red-ui-text-color-markdown-alert-warning: #f1a10d;
+  --red-ui-text-color-markdown-alert-caution: #ff6369; --red-ui-primary-border-color: #2a2a2a;
+  --red-ui-secondary-border-color: #2a2a2a; --red-ui-tertiary-border-color: #333;
+  --red-ui-border-color-error: #e5484d; --red-ui-border-color-warning: #e2a336;
+  --red-ui-border-color-success: #30a46c; --red-ui-shadow: rgba(0, 0, 0, .65);
+  --red-ui-shade-color: rgba(0, 0, 0, 0.45); --red-ui-form-background: #1b1b1b;
+  --red-ui-form-placeholder-color: #8a8a8a; --red-ui-form-text-color: #f0f0f0;
+  --red-ui-form-text-color-disabled: #8a8a8b;
+  --red-ui-form-input-focus-color: var(--alg-accent-kleur); --red-ui-form-input-border-color: #333;
+  --red-ui-form-input-border-selected-color: var(--alg-accent-kleur);
+  --red-ui-form-input-border-error-color: #e5484d; --red-ui-form-input-background: #0e0e0e;
+  --red-ui-form-input-background-disabled: #151515; --red-ui-form-button-background: #232323;
+  --red-ui-form-tips-background: #120c00; --red-ui-text-editor-color: #f0f0f0;
+  --red-ui-text-editor-background: #080808; --red-ui-text-editor-color-disabled: #555555;
+  --red-ui-text-editor-background-disabled: #131313;
+  --red-ui-text-editor-gutter-background: #151515; --red-ui-text-editor-gutter-color: #808080;
+  --red-ui-text-editor-gutter-active-line-background: #1b1b1b;
+  --red-ui-text-editor-active-line-background: #1f1f1f;
+  --red-ui-text-editor-selection-background: #2e2e2e; --red-ui-event-log-background: #080808;
+  --red-ui-event-log-color: #e0e0e0; --red-ui-event-log-active-line-background: #151515;
+  --red-ui-event-log-selection-background: #232323; --red-ui-list-item-color: #f0f0f0;
+  --red-ui-list-item-secondary-color: #aaaaaa; --red-ui-list-item-background: #1b1b1b;
+  --red-ui-list-item-background-disabled: #141414; --red-ui-list-item-background-hover: #1f1f1f;
+  --red-ui-list-item-background-selected: #232323;
+  --red-ui-list-item-border-selected: var(--alg-accent-kleur); --red-ui-tab-background: #1b1b1b;
+  --red-ui-tab-background-active: #1b1b1b; --red-ui-tab-background-selected: #232323;
+  --red-ui-tab-background-inactive: #151515; --red-ui-tab-background-hover: #1f1f1f;
+  --red-ui-tab-text-color-active: #e0e0e0; --red-ui-tab-text-color-inactive: #808080;
+  --red-ui-tab-text-color-disabled-active: #8a8a8b; --red-ui-tab-text-color-disabled-inactive: #333;
+  --red-ui-tab-badge-color: #9a9a9a; --red-ui-tab-icon-color: #aaa;
+  --red-ui-tab-hover-overlay: rgba(255, 255, 255, 0.06);
+  --red-ui-palette-header-background: #0e0e0e; --red-ui-palette-header-color: #e0e0e0;
+  --red-ui-palette-content-background: #1b1b1b; --red-ui-workspace-button-background: #151515;
+  --red-ui-workspace-button-background-hover: #1f1f1f;
+  --red-ui-workspace-button-background-active: #232323;
+  --red-ui-workspace-button-background-selected: #232323;
+  --red-ui-workspace-button-border-selected: #444444;
+  --red-ui-workspace-button-border-selected-inverse: #444444;
+  --red-ui-workspace-button-color: #aaaaaa; --red-ui-workspace-button-color-disabled: #8a8a8b;
+  --red-ui-workspace-button-color-focus: #fff; --red-ui-workspace-button-color-hover: #fff;
+  --red-ui-workspace-button-color-active: #f0f0f0; --red-ui-workspace-button-color-selected: #fff;
+  --red-ui-workspace-button-color-primary: #fff;
+  --red-ui-workspace-button-background-primary: var(--alg-knop);
+  --red-ui-workspace-button-background-primary-hover: var(--alg-knop-hover);
+  --red-ui-workspace-button-color-focus-outline: var(--alg-accent-kleur);
+  --red-ui-header-background: #0e0e0e; --red-ui-header-accent: #0e0e0e;
+  --red-ui-header-button-background: #0e0e0e; --red-ui-header-button-background-hover: #151515;
+  --red-ui-header-button-background-active: #1b1b1b; --red-ui-header-button-border: #2a2a2a;
+  --red-ui-header-menu-color: #f0f0f0; --red-ui-header-menu-color-disabled: #8a8a8b;
+  --red-ui-header-menu-heading-color: #f0f0f0; --red-ui-header-menu-sublabel-color: #aaaaaa;
+  --red-ui-header-menu-background: #151515; --red-ui-header-menu-item-hover: #232323;
+  --red-ui-header-menu-item-border-active: #232323; --red-ui-headerMenuItemDivider: #2a2a2a;
+  --red-ui-headerMenuCaret: #777777; --red-ui-deploy-button-color: #ffffff;
+  --red-ui-deploy-button-color-active: #e0e0e0; --red-ui-deploy-button-color-disabled: #8a8a8a;
+  --red-ui-deploy-button-border-color: #2a2a2a; --red-ui-deploy-button-background: var(--alg-knop);
+  --red-ui-deploy-button-background-hover: var(--alg-knop-hover);
+  --red-ui-deploy-button-background-active: #555;
+  --red-ui-deploy-button-background-disabled: #232323;
+  --red-ui-deploy-button-background-disabled-hover: #2d2d2d; --red-ui-menuBackground: #151515;
+  --red-ui-menuDivider: #2a2a2a; --red-ui-menuColor: #f0f0f0; --red-ui-menuActiveColor: #fff;
+  --red-ui-menuActiveBackground: #232323; --red-ui-menuDisabledColor: #555555;
+  --red-ui-menuHoverColor: #f0f0f0; --red-ui-menuHoverBackground: #232323;
+  --red-ui-menuCaret: #777777; --red-ui-popover-background: #151515;
+  --red-ui-popover-border: #2a2a2a; --red-ui-popover-color: #f0f0f0;
+  --red-ui-popover-button-border-color: #333;
+  --red-ui-popover-button-border-color-hover: var(--alg-accent-kleur);
+  --red-ui-tooltip-background: var(--red-ui-popover-background);
+  --red-ui-tooltip-border: var(--red-ui-popover-border);
+  --red-ui-tooltip-color: var(--red-ui-popover-color); --red-ui-view-background: #0e0e0e;
+  --red-ui-view-grid-color: #282828; --red-ui-view-navigator-background: rgba(14, 14, 14, .9);
+  --red-ui-view-lasso-stroke: #aaa; --red-ui-view-lasso-fill: rgba(170, 170, 170, .12);
+  --red-ui-node-label-color: #191919; --red-ui-node-port-label-color: #aaaaaa;
+  --red-ui-node-border: #888888; --red-ui-node-border-unknown: #ff6369;
+  --red-ui-node-border-placeholder: #aaaaaa; --red-ui-node-background-placeholder: #f0f0f0;
+  --red-ui-node-port-background: #b8b8b8; --red-ui-node-port-background-hover: #fff;
+  --red-ui-node-icon-color: #f0f0f0; --red-ui-node-icon-background-color: rgba(255, 255, 255, 0.07);
+  --red-ui-node-icon-background-color-fill: #fff; --red-ui-node-icon-background-color-opacity: 0.07;
+  --red-ui-node-icon-border-color: #fff; --red-ui-node-icon-border-color-opacity: 0.08;
+  --red-ui-node-config-background: #0e0e0e; --red-ui-node-config-icon-container-disabled: #444444;
+  --red-ui-node-link-port-background: #232323; --red-ui-node-selected-color: #fff;
+  --red-ui-port-selected-color: #fff; --red-ui-node-status-error-border: #CE2C31;
+  --red-ui-node-status-error-background: #641723; --red-ui-node-status-changed-border: #006a8a;
+  --red-ui-node-status-changed-background: #00d4c8; --red-ui-node-status-colors-red: #ff6369;
+  --red-ui-node-status-colors-green: #4cc38a; --red-ui-node-status-colors-yellow: #ffcb47;
+  --red-ui-node-status-colors-blue: #5cb3ff; --red-ui-node-status-colors-grey: #777777;
+  --red-ui-link-color: #888888; --red-ui-link-link-color: #888888;
+  --red-ui-link-disabled-color: #444444; --red-ui-link-link-active-color: #fff;
+  --red-ui-link-unknown-color: #ff6369; --red-ui-clipboard-textarea-background: #0e0e0e;
+  --red-ui-debug-message-background: #1b1b1b; --red-ui-debug-message-background-hover: #1f1f1f;
+  --red-ui-debug-message-text-color: #f0f0f0; --red-ui-debug-message-text-color-meta: #aaaaaa;
+  --red-ui-debug-message-text-color-object-key: #e84a4a;
+  --red-ui-debug-message-text-color-msg-type-other: #f0f0f0;
+  --red-ui-debug-message-text-color-msg-type-string: #00d4c8;
+  --red-ui-debug-message-text-color-msg-type-null: #9a9a9a;
+  --red-ui-debug-message-text-color-msg-type-meta: #9a9a9a;
+  --red-ui-debug-message-text-color-msg-type-number: #4cc38a;
+  --red-ui-debug-message-border: #2a2a2a; --red-ui-debug-message-border-hover: #333;
+  --red-ui-debug-message-border-warning: #e2a336; --red-ui-debug-message-border-error: #e5484d;
+  --red-ui-diff-text-header-color: #aaaaaa; --red-ui-diff-text-header-background: #151515;
+  --red-ui-diff-state-color: #f0f0f0; --red-ui-diff-state-prefix-color: #808080;
+  --red-ui-diff-state-added: #4cc38a; --red-ui-diff-state-deleted: #ff6369;
+  --red-ui-diff-state-changed: #f1a10d; --red-ui-diff-state-changed-background: #180e00;
+  --red-ui-diff-state-unchanged: #8d8d8d; --red-ui-diff-state-unchanged-background: #1b1b1b;
+  --red-ui-diff-state-conflicted: #e84a4a; --red-ui-diff-state-moved: #00d4c8;
+  --red-ui-diff-state-conflict: #e84a4a; --red-ui-diff-state-conflict-background: #0c1428;
+  --red-ui-diff-state-added-background: #061510; --red-ui-diff-state-added-border: #0a2e1c;
+  --red-ui-diff-state-added-header-background: #081812;
+  --red-ui-diff-state-added-header-border: #0a2e1c; --red-ui-diff-state-deleted-background: #1a0408;
+  --red-ui-diff-state-deleted-border: #300810;
+  --red-ui-diff-state-deleted-header-background: #200608;
+  --red-ui-diff-state-deleted-header-border: #300810; --red-ui-diff-merge-header-color: #e84a4a;
+  --red-ui-diff-merge-header-background: #0c1428; --red-ui-diff-merge-header-border-color: #2a2a2a;
+  --red-ui-group-default-fill: #ffffff; --red-ui-group-default-fill-opacity: 0.03;
+  --red-ui-group-default-stroke: #555555; --red-ui-group-default-label-color: #f0f0f0;
+  --red-ui-tourGuide-border: var(--alg-accent-kleur); --red-ui-tourGuide-heading-color: #fff;
+  --red-ui-notification-border-default: var(--alg-accent-kleur);
+  --red-ui-notification-border-success: #30a46c; --red-ui-notification-border-warning: #e2a336;
+  --red-ui-notification-border-error: #e5484d; --red-ui-vcCommitShaColor: #00d4c8;
+  --red-ui-dnd-background: rgba(255, 255, 255, 0.1); --red-ui-dnd-color: #f0f0f0;
+  --red-ui-grip-color: #333; --red-ui-icons-flow-color: #aaaaaa; --red-ui-spinner-color: #aaa;
+  --red-ui-user-profile-text-color: #f0f0f0; --red-ui-user-profile-colors-1: #e84a4a;
+  --red-ui-user-profile-colors-2: #00d4c8; --red-ui-user-profile-colors-3: #4cc38a;
+  --red-ui-user-profile-colors-4: #ff6369; --red-ui-user-profile-colors-5: #f1a10d;
+  /* netwerk uit: de editor legt overal dekkende vlakken (werkblad met
+     raster, zijbalken), het netwerk is nergens te zien en kost alleen
+     rekenkracht */
+  --alg-netwerk: 0;
+  /* lettertype: werkblad, palet, zijbalken en menu's in monospace via
+     Node-RED's eigen variabele (nodes meten hun label zelf op) */
+  --red-ui-primary-font: var(--alg-font);
+}
+
+/* een witte node in het palet (comment) is een kleurvlak, geen paneel:
+   de algemene regel voor inline wit (20) zet die anders op glas */
+html:has(> head > link[rel="mask-icon"][href^="red/images/node-red-icon"]) .red-ui-palette-node[style*="background-color: rgb(255, 255, 255)"] {
+  background-color: #fff !important;
+}
+
+/* ---------- Lettertype: zie --red-ui-primary-font in het eerste blok ---- */
+/* Werkblad, palet, zijbalken en menu's in monospace (nodes meten hun label
+   zelf op en passen zich aan). Formulieren (bewerkpaneel, dialogen) houden
+   Node-RED's eigen letter: hun rijen zijn label 100px + calc(100% - 105px)
+   met een spatie ertussen, en een monospace-spatie is breder dan die 5px,
+   waardoor het veld onder het label sprong. */
+
+/* variabele (velden, knoppen) en geërfde letter (labels, tekst) allebei */
+html:has(> head > link[rel="mask-icon"][href^="red/images/node-red-icon"]) :is(.red-ui-tray, .red-ui-editor-dialog, .red-ui-popover, .red-ui-typedInput-options) {
+  --red-ui-primary-font: "Helvetica Neue", Arial, Helvetica, sans-serif;
+  font-family: var(--red-ui-primary-font);
+}
+
+/* ---------- Menu's, popovers en dialogen: glas met ronde hoeken --------- */
+html:has(> head > link[rel="mask-icon"][href^="red/images/node-red-icon"]) :is(.red-ui-menu-dropdown, .red-ui-menu-dropdown-portaled) {
+  background: var(--alg-glas-sterk) !important;
+  border-color: var(--alg-rand-sterk) !important;
+  border-radius: var(--alg-radius-midden) !important;
+  box-shadow: var(--alg-schaduw-midden) !important;
+  -webkit-backdrop-filter: var(--alg-blur);
+  backdrop-filter: var(--alg-blur);
+}
+
+html:has(> head > link[rel="mask-icon"][href^="red/images/node-red-icon"]) .ui-dialog.red-ui-editor-dialog {
+  background: var(--alg-glas-sterk) !important;
+  border-color: var(--alg-rand-sterk) !important;
+  border-radius: var(--alg-radius-groot) !important;
+  box-shadow: var(--alg-schaduw) !important;
+  -webkit-backdrop-filter: var(--alg-blur);
+  backdrop-filter: var(--alg-blur);
+}
+
+html:has(> head > link[rel="mask-icon"][href^="red/images/node-red-icon"]) .red-ui-notification {
+  border-radius: var(--alg-radius) !important;
+  box-shadow: var(--alg-schaduw-midden) !important;
+}
+
+/* ---------- Monaco (code-editor) in het lichte thema "vs" --------------- */
+/* Node-RED kiest Monaco's thema zelf: in de lichte modus "vs" (wit vlak).
+   Wij zetten de editorkleuren donker (Monaco's --vscode-variabelen) en de
+   tokenkleuren op hun tegenhanger uit "vs-dark" (allemaal 5:1 of meer op
+   #0e0e0e). In Node-RED's eigen donkere modus ("vs-dark") gebeurt niets. */
+html:has(> head > link[rel="mask-icon"][href^="red/images/node-red-icon"]) .monaco-editor.vs {
+  --vscode-editor-background: #0e0e0e !important;
+  --vscode-editor-foreground: #d4d4d4 !important;
+  --vscode-editorGutter-background: #0e0e0e !important;
+  --vscode-editorLineNumber-foreground: #858585 !important;
+  --vscode-editorLineNumber-activeForeground: #c6c6c6 !important;
+  --vscode-editor-lineHighlightBorder: #282828 !important;
+  --vscode-editor-lineHighlightBackground: rgba(255, 255, 255, .03) !important;
+  --vscode-editor-selectionBackground: #3a3d41 !important;
+  --vscode-editor-inactiveSelectionBackground: #2c2c2c !important;
+  --vscode-editor-selectionHighlightBackground: rgba(173, 214, 255, .15) !important;
+  --vscode-editor-wordHighlightBackground: rgba(87, 87, 87, .72) !important;
+  --vscode-editor-findMatchBackground: #515c6a !important;
+  --vscode-editor-findMatchHighlightBackground: rgba(234, 92, 0, .33) !important;
+  --vscode-editorCursor-foreground: #fff !important;
+  --vscode-editorWhitespace-foreground: rgba(227, 228, 226, .16) !important;
+  --vscode-editorIndentGuide-background1: #404040 !important;
+  --vscode-editorIndentGuide-activeBackground1: #707070 !important;
+  --vscode-editorBracketMatch-background: rgba(0, 100, 0, .1) !important;
+  --vscode-editorBracketMatch-border: #888 !important;
+  --vscode-editorBracketHighlight-foreground1: #ffd700 !important;
+  --vscode-editorBracketHighlight-foreground2: #da70d6 !important;
+  --vscode-editorBracketHighlight-foreground3: #179fff !important;
+  --vscode-editorOverviewRuler-border: rgba(127, 127, 127, .3) !important;
+  --vscode-editorStickyScroll-background: #0e0e0e !important;
+  --vscode-editorWidget-background: #1b1b1b !important;
+  --vscode-editorWidget-foreground: #ddd !important;
+  --vscode-editorWidget-border: #3a3a3a !important;
+  --vscode-editorSuggestWidget-background: #1b1b1b !important;
+  --vscode-editorSuggestWidget-border: #3a3a3a !important;
+  --vscode-editorSuggestWidget-foreground: #ddd !important;
+  --vscode-editorSuggestWidget-selectedBackground: #3a3a3a !important;
+  --vscode-editorSuggestWidget-selectedForeground: #fff !important;
+  --vscode-editorSuggestWidget-highlightForeground: #9cdcfe !important;
+  --vscode-editorHoverWidget-background: #1b1b1b !important;
+  --vscode-editorHoverWidget-foreground: #ddd !important;
+  --vscode-editorHoverWidget-border: #3a3a3a !important;
+  --vscode-list-hoverBackground: #2a2a2a !important;
+  --vscode-list-activeSelectionBackground: #3a3a3a !important;
+  --vscode-list-activeSelectionForeground: #fff !important;
+  --vscode-list-focusBackground: #3a3a3a !important;
+  --vscode-list-highlightForeground: #9cdcfe !important;
+  --vscode-input-background: #0e0e0e !important;
+  --vscode-input-foreground: #ddd !important;
+  --vscode-input-border: #3a3a3a !important;
+  --vscode-focusBorder: var(--alg-accent-kleur) !important;
+  --vscode-foreground: #ccc !important;
+  --vscode-descriptionForeground: #aaa !important;
+  --vscode-widget-shadow: rgba(0, 0, 0, .6) !important;
+  --vscode-scrollbarSlider-background: rgba(121, 121, 121, .4) !important;
+  --vscode-scrollbarSlider-hoverBackground: rgba(100, 100, 100, .7) !important;
+  --vscode-scrollbarSlider-activeBackground: rgba(191, 191, 191, .4) !important;
+  --vscode-menu-background: #1b1b1b !important;
+  --vscode-menu-foreground: #ddd !important;
+  --vscode-menu-selectionBackground: #3a3a3a !important;
+  --vscode-quickInput-background: #1b1b1b !important;
+  --vscode-quickInput-foreground: #ddd !important;
+  --vscode-editorGhostText-foreground: rgba(255, 255, 255, .45) !important;
+  --vscode-editorCodeLens-foreground: #999 !important;
+  --vscode-editorInlayHint-foreground: #aaa !important;
+  --vscode-editorError-foreground: #f48771 !important;
+  --vscode-editorWarning-foreground: #cca700 !important;
+  color-scheme: dark;
+}
+
+/* tokens: eerst alles licht (vangnet als de nummering ooit verschuift),
+   dan per klasse de kleur uit vs-dark */
+html:has(> head > link[rel="mask-icon"][href^="red/images/node-red-icon"]) .monaco-editor.vs [class*="mtk"] { color: #d4d4d4; }
+html:has(> head > link[rel="mask-icon"][href^="red/images/node-red-icon"]) .monaco-editor.vs .mtk2 { color: #0e0e0e; }
+html:has(> head > link[rel="mask-icon"][href^="red/images/node-red-icon"]) .monaco-editor.vs :is(.mtk3, .mtk10) { color: #9a9a9a; }
+html:has(> head > link[rel="mask-icon"][href^="red/images/node-red-icon"]) .monaco-editor.vs :is(.mtk4, .mtk12) { color: #9cdcfe; }
+html:has(> head > link[rel="mask-icon"][href^="red/images/node-red-icon"]) .monaco-editor.vs :is(.mtk5, .mtk20) { color: #ce9178; }
+html:has(> head > link[rel="mask-icon"][href^="red/images/node-red-icon"]) .monaco-editor.vs :is(.mtk6, .mtk9) { color: #569cd6; }
+html:has(> head > link[rel="mask-icon"][href^="red/images/node-red-icon"]) .monaco-editor.vs .mtk7 { color: #b5cea8; }
+html:has(> head > link[rel="mask-icon"][href^="red/images/node-red-icon"]) .monaco-editor.vs .mtk8 { color: #7ca668; }
+html:has(> head > link[rel="mask-icon"][href^="red/images/node-red-icon"]) .monaco-editor.vs .mtk11 { color: #f44747; }
+html:has(> head > link[rel="mask-icon"][href^="red/images/node-red-icon"]) .monaco-editor.vs .mtk13 { color: #c586c0; }
+html:has(> head > link[rel="mask-icon"][href^="red/images/node-red-icon"]) .monaco-editor.vs .mtk14 { color: #d7a0c4; }
+html:has(> head > link[rel="mask-icon"][href^="red/images/node-red-icon"]) .monaco-editor.vs .mtk15 { color: #dd6a6f; }
+html:has(> head > link[rel="mask-icon"][href^="red/images/node-red-icon"]) .monaco-editor.vs .mtk16 { color: #5bb498; }
+html:has(> head > link[rel="mask-icon"][href^="red/images/node-red-icon"]) .monaco-editor.vs .mtk17 { color: #909090; }
+html:has(> head > link[rel="mask-icon"][href^="red/images/node-red-icon"]) .monaco-editor.vs .mtk18 { color: #778899; }
+html:has(> head > link[rel="mask-icon"][href^="red/images/node-red-icon"]) .monaco-editor.vs .mtk19 { color: #ff79ff; }
+html:has(> head > link[rel="mask-icon"][href^="red/images/node-red-icon"]) .monaco-editor.vs .mtk21 { color: #7fa6dc; }
+html:has(> head > link[rel="mask-icon"][href^="red/images/node-red-icon"]) .monaco-editor.vs .mtk22 { color: #3dc9b0; }
+html:has(> head > link[rel="mask-icon"][href^="red/images/node-red-icon"]) .monaco-editor.vs .mtk23 { color: #74b0df; }
+html:has(> head > link[rel="mask-icon"][href^="red/images/node-red-icon"]) .monaco-editor.vs .mtk24 { color: #8fa8e0; }
+
+/* vaste kleuren uit Monaco's thema "vs" (niet via variabelen) */
+html:has(> head > link[rel="mask-icon"][href^="red/images/node-red-icon"]) .monaco-editor.vs .inputarea.ime-input {
+  background-color: #0e0e0e !important;
+}
+
+html:has(> head > link[rel="mask-icon"][href^="red/images/node-red-icon"]) .monaco-editor.vs :is(.view-overlays .current-line-exact, .margin-view-overlays .current-line-exact-margin) {
+  border-color: #282828 !important;
+}
+
+html:has(> head > link[rel="mask-icon"][href^="red/images/node-red-icon"]) .monaco-editor.vs .lines-content .core-guide-indent {
+  --indent-color: #404040 !important;
+  --indent-color-active: #707070 !important;
+}
+
+html:has(> head > link[rel="mask-icon"][href^="red/images/node-red-icon"]) .monaco-editor.vs .bracket-indent-guide {
+  --guide-color: rgba(255, 255, 255, .15) !important;
+  --guide-color-active: rgba(255, 255, 255, .45) !important;
+}
+
+html:has(> head > link[rel="mask-icon"][href^="red/images/node-red-icon"]) .monaco-editor.vs .line-numbers.dimmed-line-number {
+  color: rgba(133, 133, 133, .55) !important;
+}
+
+html:has(> head > link[rel="mask-icon"][href^="red/images/node-red-icon"]) .monaco-editor.vs .cursors-layer :is(.cursor, .cursor-primary, .cursor-secondary) {
+  background-color: #fff !important;
+  border-color: #fff !important;
+  color: #000 !important;
+}
+
+/* haakjes in drie kleuren (zoals vs-dark), het patroon herhaalt per 3 */
+html:has(> head > link[rel="mask-icon"][href^="red/images/node-red-icon"]) .monaco-editor.vs [class*="bracket-highlighting-"] { color: #ffd700 !important; }
+html:has(> head > link[rel="mask-icon"][href^="red/images/node-red-icon"]) .monaco-editor.vs :is(.bracket-highlighting-1, .bracket-highlighting-4, .bracket-highlighting-7, .bracket-highlighting-10, .bracket-highlighting-13, .bracket-highlighting-16, .bracket-highlighting-19, .bracket-highlighting-22, .bracket-highlighting-25, .bracket-highlighting-28) { color: #da70d6 !important; }
+html:has(> head > link[rel="mask-icon"][href^="red/images/node-red-icon"]) .monaco-editor.vs :is(.bracket-highlighting-2, .bracket-highlighting-5, .bracket-highlighting-8, .bracket-highlighting-11, .bracket-highlighting-14, .bracket-highlighting-17, .bracket-highlighting-20, .bracket-highlighting-23, .bracket-highlighting-26, .bracket-highlighting-29) { color: #179fff !important; }
+html:has(> head > link[rel="mask-icon"][href^="red/images/node-red-icon"]) .monaco-editor.vs .unexpected-closing-bracket { color: #f44747 !important; }
+
+/* minikaart rechts: een canvas die Monaco zelf tekent in de kleuren van "vs"
+   (wit vlak); variabelen komen daar niet aan, een filter op een canvas mag
+   niet. De houder sterk gedempt (de witte strook wordt donkergrijs, het
+   klikken en slepen blijft werken). Mooiste oplossing buiten CSS: in
+   settings.js editorTheme.codeEditor.options.theme = "vs-dark". */
+html:has(> head > link[rel="mask-icon"][href^="red/images/node-red-icon"]) .monaco-editor.vs .minimap {
+  opacity: .15;
+}
+
+html:has(> head > link[rel="mask-icon"][href^="red/images/node-red-icon"]) .monaco-editor.vs .decorationsOverviewRuler {
+  opacity: .25;
+}
+

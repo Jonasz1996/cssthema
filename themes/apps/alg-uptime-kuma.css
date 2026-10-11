@@ -1,0 +1,44 @@
+/* ==========================================================================
+   alg-uptime-kuma.css - Uptime Kuma (Vue 3 + Bootstrap 5 met eigen SCSS)
+   Host: uptimekuma.jbogaert.be
+   Laadt NA algemeen.css (dat al een Uptime Kuma-deel heeft: panelen, kop,
+   knoppen, lijsten, statusbadges). Hier wat daarna nog niet klopte.
+
+   Wat het afwerkt:
+   - loginformulier (.form-container .form) staat los op de achtergrond:
+     nu een glazen paneel (binnen de bestaande 15px opvulling, geen
+     verschuiving), zodat het netwerk er niet door loopt
+   - zwevende labels gedempt, zonder eigen vlak erachter
+   - kop als glazen balk
+
+   Beperkingen: alleen het loginscherm vastgelegd. Het hoofdscherm doet
+   algemeen.css (getest met Kuma 1); de kopregel hier volgt Kuma's eigen
+   klassen, niet getest op het hoofdscherm.
+   ========================================================================== */
+
+/* ---------- Loginformulier als glazen paneel ----------------------------- */
+.form-container > .form {
+  background-color: var(--alg-glas);
+  border: 1px solid var(--alg-rand-sterk);
+  border-radius: var(--alg-radius-groot);
+  box-shadow: var(--alg-schaduw-midden);
+  -webkit-backdrop-filter: var(--alg-blur);
+  backdrop-filter: var(--alg-blur);
+}
+
+/* zwevend label: Kuma zet er een eigen (witte) achtergrond achter zodra het
+   omhoog schuift; doorzichtig zoals het veld */
+.form-floating > label {
+  color: var(--alg-gedempt);
+}
+
+.form-floating > label::after {
+  background-color: transparent !important;
+}
+
+/* ---------- Kop ---------------------------------------------------------- */
+#app > div > header.border-bottom {
+  background-color: var(--alg-glas-sterk);
+  -webkit-backdrop-filter: var(--alg-blur);
+  backdrop-filter: var(--alg-blur);
+}

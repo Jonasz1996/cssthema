@@ -1,0 +1,1353 @@
+/* alg-fw-overig.css - gegenereerd uit algemeen.css door scripts/themes/modules.py;
+   niet met de hand aanpassen. Laadt na alg-kern.css (zie themes/README.md). */
+/* ==========================================================================
+   35 OVERIGE FRAMEWORKS - Bulma, Fomantic/Semantic UI, PatternFly 4/5/6,
+   Ant Design 4/5
+   Variabelen met een uniek voorvoegsel (--bulma-, --pf-) mogen op :root.
+   ========================================================================== */
+
+/* ==========================================================================
+   BULMA 1.0 (variabelen) en 0.9 (vaste kleuren)
+   ========================================================================== */
+:root,
+[data-theme],
+.theme-dark,
+.theme-light {
+  --bulma-scheme-h: 0 !important;
+  --bulma-scheme-s: 0% !important;
+  --bulma-scheme-brightness: dark !important;
+  --bulma-scheme-main-l: 9% !important;
+  --bulma-scheme-main-bis-l: 11% !important;
+  --bulma-scheme-main-ter-l: 13% !important;
+  --bulma-background-l: 14% !important;
+  --bulma-border-weak-l: 18% !important;
+  --bulma-border-l: 24% !important;
+  --bulma-text-weak-l: 60% !important;
+  --bulma-text-l: 87% !important;
+  --bulma-text-strong-l: 100% !important;
+  --bulma-text-title-l: 100% !important;
+  --bulma-soft-l: 20% !important;
+  --bulma-bold-l: 90% !important;
+  --bulma-soft-invert-l: 90% !important;
+  --bulma-bold-invert-l: 20% !important;
+  --bulma-hover-background-l-delta: 5% !important;
+  --bulma-active-background-l-delta: 10% !important;
+  --bulma-hover-border-l-delta: 10% !important;
+  --bulma-active-border-l-delta: 20% !important;
+  --bulma-hover-color-l-delta: 5% !important;
+  --bulma-active-color-l-delta: 10% !important;
+  --bulma-text-h: 0 !important;
+  --bulma-text-s: 0% !important;
+  --bulma-primary-h: 0deg !important;
+  --bulma-primary-s: 0% !important;
+  --bulma-primary-l: 42% !important;
+  --bulma-primary-invert-l: 100% !important;
+  --bulma-primary-on-scheme-l: 75% !important;
+  --bulma-link-h: 0deg !important;
+  --bulma-link-s: 0% !important;
+  --bulma-link-l: 42% !important;
+  --bulma-link-invert-l: 100% !important;
+  --bulma-link-on-scheme-l: 71% !important;
+  --bulma-info-on-scheme-l: 70% !important;
+  --bulma-success-on-scheme-l: 60% !important;
+  --bulma-warning-on-scheme-l: 60% !important;
+  --bulma-danger-on-scheme-l: 72% !important;
+  --bulma-dark-on-scheme-l: 70% !important;
+  --bulma-light-on-scheme-l: 96% !important;
+  --bulma-black-on-scheme-l: 100% !important;
+  --bulma-white-on-scheme-l: 100% !important;
+  --bulma-family-primary: var(--alg-font) !important;
+  --bulma-family-secondary: var(--alg-font) !important;
+  --bulma-radius: var(--alg-radius) !important;
+  --bulma-radius-large: var(--alg-radius-groot) !important;
+}
+
+/* Bulma 0.9: vaste witte vlakken en donkere tekst. Klassen als .box, .title
+   en .button komen ook buiten Bulma voor; die regels gelden daarom alleen op
+   een pagina met typische Bulma-structuur (de body:has()-voorwaarde). */
+body:has(.navbar-burger, .columns > .column, .field > .control, .buttons > .button) :is(.box, .card, .message:not([class*="is-"])) {
+  background-color: var(--alg-glas) !important;
+  color: var(--alg-tekst) !important;
+  border-radius: var(--alg-radius-groot);
+}
+
+.card-header,
+.card-footer,
+.card-footer-item,
+.panel-block {
+  border-color: var(--alg-rand) !important;
+}
+
+.card-header:not([class*="bg-"]) {
+  box-shadow: 0 1px 0 var(--alg-rand) !important;
+}
+
+.card-header-title,
+.menu-label,
+.modal-card-title,
+.panel-heading,
+body:has(.navbar-burger, .columns > .column, .field > .control, .buttons > .button) :is(.title, .label, .content :is(h1, h2, h3, h4, h5, h6)) {
+  color: var(--alg-tekst-sterk) !important;
+}
+
+body:has(.navbar-burger, .columns > .column, .field > .control, .buttons > .button) :is(.subtitle, .help:not([class*="is-"])):not(:is(.hero, .notification, .message, .section)[class*="is-"] *) {
+  color: var(--alg-gedempt) !important;
+}
+
+/* strong krijgt in Bulma een vaste donkere kleur */
+body:has(.navbar-burger, .columns > .column, .field > .control, .buttons > .button) :is(.content, .subtitle, .title, .notification, .message, .box, .card) strong {
+  color: inherit !important;
+}
+
+.navbar:is(.is-white, .is-light):not(.is-primary, .is-dark, .is-black) {
+  /* Bulma geeft het uitgeklapte mobiele menu (.navbar-menu onder 1024px)
+     deze variabele als achtergrond: bijna dekkend, anders wit met lichte
+     tekst. Op desktop heeft .navbar-menu geen achtergrond. */
+  --bulma-navbar-background-color: rgba(10, 10, 10, .92) !important;
+  background-color: rgba(10, 10, 10, .55) !important;
+  color: var(--alg-tekst) !important;
+}
+
+.navbar:is(.is-white, .is-light) :is(.navbar-item, .navbar-link) {
+  color: var(--alg-tekst) !important;
+}
+
+.navbar-item.is-active,
+a.navbar-item:hover,
+.navbar-link:hover {
+  background-color: var(--alg-rij-hover) !important;
+  color: var(--alg-tekst-sterk) !important;
+}
+
+.navbar-dropdown,
+.dropdown-content {
+  background-color: var(--alg-glas-sterk) !important;
+  border-color: var(--alg-rand-sterk) !important;
+  color: var(--alg-tekst) !important;
+  border-radius: var(--alg-radius);
+  box-shadow: var(--alg-schaduw-midden) !important;
+  -webkit-backdrop-filter: var(--alg-blur);
+  backdrop-filter: var(--alg-blur);
+}
+
+.dropdown-content .dropdown-item,
+.navbar-dropdown .navbar-item {
+  color: var(--alg-tekst) !important;
+}
+
+.dropdown-content .dropdown-item:hover,
+.dropdown-content .dropdown-item.is-active,
+.navbar-dropdown a.navbar-item:hover,
+.navbar-dropdown .navbar-item.is-active {
+  background-color: var(--alg-rij-hover) !important;
+  color: var(--alg-tekst-sterk) !important;
+}
+
+.dropdown-content .dropdown-divider,
+.navbar-divider {
+  background-color: var(--alg-rand-sterk) !important;
+}
+
+/* knoppen */
+body:has(.navbar-burger, .columns > .column, .field > .control, .buttons > .button) :is(.button:not([class*="is-"]), .button.is-white, .button.is-light, .button.is-text) {
+  background-color: var(--alg-knop-zacht) !important;
+  border-color: var(--alg-rand-sterk) !important;
+  color: var(--alg-tekst) !important;
+}
+
+body:has(.navbar-burger, .columns > .column, .field > .control, .buttons > .button) :is(.button:not([class*="is-"]), .button.is-white, .button.is-light):hover {
+  background-color: var(--alg-knop-zacht-hover) !important;
+  color: var(--alg-tekst-sterk) !important;
+}
+
+.button.is-text {
+  background-color: transparent !important;
+  border-color: transparent !important;
+}
+
+.button:is(.is-primary, .is-link):not(.is-outlined, .is-inverted, .is-light) {
+  background-color: var(--alg-knop) !important;
+  border-color: transparent !important;
+  color: #fff !important;
+}
+
+.button:is(.is-primary, .is-link):not(.is-outlined, .is-inverted, .is-light):hover {
+  background-color: var(--alg-knop-hover) !important;
+  box-shadow: var(--alg-gloed) !important;
+}
+
+.button:is(.is-primary, .is-link).is-outlined {
+  border-color: #8a8a8a !important;
+  color: #c8c8c8 !important;
+}
+
+.button.is-success:not(.is-outlined, .is-inverted, .is-light) { background-color: var(--alg-ok-vlak) !important; color: #fff !important; }
+.button.is-danger:not(.is-outlined, .is-inverted, .is-light) { background-color: var(--alg-fout-vlak) !important; color: #fff !important; }
+
+body:has(.navbar-burger, .columns > .column, .field > .control, .buttons > .button) .button {
+  border-radius: var(--alg-radius);
+}
+
+/* tabellen, menu, tabs, panelen */
+body:has(.navbar-burger, .columns > .column, .field > .control, .buttons > .button) .table {
+  background-color: transparent !important;
+  color: var(--alg-tekst) !important;
+}
+
+body:has(.navbar-burger, .columns > .column, .field > .control, .buttons > .button) .table :is(td, th) {
+  border-color: var(--alg-rand) !important;
+}
+
+body:has(.navbar-burger, .columns > .column, .field > .control, .buttons > .button) .table th {
+  color: var(--alg-tekst-sterk) !important;
+}
+
+.table.is-striped tbody tr:not(.is-selected):nth-child(even) {
+  background-color: var(--alg-zebra) !important;
+}
+
+.table.is-hoverable tbody tr:not(.is-selected):hover {
+  background-color: rgba(255, 255, 255, .05) !important;
+}
+
+.table tr.is-selected {
+  background-color: var(--alg-knop) !important;
+  color: #fff !important;
+}
+
+.menu-list a {
+  color: var(--alg-tekst) !important;
+}
+
+.menu-list a:hover {
+  background-color: var(--alg-rij-hover) !important;
+  color: var(--alg-tekst-sterk) !important;
+}
+
+.menu-list a.is-active {
+  background-color: var(--alg-knop) !important;
+  color: #fff !important;
+}
+
+body:has(.navbar-burger, .columns > .column, .field > .control, .buttons > .button) .tabs a {
+  border-bottom-color: var(--alg-rand-sterk) !important;
+  color: var(--alg-gedempt) !important;
+}
+
+body:has(.navbar-burger, .columns > .column, .field > .control, .buttons > .button) .tabs ul {
+  border-bottom-color: var(--alg-rand-sterk) !important;
+}
+
+.tabs li.is-active a {
+  border-bottom-color: #bbb !important;
+  color: var(--alg-tekst-sterk) !important;
+}
+
+.tabs:is(.is-boxed, .is-toggle) li.is-active a {
+  background-color: var(--alg-knop) !important;
+  border-color: var(--alg-knop) !important;
+  color: #fff !important;
+}
+
+.tabs.is-toggle a {
+  border-color: var(--alg-rand-sterk) !important;
+}
+
+.panel-heading {
+  background-color: var(--alg-paneel) !important;
+}
+
+.panel-block.is-active {
+  border-left-color: #bbb !important;
+  color: var(--alg-tekst-sterk) !important;
+}
+
+.pagination-link,
+.pagination-previous,
+.pagination-next {
+  border-color: var(--alg-rand-sterk) !important;
+  color: var(--alg-tekst) !important;
+}
+
+.pagination-link.is-current {
+  background-color: var(--alg-knop) !important;
+  border-color: var(--alg-knop) !important;
+  color: #fff !important;
+}
+
+body:has(.navbar-burger, .columns > .column, .field > .control, .buttons > .button) :is(.notification:not([class*="is-"]), .tag:not(body):not([class*="is-"])) {
+  background-color: rgba(255, 255, 255, .08) !important;
+  color: var(--alg-tekst) !important;
+}
+
+.notification.is-primary,
+.tag.is-primary:not(.is-light),
+.hero.is-primary {
+  background-color: var(--alg-knop) !important;
+  color: #fff !important;
+}
+
+.hero:is(.is-white, .is-light) {
+  background-color: transparent !important;
+  color: var(--alg-tekst) !important;
+}
+
+.modal-card-head,
+.modal-card-foot {
+  background-color: var(--alg-paneel) !important;
+  border-color: var(--alg-rand) !important;
+}
+
+.modal-card {
+  background-color: var(--alg-glas-sterk);
+  border-radius: var(--alg-radius-groot);
+  box-shadow: var(--alg-schaduw);
+  -webkit-backdrop-filter: var(--alg-blur);
+  backdrop-filter: var(--alg-blur);
+}
+
+.modal-card-body {
+  background-color: transparent !important;
+  color: var(--alg-tekst) !important;
+}
+
+.modal-content > .box {
+  background-color: var(--alg-glas-sterk) !important;
+}
+
+body:has(.navbar-burger, .columns > .column, .field > .control, .buttons > .button) .footer {
+  background-color: rgba(10, 10, 10, .45) !important;
+  color: var(--alg-gedempt);
+}
+
+.select:not(.is-multiple):not(.is-loading)::after {
+  border-color: #bbb !important;
+}
+
+/* ==========================================================================
+   FOMANTIC / SEMANTIC UI (.ui.*)
+   ========================================================================== */
+.ui.segment:not(.inverted):not([class*="colored"]),
+.ui.segments:not(.inverted),
+.ui.card:not(.inverted),
+.ui.cards > .card:not(.inverted),
+.ui.menu:not(.inverted):not(.secondary):not(.text),
+.ui.vertical.menu:not(.inverted),
+.ui.table:not(.inverted),
+.ui.steps .step,
+.ui.feed,
+.ui.items > .item {
+  background-color: var(--alg-glas) !important;
+  border-color: var(--alg-rand) !important;
+  color: var(--alg-tekst) !important;
+}
+
+.ui.segment:not(.inverted),
+.ui.card:not(.inverted),
+.ui.cards > .card:not(.inverted) {
+  border-radius: var(--alg-radius-groot);
+  box-shadow: var(--alg-schaduw-klein) !important;
+}
+
+.ui.header:not(.inverted),
+.ui.card > .content > .header,
+.ui.cards > .card > .content > .header,
+.ui.items > .item > .content > .header,
+.ui.list .list > .item .header,
+.ui.list > .item .header,
+.ui.form .field > label,
+.ui.checkbox label,
+.ui.checkbox + label,
+.ui.accordion .title:not(.ui),
+.ui.statistic > .value,
+.ui.statistic > .label,
+.ui.comments .comment .author,
+.ui.feed > .event > .content .summary,
+.ui.breadcrumb .active.section {
+  color: var(--alg-tekst-sterk) !important;
+}
+
+.ui.card > .content > .description,
+.ui.cards > .card > .content > .description,
+.ui.card .meta,
+.ui.cards > .card .meta,
+.ui.list > .item .description,
+.ui.header .sub.header,
+.ui.items > .item .meta,
+.ui.comments .comment .metadata,
+.ui.feed > .event > .content .date {
+  color: var(--alg-gedempt) !important;
+}
+
+.ui.card > .extra,
+.ui.cards > .card > .extra,
+.ui.card > .content,
+.ui.cards > .card > .content {
+  border-color: var(--alg-rand) !important;
+  color: var(--alg-gedempt);
+}
+
+.ui.divider:not(.vertical):not(.horizontal) {
+  border-top-color: var(--alg-rand-sterk) !important;
+  border-bottom-color: transparent !important;
+}
+
+/* Fomantic zet Lato op veel onderdelen; iconen (i.icon) houden hun eigen font */
+.ui.button,
+.ui.buttons .button,
+.ui.header,
+.ui.menu,
+.ui.input > input,
+.ui.form input,
+.ui.form textarea,
+.ui.form select,
+.ui.form,
+.ui.card > .content > .header,
+.ui.cards > .card > .content > .header,
+.ui.items > .item > .content > .header,
+.ui.list .header,
+.ui.modal > .header,
+.ui.message .header,
+.ui.statistic > .value,
+.ui.statistic > .label,
+.ui.label,
+.ui.labels .label,
+.ui.popup,
+.ui.dropdown .menu,
+.ui.search > .results,
+.ui.accordion .title:not(.ui),
+.ui.steps .step .title,
+.ui.comments .comment .author {
+  font-family: var(--alg-font) !important;
+}
+
+.ui.card > .extra a:not(.ui),
+.ui.cards > .card > .extra a:not(.ui) {
+  color: var(--alg-gedempt) !important;
+}
+
+.ui.card > .extra a:not(.ui):hover,
+.ui.cards > .card > .extra a:not(.ui):hover {
+  color: var(--alg-tekst-sterk) !important;
+}
+
+/* menu's */
+.ui.menu .item {
+  color: var(--alg-tekst) !important;
+}
+
+.ui.menu .item::before {
+  background-color: var(--alg-rand) !important;
+}
+
+.ui.menu .active.item,
+.ui.menu a.item:hover,
+.ui.link.menu .item:hover,
+.ui.secondary.menu .active.item,
+.ui.secondary.menu a.item:hover {
+  background-color: var(--alg-rij-hover) !important;
+  color: var(--alg-tekst-sterk) !important;
+}
+
+.ui.secondary.pointing.menu .active.item,
+.ui.tabular.menu .active.item {
+  background-color: rgba(255, 255, 255, .06) !important;
+  border-color: var(--alg-rand-sterk) !important;
+  color: var(--alg-tekst-sterk) !important;
+}
+
+.ui.secondary.pointing.menu,
+.ui.tabular.menu {
+  border-color: var(--alg-rand-sterk) !important;
+}
+
+.ui.dropdown .menu,
+.ui.menu .dropdown.item .menu,
+.ui.popup,
+.ui.search > .results {
+  background-color: var(--alg-glas-sterk) !important;
+  border-color: var(--alg-rand-sterk) !important;
+  color: var(--alg-tekst) !important;
+  box-shadow: var(--alg-schaduw-midden) !important;
+  -webkit-backdrop-filter: var(--alg-blur);
+  backdrop-filter: var(--alg-blur);
+}
+
+.ui.popup::before {
+  background-color: #141414 !important;
+  box-shadow: 1px 1px 0 0 var(--alg-rand-sterk) !important;
+}
+
+.ui.dropdown .menu > .item,
+.ui.menu .ui.dropdown .menu > .item {
+  border-color: var(--alg-rand) !important;
+  color: var(--alg-tekst) !important;
+}
+
+.ui.dropdown .menu > .item:hover,
+.ui.dropdown .menu .selected.item,
+.ui.menu .ui.dropdown .menu > .item:hover,
+.ui.menu .ui.dropdown .menu > .selected.item {
+  background-color: var(--alg-rij-hover) !important;
+  color: var(--alg-tekst-sterk) !important;
+}
+
+.ui.dropdown .menu > .header,
+.ui.dropdown .menu > .divider {
+  border-color: var(--alg-rand) !important;
+  color: var(--alg-gedempt) !important;
+}
+
+/* formulieren */
+.ui.selection.dropdown,
+.ui.form input:not([type]),
+.ui.form input[type="text"],
+.ui.form input[type="email"],
+.ui.form input[type="password"],
+.ui.form input[type="search"],
+.ui.form input[type="number"],
+.ui.form input[type="url"],
+.ui.form textarea,
+.ui.form select,
+.ui.input > input {
+  background-color: var(--alg-veld) !important;
+  border-color: var(--alg-rand-sterk) !important;
+  color: var(--alg-tekst-sterk) !important;
+}
+
+.ui.selection.dropdown .menu > .item {
+  border-color: var(--alg-rand) !important;
+}
+
+/* validatie: veld met fout of waarschuwing houdt rand, tint en labelkleur
+   (anders zie je niet welk veld fout is; ook Gitea) */
+.ui.form :is(.field.error, .fields.error .field) :is(input:not([type="checkbox"], [type="radio"]), textarea, select, .ui.dropdown),
+.ui.input.error > input {
+  background-image: linear-gradient(var(--alg-fout-tint), var(--alg-fout-tint)) !important;
+  border-color: var(--alg-fout) !important;
+  color: var(--alg-fout) !important;
+}
+
+.ui.form :is(.field.error, .fields.error .field) > label {
+  color: var(--alg-fout) !important;
+}
+
+.ui.form :is(.field.warning, .fields.warning .field) :is(input:not([type="checkbox"], [type="radio"]), textarea, select, .ui.dropdown) {
+  background-image: linear-gradient(var(--alg-waarschuwing-tint), var(--alg-waarschuwing-tint)) !important;
+  border-color: var(--alg-waarschuwing) !important;
+  color: var(--alg-waarschuwing) !important;
+}
+
+.ui.form :is(.field.warning, .fields.warning .field) > label {
+  color: var(--alg-waarschuwing) !important;
+}
+
+.ui.selection.active.dropdown,
+.ui.selection.active.dropdown .menu,
+.ui.form input:focus,
+.ui.input > input:focus {
+  border-color: var(--alg-accent-kleur) !important;
+}
+
+.ui.dropdown:not(.button) > .default.text,
+.ui.default.dropdown:not(.button) > .text {
+  color: var(--alg-placeholder) !important;
+}
+
+.ui.checkbox label::before,
+.ui.checkbox .box::before {
+  background-color: var(--alg-veld) !important;
+  border-color: rgba(255, 255, 255, .3) !important;
+}
+
+.ui.checkbox input:checked ~ label::after,
+.ui.checkbox input:checked ~ .box::after {
+  color: var(--alg-tekst-sterk) !important;
+}
+
+.ui.toggle.checkbox label::before {
+  background-color: rgba(255, 255, 255, .12) !important;
+}
+
+.ui.toggle.checkbox input:checked ~ label::before {
+  background-color: var(--alg-knop) !important;
+}
+
+/* knoppen */
+.ui.button:not(.basic):not(.inverted):not([class*="primary"]):not([class*="secondary"]):not([class*="red"]):not([class*="green"]):not([class*="blue"]):not([class*="orange"]):not([class*="yellow"]):not([class*="olive"]):not([class*="teal"]):not([class*="violet"]):not([class*="purple"]):not([class*="pink"]):not([class*="brown"]):not([class*="grey"]):not([class*="black"]):not(.positive):not(.negative) {
+  background-color: var(--alg-knop-zacht) !important;
+  box-shadow: inset 0 0 0 1px var(--alg-rand-sterk) !important;
+  color: var(--alg-tekst) !important;
+}
+
+.ui.primary.button:not(.basic),
+.ui.primary.buttons .button:not(.basic) {
+  background-color: var(--alg-knop) !important;
+  color: #fff !important;
+}
+
+.ui.primary.button:not(.basic):hover {
+  background-color: var(--alg-knop-hover) !important;
+  box-shadow: var(--alg-gloed) !important;
+}
+
+.ui.basic.button,
+.ui.basic.buttons .button {
+  background-color: transparent !important;
+  box-shadow: inset 0 0 0 1px var(--alg-rand-sterk) !important;
+  color: var(--alg-tekst) !important;
+}
+
+.ui.basic.button:hover,
+.ui.basic.buttons .button:hover {
+  background-color: var(--alg-rij-hover) !important;
+  color: var(--alg-tekst-sterk) !important;
+}
+
+.ui.button {
+  border-radius: var(--alg-radius);
+}
+
+/* gekleurde knoppen en labels: Fomantic's eigen groen en blauw halen met witte
+   tekst geen 4.5:1 (groen 2.6); dezelfde statusvlakken als Bootstrap (30) */
+:is(.ui.button, .ui.label):is(.green, .positive):not(.basic, .inverted) {
+  background-color: var(--alg-ok-vlak) !important;
+  color: #fff !important;
+}
+
+:is(.ui.button, .ui.label):is(.red, .negative):not(.basic, .inverted) {
+  background-color: var(--alg-fout-vlak) !important;
+  color: #fff !important;
+}
+
+:is(.ui.button, .ui.label).blue:not(.basic, .inverted) {
+  background-color: var(--alg-info-vlak) !important;
+  color: var(--alg-donker-tekst) !important;
+}
+
+.ui.button:is(.green, .positive, .red, .negative, .blue):not(.basic, .inverted):is(:hover, :focus-visible) {
+  filter: brightness(1.12);
+  box-shadow: var(--alg-gloed) !important;
+}
+
+/* tabellen */
+.ui.table thead th,
+.ui.table tfoot th {
+  background-color: rgba(255, 255, 255, .04) !important;
+  border-color: var(--alg-rand) !important;
+  color: var(--alg-tekst-sterk) !important;
+}
+
+.ui.table td,
+.ui.table tr td {
+  border-color: var(--alg-rand) !important;
+}
+
+.ui.striped.table > tbody > tr:nth-child(2n),
+.ui.striped.table > tr:nth-child(2n) {
+  background-color: var(--alg-zebra) !important;
+}
+
+.ui.selectable.table tbody tr:hover,
+.ui.table tbody tr td.selectable:hover {
+  background-color: rgba(255, 255, 255, .05) !important;
+  color: var(--alg-tekst-sterk) !important;
+}
+
+.ui.table tr.positive,
+.ui.table td.positive { background-color: var(--alg-ok-tint) !important; color: var(--alg-ok) !important; }
+.ui.table tr.negative,
+.ui.table td.negative,
+.ui.table tr.error,
+.ui.table td.error { background-color: var(--alg-fout-tint) !important; color: var(--alg-fout) !important; }
+.ui.table tr.warning,
+.ui.table td.warning { background-color: var(--alg-waarschuwing-tint) !important; color: var(--alg-waarschuwing) !important; }
+
+/* labels en meldingen */
+.ui.label:not([class*="red"]):not([class*="green"]):not([class*="blue"]):not([class*="orange"]):not([class*="yellow"]):not([class*="olive"]):not([class*="teal"]):not([class*="violet"]):not([class*="purple"]):not([class*="pink"]):not([class*="brown"]):not([class*="black"]):not(.primary):not(.secondary) {
+  background-color: rgba(255, 255, 255, .1) !important;
+  border-color: var(--alg-rand-sterk) !important;
+  color: var(--alg-tekst) !important;
+}
+
+.ui.message:not([class*="red"]):not([class*="green"]):not([class*="blue"]):not([class*="yellow"]):not(.positive):not(.negative):not(.success):not(.error):not(.warning):not(.info) {
+  background-color: rgba(255, 255, 255, .05) !important;
+  box-shadow: inset 0 0 0 1px var(--alg-rand-sterk) !important;
+  color: var(--alg-tekst) !important;
+}
+
+.ui.message .header {
+  color: inherit !important;
+}
+
+.ui.positive.message,
+.ui.success.message { background-color: var(--alg-ok-tint) !important; box-shadow: inset 0 0 0 1px var(--alg-ok-rand) !important; color: var(--alg-ok) !important; }
+.ui.negative.message,
+.ui.error.message { background-color: var(--alg-fout-tint) !important; box-shadow: inset 0 0 0 1px var(--alg-fout-rand) !important; color: var(--alg-fout) !important; }
+.ui.warning.message { background-color: var(--alg-waarschuwing-tint) !important; box-shadow: inset 0 0 0 1px var(--alg-waarschuwing-rand) !important; color: var(--alg-waarschuwing) !important; }
+.ui.info.message { background-color: var(--alg-info-tint) !important; box-shadow: inset 0 0 0 1px var(--alg-info-rand) !important; color: var(--alg-info) !important; }
+
+/* dialogen */
+.ui.modal {
+  background-color: var(--alg-glas-sterk) !important;
+  border-radius: var(--alg-radius-groot) !important;
+  box-shadow: var(--alg-schaduw) !important;
+  -webkit-backdrop-filter: var(--alg-blur);
+  backdrop-filter: var(--alg-blur);
+}
+
+.ui.modal > .header,
+.ui.modal > .content,
+.ui.modal > .actions {
+  background-color: transparent !important;
+  border-color: var(--alg-rand) !important;
+  color: var(--alg-tekst) !important;
+}
+
+.ui.modal > .header {
+  color: var(--alg-tekst-sterk) !important;
+}
+
+.ui.modal > .actions {
+  background-color: var(--alg-paneel) !important;
+}
+
+.ui.modal > .close {
+  color: var(--alg-tekst-sterk) !important;
+}
+
+/* ==========================================================================
+   PATTERNFLY 4 (--pf-global--), 5 (--pf-v5-global--), 6 (--pf-t--global--)
+   Alleen de "lichte" families worden donker; donkere contexten van
+   PatternFly zelf (masthead, zijbalk) houden hun eigen waarden.
+   ========================================================================== */
+html:root {
+  /* PF4 */
+  --pf-global--BackgroundColor--100: var(--alg-vlak) !important;
+  --pf-global--BackgroundColor--150: #1c1c1c !important;
+  --pf-global--BackgroundColor--200: #121212 !important;
+  --pf-global--BackgroundColor--light-100: var(--alg-vlak) !important;
+  --pf-global--BackgroundColor--light-200: #1c1c1c !important;
+  --pf-global--BackgroundColor--light-300: #222 !important;
+  --pf-global--Color--100: var(--alg-tekst) !important;
+  --pf-global--Color--200: var(--alg-gedempt) !important;
+  --pf-global--Color--300: #bbb !important;
+  --pf-global--Color--400: #8a8a8a !important;
+  --pf-global--Color--dark-100: var(--alg-tekst) !important;
+  --pf-global--Color--dark-200: var(--alg-gedempt) !important;
+  --pf-global--BorderColor--100: var(--alg-rand-sterk) !important;
+  --pf-global--BorderColor--200: var(--alg-rand) !important;
+  --pf-global--BorderColor--300: var(--alg-rand) !important;
+  --pf-global--BorderColor--dark-100: var(--alg-rand-sterk) !important;
+  --pf-global--primary-color--100: var(--alg-knop) !important;
+  --pf-global--primary-color--200: var(--alg-knop-hover) !important;
+  --pf-global--primary-color--dark-100: var(--alg-knop) !important;
+  --pf-global--primary-color--light-100: var(--alg-accent-kleur) !important;
+  --pf-global--active-color--100: var(--alg-accent-kleur) !important;
+  --pf-global--link--Color: var(--alg-link) !important;
+  --pf-global--link--Color--hover: var(--alg-link-hover) !important;
+  --pf-global--link--Color--dark: var(--alg-link) !important;
+  --pf-global--link--Color--dark--hover: var(--alg-link-hover) !important;
+  --pf-global--FontFamily--sans-serif: var(--alg-font) !important;
+  --pf-global--FontFamily--heading--sans-serif: var(--alg-font) !important;
+  --pf-global--FontFamily--overpass--sans-serif: var(--alg-font) !important;
+  --pf-global--FontFamily--redhatfont--sans-serif: var(--alg-font) !important;
+  --pf-global--FontFamily--redhatfont--heading--sans-serif: var(--alg-font) !important;
+  --pf-global--BoxShadow--md: var(--alg-schaduw-midden) !important;
+  --pf-global--BoxShadow--lg: var(--alg-schaduw) !important;
+  /* lichte tinten (meldingen, labels) donker, statustekst licht */
+  --pf-global--palette--black-150: rgba(255, 255, 255, .1) !important;
+  --pf-global--palette--black-200: rgba(255, 255, 255, .12) !important;
+  --pf-global--palette--green-50: var(--alg-ok-tint) !important;
+  --pf-global--palette--red-50: var(--alg-fout-tint) !important;
+  --pf-global--palette--gold-50: var(--alg-waarschuwing-tint) !important;
+  --pf-global--palette--orange-50: var(--alg-waarschuwing-tint) !important;
+  --pf-global--palette--blue-50: var(--alg-info-tint) !important;
+  --pf-global--palette--cyan-50: rgba(255, 255, 255, .06) !important;
+  --pf-global--palette--purple-50: rgba(255, 255, 255, .06) !important;
+  --pf-global--success-color--200: var(--alg-ok) !important;
+  --pf-global--danger-color--200: var(--alg-fout) !important;
+  --pf-global--warning-color--200: var(--alg-waarschuwing) !important;
+  --pf-global--info-color--200: var(--alg-info) !important;
+  --pf-global--default-color--300: var(--alg-tekst-sterk) !important;
+
+  /* PF5 */
+  --pf-v5-global--BackgroundColor--100: var(--alg-vlak) !important;
+  --pf-v5-global--BackgroundColor--150: #1c1c1c !important;
+  --pf-v5-global--BackgroundColor--200: #121212 !important;
+  --pf-v5-global--BackgroundColor--light-100: var(--alg-vlak) !important;
+  --pf-v5-global--BackgroundColor--light-200: #1c1c1c !important;
+  --pf-v5-global--BackgroundColor--light-300: #222 !important;
+  --pf-v5-global--Color--100: var(--alg-tekst) !important;
+  --pf-v5-global--Color--200: var(--alg-gedempt) !important;
+  --pf-v5-global--Color--dark-100: var(--alg-tekst) !important;
+  --pf-v5-global--Color--dark-200: var(--alg-gedempt) !important;
+  --pf-v5-global--BorderColor--100: var(--alg-rand-sterk) !important;
+  --pf-v5-global--BorderColor--200: var(--alg-rand) !important;
+  --pf-v5-global--BorderColor--300: var(--alg-rand) !important;
+  --pf-v5-global--BorderColor--dark-100: var(--alg-rand-sterk) !important;
+  --pf-v5-global--primary-color--100: var(--alg-knop) !important;
+  --pf-v5-global--primary-color--200: var(--alg-knop-hover) !important;
+  --pf-v5-global--primary-color--dark-100: var(--alg-knop) !important;
+  --pf-v5-global--primary-color--light-100: var(--alg-accent-kleur) !important;
+  --pf-v5-global--active-color--100: var(--alg-accent-kleur) !important;
+  --pf-v5-global--link--Color: var(--alg-link) !important;
+  --pf-v5-global--link--Color--hover: var(--alg-link-hover) !important;
+  --pf-v5-global--link--Color--dark: var(--alg-link) !important;
+  --pf-v5-global--link--Color--dark--hover: var(--alg-link-hover) !important;
+  --pf-v5-global--FontFamily--text: var(--alg-font) !important;
+  --pf-v5-global--FontFamily--heading: var(--alg-font) !important;
+  --pf-v5-global--FontFamily--sans-serif: var(--alg-font) !important;
+  --pf-v5-global--palette--black-150: rgba(255, 255, 255, .1) !important;
+  --pf-v5-global--palette--black-200: rgba(255, 255, 255, .12) !important;
+  --pf-v5-global--palette--green-50: var(--alg-ok-tint) !important;
+  --pf-v5-global--palette--red-50: var(--alg-fout-tint) !important;
+  --pf-v5-global--palette--gold-50: var(--alg-waarschuwing-tint) !important;
+  --pf-v5-global--palette--orange-50: var(--alg-waarschuwing-tint) !important;
+  --pf-v5-global--palette--blue-50: var(--alg-info-tint) !important;
+  --pf-v5-global--palette--cyan-50: rgba(255, 255, 255, .06) !important;
+  --pf-v5-global--palette--purple-50: rgba(255, 255, 255, .06) !important;
+  --pf-v5-global--success-color--200: var(--alg-ok) !important;
+  --pf-v5-global--danger-color--200: var(--alg-fout) !important;
+  --pf-v5-global--warning-color--200: var(--alg-waarschuwing) !important;
+  --pf-v5-global--info-color--200: var(--alg-info) !important;
+  --pf-v5-global--default-color--300: var(--alg-tekst-sterk) !important;
+
+  /* PF6 (semantische tokens) */
+  --pf-t--global--background--color--primary--default: var(--alg-vlak) !important;
+  --pf-t--global--background--color--primary--hover: #222 !important;
+  --pf-t--global--background--color--primary--clicked: #262626 !important;
+  --pf-t--global--background--color--secondary--default: #121212 !important;
+  --pf-t--global--background--color--secondary--hover: #1c1c1c !important;
+  --pf-t--global--background--color--secondary--clicked: #222 !important;
+  --pf-t--global--background--color--floating--default: #1c1c1c !important;
+  --pf-t--global--background--color--floating--hover: #262626 !important;
+  --pf-t--global--background--color--floating--clicked: #2a2a2a !important;
+  --pf-t--global--background--color--floating--secondary--default: #161616 !important;
+  --pf-t--global--background--color--control--default: var(--alg-veld) !important;
+  --pf-t--global--background--color--control--read-only: rgba(255, 255, 255, .04) !important;
+  --pf-t--global--background--color--action--plain--hover: var(--alg-rij-hover) !important;
+  --pf-t--global--background--color--action--plain--clicked: var(--alg-rij-actief) !important;
+  --pf-t--global--background--color--action--plain--alt--hover: var(--alg-rij-hover) !important;
+  --pf-t--global--background--color--action--plain--alt--clicked: var(--alg-rij-actief) !important;
+  --pf-t--global--background--color--sticky--default: #161616 !important;
+  --pf-t--global--background--color--disabled--default: #2a2a2a !important;
+  --pf-t--global--background--color--glass--primary--default: var(--alg-glas) !important;
+  --pf-t--global--text--color--regular: var(--alg-tekst) !important;
+  --pf-t--global--text--color--subtle: var(--alg-gedempt) !important;
+  --pf-t--global--text--color--placeholder: var(--alg-placeholder) !important;
+  --pf-t--global--text--color--disabled: #777 !important;
+  --pf-t--global--text--color--on-disabled: #999 !important;
+  --pf-t--global--text--color--link--default: var(--alg-link) !important;
+  --pf-t--global--text--color--link--hover: var(--alg-link-hover) !important;
+  --pf-t--global--text--color--link--visited: var(--alg-link) !important;
+  --pf-t--global--text--color--brand--default: #ccc !important;
+  --pf-t--global--text--color--brand--hover: #fff !important;
+  --pf-t--global--text--color--brand--clicked: #fff !important;
+  --pf-t--global--icon--color--regular: var(--alg-tekst) !important;
+  --pf-t--global--icon--color--subtle: var(--alg-gedempt) !important;
+  --pf-t--global--icon--color--brand--default: #ccc !important;
+  --pf-t--global--border--color--default: var(--alg-rand-sterk) !important;
+  --pf-t--global--border--color--subtle: var(--alg-rand) !important;
+  --pf-t--global--border--color--hover: var(--alg-rand-hover) !important;
+  --pf-t--global--border--color--clicked: var(--alg-accent-kleur) !important;
+  --pf-t--global--border--color--control--default: var(--alg-rand-sterk) !important;
+  --pf-t--global--border--color--brand--default: #9a9a9a !important;
+  --pf-t--global--color--brand--default: var(--alg-knop) !important;
+  --pf-t--global--color--brand--hover: var(--alg-knop-hover) !important;
+  --pf-t--global--color--brand--clicked: var(--alg-knop-hover) !important;
+  --pf-t--global--font--family--body: var(--alg-font) !important;
+  --pf-t--global--font--family--heading: var(--alg-font) !important;
+  /* PF6-labels en -banners ("nonstatus"): PF tekent een licht vlak met de
+     gewone tekstkleur, bij ons licht op licht. Donkere tint met de
+     statuskleur als tekst, zoals de meldingen. */
+  --pf-t--global--color--nonstatus--gray--default: rgba(255, 255, 255, .08) !important;
+  --pf-t--global--color--nonstatus--gray--hover: rgba(255, 255, 255, .12) !important;
+  --pf-t--global--color--nonstatus--gray--clicked: rgba(255, 255, 255, .12) !important;
+  --pf-t--global--text--color--nonstatus--on-gray--default: var(--alg-tekst) !important;
+  --pf-t--global--text--color--nonstatus--on-gray--hover: var(--alg-tekst) !important;
+  --pf-t--global--text--color--nonstatus--on-gray--clicked: var(--alg-tekst) !important;
+  --pf-t--global--color--nonstatus--green--default: var(--alg-ok-tint) !important;
+  --pf-t--global--color--nonstatus--green--hover: rgba(143, 214, 164, .2) !important;
+  --pf-t--global--color--nonstatus--green--clicked: rgba(143, 214, 164, .2) !important;
+  --pf-t--global--text--color--nonstatus--on-green--default: var(--alg-ok) !important;
+  --pf-t--global--text--color--nonstatus--on-green--hover: var(--alg-ok) !important;
+  --pf-t--global--text--color--nonstatus--on-green--clicked: var(--alg-ok) !important;
+  --pf-t--global--color--nonstatus--blue--default: var(--alg-info-tint) !important;
+  --pf-t--global--color--nonstatus--blue--hover: rgba(156, 201, 255, .2) !important;
+  --pf-t--global--color--nonstatus--blue--clicked: rgba(156, 201, 255, .2) !important;
+  --pf-t--global--text--color--nonstatus--on-blue--default: var(--alg-info) !important;
+  --pf-t--global--text--color--nonstatus--on-blue--hover: var(--alg-info) !important;
+  --pf-t--global--text--color--nonstatus--on-blue--clicked: var(--alg-info) !important;
+  --pf-t--global--color--nonstatus--red--default: var(--alg-fout-tint) !important;
+  --pf-t--global--color--nonstatus--red--hover: rgba(229, 139, 139, .2) !important;
+  --pf-t--global--color--nonstatus--red--clicked: rgba(229, 139, 139, .2) !important;
+  --pf-t--global--text--color--nonstatus--on-red--default: var(--alg-fout) !important;
+  --pf-t--global--text--color--nonstatus--on-red--hover: var(--alg-fout) !important;
+  --pf-t--global--text--color--nonstatus--on-red--clicked: var(--alg-fout) !important;
+  --pf-t--global--color--nonstatus--orangered--default: var(--alg-fout-tint) !important;
+  --pf-t--global--color--nonstatus--orangered--hover: rgba(229, 139, 139, .2) !important;
+  --pf-t--global--color--nonstatus--orangered--clicked: rgba(229, 139, 139, .2) !important;
+  --pf-t--global--text--color--nonstatus--on-orangered--default: var(--alg-fout) !important;
+  --pf-t--global--text--color--nonstatus--on-orangered--hover: var(--alg-fout) !important;
+  --pf-t--global--text--color--nonstatus--on-orangered--clicked: var(--alg-fout) !important;
+  --pf-t--global--color--nonstatus--orange--default: var(--alg-waarschuwing-tint) !important;
+  --pf-t--global--color--nonstatus--orange--hover: rgba(230, 181, 107, .2) !important;
+  --pf-t--global--color--nonstatus--orange--clicked: rgba(230, 181, 107, .2) !important;
+  --pf-t--global--text--color--nonstatus--on-orange--default: var(--alg-waarschuwing) !important;
+  --pf-t--global--text--color--nonstatus--on-orange--hover: var(--alg-waarschuwing) !important;
+  --pf-t--global--text--color--nonstatus--on-orange--clicked: var(--alg-waarschuwing) !important;
+  --pf-t--global--color--nonstatus--yellow--default: var(--alg-waarschuwing-tint) !important;
+  --pf-t--global--color--nonstatus--yellow--hover: rgba(230, 181, 107, .2) !important;
+  --pf-t--global--color--nonstatus--yellow--clicked: rgba(230, 181, 107, .2) !important;
+  --pf-t--global--text--color--nonstatus--on-yellow--default: var(--alg-waarschuwing) !important;
+  --pf-t--global--text--color--nonstatus--on-yellow--hover: var(--alg-waarschuwing) !important;
+  --pf-t--global--text--color--nonstatus--on-yellow--clicked: var(--alg-waarschuwing) !important;
+  --pf-t--global--color--nonstatus--teal--default: rgba(255, 255, 255, .08) !important;
+  --pf-t--global--color--nonstatus--teal--hover: rgba(255, 255, 255, .12) !important;
+  --pf-t--global--color--nonstatus--teal--clicked: rgba(255, 255, 255, .12) !important;
+  --pf-t--global--text--color--nonstatus--on-teal--default: var(--alg-tekst) !important;
+  --pf-t--global--text--color--nonstatus--on-teal--hover: var(--alg-tekst) !important;
+  --pf-t--global--text--color--nonstatus--on-teal--clicked: var(--alg-tekst) !important;
+  --pf-t--global--color--nonstatus--purple--default: rgba(255, 255, 255, .08) !important;
+  --pf-t--global--color--nonstatus--purple--hover: rgba(255, 255, 255, .12) !important;
+  --pf-t--global--color--nonstatus--purple--clicked: rgba(255, 255, 255, .12) !important;
+  --pf-t--global--text--color--nonstatus--on-purple--default: var(--alg-tekst) !important;
+  --pf-t--global--text--color--nonstatus--on-purple--hover: var(--alg-tekst) !important;
+  --pf-t--global--text--color--nonstatus--on-purple--clicked: var(--alg-tekst) !important;
+}
+
+/* pagina-achtergrond laten doorschijnen */
+.pf-c-page,
+.pf-v5-c-page,
+.pf-v6-c-page,
+.pf-c-page__main,
+.pf-v5-c-page__main,
+.pf-v6-c-page__main-container,
+.pf-c-page__main-section:not([class*="pf-m-dark"]),
+.pf-v5-c-page__main-section:not([class*="pf-m-dark"]),
+.pf-v6-c-page__main-section:not([class*="pf-m-dark"]) {
+  background-color: transparent !important;
+}
+
+.pf-c-card,
+.pf-v5-c-card,
+.pf-v6-c-card {
+  background-color: var(--alg-glas) !important;
+  border-radius: var(--alg-radius-groot);
+}
+
+.pf-c-modal-box,
+.pf-v5-c-modal-box,
+.pf-v6-c-modal-box,
+.pf-c-login__main,
+.pf-v5-c-login__main,
+.pf-v6-c-login__main {
+  background-color: var(--alg-glas-sterk) !important;
+  border-radius: var(--alg-radius-groot);
+  box-shadow: var(--alg-schaduw) !important;
+  -webkit-backdrop-filter: var(--alg-blur);
+  backdrop-filter: var(--alg-blur);
+}
+
+.pf-c-dropdown__menu,
+.pf-c-select__menu,
+.pf-c-menu,
+.pf-v5-c-menu,
+.pf-v6-c-menu,
+.pf-c-popover__content,
+.pf-v5-c-popover__content,
+.pf-v6-c-popover__content {
+  background-color: var(--alg-glas-sterk) !important;
+  -webkit-backdrop-filter: var(--alg-blur);
+  backdrop-filter: var(--alg-blur);
+}
+
+.pf-c-button.pf-m-primary,
+.pf-v5-c-button.pf-m-primary,
+.pf-v6-c-button.pf-m-primary {
+  color: #fff !important;
+}
+
+/* secundaire knop: tekst en rand in primaire kleur (grijs) is te zwak */
+.pf-c-button {
+  --pf-c-button--m-secondary--Color: var(--alg-tekst) !important;
+  --pf-c-button--m-secondary--hover--Color: var(--alg-tekst-sterk) !important;
+  --pf-c-button--m-secondary--focus--Color: var(--alg-tekst-sterk) !important;
+  --pf-c-button--m-secondary--active--Color: var(--alg-tekst-sterk) !important;
+  --pf-c-button--m-secondary--after--BorderColor: var(--alg-rand-hover) !important;
+  --pf-c-button--m-secondary--hover--after--BorderColor: #9a9a9a !important;
+}
+
+.pf-v5-c-button {
+  --pf-v5-c-button--m-secondary--Color: var(--alg-tekst) !important;
+  --pf-v5-c-button--m-secondary--hover--Color: var(--alg-tekst-sterk) !important;
+  --pf-v5-c-button--m-secondary--focus--Color: var(--alg-tekst-sterk) !important;
+  --pf-v5-c-button--m-secondary--active--Color: var(--alg-tekst-sterk) !important;
+  --pf-v5-c-button--m-secondary--after--BorderColor: var(--alg-rand-hover) !important;
+  --pf-v5-c-button--m-secondary--hover--after--BorderColor: #9a9a9a !important;
+}
+
+/* ==========================================================================
+   ANT DESIGN 4 (statische CSS) en 5 (CSS-in-JS, zelfde klassen)
+   ========================================================================== */
+.ant-layout,
+.ant-layout-content {
+  background: transparent !important;
+}
+
+.ant-layout-header,
+.ant-layout-sider:not(.ant-layout-sider-dark),
+.ant-layout-footer {
+  background: rgba(10, 10, 10, .55) !important;
+  color: var(--alg-tekst) !important;
+}
+
+.ant-card,
+.ant-collapse {
+  background-color: var(--alg-glas) !important;
+  border-color: var(--alg-rand) !important;
+  color: var(--alg-tekst) !important;
+}
+
+.ant-card-head,
+.ant-card-actions,
+.ant-collapse > .ant-collapse-item > .ant-collapse-header {
+  background-color: var(--alg-paneel) !important;
+  border-color: var(--alg-rand) !important;
+  color: var(--alg-tekst-sterk) !important;
+}
+
+.ant-card-head-title,
+.ant-card-meta-title,
+.ant-typography:is(h1, h2, h3, h4, h5),
+.ant-statistic-content,
+.ant-form-item-label > label,
+.ant-modal-title,
+.ant-drawer-title,
+.ant-page-header-heading-title,
+.ant-descriptions-item-label,
+.ant-list-item-meta-title,
+.ant-result-title {
+  color: var(--alg-tekst-sterk) !important;
+}
+
+.ant-card-meta-description,
+.ant-statistic-title,
+.ant-typography-secondary,
+.ant-form-item-extra,
+.ant-list-item-meta-description,
+.ant-empty-description,
+.ant-descriptions-item-content {
+  color: var(--alg-gedempt) !important;
+}
+
+.ant-typography,
+.ant-list-item,
+.ant-collapse-content,
+.ant-tabs,
+.ant-radio-wrapper,
+.ant-checkbox-wrapper,
+.ant-steps-item-title,
+.ant-breadcrumb,
+.ant-timeline-item-content {
+  color: var(--alg-tekst) !important;
+}
+
+.ant-collapse-content {
+  background-color: transparent !important;
+  border-color: var(--alg-rand) !important;
+}
+
+.ant-modal-content,
+.ant-modal-header,
+.ant-drawer-content,
+.ant-drawer-header,
+.ant-popover-inner,
+.ant-popover-content .ant-popover-inner,
+.ant-dropdown-menu,
+.ant-select-dropdown,
+.ant-picker-dropdown .ant-picker-panel-container,
+.ant-cascader-menus,
+.ant-message-notice-content,
+.ant-notification-notice {
+  background-color: var(--alg-glas-sterk) !important;
+  border-color: var(--alg-rand-sterk) !important;
+  color: var(--alg-tekst) !important;
+  -webkit-backdrop-filter: var(--alg-blur);
+  backdrop-filter: var(--alg-blur);
+}
+
+.ant-modal-content,
+.ant-drawer-content {
+  box-shadow: var(--alg-schaduw) !important;
+}
+
+.ant-modal-header {
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+  background-color: transparent !important;
+}
+
+.ant-modal-content {
+  border-radius: var(--alg-radius-groot) !important;
+}
+
+.ant-modal-footer,
+.ant-modal-header,
+.ant-drawer-header,
+.ant-drawer-footer {
+  border-color: var(--alg-rand) !important;
+}
+
+.ant-modal-close,
+.ant-drawer-close {
+  color: var(--alg-gedempt) !important;
+}
+
+.ant-dropdown-menu-item,
+.ant-select-item,
+.ant-cascader-menu-item {
+  color: var(--alg-tekst) !important;
+}
+
+.ant-dropdown-menu-item:hover,
+.ant-dropdown-menu-item-active,
+.ant-select-item-option-active:not(.ant-select-item-option-disabled),
+.ant-cascader-menu-item:hover {
+  background-color: var(--alg-rij-hover) !important;
+}
+
+.ant-select-item-option-selected:not(.ant-select-item-option-disabled),
+.ant-dropdown-menu-item-selected,
+.ant-cascader-menu-item-active:not(.ant-cascader-menu-item-disabled) {
+  background-color: var(--alg-rij-actief) !important;
+  color: var(--alg-tekst-sterk) !important;
+}
+
+/* lettertype: Ant zet zijn eigen font op componenten (iconen zijn svg) */
+:is([class^="ant-"], [class*=" ant-"]):not([class*="icon"]) {
+  font-family: var(--alg-font) !important;
+}
+
+/* invoer: het buitenste vak krijgt de kleur, het binnenste veld is doorzichtig */
+.ant-input,
+.ant-input-number,
+.ant-input-affix-wrapper,
+.ant-select:not(.ant-select-customize-input) .ant-select-selector,
+.ant-picker,
+.ant-input-group-addon {
+  background-color: var(--alg-veld) !important;
+  border-color: var(--alg-rand-sterk) !important;
+  color: var(--alg-tekst-sterk) !important;
+}
+
+.ant-input-affix-wrapper > input.ant-input,
+.ant-input-number-input,
+.ant-picker-input > input,
+.ant-select-selection-search-input {
+  background-color: transparent !important;
+}
+
+.ant-input-affix-wrapper > input.ant-input:focus,
+.ant-input-number-input:focus,
+.ant-picker-input > input:focus,
+.ant-select-selection-search-input:focus {
+  box-shadow: none !important;
+  outline: 0 !important;
+}
+
+.ant-select-arrow,
+.ant-picker-suffix,
+.ant-input-suffix,
+.ant-input-prefix {
+  color: var(--alg-gedempt) !important;
+}
+
+/* knoppen */
+.ant-btn-default,
+.ant-btn:not([class*="ant-btn-primary"], [class*="ant-btn-link"], [class*="ant-btn-text"], [class*="ant-btn-dangerous"], [class*="ant-btn-color-"], [class*="ant-btn-background-ghost"]) {
+  background-color: var(--alg-knop-zacht) !important;
+  border-color: var(--alg-rand-sterk) !important;
+  color: var(--alg-tekst) !important;
+}
+
+.ant-btn-primary:not(.ant-btn-dangerous):not(.ant-btn-background-ghost) {
+  background-color: var(--alg-knop) !important;
+  border-color: transparent !important;
+  color: #fff !important;
+}
+
+.ant-btn-primary:not(.ant-btn-dangerous):not(.ant-btn-background-ghost):hover {
+  background-color: var(--alg-knop-hover) !important;
+  box-shadow: var(--alg-gloed) !important;
+}
+
+.ant-btn {
+  border-radius: var(--alg-radius) !important;
+}
+
+.ant-btn-link,
+.ant-btn-text {
+  color: var(--alg-link) !important;
+}
+
+/* tabellen */
+.ant-table,
+.ant-table-container,
+.ant-table-placeholder,
+.ant-table-tbody > tr > td,
+.ant-table-tbody > tr.ant-table-placeholder:hover > td {
+  background-color: transparent !important;
+  border-color: var(--alg-rand) !important;
+  color: var(--alg-tekst) !important;
+}
+
+.ant-table-thead > tr > th,
+.ant-table-thead > tr > td {
+  background-color: rgba(255, 255, 255, .04) !important;
+  border-color: var(--alg-rand) !important;
+  color: var(--alg-tekst-sterk) !important;
+}
+
+.ant-table-tbody > tr.ant-table-row:hover > td,
+.ant-table-tbody > tr > td.ant-table-cell-row-hover {
+  background-color: rgba(255, 255, 255, .05) !important;
+}
+
+.ant-table-tbody > tr.ant-table-row-selected > td {
+  background-color: var(--alg-rij-actief) !important;
+}
+
+/* menu's (lichte variant) */
+.ant-menu-light,
+.ant-menu:not(.ant-menu-dark) {
+  background-color: transparent !important;
+  border-color: var(--alg-rand) !important;
+  color: var(--alg-tekst) !important;
+}
+
+.ant-menu:not(.ant-menu-dark) .ant-menu-item,
+.ant-menu:not(.ant-menu-dark) .ant-menu-submenu-title {
+  color: var(--alg-tekst) !important;
+}
+
+.ant-menu:not(.ant-menu-dark) .ant-menu-item:hover,
+.ant-menu:not(.ant-menu-dark) .ant-menu-submenu-title:hover {
+  background-color: var(--alg-rij-hover) !important;
+  color: var(--alg-tekst-sterk) !important;
+}
+
+.ant-menu:not(.ant-menu-dark) .ant-menu-item-selected {
+  background-color: var(--alg-rij-actief) !important;
+  color: var(--alg-tekst-sterk) !important;
+}
+
+.ant-menu-sub.ant-menu-inline,
+.ant-menu-submenu-popup > .ant-menu {
+  background-color: var(--alg-glas-sterk) !important;
+}
+
+/* tabs, paginering, tags */
+.ant-tabs-tab {
+  color: var(--alg-gedempt) !important;
+}
+
+.ant-tabs-tab.ant-tabs-tab-active .ant-tabs-tab-btn {
+  color: var(--alg-tekst-sterk) !important;
+}
+
+.ant-tabs-ink-bar {
+  background-color: #bbb !important;
+}
+
+.ant-tabs-top > .ant-tabs-nav::before,
+.ant-tabs-bottom > .ant-tabs-nav::before {
+  border-color: var(--alg-rand-sterk) !important;
+}
+
+.ant-pagination-item,
+.ant-pagination-prev .ant-pagination-item-link,
+.ant-pagination-next .ant-pagination-item-link {
+  background-color: rgba(255, 255, 255, .04) !important;
+  border-color: var(--alg-rand-sterk) !important;
+}
+
+.ant-pagination-item a,
+.ant-pagination-item-link {
+  color: var(--alg-tekst) !important;
+}
+
+.ant-pagination-item-active {
+  background-color: var(--alg-knop) !important;
+  border-color: var(--alg-knop) !important;
+}
+
+.ant-pagination-item-active a {
+  color: #fff !important;
+}
+
+.ant-tag:not([class*="ant-tag-"]),
+.ant-tag-default {
+  background-color: rgba(255, 255, 255, .08) !important;
+  border-color: var(--alg-rand-sterk) !important;
+  color: var(--alg-tekst) !important;
+}
+
+.ant-tooltip-inner {
+  background-color: #1c1c1c !important;
+  color: var(--alg-tekst-sterk) !important;
+}
+
+.ant-divider {
+  border-color: var(--alg-rand-sterk) !important;
+}
+
+.ant-checkbox-inner,
+.ant-radio-inner {
+  background-color: var(--alg-veld) !important;
+  border-color: rgba(255, 255, 255, .3) !important;
+}
+
+.ant-checkbox-checked .ant-checkbox-inner,
+.ant-radio-checked .ant-radio-inner {
+  background-color: var(--alg-knop) !important;
+  border-color: #8a8a8a !important;
+}
+
+.ant-switch:not(.ant-switch-checked) {
+  background-color: rgba(255, 255, 255, .2) !important;
+}
+
+.ant-switch-checked {
+  background-color: var(--alg-knop) !important;
+}
+
+.ant-alert-success { background-color: var(--alg-ok-tint) !important; border-color: var(--alg-ok-rand) !important; }
+.ant-alert-error { background-color: var(--alg-fout-tint) !important; border-color: var(--alg-fout-rand) !important; }
+.ant-alert-warning { background-color: var(--alg-waarschuwing-tint) !important; border-color: var(--alg-waarschuwing-rand) !important; }
+.ant-alert-info { background-color: var(--alg-info-tint) !important; border-color: var(--alg-info-rand) !important; }
+.ant-alert-message,
+.ant-alert-description {
+  color: var(--alg-tekst) !important;
+}
+
+/* ---------- PatternFly: meldingen in de tekst (inline alerts) ----------- */
+/* PF geeft ze alleen een doorzichtige tint (bij ons de --*-tint-tokens): de
+   lijnen van het netwerk liepen door de tekst. Glas eronder, de tint van PF
+   als verloop erover. */
+.pf-c-alert.pf-m-inline:not(.pf-m-plain) {
+  background-color: var(--alg-glas) !important;
+  background-image: linear-gradient(var(--pf-c-alert--BackgroundColor), var(--pf-c-alert--BackgroundColor));
+}
+
+.pf-v5-c-alert.pf-m-inline:not(.pf-m-plain) {
+  background-color: var(--alg-glas) !important;
+  background-image: linear-gradient(var(--pf-v5-c-alert--BackgroundColor), var(--pf-v5-c-alert--BackgroundColor));
+}
+
+.pf-v6-c-alert.pf-m-inline:not(.pf-m-plain) {
+  background-color: var(--alg-glas) !important;
+  background-image: linear-gradient(var(--pf-v6-c-alert--BackgroundColor), var(--pf-v6-c-alert--BackgroundColor));
+}
+

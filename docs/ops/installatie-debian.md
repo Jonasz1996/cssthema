@@ -148,6 +148,24 @@ curl -I https://css.jouwdomein.be/proxmox.css   # 200, content-type: text/css, z
 
 Bewaking: `https://css.jouwdomein.be/readyz` is zonder login bereikbaar en geeft `200` met `"status":"ok"` als database en Redis werken (anders `503`). Zet die URL in Uptime Kuma (*HTTP(s) - Keyword*, keyword `"ok"`).
 
+### Eén regel voor alle hosts
+
+In plaats van per proxy host een eigen `sub_filter` met de juiste bestanden, kan elke host dezelfde regel krijgen. NPM vult `$host` in met de hostnaam van het verzoek, en cssthema levert op `/host/<hostnaam>.css` en `.js` de thema's en scripts die je op de pagina **Hosts** in het dashboard aan die hostnaam koppelt (samengevoegd tot één bestand). De koppeling `*` geldt voor elke host zonder eigen koppeling.
+
+```nginx
+sub_filter '</head>' '<link rel="stylesheet" href="https://css.jouwdomein.be/host/$host.css"><script src="https://css.jouwdomein.be/host/$host.js" defer></script></head>';
+sub_filter_once on;
+proxy_set_header Accept-Encoding "";
+```
+
+1. Open **Hosts**, maak de koppeling `*` (bv. thema `algemeen`, script `algemeen`).
+2. Heb je al regels per host (zoals `npm-sub_filter-per-dienst.conf`), plak ze bij **Importeren**: elke `# hostnaam` met de `sub_filter` eronder wordt een koppeling.
+3. Vervang in één proxy host (Advanced) de oude `sub_filter` door de regel hierboven, kijk of de app er goed uitziet, en doe dan de rest.
+
+Daarna verander je een thema of de bestanden van een host alleen nog in het dashboard, nooit meer in NPM. Apps die geen bestanden van een ander domein laden (CSP), krijgen de variant met `/alg-thema/host/$host.css` plus hun bestaande `location ^~ /alg-thema/`; de pagina Hosts toont beide.
+
+De regel moet in elke proxy host staan: een globale `server_proxy.conf` in NPM werkt niet betrouwbaar, omdat een `proxy_set_header` in een host die van de server-config opheft.
+
 ### Wie mag schrijven
 
 Tot fase 3 heeft cssthema geen eigen login: Authentik in NPM is de enige bescherming. Wie poort 80 van deze container rechtstreeks bereikt (een ander toestel op het LAN, een container op hetzelfde Docker-netwerk), komt niet langs Authentik. Daarom aanvaardt nginx van cssthema wijzigingen via de api (opslaan, publiceren, importeren, scripts uploaden of verwijderen) alleen van de adressen in `TRUSTED_PROXIES` en van de container zelf. Van elders geeft dat `403` (*Schrijven kan alleen via de reverse proxy*); lezen blijft mogen, dus `http://<ip>/` toont het dashboard wel, maar zonder dat je iets kan wijzigen. Een verzonnen `X-Forwarded-For` helpt niet: nginx kijkt naar het adres van de verbinding zelf.

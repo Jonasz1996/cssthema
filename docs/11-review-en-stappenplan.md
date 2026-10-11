@@ -1,6 +1,6 @@
 # 11 — Projectreview en stappenplan
 
-> Status: **voorstel** · Versie 0.1 · 2026-10-11
+> Status: **in uitvoering** · Versie 0.2 · 2026-10-11 (zie *Voortgang* onderaan)
 >
 > Getoetst: de volledige repo op de PR #8-branch (commit b6c40b2: backend, frontend, nginx, installer, CI, docs, capture-script) en de thema's in de projectmap (`algemeen.css`, `algemeen.js`, 58 × `alg-<app>.css`), naast de ontwerpdocumenten 01–10 en hoe cssthema echt draait (Debian-LXC achter NPM + Authentik, thema's cross-origin vanaf `https://css.jbogaert.be`).
 
@@ -105,7 +105,7 @@ Nu staat in elke proxy host een eigen `sub_filter` met 2 à 3 bestanden, en elke
   sub_filter_once on;
   proxy_set_header Accept-Encoding "";
   ```
-- Die regel kan één keer in NPM's globale `/data/nginx/custom/server_proxy.conf` (geldt voor alle proxy hosts), in plaats van 100 keer in Advanced.
+- ~~Die regel kan één keer in NPM's globale `/data/nginx/custom/server_proxy.conf`~~ Bijgesteld: dat werkt niet betrouwbaar (een `proxy_set_header` in een host heft die van de server op), dus de regel staat in elke host, maar is overal dezelfde en verandert nooit meer.
 - In het dashboard een pagina **Hosts**: lijst van hosts met per host de gekoppelde thema's, script aan/uit, en een "thema uit"-schakelaar.
 
 Resultaat: een app een ander thema geven of het netwerk uitzetten is één klik in het dashboard, zonder NPM aan te raken. De CSP-apps (Vaultwarden, Nextcloud …) houden hun `/alg-thema/`-uitzondering.
@@ -149,3 +149,13 @@ Alle thema's gebruiken al alleen `--alg-*`-tokens. Een variant (Nord, Dracula, C
 5. **D3**, daarna naar behoefte C4, D4–D8.
 
 Kies je liever iets anders eerst, zeg dan de nummers.
+
+## Voortgang
+
+| Punt | Stand |
+|---|---|
+| A1 | Klaar (PR #9), o.a.: UTF8-database, inline SVG, limiet 1 MB met grootte in de statusbalk, build naast de live map, CORS op css-files, preview bij grote thema's. |
+| A2.1, A2.4 | Klaar (PR #9): `cssthema-backup` met dagelijkse timer, back-up voor elke update, terugzetten; installer waarschuwt als je niet op `main` zit. |
+| C1 | Klaar (PR #9): `/host/<hostnaam>.css|.js`, pagina *Hosts* met importeren van bestaande `sub_filter`-regels. |
+| C2 | Klaar (PR #9): `themes/modules/` (33 modules, `scripts/themes/modules.py`), `themes/hosts-modules.conf` met per host een lichte stapel (mediaan 52 KB in plaats van 464 KB). Gecontroleerd op de vastgelegde pagina's van 62 hosts: pixel-identiek met `algemeen.css`; pagina's na het inloggen niet getest. |
+| A6.2 | Klaar: `themes/` staat in git (met `--check` in CI). |

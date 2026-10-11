@@ -1,0 +1,157 @@
+/* alg-app-jellyfin.css - gegenereerd uit algemeen.css door scripts/themes/modules.py;
+   niet met de hand aanpassen. Laadt na alg-kern.css (zie themes/README.md). */
+/* ==========================================================================
+   60 JELLYFIN (jellyfin-web 10.9+ / 12, eigen UI + MUI-dashboard)
+   Herkenning: meta application-name "Jellyfin" in de kop.
+   Jellyfin kleurt alles via --jf-palette-* (MUI-variabelen op :root en
+   [data-theme=...] van html). Wij zetten de belangrijkste op html met
+   hogere specificiteit: zo is elk Jellyfin-thema (ook Licht) donker, de
+   hoofdkleur grijs in plaats van blauw (lichtgrijs: als tekst leesbaar op
+   donker; hoofdknoppen krijgen onze knopkleur met witte tekst), en de achtergrond doorzichtig zodat
+   verloop en netwerk zichtbaar zijn. Afbeeldingen en achtergrondfoto's
+   van items blijven ongemoeid.
+   Getest met 12.2.0: home, bibliotheek, dashboard, gebruikers,
+   instellingen (weergave), contextmenu, login, opstartwizard.
+   ========================================================================== */
+
+html:has(> head > meta[name="application-name"][content="Jellyfin"]) {
+  color-scheme: dark;
+  /* hoofdkleur: grijs (naar ons accent) */
+  --jf-palette-primary-main: #aaa;
+  --jf-palette-primary-light: #c4c4c4;
+  --jf-palette-primary-dark: #8c8c8c;
+  --jf-palette-primary-contrastText: #111;
+  --jf-palette-primary-mainChannel: 170 170 170;
+  --jf-palette-primary-lightChannel: 196 196 196;
+  --jf-palette-primary-darkChannel: 140 140 140;
+  --jf-palette-primary-contrastTextChannel: 17 17 17;
+  --jf-palette-secondary-main: #aaa;
+  --jf-palette-secondary-light: #c4c4c4;
+  --jf-palette-secondary-dark: #8c8c8c;
+  --jf-palette-secondary-contrastText: #111;
+  --jf-palette-secondary-mainChannel: 170 170 170;
+  --jf-palette-secondary-lightChannel: 196 196 196;
+  --jf-palette-secondary-darkChannel: 140 140 140;
+  --jf-palette-secondary-contrastTextChannel: 17 17 17;
+  --jf-palette-LinearProgress-primaryBg: #3a3a3a;
+  --jf-palette-Slider-primaryTrack: #3a3a3a;
+  --jf-palette-Switch-primaryDisabledColor: #3a3a3a;
+  /* "info" (o.a. de bel-avatars in de activiteitenlijst van het dashboard):
+     knopgrijs met witte tekst (5.4:1) in plaats van lichtblauw; waarschuwing
+     en fout houden hun kleur */
+  --jf-palette-info-main: var(--alg-knop);
+  --jf-palette-info-mainChannel: 106 106 106;
+  --jf-palette-info-contrastText: #fff;
+
+  /* vlakken en tekst donker, ook als in Jellyfin een licht thema gekozen is
+     (waarden naar Jellyfins eigen donkere thema) */
+  --jf-palette-background-default: var(--alg-achtergrond-kleur);
+  --jf-palette-background-defaultChannel: 20 20 20;
+  --jf-palette-background-paper: #1c1c1c;
+  --jf-palette-background-paperChannel: 28 28 28;
+  --jf-palette-AppBar-defaultBg: rgba(16, 16, 16, .78);
+  --jf-palette-text-primary: #fff;
+  --jf-palette-text-secondary: rgba(255, 255, 255, .7);
+  --jf-palette-text-disabled: rgba(255, 255, 255, .5);
+  --jf-palette-text-primaryChannel: 255 255 255;
+  --jf-palette-text-secondaryChannel: 255 255 255;
+  --jf-palette-divider: rgba(255, 255, 255, .12);
+  --jf-palette-dividerChannel: 255 255 255;
+  --jf-palette-action-active: #fff;
+  --jf-palette-action-hover: rgba(255, 255, 255, .08);
+  --jf-palette-action-hoverOpacity: .08;
+  --jf-palette-action-selected: rgba(255, 255, 255, .16);
+  --jf-palette-action-disabled: rgba(255, 255, 255, .3);
+  --jf-palette-action-disabledBackground: rgba(255, 255, 255, .12);
+  --jf-palette-action-focus: rgba(255, 255, 255, .12);
+  --jf-palette-action-activeChannel: 255 255 255;
+  --jf-palette-action-selectedChannel: 255 255 255;
+  --jf-palette-common-background: #000;
+  --jf-palette-common-onBackground: #fff;
+  --jf-palette-common-backgroundChannel: 0 0 0;
+  --jf-palette-common-onBackgroundChannel: 255 255 255;
+  /* invulvelden (MUI filled): donker zoals onze velden, zodat de lijnen van
+     het netwerk er niet door schijnen */
+  --jf-palette-FilledInput-bg: var(--alg-veld);
+  --jf-palette-FilledInput-hoverBg: rgba(24, 24, 24, .9);
+  --jf-palette-TableCell-border: rgba(255, 255, 255, .08);
+  --jf-palette-Button-inheritContainedBg: #424242;
+  --jf-palette-Button-inheritContainedHoverBg: #616161;
+  --jf-palette-SnackbarContent-bg: #303030;
+}
+
+/* ---------- Pagina ----------------------------------------------------- */
+/* de vaste achtergrondlaag doorzichtig (niet bij een achtergrondfoto van
+   een item: die heeft .withBackdrop en blijft) */
+html:has(> head > meta[name="application-name"][content="Jellyfin"]) .backgroundContainer:not(.withBackdrop) {
+  background-color: transparent !important;
+  background-image: none !important;
+}
+
+/* kopbalk met achtergrond (na scrollen, dashboard): glas */
+html:has(> head > meta[name="application-name"][content="Jellyfin"]) .skinHeader-withBackground {
+  -webkit-backdrop-filter: var(--alg-blur);
+  backdrop-filter: var(--alg-blur);
+}
+
+/* sectietitels die een link zijn (Onlangs toegevoegd aan ...): het bredere
+   monospace lettertype laat ze op smalle schermen omslaan; dan links
+   uitlijnen zoals de andere titels in plaats van gecentreerd */
+html:has(> head > meta[name="application-name"][content="Jellyfin"]) .sectionTitleTextButton {
+  text-align: start;
+}
+
+/* ---------- Tegels ----------------------------------------------------- */
+/* .card is in Jellyfin een tegelhouder, geen Bootstrap-kaart: geen glasvlak
+   en schaduw achter posters (die komen anders uit 30-bootstrap) */
+html:has(> head > meta[name="application-name"][content="Jellyfin"]) .card {
+  background-color: transparent !important;
+  box-shadow: none !important;
+  border-radius: 0 !important;
+}
+
+/* tegels zonder afbeelding: grijstinten in plaats van fel blauw (witte
+   tekst en iconen blijven leesbaar) */
+html:has(> head > meta[name="application-name"][content="Jellyfin"]) :is(.defaultCardBackground1, .defaultCardBackground4) { background-color: #2a2a2a !important; }
+html:has(> head > meta[name="application-name"][content="Jellyfin"]) :is(.defaultCardBackground2, .defaultCardBackground5) { background-color: #333 !important; }
+html:has(> head > meta[name="application-name"][content="Jellyfin"]) .defaultCardBackground3 { background-color: #3a3a3a !important; }
+
+/* ---------- Velden, knoppen, menu's ------------------------------------ */
+/* afronding zoals allow */
+html:has(> head > meta[name="application-name"][content="Jellyfin"]) :is(.emby-input, .emby-textarea, .emby-select-withcolor, .button-submit, .raised:not(.fab)) {
+  border-radius: var(--alg-radius) !important;
+}
+
+/* actiemenu (drie puntjes) en dialogen: sterk glas met dunne rand */
+html:has(> head > meta[name="application-name"][content="Jellyfin"]) .dialog:is(.actionSheet, .formDialog) {
+  background-color: var(--alg-glas-sterk) !important;
+  box-shadow: inset 0 0 0 1px var(--alg-rand-sterk), var(--alg-schaduw) !important;
+  border-radius: var(--alg-radius) !important;
+  -webkit-backdrop-filter: var(--alg-blur);
+  backdrop-filter: var(--alg-blur);
+}
+
+/* hoofdknop (Aanmelden, Volgende, Opslaan): onze grijze knop met witte
+   tekst in plaats van het lichtgrijze hoofdkleurvlak */
+html:has(> head > meta[name="application-name"][content="Jellyfin"]) .button-submit:not(:disabled) {
+  background: var(--alg-knop) !important;
+  color: var(--alg-knop-tekst) !important;
+}
+
+html:has(> head > meta[name="application-name"][content="Jellyfin"]) .button-submit:not(:disabled):hover {
+  background: var(--alg-knop-hover) !important;
+  box-shadow: var(--alg-gloed);
+}
+
+/* blauwe accenten die (nog) niet via de variabelen lopen */
+html:has(> head > meta[name="application-name"][content="Jellyfin"]) :is(.listItemIcon:not(.listItemIcon-transparent), progress[aria-valuenow]::before) {
+  background-color: #555 !important;
+}
+
+/* keuzelijsten in de instellingen (MUI "filled"): 33 geeft ze 6 % wit, op
+   Jellyfins doorzichtige pagina liep het netwerk door de velden; hier het
+   donkere veld zoals overal */
+html:has(> head > meta[name="application-name"][content="Jellyfin"]) .MuiFilledInput-root {
+  background-color: var(--alg-veld) !important;
+}
+

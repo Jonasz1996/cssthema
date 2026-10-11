@@ -1,0 +1,175 @@
+/* ==========================================================================
+   alg-www.css - Bogaert.be Dashboard (eigen pagina)
+   Host: www.jbogaert.be
+   Laadt na algemeen.css (sub_filter: eerst algemeen.css, dan dit bestand).
+
+   Werkt af: de eigen theme.park-variabelen van de pagina (--card-bg,
+   --modal-bg-color met verloop, --button-color ...) op de algemeen-tokens,
+   categorieën en tegels als glazen panelen in allow-stijl, grijze knoppen met
+   gloed, zoekvelden donker met rand, statusbolletjes naar de zachte
+   ok/fout-tokens, categorietitels als "# kop" zoals in allow, het
+   statusoverzicht rechtsboven als glaskaart, en het inactiviteitsscherm
+   (#idle-overlay): de groene cijferregen wordt grijs zoals de 0/1-tekens
+   van het algemeen-netwerk.
+
+   Beperkingen: de responsgrafiek is in de vastlegging een stilstaand beeld
+   (zwart vlak); live is het een doorzichtig canvas. Weericoon ontbreekt in de
+   render (geen netwerk). #idle-overlay en #api-content zijn niet in beeld
+   getest (verborgen bij vastleggen).
+   ========================================================================== */
+
+/* ---------- Eigen variabelen van de pagina ------------------------------- */
+:root {
+  --main-bg-color: var(--alg-achtergrond);
+  --bg-dark: var(--alg-achtergrond);
+  --bg-lighter: var(--alg-rij);
+  --card-bg: var(--alg-glas);
+  --modal-bg-color: var(--alg-glas-sterk);
+  --modal-header-color: var(--alg-paneel);
+  --modal-footer-color: var(--alg-paneel);
+  --drop-down-menu-bg: var(--alg-glas-sterk);
+  --button-color: var(--alg-knop);
+  --button-color-hover: var(--alg-knop-hover);
+  --button-text: var(--alg-knop-tekst);
+  --button-text-hover: var(--alg-knop-tekst-hover);
+  --link-color: var(--alg-link);
+  --link-color-hover: var(--alg-link-hover);
+  --accent-color-hover: var(--alg-tekst-sterk);
+  --label-text-color: var(--alg-donker-tekst);
+  --text: var(--alg-tekst);
+  --text-color: var(--alg-tekst);
+  --text-hover: var(--alg-tekst-sterk);
+  --text-muted: var(--alg-gedempt);
+}
+
+/* ---------- Kop ---------------------------------------------------------- */
+.dashboard-header {
+  background: transparent;
+  border-bottom-color: var(--alg-rand-sterk);
+}
+
+.header-left h1 {
+  color: var(--alg-tekst-sterk);
+  letter-spacing: -.02em;
+  text-shadow: 0 0 18px rgba(255, 255, 255, .12);
+}
+
+.weather-block {
+  color: var(--alg-tekst);
+}
+
+.status-overview {
+  max-width: 100%; /* herstel: 360px breed liep op een telefoon over de rand */
+  border-radius: var(--alg-radius-groot);
+  box-shadow: inset 0 0 0 1px var(--alg-rand-sterk), var(--alg-schaduw-midden);
+  -webkit-backdrop-filter: var(--alg-blur);
+  backdrop-filter: var(--alg-blur);
+}
+
+#averageLatencyBlock label {
+  color: var(--alg-gedempt);
+}
+
+/* ---------- Zoekvelden en knoppen --------------------------------------- */
+/* De pagina zet border: none; de rand komt als inset schaduw (geen
+   verschuivingen). */
+.search-section input,
+#serviceSearchInput {
+  border-radius: var(--alg-radius-midden);
+  box-shadow: inset 0 0 0 1px var(--alg-rand-sterk);
+}
+
+.search-section input:focus,
+#serviceSearchInput:focus {
+  box-shadow: inset 0 0 0 1px var(--alg-accent-kleur), var(--alg-focus-ring);
+}
+
+.search-section button,
+#api-toggle {
+  border-radius: var(--alg-radius-midden);
+}
+
+.search-section button:hover,
+#api-toggle:hover {
+  box-shadow: var(--alg-gloed);
+}
+
+#api-content {
+  border-radius: var(--alg-radius);
+  box-shadow: inset 0 0 0 1px var(--alg-rand-sterk);
+}
+
+/* ---------- Categorieën en tegels --------------------------------------- */
+.service-category {
+  background: var(--alg-glas);
+  border-radius: var(--alg-radius-groot);
+  box-shadow: inset 0 0 0 1px var(--alg-rand-sterk), var(--alg-schaduw-midden);
+  -webkit-backdrop-filter: var(--alg-blur);
+  backdrop-filter: var(--alg-blur);
+}
+
+/* koppen als "# extra toegestane domeinen" in allow */
+.category-title {
+  color: var(--alg-gedempt);
+  letter-spacing: .08em;
+}
+
+.category-title::before {
+  content: "# ";
+  color: var(--alg-zwak);
+}
+
+.tile {
+  background: var(--alg-rij);
+  border-radius: var(--alg-radius);
+  box-shadow: inset 0 0 0 1px var(--alg-rand);
+}
+
+.tile:hover {
+  background: var(--alg-rij-hover);
+  box-shadow: inset 0 0 0 1px var(--alg-rand-hover), var(--alg-gloed);
+}
+
+.service-name-link {
+  color: var(--alg-tekst-sterk);
+}
+
+.service-name-link:hover {
+  color: var(--alg-link-hover);
+}
+
+.latency,
+.tile-right a {
+  color: var(--alg-gedempt);
+}
+
+/* sparklines: vaste streepkleur #9b9b9b in de svg; iets lichter */
+.sparkline polyline {
+  stroke: var(--alg-accent-kleur);
+}
+
+/* ---------- Statusbolletjes --------------------------------------------- */
+.status-online {
+  background-color: var(--alg-ok);
+  box-shadow: 0 0 8px var(--alg-ok-rand);
+}
+
+.status-offline {
+  background-color: var(--alg-fout);
+  box-shadow: 0 0 8px var(--alg-fout-rand);
+}
+
+/* ---------- Inactiviteitsscherm (niet vastgelegd) ----------------------- */
+#idle-overlay {
+  background: var(--alg-achtergrond);
+  color: var(--alg-gedempt);
+}
+
+#idle-overlay h1 {
+  color: var(--alg-tekst-sterk);
+}
+
+.digit {
+  color: rgba(255, 255, 255, .22);
+  text-shadow: 0 0 4px rgba(255, 255, 255, .25);
+}

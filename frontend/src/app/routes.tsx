@@ -4,6 +4,7 @@ import { Loading } from "@/components/ui";
 import { AiStudioPage } from "@/features/ai-studio/AiStudioPage";
 import { DashboardPage } from "@/features/dashboard/DashboardPage";
 import { DiscoveryPage } from "@/features/discovery/DiscoveryPage";
+import { HostsPage } from "@/features/hosts/HostsPage";
 import { ImportPage } from "@/features/import/ImportPage";
 import { JobsPage } from "@/features/jobs/JobsPage";
 import { PalettesPage } from "@/features/palettes/PalettesPage";
@@ -90,6 +91,7 @@ export const routes: RouteObject[] = [
           { path: "discovery", element: <DiscoveryPage /> },
           { path: "ai", element: <AiStudioPage /> },
           { path: "palettes", element: <PalettesPage /> },
+          { path: "hosts", element: <HostsPage /> },
           { path: "jobs", element: <JobsPage /> },
           { path: "settings", element: <SettingsPage /> },
           ...devRoutes(),

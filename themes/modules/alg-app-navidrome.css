@@ -1,0 +1,61 @@
+/* alg-app-navidrome.css - gegenereerd uit algemeen.css door scripts/themes/modules.py;
+   niet met de hand aanpassen. Laadt na alg-kern.css (zie themes/README.md). */
+/* ==========================================================================
+   60 NAVIDROME (react-admin 3 + MUI v4, JSS; standaard thema "Navidrome Dark")
+   Herkenning: meta og:site_name "Navidrome". MUI (33) doet de componenten.
+   Getest: albums (raster), album met nummers, selectie (bulkacties),
+   artiesten, persoonlijke instellingen, gebruikersmenu, login.
+   ========================================================================== */
+
+/* paginabrede wrappers (#303030): doorzichtig, zodat achtergrond en netwerk
+   zichtbaar worden; lijsten en albumkop staan op kaarten (glas) */
+html:has(> head > meta[property="og:site_name"][content="Navidrome"]) :is(.layout, #main-content) {
+  background-color: transparent !important;
+}
+
+/* Navidrome kent ook lichte thema's (Persoonlijk > Thema). Die zetten hun
+   tekstkleuren vast in JSS (jss-klassen), en zijn niet te herkennen in CSS.
+   Daarom hier de vaste plekken met lichte-modus-tekst leesbaar maken; in het
+   donkere standaardthema verandert er niets zichtbaars. */
+
+/* zijmenu: niet-actief zoals in het donkere thema; actief blijft vet */
+html:has(> head > meta[property="og:site_name"][content="Navidrome"]) a.MuiListItem-root.MuiMenuItem-root {
+  color: rgba(255, 255, 255, .75) !important;
+}
+
+/* albumtegels: titel en artiest onder de hoes */
+html:has(> head > meta[property="og:site_name"][content="Navidrome"]) .MuiGridListTile-root a:not(:has(img)) {
+  color: var(--alg-gedempt) !important;
+}
+
+html:has(> head > meta[property="og:site_name"][content="Navidrome"]) .MuiGridListTile-root a p {
+  color: var(--alg-tekst) !important;
+}
+
+/* gewone links (artiest in tabellen en albumkop): grijs zoals in allow */
+html:has(> head > meta[property="og:site_name"][content="Navidrome"]) a:not([class*="Mui"]):not(.MuiGridListTile-root *) {
+  color: var(--alg-link) !important;
+}
+
+/* lijstwerkbalk (zoeken, filters): op smalle schermen geeft react-admin hem
+   het kaartgrijs #424242, waarop de grijze labels te zwak zijn; glas zoals
+   de rest. De werkbalk voor bulkacties houdt zijn eigen kleur. */
+@media (max-width: 599.95px) {
+  html:has(> head > meta[property="og:site_name"][content="Navidrome"]) #main-content .MuiToolbar-root:not([data-test="bulk-actions-toolbar"]) {
+    background-color: var(--alg-glas) !important;
+  }
+}
+
+/* icoonknoppen in de hoofdkleur (filter/lijst in de mobiele werkbalk):
+   nog app-blauw; grijs-wit zoals op desktop */
+html:has(> head > meta[property="og:site_name"][content="Navidrome"]) .MuiIconButton-colorPrimary:not(.Mui-disabled) {
+  color: var(--alg-tekst) !important;
+}
+
+/* gekozen weergave (raster/lijst) in diezelfde werkbalk is colorSecondary en
+   bleef app-blauw: als actief vlak zoals elders in het thema */
+html:has(> head > meta[property="og:site_name"][content="Navidrome"]) .MuiButtonGroup-grouped.MuiIconButton-colorSecondary:not(.Mui-disabled) {
+  background-color: var(--alg-rij-actief);
+  color: var(--alg-tekst-sterk) !important;
+}
+

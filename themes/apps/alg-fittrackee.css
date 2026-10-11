@@ -1,0 +1,191 @@
+/* ==========================================================================
+   alg-fittrackee.css - FitTrackee (v1.x, Vue 3, eigen CSS-variabelen)
+   Host: fittrackee.jbogaert.be
+   Laadt NA algemeen.css.
+
+   FitTrackee stuurt bijna alles via eigen variabelen (--app-*, --button-*,
+   --input-*, --nav-*, --calendar-*, --map-*, ...) op :root en, in zijn
+   eigen donkere thema, op [data-theme="dark"]. Dit bestand zet die set op
+   de --alg-tokens (ook als de gebruiker het donkere thema van de app kiest),
+   haalt de witte vlakken van body/#app/.view weg zodat de radiale
+   achtergrond zichtbaar is, zet het lettertype (PT Sans via #app) op
+   monospace, maakt knoppen grijs met gloed en het loginformulier een glazen
+   paneel. Kaarten krijgen de omgekeerde kaartfilter van het donkere thema.
+
+   Beperkingen: alleen de loginpagina is vastgelegd; dashboard, kalender,
+   workouts, kaarten en beheer volgen via dezelfde variabelen maar zijn niet
+   getest. CSP: alleen frame-ancestors, blokkeert css.jbogaert.be niet.
+   ========================================================================== */
+
+/* :not(#alg) geeft ID-gewicht: wint ook van de [data-theme="dark"][data-v-*]-
+   kopieën die de app per component meelevert */
+:root,
+:root [data-theme]:not(#alg) {
+  --app-background-color: var(--alg-vlak);
+  --app-color: var(--alg-tekst);
+  --app-color-light: var(--alg-gedempt);
+  --app-color-lighter: var(--alg-placeholder);
+  --app-a-color: var(--alg-link);
+  --app-a-text-decoration-color: var(--alg-rand-hover);
+  --app-shadow-color: transparent;
+  --app-loading-color: var(--alg-rand-sterk);
+  --app-loading-top-color: var(--alg-tekst);
+
+  --button-hover-color: var(--alg-knop-tekst);
+  --button-transparent-hover-color: var(--alg-knop-hover);
+  --button-cancel-bg-color: var(--alg-knop-zacht);
+  --button-cancel-color: var(--alg-tekst);
+  --button-confirm-bg-color: var(--alg-knop);
+  --button-confirm-color: var(--alg-knop-tekst);
+  --button-danger-bg-color: var(--alg-knop-zacht);
+  --button-danger-color: var(--alg-fout);
+  --button-danger-hover-bg-color: var(--alg-fout-vlak);
+  --button-danger-hover-color: var(--alg-knop-tekst);
+
+  --card-border-color: var(--alg-rand-sterk);
+  --input-border-color: var(--alg-rand-sterk);
+  --input-bg-color: var(--alg-veld);
+  --input-color: var(--alg-tekst);
+  --input-error-color: var(--alg-fout);
+  --admin-disabled-input-color: var(--alg-veld-uit);
+  --disabled-background-color: var(--alg-veld-uit);
+  --disabled-color: var(--alg-gedempt);
+  --disabled-radius-input: var(--alg-veld-uit);
+  --custom-checkbox-border-color: var(--alg-rand-hover);
+  --custom-checkbox-checked-bg-color: var(--alg-knop);
+  --custom-checkbox-checked-color: var(--alg-knop-tekst);
+
+  --dropdown-background-color: var(--alg-glas-sterk);
+  --dropdown-border-color: var(--alg-rand-sterk);
+  --dropdown-hover-color: var(--alg-rij-hover);
+  --dropdown-info-color: var(--alg-gedempt);
+  --multiselect-tags-bg-color: var(--alg-veld);
+  --multiselect-tag-bg-color: var(--alg-knop-zacht-hover);
+  --multiselect-tag-color: var(--alg-tekst);
+  --multiselect-tag-icon-hover-bg-color: var(--alg-knop-hover);
+  --multiselect-tag-icon-hover-color: var(--alg-knop-tekst);
+  --multiselect-option-bg-color: var(--alg-vlak);
+  --multiselect-option-color: var(--alg-tekst);
+  --multiselect-option-highlight-bg-color: var(--alg-rij-actief);
+  --multiselect-option-highlight-color: var(--alg-tekst-sterk);
+  --multiselect-option-selected-bg-color: var(--alg-rij-hover);
+  --multiselect-option-selected-color: var(--alg-tekst-sterk);
+  --multiselect-option-selected-highlight-bg-color: var(--alg-fout-vlak);
+  --multiselect-option-selected-highlight-after-bg-color: var(--alg-fout-vlak);
+
+  --nav-bar-background-color: var(--alg-glas);
+  --nav-bar-link-active: var(--alg-tekst-sterk);
+  --nav-border-color: var(--alg-rand);
+  --mobile-menu-selected-bgcolor: var(--alg-knop);
+  --mobile-menu-selected-color: var(--alg-knop-tekst);
+  --footer-background-color: var(--alg-glas);
+  --footer-border-color: var(--alg-rand);
+  --footer-color: var(--alg-gedempt);
+  --modal-background-color: var(--alg-overlay);
+  --scroll-button-bg-color: var(--alg-glas-sterk);
+  --scroll-thumb-color: var(--alg-scrollbar);
+  --policy-border-color: var(--alg-rand);
+
+  --alert-background-color: var(--alg-paneel);
+  --alert-color: var(--alg-tekst);
+  --info-background-color: var(--alg-info-tint);
+  --info-color: var(--alg-tekst);
+  --error-background-color: var(--alg-fout-tint);
+  --error-color: var(--alg-fout);
+  --success-background-color: var(--alg-ok-tint);
+  --success-color: var(--alg-ok);
+  --like-color: var(--alg-fout);
+  --password-bg-color: var(--alg-rand-sterk);
+  --password-color-weak: var(--alg-fout-vlak);
+  --password-color-medium: var(--alg-waarschuwing-vlak);
+  --password-color-good: var(--alg-ok-vlak);
+  --password-color-strong: var(--alg-ok);
+
+  --calendar-border-color: var(--alg-rand);
+  --calendar-week-end-color: var(--alg-zebra);
+  --calendar-day-color: var(--alg-gedempt);
+  --calendar-today-color: var(--alg-rij-hover);
+  --calendar-workouts-color: var(--alg-glas-sterk);
+  --cell-heading-bg-color: var(--alg-paneel);
+  --cell-heading-color: var(--alg-gedempt);
+  --text-background-color: var(--alg-code-vlak);
+  --text-visibilty: var(--alg-gedempt);
+  --comment-background: var(--alg-glas);
+  --comment-background-highlight: var(--alg-rij-hover);
+  --comment-border-color: var(--alg-rand);
+  --user-suggestion-background: var(--alg-glas-sterk);
+
+  /* sporticonen lichtgrijs, kaarten donker (filters uit het eigen donkere thema) */
+  --icon-svg-filter: invert(90%) sepia(19%) saturate(0%) hue-rotate(39deg) brightness(86%) contrast(102%);
+  --icon-svg-shadow-filter: none;
+  --icon-svg-shadow-stroke: var(--alg-tekst);
+  --workout-no-map-bg-color: var(--alg-vlak-2);
+  --workout-no-map-color: var(--alg-gedempt);
+  --workout-static-map-bg-color: var(--alg-vlak-2);
+  --workout-static-map-shadow-color: transparent;
+  --map-filter: invert(1) hue-rotate(180deg) brightness(.85) contrast(.85);
+  --map-filter-cluster: invert(1) hue-rotate(180deg);
+  --map-display-hover-filter: invert(1) hue-rotate(180deg) brightness(1.5) contrast(.6);
+  --no-map-filter: invert(1) brightness(1.5) contrast(.9);
+  --map-control-color: var(--alg-tekst);
+  --map-control-bg-color: var(--alg-glas-sterk);
+  --map-control-border-color: var(--alg-rand-sterk);
+  --map-control-hover-bg-color: var(--alg-knop-zacht-hover);
+  --map-control-bar: var(--alg-rand-sterk);
+  --map-layers-overlays: var(--alg-tekst);
+  --map-attribution-text: var(--alg-gedempt);
+  --map-attribution-bg-color: var(--alg-glas);
+}
+
+/* pagina: radiale achtergrond doorlaten, monospace */
+html body,
+html #app,
+html #app .view {
+  background-color: transparent;
+}
+html #app,
+html #app button.transparent {
+  font-family: var(--alg-font);
+}
+
+/* knoppen zonder eigen soort: grijs met gloed */
+html #app button:not(.transparent, .cancel, .danger, .scroll-button, :disabled) {
+  background: var(--alg-knop);
+  border-color: var(--alg-rand-sterk);
+  color: var(--alg-knop-tekst);
+}
+html #app button:not(.transparent, .danger, :disabled):hover {
+  background: var(--alg-knop-hover);
+  color: var(--alg-knop-tekst);
+  box-shadow: var(--alg-gloed);
+}
+
+/* kaarten en dialogen als glas */
+html #app :is(.card, .box) {
+  background-color: var(--alg-glas);
+  border-color: var(--alg-rand);
+  border-radius: var(--alg-radius);
+}
+html #modal .custom-modal {
+  background-color: var(--alg-glas-sterk);
+  border: 1px solid var(--alg-rand-sterk);
+  border-radius: var(--alg-radius);
+  -webkit-backdrop-filter: var(--alg-blur);
+  backdrop-filter: var(--alg-blur);
+}
+
+/* login/registratie: het formulier als glazen paneel */
+html #user-form .form-box {
+  padding: 20px;
+  background: var(--alg-glas);
+  border: 1px solid var(--alg-rand);
+  border-radius: var(--alg-radius-groot);
+  box-shadow: var(--alg-schaduw-midden);
+  -webkit-backdrop-filter: var(--alg-blur);
+  backdrop-filter: var(--alg-blur);
+}
+html #app input,
+html #app select,
+html #app textarea {
+  border-radius: var(--alg-radius-midden);
+}

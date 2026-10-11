@@ -1,0 +1,44 @@
+/* alg-app-syncthing.css - gegenereerd uit algemeen.css door scripts/themes/modules.py;
+   niet met de hand aanpassen. Laadt na alg-kern.css (zie themes/README.md). */
+/* ==========================================================================
+   60 SYNCTHING (v2, AngularJS 1 + Bootstrap 3)
+   Bootstrap 3 (30) doet het meeste. Hier de eigen onderdelen uit Syncthings
+   lichte thema, naar Syncthings eigen donkere thema (MPL-2.0).
+   Herkenning: ng-app="syncthing" op html.
+   Getest met syncthing/syncthing v2.1.5 (thema default, lichte modus).
+   ========================================================================== */
+
+/* ---------- Lettertype -------------------------------------------------- */
+/* koppen en paneeltitels staan vast in Raleway; iconen zijn eigen span's
+   met hun eigen lettertype (.fa, .fas) en blijven dus heel */
+html[ng-app="syncthing"] :is(h1, h2, h3, h4, h5) {
+  font-family: var(--alg-font);
+}
+
+/* ---------- Apparaaticoon (identicon, svg-rechthoekjes) ------------------ */
+/* licht thema tekent ze #333 (onzichtbaar op donker), het donkere #aaa */
+html[ng-app="syncthing"] .identicon rect {
+  fill: #aaa;
+}
+
+html[ng-app="syncthing"] .panel-warning .identicon rect {
+  fill: var(--alg-waarschuwing);
+}
+
+/* ---------- Lijsten en mappenboom --------------------------------------- */
+/* gedeelde apparaten/mappen in de bewerkvensters: lichtgrijze kolommen */
+html[ng-app="syncthing"] .li-column {
+  background-color: var(--alg-rij) !important;
+  color: var(--alg-tekst);
+}
+
+html[ng-app="syncthing"] :is(.fancytree-container tr:hover, .fancytree-focused) {
+  background-color: var(--alg-rij-hover) !important;
+}
+
+/* verbindingsicoon (img): het lichte thema maakt het met een filter donker;
+   zelfde filter als Syncthings donkere thema, anders onzichtbaar */
+html[ng-app="syncthing"] .reception {
+  filter: invert(77%) sepia(0%) saturate(724%) hue-rotate(146deg) brightness(91%) contrast(85%);
+}
+

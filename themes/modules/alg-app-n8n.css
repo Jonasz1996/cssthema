@@ -1,0 +1,381 @@
+/* alg-app-n8n.css - gegenereerd uit algemeen.css door scripts/themes/modules.py;
+   niet met de hand aanpassen. Laadt na alg-kern.css (zie themes/README.md). */
+/* ==========================================================================
+   60 N8N (2.x, Vue 3 + eigen design system met --color--*, --button--* ...)
+   Herkenning: meta n8n:config:rest-endpoint in de kop (vast in n8n).
+   n8n heeft een volledig donker thema in variabelen ([data-theme="dark"]);
+   zonder dat thema (Licht, of Systeem bij een licht OS) is n8n licht en
+   zou onze lichte tekst op witte vlakken komen. Daarom zetten we hier
+   altijd n8n's eigen donkere waarden (op body: hogere specificiteit dan
+   [data-theme="light"], en variabelen die naar andere verwijzen worden zo
+   op body opnieuw uitgerekend) en daarna onze stijl: grijze knoppen in
+   plaats van oranje, monospace, glazen kaarten, de pagina doorzichtig.
+   De editor (canvas) blijft dekkend: lijnen van het netwerk zouden daar op
+   verbindingen tussen nodes lijken.
+   Getest met n8n 2.41.7: werkstromen, editor, node-paneel, node zoeken,
+   instellingen, login.
+   ========================================================================== */
+
+/* ---------- n8n's eigen donkere thema (naar [data-theme="dark"] van n8n
+   2.41: waarden die van licht verschillen, plus wat ernaar verwijst;
+   AI-assistent, chat en diff-weergave weggelaten) --------------------- */
+html:has(> head > meta[name="n8n:config:rest-endpoint"]) body {
+  color-scheme: dark;
+  --color--danger: var(--color--red-400); --color--text--shade-1: var(--color--neutral-white);
+  --color--text: var(--color--neutral-200); --color--text--tint-1: var(--color--neutral-400);
+  --color--text--tint-2: var(--color--neutral-600);
+  --color--text--tint-3: var(--color--neutral-800); --color--text--danger: var(--color--red-400);
+  --color--foreground--shade-2: var(--color--neutral-400);
+  --color--foreground--shade-1: var(--color--neutral-700);
+  --color--foreground: var(--color--neutral-800);
+  --color--foreground--tint-1: var(--color--neutral-850);
+  --color--foreground--tint-2: var(--color--neutral-950);
+  --color--background--shade-2: var(--color--neutral-150);
+  --color--background--shade-1: var(--color--neutral-600);
+  --color--background: var(--color--neutral-700);
+  --color--background--light-1: var(--color--neutral-850);
+  --color--background--light-2: var(--color--neutral-950);
+  --color--background--light-3: var(--color--neutral-900);
+  --color--info--tint-1: var(--color--neutral-400);
+  --color--info--tint-2: var(--color--neutral-850);
+  --border: var(--border-base,var(--border-width) var(--border-style) var(--color--white-alpha-100));
+  --background--brand--disabled: var(--color--neutral-800);
+  --background--surface: var(--color--neutral-900);
+  --background--subtle: var(--color--neutral-800);
+  --background--hover: var(--color--white-alpha-100);
+  --background--active: var(--color--white-alpha-150);
+  --background--focus: var(--color--white-alpha-150);
+  --background--disabled: var(--color--neutral-800);
+  --background--success: var(--color--green-950); --background--warning: var(--color--yellow-900);
+  --background--danger: var(--color--red-950); --background--info: var(--color--blue-900);
+  --background--inverse: var(--color--neutral-white);
+  --border-color: var(--border-color-base,var(--color--white-alpha-100));
+  --border-color--subtle: var(--color--white-alpha-50);
+  --border-color--strong: var(--color--white-alpha-200);
+  --border-color--stronger: var(--color--white-alpha-400);
+  --border-color--success: var(--color--green-800);
+  --border-color--warning: var(--color--yellow-800); --border-color--danger: var(--color--red-800);
+  --border-color--info: var(--color--blue-800); --border-color--inverse: var(--color--neutral-200);
+  --border-color--light: var(--border-color-light,var(--color--foreground--tint-1));
+  --icon-color--subtle: var(--color--neutral-600); --icon-color: var(--color--neutral-300);
+  --icon-color--strong: var(--color--neutral-white); --icon-color--success: var(--color--green-50);
+  --icon-color--warning: var(--color--yellow-100); --icon-color--danger: var(--color--red-50);
+  --icon-color--info: var(--color--blue-50); --icon-color--inverse: var(--color--neutral-800);
+  --text-color: var(--color--neutral-white); --text-color--subtle: var(--color--neutral-200);
+  --text-color--subtler: var(--color--neutral-400);
+  --text-color--disabled: var(--color--neutral-600); --text-color--success: var(--color--green-50);
+  --text-color--warning: var(--color--yellow-100); --text-color--danger: var(--color--red-50);
+  --text-color--info: var(--color--blue-50); --text-color--inverse: var(--color--neutral-800);
+  --canvas--color--background: var(--color--neutral-950);
+  --canvas--dot--color: var(--color--neutral-700);
+  --canvas--read-only-line--color: var(--color--neutral-900);
+  --canvas--color--selected: var(--color--white-alpha-400);
+  --canvas--color--selected-transparent: var(--canvas--color--selected);
+  --canvas--label--color: var(--color--neutral-500);
+  --canvas--label--color--background: oklch(from var(--canvas--color--background) l c h / .85);
+  --node--color--background: var(--color--neutral-850);
+  --node--color--background--executing: var(--color--neutral-700);
+  --node--color--background--executing-1: var(--color--neutral-700);
+  --node--border-color--pinned: var(--color--purple-500);
+  --node--type-main--color: var(--color--neutral-400);
+  --node--icon--color--neutral: var(--color--neutral-200); --node--icon--color--gray: #a5a5ad;
+  --node--icon--color--black: var(--color--neutral-200); --node--icon--color--blue: #898fff;
+  --node--icon--color--light-blue: #58abff; --node--icon--color--dark-blue: #7ba7ff;
+  --node--icon--color--sky-blue: #7fb3ff; --node--icon--color--orange: #ffb080;
+  --node--icon--color--amber: #ffb966; --node--icon--color--rust: #f75;
+  --node--icon--color--pink-red: #f85d82; --node--icon--color--magenta: #ff4d80;
+  --node--icon--color--red: var(--color--red-400); --node--icon--color--light-green: #20b69e;
+  --node--icon--color--green: var(--color--green-500); --node--icon--color--dark-green: #86decc;
+  --node--icon--color--emerald: #50d499; --node--icon--color--forest-green: #6c6;
+  --node--icon--color--lime: #7fff55; --node--icon--color--azure: #7dd6e3;
+  --node--icon--color--teal: #33d6db; --node--icon--color--purple: #9b6dd5;
+  --node--icon--color--violet: #b48de6; --node--icon--color--lavender: #a8acff;
+  --node--icon--color--crimson: #f188a2; --node--error-output--color--text: var(--color--danger);
+  --node--configurable-name--color: var(--color--text--shade-1);
+  --sticky--color--background: var(--color--yellow-900);
+  --sticky--border-color: var(--color--yellow-800);
+  --sticky--color--text: var(--color--neutral-125);
+  --sticky--code--color--text: var(--color--purple-300);
+  --sticky--code--color--background: var(--color--neutral-150-alpha-100);
+  --sticky--color--background--variant-1: var(--color--yellow-900);
+  --sticky--border-color--variant-1: var(--color--yellow-800);
+  --sticky--color--background--variant-2: var(--color--gold-900);
+  --sticky--border-color--variant-2: var(--color--gold-800);
+  --sticky--color--background--variant-3: var(--color--red-950);
+  --sticky--border-color--variant-3: var(--color--red-900);
+  --sticky--color--background--variant-4: var(--color--green-950);
+  --sticky--border-color--variant-4: var(--color--green-900);
+  --sticky--color--background--variant-5: var(--color--blue-900);
+  --sticky--border-color--variant-5: var(--color--blue-800);
+  --sticky--color--background--variant-6: var(--color--purple-950);
+  --sticky--border-color--variant-6: var(--color--purple-800);
+  --sticky--color--background--variant-7: var(--color--neutral-900);
+  --sticky--border-color--variant-7: var(--color--neutral-800);
+  --expression-editor--resolvable--color--foreground--valid: var(--color--green-300);
+  --expression-editor--resolvable--color--background--valid: var(--color--green-alpha-200);
+  --expression-editor--resolvable--color--foreground--invalid: var(--color--red-300);
+  --expression-editor--resolvable--color--background--invalid: var(--color--red-alpha-020);
+  --expression-editor--resolvable--color--foreground--pending: var(--color--text);
+  --expression-editor--resolvable--color--background--pending: var(--color--neutral-150-alpha-100);
+  --expression-editor--color--background: var(--color--neutral-900);
+  --expression-editor--modal--color--background: var(--color--neutral-900);
+  --expression-editor--syntax-example--color: var(--color--neutral-700);
+  --autocomplete--item--color--selected: var(--color--purple-400);
+  --autocomplete--section-header--border-color: var(--color--neutral-600);
+  --autocomplete--infobox--color--background: var(--color--neutral-900);
+  --autocomplete--infobox--examples--border-color: var(--color--neutral-700);
+  --json--color: var(--color--purple-400); --json--null--color: var(--color--danger);
+  --json--string--color: var(--color--purple-400); --json--key--color: var(--color--text--shade-1);
+  --json--highlight--color: var(--color--background);
+  --code--color--background: var(--color--neutral-950);
+  --code--color--background--readonly: var(--color--neutral-850);
+  --code--color--foreground: var(--color--neutral-150);
+  --code--caret--color: var(--color--neutral-50); --code--selection--color: #3392ff44;
+  --code--selection--color--highlight: #17e5e633;
+  --code--gutter--color--background: var(--color--neutral-950);
+  --code--gutter--color--foreground--active: var(--color--neutral-50);
+  --code--indentation-marker--color: var(--color--neutral-850);
+  --code--indentation-marker--color--active: var(--color--neutral-700);
+  --code--line-break--color: var(--color--purple-500);
+  --line-break--color: var(--color--neutral-400);
+  --tag--color--background: var(--color--neutral-700);
+  --tag--color--background--hover: var(--color--neutral-600);
+  --tag--color--background--active: var(--color--neutral-500);
+  --tag--border-color: var(--color--neutral-800);
+  --tag--border-color--hover: var(--color--neutral-700);
+  --tag--border-color--active: var(--color--neutral-600);
+  --tag--color--text: var(--color--text--shade-1);
+  --variables-usage--color--text: var(--color--green-300);
+  --variables-usage--syntax--color--background: var(--color--green-alpha-200);
+  --button--color--text--primary--disabled: var(--color--white-alpha-500);
+  --button--border-color--primary--disabled: transparent;
+  --button--color--background--primary--disabled: var(--color--orange-alpha-500);
+  --button--color--text--secondary: var(--color--neutral-150);
+  --button--border-color--secondary: var(--color--foreground);
+  --button--color--background--secondary: var(--color--background--light-2);
+  --button--color--text--secondary--hover-active-focus: var(--color--orange-250);
+  --button--color--background--secondary--hover: var(--color--background--light-2);
+  --button--color--background--secondary--active-focus: var(--color--orange-alpha-100);
+  --button--outline-color--secondary--focus: var(--color--orange-alpha-300);
+  --button--color--text--secondary--disabled: var(--color--white-alpha-500);
+  --button--border-color--secondary--disabled: var(--color--foreground);
+  --button--color--text--highlight: var(--color--neutral-300);
+  --button--border-color--highlight--hover-active-focus: var(--color--neutral-700);
+  --button--color--background--highlight--hover: var(--color--neutral-700);
+  --button--color--background--highlight--active-focus: var(--color--neutral-700);
+  --button--outline-color--highlight--focus: var(--color--neutral-700);
+  --button--color--text--highlight--disabled: var(--color--neutral-600);
+  --button--color--text--highlight-fill: var(--color--text--shade-1);
+  --button--color--background--highlight-fill: var(--color--background);
+  --button--color--background--highlight-fill--hover: var(--color--background);
+  --button--color--background--highlight-fill--active-focus: var(--color--background);
+  --button--outline-color--highlight-fill--focus: var(--color--neutral-700);
+  --button--color--text--highlight-fill--disabled: var(--color--neutral-600);
+  --button--color--background--highlight-fill--disabled: var(--color--background);
+  --button--color--text--danger: var(--color--neutral-white);
+  --button--border-color--danger: transparent;
+  --button--outline-color--danger--focus: var(--color--red-300);
+  --button--color--text--danger--disabled: var(--color--white-alpha-400);
+  --button--border-color--danger--disabled: transparent;
+  --button--color--background--danger--disabled: var(--color--red-alpha-020);
+  --button--color--text--warning: var(--color--text--tint-3);
+  --text-button--color--text--secondary: var(--color--neutral-300);
+  --node-creator--button--color--text: var(--button--color--text--secondary);
+  --node-creator--button--color--text--hover: var(--button--color--text--secondary--hover-active-focus);
+  --node-creator--button--color--background: var(--color--orange-alpha-100);
+  --table--header--color--background: var(--color--neutral-850);
+  --table--row--color--background: var(--color--neutral-950);
+  --table--row--color--background--even: var(--color--neutral-900);
+  --table--row--color--background--hover: var(--color--neutral-850);
+  --notification--color--background: var(--color--neutral-850);
+  --execution-card--color--background: var(--color--foreground--tint-1);
+  --execution-card--color--background--hover: var(--color--foreground);
+  --execution-card--color--text--waiting: var(--color--purple-500);
+  --execution-selector--color--background: var(--color--background--shade-2);
+  --execution-selector--color--text: var(--color--text--tint-3);
+  --execution-select-all--color--text: var(--color--text);
+  --run-data--color--background: var(--color--neutral-900);
+  --ndv--run-data--color--background: var(--color--neutral-900);
+  --ndv--droppable-parameter--color: var(--color--orange-500);
+  --ndv--droppable-parameter--color--background: var(--color--orange-alpha-100);
+  --ndv--background--color: var(--color--background--light-1);
+  --ndv--header--color: var(--color--background);
+  --notice--border-color--warning: var(--color--gold-200);
+  --notice--color--background--warning: var(--color--gold-alpha-020);
+  --notice--color--text: var(--color--neutral-white);
+  --callout--border-color--info: var(--color--foreground);
+  --callout--color--background--info: var(--color--neutral-900);
+  --callout--color--text--info: var(--color--neutral-white);
+  --callout--border-color--success: var(--color--success);
+  --callout--color--background--success: var(--color--green-900);
+  --callout--color--text--success: var(--color--neutral-white);
+  --callout--border-color--warning: var(--color--warning);
+  --callout--color--background--warning: var(--color--gold-800);
+  --callout--color--text--warning: var(--color--neutral-white);
+  --callout--border-color--danger: var(--color--red-800);
+  --callout--color--background--danger: var(--color--red-950);
+  --callout--color--text--danger: var(--color--neutral-white);
+  --callout--icon-color--danger: var(--color--danger);
+  --callout--border-color--secondary: var(--color--secondary);
+  --callout--color--background--secondary: var(--color--purple-alpha-200);
+  --callout--color--text--secondary: var(--color--neutral-white);
+  --callout--icon-color--info: var(--color--text--tint-1);
+  --dialog--color--background: var(--color--neutral-900);
+  --dialog--overlay--color--background: var(--color--slate-alpha-700);
+  --avatar--color--text: var(--color--neutral-white);
+  --switch--color--background: var(--color--neutral-950);
+  --switch--border-color: var(--color--neutral-700);
+  --switch--toggle--color: var(--color--neutral-125);
+  --action-dropdown--item--color--background--active: var(--color--background--light-3);
+  --input-triple--color--background: var(--color--neutral-900);
+  --text-highlight--color--background: var(--color--yellow-700);
+  --node-type--color--background--l: 20%; --node-type--supplemental--label--color--l: 100%;
+  --node-type--supplemental--color--s: 13%;
+  --node-type--supplemental--label--color: hsl(var(--node-type--supplemental--label--color--h), var(--node-type--supplemental--label--color--s), var(--node-type--supplemental--label--color--l));
+  --node-type--supplemental--icon--color: var(--color--foreground--shade-1);
+  --node-type--supplemental--color: hsl(var(--node-type--supplemental--color--h), var(--node-type--supplemental--color--s), var(--node-type--supplemental--color--l));
+  --node-type--supplemental--color--background: hsl(var(--node-type--supplemental--color--h), var(--node-type--supplemental--color--s), var(--node-type--color--background--l));
+  --node-type--supplemental--connector--color: var(--color--foreground--shade-1);
+  --node-type--ai-chain--color--s: var(--node-type--supplemental--color--s);
+  --node-type--ai-chain--color: hsl(var(--node-type--ai-chain--color--h), var(--node-type--ai-chain--color--s), var(--node-type--ai-chain--color--l));
+  --node-type--chain--color--background: hsl(var(--node-type--ai-chain--color--h), var(--node-type--ai-chain--color--s), var(--node-type--color--background--l));
+  --node-type--ai-document--color--s: var(--node-type--supplemental--color--s);
+  --node-type--ai-document--color: hsl(var(--node-type--ai-document--color--h), var(--node-type--ai-document--color--s), var(--node-type--ai-document--color--l));
+  --node-type--ai-document--color--background: hsl(var(--node-type--ai-document--color--h), var(--node-type--ai-document--color--s), var(--node-type--color--background--l));
+  --node-type--ai-embedding--color--s: var(--node-type--supplemental--color--s);
+  --node-type--ai-embedding--color: hsl(var(--node-type--ai-embedding--color--h), var(--node-type--ai-embedding--color--s), var(--node-type--ai-embedding--color--l));
+  --node-type--ai-embedding--color--background: hsl(var(--node-type--ai-embedding--color--h), var(--node-type--ai-embedding--color--s), var(--node-type--color--background--l));
+  --node-type--ai-language-model--color--s: var(--node-type--supplemental--color--s);
+  --node-type--ai-language-model--color: hsl(var(--node-type--ai-language-model--color--h), var(--node-type--ai-language-model--color--s), var(--node-type--ai-language-model--color--l));
+  --node-type--ai-language-model--color--background: hsl(var(--node-type--ai-language-model--color--h), var(--node-type--ai-language-model--color--s), var(--node-type--color--background--l));
+  --node-type--ai-memory--color--s: var(--node-type--supplemental--color--s);
+  --node-type--ai-memory--color: hsl(var(--node-type--ai-memory--color--h), var(--node-type--ai-memory--color--s), var(--node-type--ai-memory--color--l));
+  --node-type--ai-memory--color--background: hsl(var(--node-type--ai-memory--color--h), var(--node-type--ai-memory--color--s), var(--node-type--color--background--l));
+  --node-type--ai-output-parser--color--s: var(--node-type--supplemental--color--s);
+  --node-type--ai-output-parser--color: hsl(var(--node-type--ai-output-parser--color--h), var(--node-type--ai-output-parser--color--s), var(--node-type--ai-output-parser--color--l));
+  --node-type--ai-output-parser--color--background: hsl(var(--node-type--ai-output-parser--color--h), var(--node-type--ai-output-parser--color--s), var(--node-type--color--background--l));
+  --node-type--ai-tool--color--s: var(--node-type--supplemental--color--s);
+  --node-type--ai-tool--color: hsl(var(--node-type--ai-tool--color--h), var(--node-type--ai-tool--color--s), var(--node-type--ai-tool--color--l));
+  --node-type--ai-tool--color--background: hsl(var(--node-type--ai-tool--color--h), var(--node-type--ai-tool--color--s), var(--node-type--color--background--l));
+  --node-type--ai-retriever--color--s: var(--node-type--supplemental--color--s);
+  --node-type--ai-retriever--color: hsl(var(--node-type--ai-retriever--color--h), var(--node-type--ai-retriever--color--s), var(--node-type--ai-retriever--color--l));
+  --node-type--ai-retriever--color--background: hsl(var(--node-type--ai-retriever--color--h), var(--node-type--ai-retriever--color--s), var(--node-type--color--background--l));
+  --node-type--ai-text-splitter--color--s: var(--node-type--supplemental--color--s);
+  --node-type--ai-text-splitter--color: hsl(var(--node-type--ai-text-splitter--color--h), var(--node-type--ai-text-splitter--color--s), var(--node-type--ai-text-splitter--color--l));
+  --node-type--ai-text-splitter--color--background: hsl(var(--node-type--ai-text-splitter--color--h), var(--node-type--ai-text-splitter--color--s), var(--node-type--color--background--l));
+  --node-type--ai-vector-retriever--color--s: var(--node-type--supplemental--color--s);
+  --node-type--ai-vector-retriever--color: hsl(var(--node-type--ai-vector-retriever--color--h), var(--node-type--ai-vector-retriever--color--s), var(--node-type--ai-vector-retriever--color--l));
+  --node-type--ai-vector-retriever--color--background: hsl(var(--node-type--ai-vector-retriever--color--h), var(--node-type--ai-vector-retriever--color--s), var(--node-type--color--background--l));
+  --node-type--ai-vector-store--color--s: var(--node-type--supplemental--color--s);
+  --node-type--ai-vector-store--color: hsl(var(--node-type--ai-vector-store--color--h), var(--node-type--ai-vector-store--color--s), var(--node-type--ai-vector-store--color--l));
+  --node-type--ai-vector-store--color--background: hsl(var(--node-type--ai-vector-store--color--h), var(--node-type--ai-vector-store--color--s), var(--node-type--color--background--l));
+  --link--color--secondary: var(--color--purple-400);
+  --link--color--secondary--hover: var(--color--purple-500);
+  --icon--color: var(--color--text--tint-1); --icon--color--hover: var(--color--orange-500);
+  --menu--color--background: var(--color--neutral-900);
+  --menu--color--background--hover: var(--color--neutral-700);
+  --menu--color--background--active: var(--color--neutral-700);
+  --grid--row--color--background--selected: var(--color--purple-900);
+  --command-bar-item--color--background--hover: var(--color--background--light-1);
+  --command-bar--shadow: 0 15px 45px 0 var(--color--black-alpha-400), 0 5px 10px 0 var(--color--black-alpha-200);
+  --text--color: var(--text-color);
+
+  /* ---------- Onze stijl bovenop het donkere thema (wint: staat later) -- */
+  /* lettertype: knoppen en invoer gebruiken --font-family */
+  --font-family: var(--alg-font);
+  --font-family--monospace: var(--alg-font);
+
+  /* hoofdkleur grijs in plaats van oranje: als tekst/accent lichtgrijs */
+  --color--primary: #c4c4c4;
+  --color--primary--shade-1: #e0e0e0;
+  --color--primary--tint-1: #a8a8a8;
+  --color--primary--tint-2: #5a5a5a;
+  --color--primary--tint-3: #2e2e2e;
+  --node--border-color--running: #c4c4c4;
+
+  /* primaire knoppen: onze knopkleur met witte tekst */
+  --background--brand: var(--alg-knop);
+  --background--brand--hover: var(--alg-knop-hover);
+  --background--brand--active: #5c5c5c;
+  --background--brand--focus: var(--alg-knop-hover);
+  --button--color--text--primary: #fff;
+  --button--color--background--primary: var(--alg-knop);
+  --button--border-color--primary: var(--alg-knop);
+  --button--color--background--primary--hover-active-focus: var(--alg-knop-hover);
+  --button--border-color--primary--hover-active: var(--alg-knop-hover);
+  --button--outline-color--primary--focus: rgba(var(--alg-accent), .45);
+  --button--color--text--primary--disabled: #9a9a9a;
+  --button--color--background--primary--disabled: #3c3c3c;
+  --button--border-color--primary--disabled: #3c3c3c;
+
+  /* tweede knoppen en markeringen: geen oranje tekst bij hover/focus */
+  --button--color--text--secondary--hover-active-focus: #fff;
+  --button--color--background--secondary--active-focus: var(--alg-knop-zacht-hover);
+  --button--outline-color--secondary--focus: rgba(var(--alg-accent), .45);
+  --button--color--text--highlight--hover-active-focus: #fff;
+  --button--border-color--secondary--hover-active-focus: var(--alg-accent-kleur);
+  /* focusrand van velden: grijs accent in plaats van paars */
+  --focus--border-color: var(--alg-accent-kleur);
+  --focus--outline-color: rgba(var(--alg-accent), .35);
+  --button--color--text--highlight-fill--hover-active-focus: #fff;
+  --ndv--droppable-parameter--color: #aaa;
+  --ndv--droppable-parameter--color--background: rgba(var(--alg-accent), .12);
+}
+
+/* ---------- Pagina en kaarten ------------------------------------------ */
+/* de inhoud van de overzichtspagina's ligt doorzichtig op het verloop;
+   kaarten zijn glas (5 % wit was te doorzichtig: de lijnen van het netwerk
+   liepen scherp door de kaarttekst) */
+html:has(> head > meta[name="n8n:config:rest-endpoint"]) .card[data-test-id^="resources-list-item"] {
+  background: var(--alg-glas) !important;
+  border-color: var(--alg-rand) !important;
+}
+
+html:has(> head > meta[name="n8n:config:rest-endpoint"]) .card[data-test-id^="resources-list-item"]:hover {
+  background: rgba(34, 34, 34, .82) !important;
+  border-color: var(--alg-rand-hover) !important;
+}
+
+/* instellingen: de inhoud ligt op een dekkend vlak (#171717) over bijna
+   het hele scherm; glas zoals de kaarten, zodat verloop en netwerk zwak
+   doorschijnen */
+html:has(> head > meta[name="n8n:config:rest-endpoint"]) main[class^="_content_"] > [class^="_contentWrapper_"] > [class^="_contentContainer_"] {
+  background-color: var(--alg-glas) !important;
+}
+
+/* ---------- Invoer ----------------------------------------------------- */
+/* n8n's eigen invoer: het vak eromheen draagt kleur, rand en focus; het
+   echte veld is doorzichtig (anders een zwart blok in het vak) */
+html:has(> head > meta[name="n8n:config:rest-endpoint"]) :is(input, textarea):is([class^="_input_"], [class^="_textarea_"], [class*="search-input"], [data-test-id="search-bar"] *) {
+  background-color: transparent !important;
+  box-shadow: none !important;
+}
+
+html:has(> head > meta[name="n8n:config:rest-endpoint"]) :is(input, textarea):is([class^="_input_"], [class^="_textarea_"], [class*="search-input"], [data-test-id="search-bar"] *):focus-visible {
+  outline: 0 !important;
+}
+
+/* ---------- Kleine details --------------------------------------------- */
+/* "Preview"-label: lichtpaars vlak met paarse tekst (4.25:1) wordt donker
+   paars vlak met lichte tekst. */
+html:has(> head > meta[name="n8n:config:rest-endpoint"]) [class^="_preview_"] {
+  background-color: rgba(167, 139, 250, .16) !important;
+  color: #d4c8ff !important;
+}
+
+/* schuine streep in het pad bovenaan de editor: bijna onzichtbaar */
+html:has(> head > meta[name="n8n:config:rest-endpoint"]) [class^="_path-separator_"] {
+  color: var(--alg-gedempt) !important;
+}
+
+/* zoekveld in de node-kiezer: focusrand nog paars (eigen vaste kleur) */
+html:has(> head > meta[name="n8n:config:rest-endpoint"]) [class^="_searchContainer_"]:focus-within {
+  border-color: var(--alg-accent-kleur) !important;
+}
+
+/* "Add option": een keuzelijst die als knop dient, met de plaatshouder als
+   opschrift; onze plaatshouderkleur was daar te zwak (3:1) */
+html:has(> head > meta[name="n8n:config:rest-endpoint"]) [data-test-id="collection-parameter-add"] input::placeholder {
+  color: var(--alg-tekst) !important;
+}
+

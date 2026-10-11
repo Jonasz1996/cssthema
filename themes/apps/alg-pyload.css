@@ -1,0 +1,104 @@
+/* ==========================================================================
+   alg-pyload.css - pyLoad (0.5, thema "modern", Bootstrap 3 + jQuery UI)
+   Host: pyload.jbogaert.be
+   Laadt NA algemeen.css (Bootstrap 3 doet daar het meeste).
+
+   Wat het afwerkt:
+   - loginformulier als glazen paneel (binnen de bestaande kolom, vanaf
+     768px breed; op mobiel zonder paneel)
+   - logo's (pyload.png, pyload-logo.png) met zwarte tekst: licht gemaakt
+     met behoud van de kleuren van de slang
+   - vaste lichte vlakken uit pyLoads eigen CSS: voetbalk (#foot), gekozen
+     menu-item (#e0e0e0), actief tabblad (blauwe tekst op lichtgrijs),
+     .btn-light en .btn-form (lichtgrijze knoppen), scheidingslijn in de balk
+   - blauwe meldingen (mdtoast info) en dialoogkop "Add Package" (bg-info)
+     als glas/paneel
+
+   Beperkingen: alleen de loginpagina vastgelegd; het logo laadt niet in de
+   testopstelling. De regels voor wachtrij, collector en instellingen volgen
+   pyLoads eigen klassen, maar zijn niet getest.
+   ========================================================================== */
+
+/* ---------- Login -------------------------------------------------------- */
+/* alleen vanaf 768px (daar is de kolom smal en zelf zwevend); op mobiel
+   loopt de kolom tot de schermrand en blijft ze zonder paneel. Opvulling
+   met even grote negatieve marge: niets verschuift. */
+@media (min-width: 768px) {
+  #login > .col-sm-4 {
+    margin-top: -15px;
+    margin-bottom: -15px;
+    padding-top: 15px;
+    padding-bottom: 15px;
+    background-color: var(--alg-glas);
+    border: 1px solid var(--alg-rand-sterk);
+    border-radius: var(--alg-radius-groot);
+    box-shadow: var(--alg-schaduw-midden);
+    -webkit-backdrop-filter: var(--alg-blur);
+    backdrop-filter: var(--alg-blur);
+  }
+}
+
+#login .form-group > label {
+  color: var(--alg-tekst);
+}
+
+/* logo's met zwarte tekst (niet getest, zie kop) */
+.login-logo img,
+#head-logo {
+  filter: invert(1) hue-rotate(180deg);
+}
+
+/* ---------- Vaste lichte vlakken (hoofdscherm, niet getest) ------------- */
+#foot.navbar-static-bottom {
+  background-color: var(--alg-glas-sterk) !important;
+  border-color: var(--alg-rand) !important;
+  color: var(--alg-gedempt);
+}
+
+.nav > li.selected > a,
+.nav > li.selected > a:focus,
+.nav-tabs > li.active > a,
+.nav-tabs > li.active > a:is(:focus, :hover) {
+  background-color: var(--alg-rij-actief) !important;
+  color: var(--alg-tekst-sterk) !important;
+}
+
+.navbar-nav .divider-vertical {
+  border-left-color: var(--alg-rand-sterk);
+}
+
+.btn-light,
+.btn-form,
+.input-group-btn > .btn-form {
+  background-color: var(--alg-knop-zacht) !important;
+  border-color: var(--alg-rand-sterk) !important;
+  color: var(--alg-tekst) !important;
+}
+
+.btn-light:is(:hover, :focus, .active),
+.btn-form:is(:hover, :focus),
+.input-group-btn > .btn-form:is(:hover, :focus) {
+  background-color: var(--alg-knop-zacht-hover) !important;
+  color: var(--alg-tekst-sterk) !important;
+}
+
+/* dialoog "Add Package" en andere: kop met .bg-info */
+.modal-header.bg-info {
+  background-color: var(--alg-paneel) !important;
+  color: var(--alg-tekst-sterk) !important;
+}
+
+/* meldingen rechtsonder */
+.mdtoast {
+  background-color: var(--alg-glas-sterk) !important;
+  border: 1px solid var(--alg-rand-sterk);
+  border-radius: var(--alg-radius);
+  color: var(--alg-tekst);
+  font-family: var(--alg-font);
+  -webkit-backdrop-filter: var(--alg-blur);
+  backdrop-filter: var(--alg-blur);
+}
+
+.mdtoast .mdt-action {
+  color: var(--alg-tekst-sterk);
+}

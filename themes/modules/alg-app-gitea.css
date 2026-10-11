@@ -1,0 +1,217 @@
+/* alg-app-gitea.css - gegenereerd uit algemeen.css door scripts/themes/modules.py;
+   niet met de hand aanpassen. Laadt na alg-kern.css (zie themes/README.md). */
+/* ==========================================================================
+   60 GITEA (1.22 en nieuwer; Fomantic-klassen + eigen --color-variabelen)
+   Herkenning: html[data-theme^="gitea"] (gitea-auto, gitea-light, gitea-dark).
+   Een eigen thema (andere naam) blijft ongemoeid. Specificiteit (0,1,1) wint
+   van Gitea's :root, ook in zijn @media-blokken; !important is niet nodig.
+   Gitea's body heeft geen eigen vlak: verloop en netwerk tonen overal tussen
+   de glazen vakken; tekst rechtstreeks op de achtergrond blijft leesbaar.
+   Getest met Gitea 28 (auto-thema, lichte en donkere systeemmodus, mobiel):
+   dashboard, repo, code, issues, issue, instellingen, menu, login.
+   ========================================================================== */
+
+/* ---------- Oppervlakken en tekst in onze stijl ------------------------- */
+html[data-theme^="gitea"] {
+  --is-dark-theme: true;
+  color-scheme: dark;
+
+  /* vorm en lettertype: Gitea leidt alle hoeken af van deze variabelen
+     (kaarten, velden, menu's, kop + segment); ronder zoals allow.
+     Proportionele tekst wordt onze monospace (code houdt --fonts-monospace). */
+  --border-radius: 8px;
+  --border-radius-medium: 12px;
+  --fonts-proportional: var(--alg-font);
+
+  /* primair: lichtgrijs als tekst- en randkleur; de knoppen zelf krijgen
+     onze knopkleur via de Fomantic-regels (35) */
+  --color-primary: #aaa;
+  --color-primary-contrast: #111;
+  --color-primary-dark-1: #b5b5b5; --color-primary-dark-2: #c0c0c0; --color-primary-dark-3: #cbcbcb;
+  --color-primary-dark-4: #d6d6d6; --color-primary-dark-5: #e0e0e0; --color-primary-dark-6: #ebebeb;
+  --color-primary-dark-7: #f5f5f5;
+  --color-primary-light-1: #9a9a9a; --color-primary-light-2: #8a8a8a; --color-primary-light-3: #777;
+  --color-primary-light-4: #5c5c5c; --color-primary-light-5: #3a3a3a; --color-primary-light-6: #222;
+  --color-primary-light-7: #111;
+  --color-primary-alpha-10: rgba(170, 170, 170, .1); --color-primary-alpha-20: rgba(170, 170, 170, .2);
+  --color-primary-alpha-30: rgba(170, 170, 170, .3); --color-primary-alpha-40: rgba(170, 170, 170, .4);
+  --color-primary-alpha-50: rgba(170, 170, 170, .5); --color-primary-alpha-60: rgba(170, 170, 170, .6);
+  --color-primary-alpha-70: rgba(170, 170, 170, .7); --color-primary-alpha-80: rgba(170, 170, 170, .8);
+  --color-primary-alpha-90: rgba(170, 170, 170, .9);
+  --color-primary-hover: var(--color-primary-dark-1);
+  --color-primary-active: var(--color-primary-dark-2);
+
+  /* secundair: neutrale grijzen (Gitea donker is blauwig) */
+  --color-secondary: #3f3f3f;
+  --color-secondary-dark-1: #474747; --color-secondary-dark-2: #505050; --color-secondary-dark-3: #5f5f5f;
+  --color-secondary-dark-4: #707070; --color-secondary-dark-5: #7e7e7e; --color-secondary-dark-6: #8c8c8c;
+  --color-secondary-dark-7: #9a9a9a; --color-secondary-dark-8: #a9a9a9; --color-secondary-dark-9: #afafaf;
+  --color-secondary-dark-10: #bcbcbc; --color-secondary-dark-11: #c9c9c9; --color-secondary-dark-12: #d3d3d3;
+  --color-secondary-dark-13: #d6d6d6;
+  --color-secondary-light-1: #363636; --color-secondary-light-2: #2d2d2d; --color-secondary-light-3: #202020;
+  --color-secondary-light-4: #1a1a1a;
+  --color-secondary-alpha-10: rgba(63, 63, 63, .1); --color-secondary-alpha-20: rgba(63, 63, 63, .2);
+  --color-secondary-alpha-30: rgba(63, 63, 63, .3); --color-secondary-alpha-40: rgba(63, 63, 63, .4);
+  --color-secondary-alpha-50: rgba(63, 63, 63, .5); --color-secondary-alpha-60: rgba(63, 63, 63, .6);
+  --color-secondary-alpha-70: rgba(63, 63, 63, .7); --color-secondary-alpha-80: rgba(63, 63, 63, .8);
+  --color-secondary-alpha-90: rgba(63, 63, 63, .9);
+  --color-secondary-button: var(--color-secondary-dark-4);
+  --color-secondary-hover: var(--color-secondary-dark-3);
+  --color-secondary-active: var(--color-secondary-dark-2);
+
+  /* vlakken */
+  --color-body: var(--alg-achtergrond-kleur);
+  --color-box-header: rgba(255, 255, 255, .05);
+  --color-box-body: var(--alg-glas);
+  --color-box-body-highlight: rgba(255, 255, 255, .06);
+  --color-nav-bg: rgba(0, 0, 0, .35);
+  --color-secondary-nav-bg: rgba(255, 255, 255, .03);
+  --color-footer: var(--color-nav-bg);
+  --color-menu: #1a1a1a;
+  --color-card: var(--alg-glas);
+  --color-button: var(--alg-knop-zacht);
+  --color-code-bg: #121212;
+  --color-secondary-bg: #2e2e2e;
+  --color-expand-button: #333;
+  --color-project-column-bg: var(--color-secondary-light-2);
+  --color-timeline: #3a3a3a;
+  --color-light: rgba(0, 0, 0, .16);
+  --color-light-border: rgba(255, 255, 255, .16);
+  --color-hover: var(--alg-rij-hover);
+  --color-hover-opaque: #232323;
+  --color-active: var(--alg-rij-actief);
+  --color-shadow: rgba(0, 0, 0, .35);
+  --color-shadow-opaque: #0b0b0b;
+  --color-overlay-backdrop: rgba(8, 8, 8, .75);
+  --color-markup-table-row: rgba(255, 255, 255, .06);
+  --color-markup-code-block: rgba(255, 255, 255, .07);
+  --color-markup-code-inline: rgba(255, 255, 255, .09);
+  --color-reaction-bg: rgba(255, 255, 255, .07);
+  --color-reaction-hover-bg: var(--color-primary-light-4);
+  --color-reaction-active-bg: var(--color-primary-light-5);
+  --color-tooltip-text: #fafafa;
+  --color-tooltip-bg: #2b2b2b;
+  --color-label-bg: rgba(122, 122, 122, .3);
+  --color-label-hover-bg: rgba(122, 122, 122, .6);
+  --color-label-active-bg: #7a7a7a;
+  --color-small-accent: var(--color-primary-light-5);
+
+  /* tekst (#8c8c8c haalt 4.5:1 ook op #1f1f1f) */
+  --color-text-dark: #fff;
+  --color-text: var(--alg-tekst);
+  --color-text-light: #c8c8c8;
+  --color-text-light-1: #b0b0b0;
+  --color-text-light-2: #999;
+  --color-text-light-3: #8c8c8c;
+
+  /* invoer */
+  --color-input-text: #eee;
+  --color-input-background: var(--alg-veld);
+  --color-input-toggle-background: #333;
+  --color-input-border: var(--alg-rand-sterk);
+
+  /* meldingen */
+  --color-error-border: var(--alg-fout-rand);
+  --color-error-bg: var(--alg-fout-tint);
+  --color-error-bg-active: rgba(229, 139, 139, .22);
+  --color-error-bg-hover: rgba(229, 139, 139, .17);
+  --color-error-text: var(--alg-fout);
+  --color-success-border: var(--alg-ok-rand);
+  --color-success-bg: var(--alg-ok-tint);
+  --color-success-text: var(--alg-ok);
+  --color-warning-border: var(--alg-waarschuwing-rand);
+  --color-warning-bg: var(--alg-waarschuwing-tint);
+  --color-warning-text: var(--alg-waarschuwing);
+  --color-info-border: var(--alg-info-rand);
+  --color-info-bg: var(--alg-info-tint);
+  --color-info-text: var(--alg-info);
+
+  /* --- Overgenomen uit Gitea's eigen donkere thema
+  naar Gitea theme-gitea-dark (MIT): kleuren voor labels, diff, console en
+  syntaxis. Die zijn voor een donkere achtergrond gekozen. */
+  --color-red: #cc4848; --color-orange: #cc580c; --color-yellow: #cc9903; --color-olive: #91a313;
+  --color-green: #87ab63; --color-teal: #00918a; --color-blue: #3a8ac6; --color-violet: #906ae1;
+  --color-purple: #b259d0; --color-pink: #d22e8b; --color-brown: #a47252; --color-black: #202225;
+  --color-red-light: #d15a5a; --color-orange-light: #f6a066; --color-yellow-light: #eaaf03;
+  --color-olive-light: #abc016; --color-green-light: #93b373; --color-teal-light: #00b6ad;
+  --color-blue-light: #4e96cc; --color-violet-light: #9b79e4; --color-purple-light: #ba6ad5;
+  --color-pink-light: #d74397; --color-brown-light: #b08061; --color-black-light: #45484e;
+  --color-red-dark-1: #c23636; --color-orange-dark-1: #f38236; --color-yellow-dark-1: #b88a03;
+  --color-olive-dark-1: #839311; --color-green-dark-1: #7a9e55; --color-teal-dark-1: #00837c;
+  --color-blue-dark-1: #347cb3; --color-violet-dark-1: #7b4edb; --color-purple-dark-1: #a742c9;
+  --color-pink-dark-1: #be297d; --color-brown-dark-1: #94674a; --color-black-dark-1: #2e3033;
+  --color-red-dark-2: #ad3030; --color-orange-dark-2: #f16e17; --color-yellow-dark-2: #a37a02;
+  --color-olive-dark-2: #74820f; --color-green-dark-2: #6c8c4c; --color-teal-dark-2: #00746e;
+  --color-blue-dark-2: #2e6e9f; --color-violet-dark-2: #6733d6; --color-purple-dark-2: #9834b9;
+  --color-pink-dark-2: #a9246f; --color-brown-dark-2: #835b42; --color-black-dark-2: #292b2e;
+  --color-ansi-black: #202225; --color-ansi-bright-black: #45484e; --color-grey: #3d3f44;
+  --color-grey-light: #898d96; --color-gold: #b1983b; --color-console-fg: #f8f8f8;
+  --color-console-fg-subtle: #c1c3c8; --color-console-bg: #191a1c;
+  --color-console-hover-bg: #2a2c30; --color-console-active-bg: #313338;
+  --color-console-link: #969aa1; --color-diff-added-fg: #93b373;
+  --color-diff-added-linenum-bg: #274227; --color-diff-added-row-bg: #203224;
+  --color-diff-added-row-border: #314a37; --color-diff-added-word-bg: #3c653c;
+  --color-diff-moved-row-bg: #818044; --color-diff-moved-row-border: #bcca6f;
+  --color-diff-removed-fg: #fb5f5b; --color-diff-removed-linenum-bg: #482121;
+  --color-diff-removed-row-bg: #301e1e; --color-diff-removed-row-border: #634343;
+  --color-diff-removed-word-bg: #6f3333; --color-diff-inactive: #25272a;
+  --color-editor-line-highlight: var(--color-secondary-alpha-40);
+  --color-editor-selection: var(--color-primary-alpha-50); --color-highlight-fg: #87651e;
+  --color-highlight-bg: #443a27; --color-transparency-grid-light: #2a2a2a;
+  --color-transparency-grid-dark: #1a1a1a; --color-workflow-edge-hover: #666a73;
+
+  --color-syntax-keyword: #ff8854; --color-syntax-bool: #25bbc9; --color-syntax-control: #dd9e17;
+  --color-syntax-name: #fabd2f; --color-syntax-type: #eb8cb3; --color-syntax-number: #63b2dd;
+  --color-syntax-operator: #ff8854; --color-syntax-regexp: #b89de4; --color-syntax-string: #95b62a;
+  --color-syntax-comment: #8898b0; --color-syntax-invalid: #ff8686; --color-syntax-tag: #ff8854;
+  --color-syntax-attribute: #c792ff; --color-syntax-property: #55afff;
+  --color-syntax-variable: #e29b33; --color-syntax-string-special: #dd9e17;
+  --color-syntax-escape: #c7a618; --color-syntax-entity: #c792ff; --color-syntax-preproc: #4cbe7a;
+  --color-syntax-preproc-file: #63b2dd; --color-syntax-decorator: #4cbe7a;
+  --color-syntax-namespace: #c9d1d9; --color-syntax-name-pseudo: #c792ff;
+  --color-syntax-comment-special: #b89de4; --color-syntax-text: #c9d1d9;
+  --color-syntax-text-alt: #b9bcc7; --color-syntax-punctuation: #d2d4db;
+  --color-syntax-whitespace: #7f8699; --color-syntax-diff-fg: #ffffff;
+  --color-syntax-deleted-bg: #5f3737; --color-syntax-inserted-bg: #3a523a;
+  --color-syntax-emph: #d1a242; --color-syntax-strong: #e29b33; --color-syntax-heading: #dd9e17;
+  --color-syntax-subheading: #95b62a; --color-syntax-output: #8898b0;
+  --color-syntax-prompt: #e29b33; --color-syntax-traceback: #ff8686;
+  --color-syntax-matching-bracket-bg: #00918a48; --color-syntax-nonmatching-bracket-bg: #cc484848;
+}
+
+/* ---------- Coderegels: geen inline-codevlak per regel ------------------ */
+/* De basisregel voor inline code (10) raakt ook de regels van de codeweergave
+   en diffs (code.code-inner in een tabelcel): elke regel kreeg een grijs vlak. */
+html[data-theme^="gitea"] :is(td.lines-code code, code.code-inner) {
+  background-color: transparent;
+  border-radius: 0;
+}
+
+/* ---------- Knoppengroepen (.ui.buttons) -------------------------------- */
+/* Gitea geeft elke basic-knop zelf een rand; de inset-schaduw uit 35 gaf een
+   dubbele rand. In een groep alleen de buitenste hoeken rond, zoals Gitea. */
+html[data-theme^="gitea"] .ui.basic.button {
+  box-shadow: none !important;
+}
+
+html[data-theme^="gitea"] .ui.buttons > .ui.button {
+  border-radius: 0;
+}
+
+html[data-theme^="gitea"] .ui.buttons > .ui.button:first-child {
+  border-top-left-radius: var(--alg-radius);
+  border-bottom-left-radius: var(--alg-radius);
+}
+
+html[data-theme^="gitea"] .ui.buttons > .ui.button:last-child {
+  border-top-right-radius: var(--alg-radius);
+  border-bottom-right-radius: var(--alg-radius);
+}
+
+/* ---------- Lege vinkjes en keuzerondjes zichtbaar ---------------------- */
+/* het vak (appearance none) had de veldkleur met een rand van 14 % wit:
+   een niet-aangevinkte optie zag je bijna niet */
+html[data-theme^="gitea"] .ui.checkbox input:is([type="checkbox"], [type="radio"]) {
+  border-color: rgba(255, 255, 255, .35) !important;
+}
+

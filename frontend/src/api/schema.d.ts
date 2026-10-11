@@ -424,6 +424,110 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/hosts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Alle host-koppelingen (`*` eerst) */
+        get: operations["hosts_list"];
+        put?: never;
+        /** Koppeling aanmaken */
+        post: operations["hosts_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/hosts/options": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Te kiezen thema's en scripts, en de sub_filter-regel voor NPM */
+        get: operations["hosts_options"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/hosts/import": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Koppelingen overnemen uit een NPM-config (`# <host>` boven elke sub_filter) */
+        post: operations["hosts_import"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/hosts/{binding_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Koppeling aanpassen */
+        put: operations["hosts_update"];
+        post?: never;
+        /** Koppeling verwijderen (de host volgt dan `*`) */
+        delete: operations["hosts_delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/host/{hostname}.css": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Samengevoegde CSS voor een proxy host (koppeling van de host, anders `*`) */
+        get: operations["public_host_css"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/host/{hostname}.js": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Samengevoegde thema-scripts voor een proxy host */
+        get: operations["public_host_js"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/{ref}.css": {
         parameters: {
             query?: never;
@@ -607,6 +711,152 @@ export interface components {
             checks: {
                 [key: string]: "ok" | "error";
             };
+        };
+        /** HostBinding */
+        HostBinding: {
+            /**
+             * Hostname
+             * @description Hostnaam van de proxy host, of `*` voor elke host zonder eigen koppeling.
+             * @example proxmox100.jbogaert.be
+             */
+            hostname: string;
+            /**
+             * Styles
+             * @description Thema-slugs of namen van bestanden in css-files (zonder `.css`), in laadvolgorde. Een bestand in css-files gaat voor op een thema met dezelfde naam, zoals in nginx.
+             * @example [
+             *       "algemeen",
+             *       "alg-proxmox"
+             *     ]
+             */
+            styles?: string[];
+            /**
+             * Scripts
+             * @description Thema-scripts (zonder `.js`), bv. leeg voor een wachtwoordkluis.
+             * @example [
+             *       "algemeen"
+             *     ]
+             */
+            scripts?: string[];
+            /**
+             * Enabled
+             * @description Uit: de host krijgt niets, ook niet `*`.
+             * @default true
+             */
+            enabled: boolean;
+            /** Note */
+            note?: string | null;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /**
+             * Css Url
+             * @description Publieke URL van de samengevoegde CSS van deze host.
+             * @example https://css.jbogaert.be/host/proxmox100.jbogaert.be.css
+             */
+            css_url: string;
+            /** Js Url */
+            js_url: string;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /**
+             * Updated At
+             * Format: date-time
+             */
+            updated_at: string;
+        };
+        /** HostBindingInput */
+        HostBindingInput: {
+            /**
+             * Hostname
+             * @description Hostnaam van de proxy host, of `*` voor elke host zonder eigen koppeling.
+             * @example proxmox100.jbogaert.be
+             */
+            hostname: string;
+            /**
+             * Styles
+             * @description Thema-slugs of namen van bestanden in css-files (zonder `.css`), in laadvolgorde. Een bestand in css-files gaat voor op een thema met dezelfde naam, zoals in nginx.
+             * @example [
+             *       "algemeen",
+             *       "alg-proxmox"
+             *     ]
+             */
+            styles?: string[];
+            /**
+             * Scripts
+             * @description Thema-scripts (zonder `.js`), bv. leeg voor een wachtwoordkluis.
+             * @example [
+             *       "algemeen"
+             *     ]
+             */
+            scripts?: string[];
+            /**
+             * Enabled
+             * @description Uit: de host krijgt niets, ook niet `*`.
+             * @default true
+             */
+            enabled: boolean;
+            /** Note */
+            note?: string | null;
+        };
+        /** HostImportRequest */
+        HostImportRequest: {
+            /**
+             * Text
+             * @description NPM-config met `# <hostnaam>` boven elke `sub_filter`-regel, bv. de inhoud van npm-sub_filter-per-dienst.conf.
+             */
+            text: string;
+            /**
+             * Replace
+             * @description Bestaande koppelingen overschrijven (thema's en scripts); anders overslaan.
+             * @default true
+             */
+            replace: boolean;
+        };
+        /** HostImportResult */
+        HostImportResult: {
+            /** Created */
+            created: string[];
+            /** Updated */
+            updated: string[];
+            /** Unchanged */
+            unchanged: string[];
+            /** Skipped */
+            skipped: components["schemas"]["HostImportSkipped"][];
+        };
+        /** HostImportSkipped */
+        HostImportSkipped: {
+            /** Line */
+            line: number;
+            /** Reason */
+            reason: string;
+        };
+        /** HostOptions */
+        HostOptions: {
+            /**
+             * Styles
+             * @description Gepubliceerde thema's en CSS-bestanden in css-files (zonder `.css`).
+             */
+            styles: string[];
+            /**
+             * Scripts
+             * @description Scripts in css-files (zonder `.js`).
+             */
+            scripts: string[];
+            /**
+             * Snippet
+             * @description De `sub_filter`-regel voor elke proxy host in NPM.
+             */
+            snippet: string;
+            /**
+             * Snippet Own Domain
+             * @description Dezelfde regel via `/alg-thema/` op het eigen domein, voor apps met een strikte CSP (met een `location ^~ /alg-thema/` die naar cssthema doorstuurt).
+             */
+            snippet_own_domain: string;
         };
         /** ImportedTheme */
         ImportedTheme: {
@@ -2897,6 +3147,360 @@ export interface operations {
             };
             /** @description `storage_unavailable`: CSS_FILES_DIR ontbreekt of is niet schrijfbaar */
             503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    hosts_list: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HostBinding"][];
+                };
+            };
+            /** @description Interne fout */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    hosts_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["HostBindingInput"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HostBinding"];
+                };
+            };
+            /** @description `host_conflict`: die hostnaam heeft al een koppeling */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+            /** @description Interne fout */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    hosts_options: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HostOptions"];
+                };
+            };
+            /** @description Interne fout */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    hosts_import: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["HostImportRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HostImportResult"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+            /** @description Interne fout */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    hosts_update: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                binding_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["HostBindingInput"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HostBinding"];
+                };
+            };
+            /** @description Koppeling niet gevonden */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description `host_conflict`: die hostnaam heeft al een koppeling */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+            /** @description Interne fout */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    hosts_delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                binding_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Koppeling niet gevonden */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+            /** @description Interne fout */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    public_host_css: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                hostname: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description De CSS */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/css": string;
+                };
+            };
+            /** @description Niet gewijzigd (If-None-Match / If-Modified-Since) */
+            304: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+            /** @description Interne fout */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    public_host_js: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                hostname: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description JS */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/javascript": string;
+                };
+            };
+            /** @description Niet gewijzigd (If-None-Match / If-Modified-Since) */
+            304: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+            /** @description Interne fout */
+            500: {
                 headers: {
                     [name: string]: unknown;
                 };

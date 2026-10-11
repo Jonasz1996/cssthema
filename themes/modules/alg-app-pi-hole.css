@@ -1,0 +1,74 @@
+/* alg-app-pi-hole.css - gegenereerd uit algemeen.css door scripts/themes/modules.py;
+   niet met de hand aanpassen. Laadt na alg-kern.css (zie themes/README.md). */
+/* ==========================================================================
+   60 PI-HOLE (v6, AdminLTE 2 + Bootstrap 3)
+   De rest gaat via AdminLTE (32) en Bootstrap 3 (30). Herkenning: de eigen
+   stylesheet style/pi-hole.css. Kleuren naar Pi-holes eigen donkere thema
+   (default-dark, EUPL) en het palet van allow.
+   Getest met pihole/pihole:latest (web v6.6, thema default-auto, lichte modus).
+
+   LET OP: Pi-hole stuurt zelf een CSP-header (style-src 'self'
+   'unsafe-inline'; script-src 'self'). Die blokkeert de stylesheet en het
+   script van css.jbogaert.be. In NPM: proxy_hide_header
+   Content-Security-Policy; (of de header opnieuw zetten met
+   https://css.jbogaert.be in style-src en script-src).
+   ========================================================================== */
+
+/* ---------- Pi-hole-variabelen ------------------------------------------ */
+/* zwevende "Opslaan"-balk (--overlay-bgcolor) en gekozen tabelrijen
+   (--datatable-bgcolor): in het lichte thema lichtblauw/grijs */
+html:has(> head > link[rel="stylesheet"][href*="/style/pi-hole.css"]) {
+  --datatable-bgcolor: rgba(255, 255, 255, .1) !important;
+  --overlay-bgcolor: rgba(16, 16, 16, .85) !important;
+}
+
+/* de zwevende balk ligt boven de inhoud: glas met blur */
+html:has(> head > link[rel="stylesheet"][href*="/style/pi-hole.css"]) .save-button-container {
+  box-shadow: 0 0 0 1px var(--alg-rand-sterk), var(--alg-schaduw-midden);
+  -webkit-backdrop-filter: var(--alg-blur);
+  backdrop-filter: var(--alg-blur);
+}
+
+/* ---------- Grafieken --------------------------------------------------- */
+/* Pi-hole leest de kleuren voor raster en labels van zijn canvasgrafieken
+   uit twee hulpklassen (een div die even aan body hangt). Zo worden ze
+   leesbaar zonder iets aan de canvas zelf te doen. */
+.graphs-grid {
+  background-color: rgba(255, 255, 255, .12) !important;
+}
+
+.graphs-ticks {
+  color: var(--alg-gedempt) !important;
+}
+
+/* ---------- Statuskleuren (query-log, netwerk) -------------------------- */
+html:has(> head > link[rel="stylesheet"][href*="/style/pi-hole.css"]) .text-green-light {
+  color: var(--alg-ok) !important;
+}
+
+/* netwerkoverzicht: pastelrijen (licht) worden donkere tinten zoals in
+   Pi-holes donkere thema */
+html:has(> head > link[rel="stylesheet"][href*="/style/pi-hole.css"]) .network-never { background-color: #661b02 !important; }
+html:has(> head > link[rel="stylesheet"][href*="/style/pi-hole.css"]) .network-recent { background-color: #114100 !important; }
+html:has(> head > link[rel="stylesheet"][href*="/style/pi-hole.css"]) .network-old { background-color: #525200 !important; }
+html:has(> head > link[rel="stylesheet"][href*="/style/pi-hole.css"]) .network-older { background-color: #502b00 !important; }
+html:has(> head > link[rel="stylesheet"][href*="/style/pi-hole.css"]) .network-gradient { background-image: linear-gradient(to right, #114100 0%, #525200 100%) !important; }
+
+/* knoppen in tabellen (wit) */
+html:has(> head > link[rel="stylesheet"][href*="/style/pi-hole.css"]) .datatable-bt {
+  background-color: var(--alg-knop-zacht) !important;
+  border-color: var(--alg-rand-sterk) !important;
+  color: var(--alg-tekst) !important;
+}
+
+html:has(> head > link[rel="stylesheet"][href*="/style/pi-hole.css"]) .datatable-bt:hover {
+  background-color: var(--alg-knop-hover) !important;
+  color: #fff !important;
+}
+
+/* teller met waarschuwingen: wit op oranje haalt maar 2.6:1 */
+html:has(> head > link[rel="stylesheet"][href*="/style/pi-hole.css"]) .warning-count {
+  background: var(--alg-waarschuwing-vlak) !important;
+  color: var(--alg-donker-tekst) !important;
+}
+

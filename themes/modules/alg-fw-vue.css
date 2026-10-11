@@ -1,0 +1,1235 @@
+/* alg-fw-vue.css - gegenereerd uit algemeen.css door scripts/themes/modules.py;
+   niet met de hand aanpassen. Laadt na alg-kern.css (zie themes/README.md). */
+/* ==========================================================================
+   34 VUE - Vuetify 3 en 2, Quasar 2, Element Plus en Element UI 2
+   Waar het framework variabelen heeft, zetten we die (met !important).
+   Kleuren met tekst erop: hoofdkleur als tekst = lichtgrijs (#aaa), als
+   vlak met witte tekst = de knopkleur. Iconen (mdi, material-icons) houden
+   hun eigen lettertype: wij zetten nergens font-family op een icoon.
+   ========================================================================== */
+
+/* ==========================================================================
+   VUETIFY 3 - drietallen "r, g, b" in --v-theme-*
+   De themaklasse heet .v-theme--light, --dark of een eigen naam.
+   ========================================================================== */
+:root:where(html),
+[class*="v-theme--"] {
+  --v-theme-background: 20, 20, 20 !important;
+  --v-theme-on-background: 221, 221, 221 !important;
+  --v-theme-surface: 24, 24, 24 !important;
+  --v-theme-on-surface: 221, 221, 221 !important;
+  --v-theme-surface-bright: 221, 221, 221 !important;
+  --v-theme-on-surface-bright: 17, 17, 17 !important;
+  --v-theme-surface-light: 42, 42, 42 !important;
+  --v-theme-on-surface-light: 221, 221, 221 !important;
+  --v-theme-surface-variant: 85, 85, 85 !important;
+  --v-theme-on-surface-variant: 238, 238, 238 !important;
+  --v-theme-primary: 170, 170, 170 !important;
+  --v-theme-primary-darken-1: 140, 140, 140 !important;
+  --v-theme-on-primary: 17, 17, 17 !important;
+  --v-theme-secondary: 140, 140, 140 !important;
+  --v-theme-secondary-darken-1: 120, 120, 120 !important;
+  --v-theme-on-secondary: 17, 17, 17 !important;
+  --v-theme-error: 229, 139, 139 !important;
+  --v-theme-on-error: 17, 17, 17 !important;
+  --v-theme-info: 156, 201, 255 !important;
+  --v-theme-on-info: 17, 17, 17 !important;
+  --v-theme-success: 143, 214, 164 !important;
+  --v-theme-on-success: 17, 17, 17 !important;
+  --v-theme-warning: 230, 181, 107 !important;
+  --v-theme-on-warning: 17, 17, 17 !important;
+  --v-theme-kbd: 42, 42, 42 !important;
+  --v-theme-on-kbd: 255, 255, 255 !important;
+  --v-theme-code: 40, 40, 40 !important;
+  --v-theme-on-code: 214, 230, 255 !important;
+  --v-border-color: 255, 255, 255 !important;
+  --v-border-opacity: .12 !important;
+  --v-high-emphasis-opacity: 1 !important;
+  --v-medium-emphasis-opacity: .72 !important;
+  --v-disabled-opacity: .5 !important;
+  --v-idle-opacity: .1 !important;
+  --v-hover-opacity: .06 !important;
+  --v-focus-opacity: .12 !important;
+  --v-selected-opacity: .1 !important;
+  --v-activated-opacity: .14 !important;
+  --v-pressed-opacity: .16 !important;
+  --v-dragged-opacity: .08 !important;
+  color-scheme: dark;
+}
+
+/* de app zelf: doorzichtig, zodat de verloopachtergrond zichtbaar is */
+.v-application {
+  background: transparent !important;
+}
+
+/* kaarten: glas (een .bg-*-kleur van de app heeft !important en wint) */
+.v-card.v-card--variant-elevated,
+.v-card.v-card--variant-flat {
+  background-color: var(--alg-glas);
+  border-radius: var(--alg-radius-groot);
+}
+
+.v-navigation-drawer:not([class*="bg-"]) {
+  background-color: rgba(10, 10, 10, .62);
+}
+
+/* schakelaar (Vuetify 3): aan = witte knop op lichte baan, uit = grijze
+   knop op donkere baan (zoals Tabler); een foutstaat houdt zijn kleur */
+.v-switch .v-selection-control--dirty:not(.v-selection-control--error) .v-switch__thumb {
+  background-color: #fff !important;
+  color: #111 !important;
+}
+
+.v-switch .v-selection-control:not(.v-selection-control--dirty, .v-selection-control--error) .v-switch__thumb {
+  background-color: #8a8a8a;
+}
+
+/* tijdelijke lade (mobiel, of boven de inhoud): ligt over de pagina, dus
+   sterk glas met vervaging; anders loopt de paginatekst door het menu */
+.v-navigation-drawer.v-navigation-drawer--temporary:not([class*="bg-"]) {
+  background-color: var(--alg-glas-sterk);
+  -webkit-backdrop-filter: var(--alg-blur);
+  backdrop-filter: var(--alg-blur);
+}
+
+.v-app-bar.v-toolbar:not([class*="bg-"]) {
+  background-color: rgba(10, 10, 10, .55);
+  -webkit-backdrop-filter: var(--alg-blur);
+  backdrop-filter: var(--alg-blur);
+}
+
+/* balken in de hoofdkleur worden donker */
+:is(.v-app-bar, .v-toolbar, .v-navigation-drawer, .v-footer, .v-system-bar, .v-bottom-navigation).bg-primary {
+  background-color: rgba(10, 10, 10, .55) !important;
+  color: var(--alg-tekst) !important;
+}
+
+/* knoppen en vlakken in de hoofdkleur: de knopkleur met witte tekst */
+:is(.v-btn, .v-card, .v-sheet, .v-chip, .v-avatar, .v-badge__badge).bg-primary {
+  background-color: var(--alg-knop) !important;
+  color: var(--alg-knop-tekst) !important;
+}
+
+.v-btn.bg-primary:hover {
+  background-color: var(--alg-knop-hover) !important;
+  box-shadow: var(--alg-gloed);
+}
+
+.v-btn.v-btn--variant-elevated:not([class*="bg-"]),
+.v-btn.v-btn--variant-flat:not([class*="bg-"]) {
+  background-color: rgba(255, 255, 255, .08);
+}
+
+/* menu's en dialogen */
+.v-menu > .v-overlay__content > :is(.v-card, .v-list, .v-sheet),
+.v-dialog > .v-overlay__content > :is(.v-card, .v-sheet) {
+  background-color: var(--alg-glas-sterk);
+  border: 1px solid var(--alg-rand-sterk);
+  -webkit-backdrop-filter: var(--alg-blur);
+  backdrop-filter: var(--alg-blur);
+}
+
+.v-dialog > .v-overlay__content > :is(.v-card, .v-sheet) {
+  box-shadow: var(--alg-schaduw) !important;
+}
+
+/* invoer: het vak (v-field) toont kader en focus, het echte veld is doorzichtig */
+.v-field input,
+.v-field textarea,
+.v-field .v-field__input {
+  background-color: transparent !important;
+  box-shadow: none !important;
+}
+
+.v-field input:focus-visible,
+.v-field textarea:focus-visible {
+  outline: 0 !important;
+}
+
+.v-field--variant-solo,
+.v-field--variant-solo-filled {
+  background-color: var(--alg-veld) !important;
+}
+
+/* lettertype op de typografieklassen; iconen uitgezonderd */
+.v-application :is(.text-h1, .text-h2, .text-h3, .text-h4, .text-h5, .text-h6, .text-subtitle-1, .text-subtitle-2,
+    .text-body-1, .text-body-2, .text-button, .text-caption, .text-overline):not(.v-icon, .mdi, [class*="mdi-"], .material-icons) {
+  font-family: var(--alg-font) !important;
+}
+
+/* ==========================================================================
+   VUETIFY 2 - geen variabelen; regels voor .theme--light
+   Voorvoegsel .v-application geeft een klasse extra gewicht, zodat de
+   volgorde van laden niet uitmaakt. Kleurklassen van de app
+   (.v-application .red) hebben !important en blijven winnen.
+   ========================================================================== */
+.v-application.theme--light,
+.v-application.theme--dark {
+  background: transparent !important;
+  color: var(--alg-tekst) !important;
+  font-family: var(--alg-font) !important;
+}
+
+.v-application :is(.display-4, .display-3, .display-2, .display-1, .headline, .title, .subtitle-1, .subtitle-2,
+    .body-1, .body-2, .caption, .overline):not(.v-icon, .mdi, [class*="mdi-"], .material-icons) {
+  font-family: var(--alg-font) !important;
+}
+
+/* html ervoor: deze klassen staan in Vuetify zelf ook met !important */
+html .v-application:is(.theme--light, .theme--dark) .text--primary { color: var(--alg-tekst) !important; }
+html .v-application:is(.theme--light, .theme--dark) .text--secondary { color: var(--alg-gedempt) !important; }
+html .v-application:is(.theme--light, .theme--dark) .text--disabled { color: var(--alg-zwak) !important; }
+
+/* links: Vuetify kleurt ze blauw (te weinig contrast op donker) */
+.v-application a:not([class]) {
+  color: var(--alg-link);
+}
+
+.v-application a:not([class]):hover {
+  color: var(--alg-link-hover);
+}
+
+.v-application .theme--light.v-sheet:not(.white, [class*="lighten-"]),
+.v-application .theme--light.v-card:not(.white, [class*="lighten-"]),
+.v-application .theme--light.v-list,
+.v-application .theme--light.v-data-table,
+.v-application .theme--light.v-tabs > .v-tabs-bar,
+.v-application .theme--light.v-tabs-items,
+.v-application .theme--light.v-expansion-panels .v-expansion-panel,
+.v-application .theme--light.v-picker__body,
+.v-application .theme--light.v-stepper,
+.v-application .theme--light.v-pagination .v-pagination__item:not(.v-pagination__item--active),
+.v-application .theme--light.v-pagination .v-pagination__navigation,
+.v-application .theme--light.v-btn-toggle:not(.v-btn-toggle--group) {
+  background-color: var(--alg-glas);
+  border-color: var(--alg-rand);
+  color: var(--alg-tekst);
+}
+
+.v-application .theme--light.v-card:not(.white, [class*="lighten-"]) {
+  border-radius: var(--alg-radius-groot);
+}
+
+/* lijsten in kaarten en zijbalken: geen dubbel glas */
+.v-application .theme--light.v-card .theme--light.v-list,
+.v-application .theme--light.v-navigation-drawer .theme--light.v-list,
+.v-application .theme--light.v-card .theme--light.v-data-table,
+.v-application .theme--light.v-card .theme--light.v-tabs-items,
+.v-application .theme--light.v-card .theme--light.v-tabs > .v-tabs-bar {
+  background-color: transparent;
+}
+
+.v-application .theme--light.v-navigation-drawer:not(.white, [class*="lighten-"]) {
+  background-color: rgba(10, 10, 10, .62);
+}
+
+/* tijdelijke of mobiele lade ligt over de inhoud: sterk glas met vervaging */
+.v-application .theme--light.v-navigation-drawer:is(.v-navigation-drawer--temporary, .v-navigation-drawer--is-mobile):not(.white, [class*="lighten-"]) {
+  background-color: var(--alg-glas-sterk);
+  -webkit-backdrop-filter: var(--alg-blur);
+  backdrop-filter: var(--alg-blur);
+}
+
+.v-application .theme--light.v-app-bar.v-toolbar.v-sheet:not(.white, [class*="lighten-"]),
+.v-application .theme--light.v-toolbar.v-sheet:not(.white, [class*="lighten-"]),
+.v-application .theme--light.v-footer:not(.white, [class*="lighten-"]),
+.v-application .theme--light.v-system-bar,
+.v-application .theme--light.v-bottom-navigation {
+  background-color: rgba(10, 10, 10, .55);
+  color: var(--alg-tekst);
+}
+
+/* hoofdkleur: knoppen en balken in het thema */
+.v-application :is(.v-btn, .v-chip, .v-pagination__item--active).primary {
+  background-color: var(--alg-knop) !important;
+  border-color: var(--alg-knop) !important;
+  color: var(--alg-knop-tekst) !important;
+}
+
+.v-application .v-btn.primary:hover {
+  background-color: var(--alg-knop-hover) !important;
+  box-shadow: var(--alg-gloed);
+}
+
+.v-application :is(.v-app-bar, .v-toolbar, .v-navigation-drawer, .v-footer, .v-system-bar).primary {
+  background-color: rgba(10, 10, 10, .55) !important;
+  border-color: var(--alg-rand) !important;
+  color: var(--alg-tekst) !important;
+}
+
+/* statusvlakken met genoeg contrast (de standaardkleuren halen 4.5:1 niet) */
+.v-application :is(.v-btn:not(.v-btn--outlined, .v-btn--text), .v-chip:not(.v-chip--outlined), .v-alert:not(.v-alert--text, .v-alert--outlined)).success {
+  background-color: var(--alg-ok-vlak) !important;
+  border-color: var(--alg-ok-vlak) !important;
+  color: #fff !important;
+}
+
+.v-application :is(.v-btn:not(.v-btn--outlined, .v-btn--text), .v-chip:not(.v-chip--outlined), .v-alert:not(.v-alert--text, .v-alert--outlined)).error {
+  background-color: var(--alg-fout-vlak) !important;
+  border-color: var(--alg-fout-vlak) !important;
+  color: #fff !important;
+}
+
+/* het themablad van Vuetify komt na het onze; html geeft extra gewicht */
+html .v-application .primary--text {
+  color: var(--alg-accent-kleur) !important;
+  caret-color: var(--alg-accent-kleur) !important;
+}
+
+/* teksten en iconen */
+.v-application .theme--light.v-icon { color: rgba(255, 255, 255, .72); }
+/* gekleurde knoppen en chips (.success, .error, ...) houden hun witte tekst */
+.v-application .theme--light.v-btn:not(.primary, .secondary, .accent, .success, .error, .warning, .info) { color: var(--alg-tekst); }
+.v-application .theme--light.v-btn.v-btn--icon { color: rgba(255, 255, 255, .72); }
+.v-application .theme--light.v-btn.v-btn--has-bg { background-color: rgba(255, 255, 255, .08); }
+.v-application .theme--light.v-btn.v-btn--outlined.v-btn--text { border-color: var(--alg-rand-sterk); }
+.v-application .theme--light.v-btn.v-btn--disabled,
+.v-application .theme--light.v-btn.v-btn--disabled .v-icon { color: rgba(255, 255, 255, .35) !important; }
+.v-application .theme--light.v-btn.v-btn--disabled.v-btn--has-bg { background-color: rgba(255, 255, 255, .06) !important; }
+
+/* Vuetify 3: een uitgeschakelde knop met .bg-* kreeg onze knopkleur plus
+   Vuetify's witte overlay (46 %) en was lichter dan een actieve knop */
+.v-btn.v-btn--disabled[class*="bg-"] {
+  background-color: rgba(255, 255, 255, .06) !important;
+  color: rgba(255, 255, 255, .45) !important;
+}
+
+.v-btn.v-btn--disabled[class*="bg-"] > .v-btn__overlay {
+  opacity: 0;
+}
+
+.v-application .theme--light.v-list-item:not(.v-list-item--active):not(.v-list-item--disabled) { color: var(--alg-tekst) !important; }
+.v-application .theme--light.v-list-item--disabled { color: var(--alg-zwak); }
+.v-application .theme--light.v-list-item:not(.v-list-item--disabled) .v-list-item__subtitle,
+.v-application .theme--light.v-list-item:not(.v-list-item--disabled) .v-list-item__action-text,
+.v-application .theme--light.v-subheader,
+.v-application .theme--light.v-card > .v-card__text,
+.v-application .theme--light.v-card > .v-card__subtitle,
+.v-application .theme--light.v-label,
+.v-application .theme--light.v-messages,
+.v-application .theme--light.v-counter,
+.v-application .theme--light.v-breadcrumbs .v-breadcrumbs__divider,
+.v-application .theme--light.v-breadcrumbs .v-breadcrumbs__item--disabled,
+.v-application .theme--light.v-data-table > .v-data-table__wrapper > table > thead > tr > th,
+.v-application .theme--light.v-tabs > .v-tabs-bar .v-tab:not(.v-tab--active),
+.v-application .theme--light.v-tabs > .v-tabs-bar .v-tab:not(.v-tab--active) > .v-icon {
+  color: var(--alg-gedempt);
+}
+
+.v-application .theme--light.v-divider,
+.v-application .theme--light.v-navigation-drawer .v-divider {
+  border-color: var(--alg-rand-sterk);
+}
+
+.v-application .theme--light.v-navigation-drawer:not(.v-navigation-drawer--floating) .v-navigation-drawer__border {
+  background-color: var(--alg-rand);
+}
+
+/* invoervelden */
+.v-application .theme--light.v-input,
+.v-application .theme--light.v-input input,
+.v-application .theme--light.v-input textarea,
+.v-application .theme--light.v-select .v-select__selections {
+  color: var(--alg-tekst-sterk);
+}
+
+.v-application .v-input input,
+.v-application .v-input textarea {
+  background-color: transparent !important;
+  box-shadow: none !important;
+}
+
+.v-application .v-input input:focus-visible,
+.v-application .v-input textarea:focus-visible {
+  outline: 0 !important;
+}
+
+.v-application .theme--light.v-text-field > .v-input__control > .v-input__slot::before {
+  border-color: rgba(255, 255, 255, .42);
+}
+
+.v-application .theme--light.v-text-field--filled > .v-input__control > .v-input__slot,
+.v-application .theme--light.v-text-field--solo-inverted > .v-input__control > .v-input__slot {
+  background: rgba(255, 255, 255, .07);
+}
+
+.v-application .theme--light.v-text-field--solo > .v-input__control > .v-input__slot {
+  background: var(--alg-veld);
+}
+
+.v-application .theme--light.v-text-field--outlined:not(.v-input--is-focused):not(.v-input--has-state) > .v-input__control > .v-input__slot fieldset {
+  color: rgba(255, 255, 255, .3);
+}
+
+.v-application .theme--light.v-input--switch .v-input--switch__track {
+  color: rgba(255, 255, 255, .38);
+}
+
+/* schakelaar: aan = witte knop op lichte baan, uit = grijze knop op donkere
+   baan (zoals Tabler); anders leek "uit" (witte knop) de actieve stand */
+.v-application .theme--light.v-input--switch.v-input--is-dirty:not(.error--text) .v-input--switch__thumb {
+  color: #fff !important;
+}
+
+.v-application .theme--light.v-input--switch:not(.v-input--is-dirty) .v-input--switch__thumb {
+  color: #8a8a8a;
+}
+
+/* chips, tabellen */
+.v-application .theme--light.v-chip:not(.v-chip--active):not([class*="--text"]):not(.primary, .secondary, .success, .error, .warning, .info) {
+  background: rgba(255, 255, 255, .1);
+}
+
+.v-application .theme--light.v-chip:not(.primary, .secondary, .accent, .success, .error, .warning, .info) {
+  border-color: var(--alg-rand-sterk);
+  color: var(--alg-tekst);
+}
+
+.v-application .theme--light.v-data-table > .v-data-table__wrapper > table > tbody > tr:not(:last-child) > td:not(.v-data-table__mobile-row),
+.v-application .theme--light.v-data-table > .v-data-table__wrapper > table > tbody > tr:not(:last-child) > th:not(.v-data-table__mobile-row),
+.v-application .theme--light.v-data-table > .v-data-table__wrapper > table > thead > tr:last-child > th {
+  border-bottom-color: var(--alg-rand) !important;
+}
+
+.v-application .theme--light.v-data-table > .v-data-table__wrapper > table > tbody > tr:hover:not(.v-data-table__expanded__content):not(.v-data-table__empty-wrapper) {
+  background: var(--alg-rij-hover);
+}
+
+.v-application .theme--light.v-data-table tbody tr.v-data-table__selected,
+.v-application .theme--light.v-data-table > .v-data-table__wrapper > table > tbody > tr.active {
+  background: var(--alg-rij-actief);
+}
+
+.v-application .theme--light.v-data-table .v-data-footer {
+  border-top-color: var(--alg-rand);
+}
+
+/* menu's, dialogen, codeblokjes */
+.v-application .v-menu__content > .theme--light.v-list,
+.v-application .v-menu__content > .theme--light.v-card,
+.v-application .v-dialog > .theme--light.v-card {
+  background-color: var(--alg-glas-sterk);
+  -webkit-backdrop-filter: var(--alg-blur);
+  backdrop-filter: var(--alg-blur);
+}
+
+.theme--light.v-application code {
+  background-color: rgba(255, 255, 255, .09);
+  color: var(--alg-tekst-sterk);
+}
+
+/* ==========================================================================
+   QUASAR 2 - merkkleuren via --q-*, oppervlakken via eigen klassen
+   Quasar zet --q-primary soms inline op body; !important wint daarvan.
+   ========================================================================== */
+body.body--light,
+body.body--dark {
+  --q-primary: #aaa !important;
+  --q-positive: #8fd6a4 !important;
+  --q-negative: #e58b8b !important;
+  --q-dark: #181818 !important;
+  --q-dark-page: #141414 !important;
+}
+
+/* lagen van de opmaak */
+.q-layout__section--marginal,
+.q-header,
+.q-footer {
+  background-color: rgba(10, 10, 10, .55) !important;
+  border-color: var(--alg-rand) !important;
+  color: var(--alg-tekst) !important;
+}
+
+.q-header {
+  -webkit-backdrop-filter: var(--alg-blur);
+  backdrop-filter: var(--alg-blur);
+}
+
+.q-drawer:not(.q-drawer--dark) {
+  background-color: rgba(10, 10, 10, .62);
+}
+
+/* mobiele lade en lade "overlay": ligt over de inhoud, dus sterk glas met
+   vervaging (anders loopt de paginatekst door de menu-items) */
+.q-drawer:is(.q-drawer--mobile, .q-drawer--on-top):not(.q-drawer--dark) {
+  background-color: var(--alg-glas-sterk);
+  -webkit-backdrop-filter: var(--alg-blur);
+  backdrop-filter: var(--alg-blur);
+}
+
+.q-drawer--bordered {
+  border-color: var(--alg-rand);
+}
+
+/* oppervlakken (een .bg-*-klasse heeft !important en wint) */
+.q-card:not(.q-card--dark),
+.q-table__card:not(.q-table__card--dark),
+.q-banner:not(.q-banner--dark),
+.q-tab-panels:not(.q-tab-panels--dark),
+.q-markup-table:not(.q-markup-table--dark),
+.q-date:not(.q-date--dark),
+.q-time:not(.q-time--dark),
+.q-stepper:not(.q-stepper--dark),
+.q-uploader:not(.q-uploader--dark),
+.q-editor:not(.q-editor--dark) {
+  background-color: var(--alg-glas);
+  border-color: var(--alg-rand);
+  color: var(--alg-tekst);
+}
+
+.q-card:not(.q-card--dark) {
+  border-radius: var(--alg-radius-groot);
+}
+
+/* kaarten en tabellen in een kaart: geen dubbel glas */
+.q-card .q-table__card,
+.q-card .q-markup-table,
+.q-card .q-tab-panels,
+.q-tab-panels .q-tab-panel > .q-card {
+  background-color: transparent;
+}
+
+.q-menu,
+.q-select__dialog,
+.q-dialog__inner > .q-card {
+  background-color: var(--alg-glas-sterk) !important;
+  border: 1px solid var(--alg-rand-sterk);
+  color: var(--alg-tekst);
+  -webkit-backdrop-filter: var(--alg-blur);
+  backdrop-filter: var(--alg-blur);
+}
+
+.q-dialog__inner > .q-card {
+  box-shadow: var(--alg-schaduw) !important;
+}
+
+/* knoppen, chips en badges in de hoofdkleur */
+:is(.q-btn, .q-badge, .q-chip, .q-avatar, .q-toolbar, .q-bar, .q-fab).bg-primary {
+  background-color: var(--alg-knop) !important;
+  background: var(--alg-knop) !important;
+  color: var(--alg-knop-tekst) !important;
+}
+
+/* positief en negatief (en paletrood): als tekst licht (zie boven), als vlak
+   donker onder witte tekst */
+:is(.q-btn, .q-badge, .q-chip, .q-avatar, .q-fab).bg-positive {
+  background: var(--alg-ok-vlak) !important;
+  color: #fff !important;
+}
+
+:is(.q-btn, .q-badge, .q-chip, .q-avatar, .q-fab):is(.bg-negative, .bg-red) {
+  background: var(--alg-fout-vlak) !important;
+  color: #fff !important;
+}
+
+/* donkergrijze tekstklassen van Quasar zijn voor lichte achtergronden bedoeld */
+body.body--light :is(.text-grey-7, .text-grey-8, .text-grey-9, .text-grey-10, .text-black, .text-dark) {
+  color: var(--alg-gedempt) !important;
+}
+
+.q-btn.bg-primary:hover {
+  background: var(--alg-knop-hover) !important;
+  box-shadow: var(--alg-gloed);
+}
+
+.q-chip:not([class*="bg-"]) {
+  background: rgba(255, 255, 255, .1);
+  color: var(--alg-tekst);
+}
+
+.q-chip__icon {
+  color: rgba(255, 255, 255, .7);
+}
+
+/* lijnen, scheidingen, tabellen */
+.q-separator:not(.q-separator--dark) {
+  background: var(--alg-rand-sterk);
+}
+
+.q-list--bordered,
+.q-list--separator > .q-item-type + .q-item-type,
+.q-table__bottom,
+.q-table thead,
+.q-table tr,
+.q-table th,
+.q-table td,
+.q-markup-table,
+.q-table__card,
+.q-card--bordered,
+.q-tabs--bordered,
+.q-stepper--bordered,
+.q-stepper__header--border {
+  border-color: var(--alg-rand);
+}
+
+.q-table th,
+.q-table__bottom,
+.q-table__bottom .q-field__native {
+  color: var(--alg-gedempt);
+}
+
+.q-table tbody td::before {
+  background: var(--alg-rij-hover);
+}
+
+.q-table tbody tr.selected td::after,
+.q-table tbody td::after {
+  background: rgba(255, 255, 255, .1);
+}
+
+.q-tree__node-header-content {
+  color: var(--alg-tekst);
+}
+
+/* invoervelden (zoals Quasar het zelf in donkere modus doet) */
+.q-field__native,
+.q-field__input,
+.q-field__prefix,
+.q-field__suffix {
+  background-color: transparent !important;
+  box-shadow: none !important;
+  color: var(--alg-tekst-sterk) !important;
+}
+
+.q-field__native:focus-visible,
+.q-field__input:focus-visible {
+  outline: 0 !important;
+}
+
+.q-field:not(.q-field--dark):not(.q-field--highlighted) .q-field__label,
+.q-field:not(.q-field--dark) .q-field__marginal,
+.q-field:not(.q-field--dark) .q-field__bottom {
+  color: rgba(255, 255, 255, .7);
+}
+
+.q-field--outlined:not(.q-field--dark) .q-field__control::before,
+.q-field--standard:not(.q-field--dark) .q-field__control::before {
+  border-color: rgba(255, 255, 255, .42);
+}
+
+.q-field--outlined:not(.q-field--dark) .q-field__control:hover::before,
+.q-field--standard:not(.q-field--dark) .q-field__control:hover::before {
+  border-color: rgba(255, 255, 255, .8);
+}
+
+.q-field--outlined:not(.q-field--dark) .q-field__control {
+  background-color: var(--alg-veld);
+  border-radius: var(--alg-radius);
+}
+
+.q-field--outlined:not(.q-field--dark) .q-field__control::before,
+.q-field--outlined:not(.q-field--dark) .q-field__control::after {
+  border-radius: var(--alg-radius);
+}
+
+.q-field--filled:not(.q-field--dark) .q-field__control,
+.q-field--filled:not(.q-field--dark) .q-field__control::before,
+.q-field--standout:not(.q-field--dark) .q-field__control {
+  background: rgba(255, 255, 255, .07);
+}
+
+.q-checkbox:not(.q-checkbox--dark) .q-checkbox__inner:not(.q-checkbox__inner--truthy, .q-checkbox__inner--indet),
+.q-radio:not(.q-radio--dark) .q-radio__inner:not(.q-radio__inner--truthy) {
+  color: rgba(255, 255, 255, .7);
+}
+
+/* schakelaar: aan = witte knop op lichte baan, uit = grijze knop op donkere
+   baan (zoals Tabler). Quasar tekent de knop "uit" altijd wit. */
+.q-toggle:not(.q-toggle--dark) .q-toggle__inner:not(.q-toggle__inner--truthy) {
+  color: #8a8a8a;
+}
+
+.q-toggle:not(.q-toggle--dark) .q-toggle__inner:not(.q-toggle__inner--truthy) .q-toggle__thumb::after {
+  background: #8a8a8a;
+}
+
+.q-toggle:not(.q-toggle--dark) .q-toggle__inner--truthy:not([class*="text-"]) .q-toggle__thumb::after {
+  background-color: #fff;
+}
+
+.q-slider:not(.q-slider--dark) .q-slider__track,
+.q-slider:not(.q-slider--dark) .q-slider__inner {
+  background: rgba(255, 255, 255, .12);
+}
+
+/* ==========================================================================
+   ELEMENT PLUS - --el-* op de hoofdlaag, waarden zoals de eigen donkere
+   modus (theme-chalk/dark), met grijs als hoofdkleur
+   ========================================================================== */
+:root:where(html, .dark) {
+  --el-color-primary: #8c8c8c !important;
+  --el-color-primary-light-3: #6b6b6b !important;
+  --el-color-primary-light-5: #505050 !important;
+  --el-color-primary-light-7: #3a3a3a !important;
+  --el-color-primary-light-8: #2e2e2e !important;
+  --el-color-primary-light-9: #222 !important;
+  --el-color-primary-dark-2: #a3a3a3 !important;
+  --el-color-success: #8fd6a4 !important;
+  --el-color-success-light-3: #69977a !important;
+  --el-color-success-light-5: #527360 !important;
+  --el-color-success-light-7: #3b5045 !important;
+  --el-color-success-light-8: #2f3e36 !important;
+  --el-color-success-light-9: #232c27 !important;
+  --el-color-success-dark-2: #a5deb6 !important;
+  --el-color-warning: #e6b56b !important;
+  --el-color-warning-light-3: #a3814f !important;
+  --el-color-warning-light-5: #7d633e !important;
+  --el-color-warning-light-7: #57452e !important;
+  --el-color-warning-light-8: #433626 !important;
+  --el-color-warning-light-9: #30281e !important;
+  --el-color-warning-dark-2: #ebc489 !important;
+  --el-color-danger: #e58b8b !important;
+  --el-color-danger-light-3: #a36565 !important;
+  --el-color-danger-light-5: #7d4f4f !important;
+  --el-color-danger-light-7: #573939 !important;
+  --el-color-danger-light-8: #432e2e !important;
+  --el-color-danger-light-9: #302222 !important;
+  --el-color-danger-dark-2: #eaa2a2 !important;
+  --el-color-error: #e58b8b !important;
+  --el-color-error-light-3: #a36565 !important;
+  --el-color-error-light-5: #7d4f4f !important;
+  --el-color-error-light-7: #573939 !important;
+  --el-color-error-light-8: #432e2e !important;
+  --el-color-error-light-9: #302222 !important;
+  --el-color-error-dark-2: #eaa2a2 !important;
+  --el-color-info: #999 !important;
+  --el-color-info-light-3: #6b6b6b !important;
+  --el-color-info-light-5: #525252 !important;
+  --el-color-info-light-7: #3a3a3a !important;
+  --el-color-info-light-8: #2d2d2d !important;
+  --el-color-info-light-9: #202020 !important;
+  --el-color-info-dark-2: #adadad !important;
+  --el-bg-color-page: transparent !important;
+  --el-bg-color: #181818 !important;
+  --el-bg-color-overlay: #1c1c1c !important;
+  --el-text-color-primary: #eee !important;
+  --el-text-color-regular: #ddd !important;
+  --el-text-color-secondary: #999 !important;
+  --el-text-color-placeholder: var(--alg-placeholder) !important;
+  --el-text-color-disabled: #6f6f6f !important;
+  --el-border-color-darker: #636363 !important;
+  --el-border-color-dark: #585858 !important;
+  --el-border-color: #4a4a4a !important;
+  --el-border-color-light: #3c3c3c !important;
+  --el-border-color-lighter: #333 !important;
+  --el-border-color-extra-light: #2a2a2a !important;
+  --el-fill-color-darker: #424242 !important;
+  --el-fill-color-dark: #393939 !important;
+  --el-fill-color: #303030 !important;
+  --el-fill-color-light: #262626 !important;
+  --el-fill-color-lighter: #1d1d1d !important;
+  --el-fill-color-extra-light: #191919 !important;
+  --el-fill-color-blank: rgba(8, 8, 8, .82) !important;
+  --el-mask-color: rgba(0, 0, 0, .8) !important;
+  --el-mask-color-extra-light: rgba(0, 0, 0, .3) !important;
+  --el-box-shadow: 0 12px 32px 4px rgba(0, 0, 0, .36), 0 8px 20px rgba(0, 0, 0, .72) !important;
+  --el-box-shadow-light: 0 0 12px rgba(0, 0, 0, .72) !important;
+  --el-box-shadow-lighter: 0 0 6px rgba(0, 0, 0, .72) !important;
+  --el-box-shadow-dark: 0 16px 48px 16px rgba(0, 0, 0, .72), 0 12px 32px #000 !important;
+  --el-border-radius-base: 10px !important;
+  --el-border-radius-small: 6px !important;
+  --el-font-family: var(--alg-font) !important;
+}
+
+/* vlakken in de hoofdkleur met witte tekst: de knopkleur */
+.el-button--primary:not(.is-plain, .is-text, .is-link) {
+  --el-button-bg-color: var(--alg-knop) !important;
+  --el-button-border-color: var(--alg-knop) !important;
+  --el-button-hover-bg-color: var(--alg-knop-hover) !important;
+  --el-button-hover-border-color: var(--alg-knop-hover) !important;
+  --el-button-active-bg-color: #5c5c5c !important;
+  --el-button-active-border-color: #5c5c5c !important;
+}
+
+/* statusknoppen: donkere vlakken onder witte tekst, lichte onder donkere */
+.el-button--success:not(.is-plain, .is-text, .is-link) {
+  --el-button-bg-color: var(--alg-ok-vlak) !important;
+  --el-button-border-color: var(--alg-ok-vlak) !important;
+  --el-button-hover-bg-color: #478c5c !important;
+  --el-button-hover-border-color: #478c5c !important;
+  --el-button-active-bg-color: #356b46 !important;
+  --el-button-active-border-color: #356b46 !important;
+}
+
+.el-button--danger:not(.is-plain, .is-text, .is-link) {
+  --el-button-bg-color: var(--alg-fout-vlak) !important;
+  --el-button-border-color: var(--alg-fout-vlak) !important;
+  --el-button-hover-bg-color: #b85656 !important;
+  --el-button-hover-border-color: #b85656 !important;
+  --el-button-active-bg-color: #964141 !important;
+  --el-button-active-border-color: #964141 !important;
+}
+
+.el-button--warning:not(.is-plain, .is-text, .is-link) {
+  --el-button-text-color: var(--alg-donker-tekst) !important;
+  --el-button-hover-text-color: var(--alg-donker-tekst) !important;
+  --el-button-active-text-color: var(--alg-donker-tekst) !important;
+}
+
+.el-button--info:not(.is-plain, .is-text, .is-link) {
+  --el-button-bg-color: #555 !important;
+  --el-button-border-color: #555 !important;
+  --el-button-hover-bg-color: #626262 !important;
+  --el-button-hover-border-color: #626262 !important;
+  --el-button-active-bg-color: #4a4a4a !important;
+  --el-button-active-border-color: #4a4a4a !important;
+}
+
+.el-badge__content--danger { background-color: var(--alg-fout-vlak) !important; }
+.el-badge__content--success { background-color: var(--alg-ok-vlak) !important; }
+.el-badge__content--info { background-color: #555 !important; }
+.el-badge__content--warning { color: var(--alg-donker-tekst) !important; }
+
+.el-checkbox,
+.el-checkbox-button,
+.el-radio-button,
+.el-segmented {
+  --el-checkbox-checked-bg-color: var(--alg-knop) !important;
+  --el-checkbox-checked-input-border-color: var(--alg-knop) !important;
+  --el-checkbox-button-checked-bg-color: var(--alg-knop) !important;
+  --el-checkbox-button-checked-border-color: var(--alg-knop) !important;
+  --el-radio-button-checked-bg-color: var(--alg-knop) !important;
+  --el-radio-button-checked-border-color: var(--alg-knop) !important;
+  --el-segmented-item-selected-bg-color: var(--alg-knop) !important;
+}
+
+.el-pagination.is-background .el-pager li.is-active,
+.el-pagination.is-background .el-pager li.active,
+.el-pagination.is-background .btn-prev.is-active,
+.el-pagination.is-background .btn-next.is-active,
+.el-badge__content--primary,
+.el-tag--dark.el-tag--primary {
+  --el-tag-bg-color: var(--alg-knop);
+  --el-tag-border-color: var(--alg-knop);
+  background-color: var(--alg-knop) !important;
+  color: #fff !important;
+}
+
+/* ==========================================================================
+   ELEMENT UI 2 (Vue 2) - vaste kleuren, geen variabelen. Deze regels geven
+   dezelfde kleuren als Element Plus hierboven, dus beide kunnen ze delen.
+   ========================================================================== */
+/* tabellen dekkend: vaste kolommen liggen over de rest van de tabel heen */
+.el-table,
+.el-table tr,
+.el-table th.el-table__cell,
+.el-table__expanded-cell {
+  background-color: #181818;
+  border-color: var(--alg-rand);
+  color: var(--alg-tekst);
+}
+
+.el-collapse,
+.el-collapse-item__header,
+.el-collapse-item__wrap,
+.el-tabs--border-card {
+  background-color: transparent;
+  border-color: var(--alg-rand);
+  color: var(--alg-tekst);
+}
+
+.el-card {
+  background-color: var(--alg-glas) !important;
+  border-color: var(--alg-rand) !important;
+  border-radius: var(--alg-radius-groot) !important;
+  color: var(--alg-tekst) !important;
+}
+
+.el-card__header,
+.el-card__footer {
+  border-color: var(--alg-rand) !important;
+}
+
+.el-dialog,
+.el-message-box,
+.el-drawer,
+.el-dropdown-menu,
+.el-select-dropdown,
+.el-popover.el-popper,
+.el-picker-panel,
+.el-cascader__dropdown,
+.el-autocomplete-suggestion,
+.el-popper.is-light {
+  background-color: var(--alg-glas-sterk) !important;
+  border-color: var(--alg-rand-sterk) !important;
+  color: var(--alg-tekst) !important;
+  -webkit-backdrop-filter: var(--alg-blur);
+  backdrop-filter: var(--alg-blur);
+}
+
+.el-dialog,
+.el-message-box {
+  border-radius: var(--alg-radius-groot) !important;
+  box-shadow: var(--alg-schaduw) !important;
+}
+
+/* pijltjes van zwevende vakken */
+.el-popper.is-light .el-popper__arrow::before {
+  background: #141414 !important;
+  border-color: var(--alg-rand-sterk) !important;
+}
+
+.el-dialog__title,
+.el-message-box__title,
+.el-drawer__header,
+.el-card__header,
+.el-table th.el-table__cell > .cell,
+.el-table thead,
+.el-descriptions__title {
+  color: var(--alg-tekst-sterk) !important;
+}
+
+.el-form-item__label,
+.el-dialog__body,
+.el-message-box__content,
+.el-checkbox,
+.el-radio,
+.el-collapse-item__content,
+.el-descriptions__body,
+.el-pagination,
+.el-pagination__total,
+.el-pagination__jump,
+.el-breadcrumb__inner,
+.el-step__description {
+  color: var(--alg-tekst);
+}
+
+.el-table td.el-table__cell,
+.el-table th.el-table__cell.is-leaf,
+.el-table--border,
+.el-table--group,
+.el-descriptions__cell {
+  border-color: var(--alg-rand) !important;
+}
+
+.el-table--striped .el-table__body tr.el-table__row--striped td.el-table__cell {
+  background-color: var(--alg-zebra) !important;
+}
+
+.el-table--enable-row-hover .el-table__body tr:hover > td.el-table__cell,
+.el-table__body tr.hover-row > td.el-table__cell,
+.el-table__body tr.current-row > td.el-table__cell {
+  background-color: var(--alg-rij-hover) !important;
+}
+
+.el-table::before,
+.el-table--border::after,
+.el-table--group::after,
+.el-table__inner-wrapper::before {
+  background-color: var(--alg-rand) !important;
+}
+
+/* invoer: het vak heeft de kleur, het echte veld is doorzichtig */
+.el-input__inner,
+.el-textarea__inner,
+.el-range-input,
+.el-select__input,
+.el-input-number .el-input__inner {
+  color: var(--alg-tekst-sterk) !important;
+}
+
+.el-input__wrapper .el-input__inner,
+.el-select__wrapper input,
+.el-range-input,
+.el-select__input,
+.el-input-tag__input {
+  background-color: transparent !important;
+  box-shadow: none !important;
+}
+
+.el-input__wrapper .el-input__inner:focus-visible,
+.el-select__wrapper input:focus-visible,
+.el-range-input:focus-visible {
+  outline: 0 !important;
+}
+
+/* Element UI 2: het echte veld is het vak zelf */
+.el-input > .el-input__inner,
+.el-textarea > .el-textarea__inner,
+.el-range-editor.el-input__inner {
+  background-color: var(--alg-veld) !important;
+  border-color: var(--alg-rand-sterk);
+  border-radius: var(--alg-radius) !important;
+}
+
+.el-input > .el-input__inner:focus,
+.el-textarea > .el-textarea__inner:focus {
+  border-color: var(--alg-accent-kleur) !important;
+}
+
+.el-input.is-disabled .el-input__inner,
+.el-textarea.is-disabled .el-textarea__inner {
+  background-color: rgba(255, 255, 255, .04) !important;
+  color: var(--alg-gedempt) !important;
+}
+
+.el-input-group__append,
+.el-input-group__prepend {
+  background-color: rgba(255, 255, 255, .06) !important;
+  border-color: var(--alg-rand-sterk) !important;
+  color: var(--alg-tekst) !important;
+}
+
+.el-select-dropdown__item,
+.el-dropdown-menu__item,
+.el-cascader-node {
+  color: var(--alg-tekst);
+}
+
+.el-select-dropdown__item.hover,
+.el-select-dropdown__item:hover,
+.el-select-dropdown__item.is-hovering,
+.el-dropdown-menu__item:not(.is-disabled):hover,
+.el-dropdown-menu__item:focus,
+.el-cascader-node:not(.is-disabled):hover {
+  background-color: var(--alg-rij-hover) !important;
+  color: var(--alg-tekst-sterk) !important;
+}
+
+.el-select-dropdown__item.selected,
+.el-select-dropdown__item.is-selected {
+  color: var(--alg-tekst-sterk) !important;
+}
+
+/* knoppen van Element UI 2 (zonder variabelen) */
+.el-button:not(.el-button--primary, .el-button--success, .el-button--warning, .el-button--danger, .el-button--info, .el-button--text):not(.is-plain, .is-text, .is-link) {
+  background-color: rgba(255, 255, 255, .06);
+  border-color: var(--alg-rand-sterk);
+  color: var(--alg-tekst);
+}
+
+.el-button:not(.el-button--primary, .el-button--success, .el-button--warning, .el-button--danger, .el-button--info, .el-button--text):not(.is-plain, .is-text, .is-link, .is-disabled):hover {
+  background-color: rgba(255, 255, 255, .12);
+  border-color: var(--alg-rand-hover);
+  color: var(--alg-tekst-sterk);
+}
+
+.el-button--primary:not(.is-plain, .is-text, .is-link, .is-disabled) {
+  background-color: var(--alg-knop) !important;
+  border-color: var(--alg-knop) !important;
+  color: #fff !important;
+}
+
+.el-button--primary:not(.is-plain, .is-text, .is-link, .is-disabled):hover {
+  background-color: var(--alg-knop-hover) !important;
+  border-color: var(--alg-knop-hover) !important;
+  box-shadow: var(--alg-gloed);
+}
+
+.el-button--primary.is-disabled:not(.is-plain, .is-text, .is-link) {
+  background-color: #3c3c3c !important;
+  border-color: #3c3c3c !important;
+  color: #9a9a9a !important;
+}
+
+/* menu */
+.el-menu:not([style*="background"]) {
+  background-color: transparent;
+  border-color: var(--alg-rand);
+}
+
+.el-menu:not([style*="background"]) .el-menu-item,
+.el-menu:not([style*="background"]) .el-sub-menu__title,
+.el-menu:not([style*="background"]) .el-submenu__title {
+  color: var(--alg-tekst);
+}
+
+.el-menu:not([style*="background"]) .el-menu-item:hover,
+.el-menu:not([style*="background"]) .el-menu-item:focus,
+.el-menu:not([style*="background"]) .el-sub-menu__title:hover,
+.el-menu:not([style*="background"]) .el-submenu__title:hover {
+  background-color: var(--alg-rij-hover);
+}
+
+.el-menu:not([style*="background"]) .el-menu-item.is-active {
+  color: var(--alg-tekst-sterk);
+}
+
+/* verticaal menu: het actieve item ook als vlak (alleen wit op lichtgrijs
+   was nauwelijks te onderscheiden) */
+.el-menu:not([style*="background"]):not(.el-menu--horizontal) .el-menu-item.is-active {
+  background-color: var(--alg-rij-actief);
+  font-weight: 700;
+}
+
+.el-menu--horizontal > .el-menu-item.is-active,
+.el-menu--horizontal > .el-sub-menu.is-active .el-sub-menu__title,
+.el-menu--horizontal > .el-submenu.is-active .el-submenu__title {
+  border-bottom-color: var(--alg-accent-kleur) !important;
+  color: var(--alg-tekst-sterk) !important;
+}
+
+.el-menu--popup {
+  background-color: var(--alg-glas-sterk) !important;
+}
+
+/* horizontaal menu: Element zet bij hover/focus donkere tekst (UI 2: #303133,
+   Plus: #8c8c8c) en geeft de items in het uitklapmenu een wit vlak (UI 2).
+   Menu's met een eigen kleur zetten inline stijlen en blijven ongemoeid. */
+.el-menu--horizontal:not([style*="background"]) :is(.el-menu-item, .el-submenu__title, .el-sub-menu__title):not(.is-disabled):is(:hover, :focus) {
+  background-color: var(--alg-rij-hover);
+  color: var(--alg-tekst-sterk);
+}
+
+.el-menu--horizontal .el-menu--popup:not([style*="background"]) :is(.el-menu-item, .el-submenu__title, .el-sub-menu__title) {
+  background-color: transparent;
+}
+
+/* tabbladen, paginering, kleinigheden */
+.el-tabs__item {
+  color: var(--alg-gedempt);
+}
+
+.el-tabs__item.is-active,
+.el-tabs__item:hover {
+  color: var(--alg-tekst-sterk);
+}
+
+.el-tabs__nav-wrap::after {
+  background-color: var(--alg-rand) !important;
+}
+
+.el-tabs__active-bar {
+  background-color: var(--alg-accent-kleur) !important;
+}
+
+.el-tabs--border-card > .el-tabs__header {
+  background-color: rgba(255, 255, 255, .04);
+  border-color: var(--alg-rand);
+}
+
+.el-tabs--border-card > .el-tabs__header .el-tabs__item.is-active {
+  background-color: var(--alg-glas);
+  border-color: var(--alg-rand);
+}
+
+.el-pagination button,
+.el-pagination .btn-prev,
+.el-pagination .btn-next,
+.el-pager li {
+  background-color: transparent;
+  color: var(--alg-tekst);
+}
+
+.el-pagination.is-background .btn-prev,
+.el-pagination.is-background .btn-next,
+.el-pagination.is-background .el-pager li:not(.is-active) {
+  background-color: rgba(255, 255, 255, .08);
+  color: var(--alg-tekst);
+}
+
+.el-pager li.active,
+.el-pager li.is-active {
+  color: var(--alg-tekst-sterk);
+}
+
+.el-checkbox__inner,
+.el-radio__inner {
+  background-color: var(--alg-veld);
+  border-color: rgba(255, 255, 255, .3);
+}
+
+.el-checkbox__input.is-checked .el-checkbox__inner,
+.el-checkbox__input.is-indeterminate .el-checkbox__inner,
+.el-radio__input.is-checked .el-radio__inner {
+  background-color: var(--alg-knop);
+  border-color: var(--alg-knop);
+}
+
+.el-checkbox__input.is-checked + .el-checkbox__label,
+.el-radio__input.is-checked + .el-radio__label {
+  color: var(--alg-tekst-sterk);
+}
+
+.el-switch:not(.is-checked) .el-switch__core {
+  background-color: #3a3a3a;
+  border-color: #555;
+}
+
+/* knop "uit" grijs, "aan" blijft wit (Element Plus: __action, Element UI:
+   ::after van __core) */
+.el-switch:not(.is-checked) .el-switch__action,
+.el-switch:not(.is-checked) .el-switch__core::after {
+  background-color: #8a8a8a;
+}
+
+.el-switch.is-checked .el-switch__core {
+  background-color: var(--alg-accent-kleur);
+  border-color: var(--alg-accent-kleur);
+}
+
+/* labels (tags): zachte tinten; donkere variant als vlak */
+.el-tag:not(.el-tag--dark, .el-tag--success, .el-tag--warning, .el-tag--danger, .el-tag--info) {
+  background-color: rgba(255, 255, 255, .08) !important;
+  border-color: var(--alg-rand-sterk) !important;
+  color: var(--alg-tekst) !important;
+}
+
+.el-tag--info:not(.el-tag--dark) {
+  background-color: rgba(255, 255, 255, .05) !important;
+  border-color: var(--alg-rand-sterk) !important;
+  color: var(--alg-gedempt) !important;
+}
+
+.el-tag--success:not(.el-tag--dark) { background-color: var(--alg-ok-tint) !important; border-color: var(--alg-ok-rand) !important; color: var(--alg-ok) !important; }
+.el-tag--warning:not(.el-tag--dark) { background-color: var(--alg-waarschuwing-tint) !important; border-color: var(--alg-waarschuwing-rand) !important; color: var(--alg-waarschuwing) !important; }
+.el-tag--danger:not(.el-tag--dark) { background-color: var(--alg-fout-tint) !important; border-color: var(--alg-fout-rand) !important; color: var(--alg-fout) !important; }
+
+.el-tag--dark.el-tag--success { background-color: var(--alg-ok-vlak) !important; border-color: var(--alg-ok-vlak) !important; color: #fff !important; }
+.el-tag--dark.el-tag--danger { background-color: var(--alg-fout-vlak) !important; border-color: var(--alg-fout-vlak) !important; color: #fff !important; }
+.el-tag--dark.el-tag--info { background-color: #555 !important; border-color: #555 !important; color: #fff !important; }
+.el-tag--dark.el-tag--warning { background-color: var(--alg-waarschuwing-vlak) !important; border-color: var(--alg-waarschuwing-vlak) !important; color: var(--alg-donker-tekst) !important; }
+
+/* meldingen: lichte variant als tint */
+.el-alert.is-light:not(.el-alert--success, .el-alert--warning, .el-alert--error, .el-alert--info) { background-color: rgba(255, 255, 255, .06) !important; color: var(--alg-tekst) !important; }
+.el-alert--info.is-light { background-color: rgba(255, 255, 255, .05) !important; color: var(--alg-gedempt) !important; }
+.el-alert--success.is-light { background-color: var(--alg-ok-tint) !important; color: var(--alg-ok) !important; }
+.el-alert--warning.is-light { background-color: var(--alg-waarschuwing-tint) !important; color: var(--alg-waarschuwing) !important; }
+.el-alert--error.is-light { background-color: var(--alg-fout-tint) !important; color: var(--alg-fout) !important; }
+
+.el-alert.is-light .el-alert__description {
+  color: inherit;
+}
+
+/* statusknoppen van Element UI 2 (Element Plus doet het via variabelen hierboven) */
+.el-button--success:not(.is-plain, .is-text, .is-link, .is-disabled) { background-color: var(--alg-ok-vlak); border-color: var(--alg-ok-vlak); color: #fff; }
+.el-button--danger:not(.is-plain, .is-text, .is-link, .is-disabled) { background-color: var(--alg-fout-vlak); border-color: var(--alg-fout-vlak); color: #fff; }
+.el-button--info:not(.is-plain, .is-text, .is-link, .is-disabled) { background-color: #555; border-color: #555; color: #fff; }
+.el-button--success:not(.is-plain, .is-text, .is-link, .is-disabled):hover { background-color: #478c5c; border-color: #478c5c; }
+.el-button--danger:not(.is-plain, .is-text, .is-link, .is-disabled):hover { background-color: #b85656; border-color: #b85656; }
+.el-button--info:not(.is-plain, .is-text, .is-link, .is-disabled):hover { background-color: #626262; border-color: #626262; }
+
+/* omlijnde (plain) knoppen */
+.el-button.is-plain:not(.is-disabled) {
+  background-color: rgba(255, 255, 255, .06) !important;
+  border-color: var(--alg-rand-sterk) !important;
+  color: var(--alg-tekst) !important;
+}
+
+.el-button.is-plain:not(.is-disabled):hover {
+  background-color: var(--alg-knop) !important;
+  border-color: var(--alg-knop) !important;
+  color: #fff !important;
+}
+
+.el-table__fixed::before,
+.el-table__fixed-right::before {
+  background-color: var(--alg-rand) !important;
+}
+
+.el-divider {
+  background-color: var(--alg-rand-sterk);
+}
+
+.el-divider__text {
+  background-color: #181818;
+  color: var(--alg-tekst);
+}
+
+.el-tooltip__popper.is-dark,
+.el-popper.is-dark {
+  background: #1c1c1c !important;
+  border-color: var(--alg-rand-sterk) !important;
+  color: var(--alg-tekst) !important;
+}
+

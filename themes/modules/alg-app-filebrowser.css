@@ -1,0 +1,138 @@
+/* alg-app-filebrowser.css - gegenereerd uit algemeen.css door scripts/themes/modules.py;
+   niet met de hand aanpassen. Laadt na alg-kern.css (zie themes/README.md). */
+/* ==========================================================================
+   60 FILEBROWSER (v2, Vue)
+   Herkenning: link#manifestPlaceholder in de kop (vaste id van Filebrowser).
+   Filebrowser zet zijn variabelen op :root en :root.dark; wij zetten één
+   donkere set met hogere specificiteit. --blue is zowel tekst- als vulkleur:
+   als tekst lichtgrijs, de vlakken krijgen hieronder apart onze knopkleur.
+   Getest met v2.63.23: bestanden (tegels en lijst), selectie, dialoog,
+   instellingen, profiel, login.
+   ========================================================================== */
+
+html:has(> head > link#manifestPlaceholder) {
+  color-scheme: dark;
+  --blue: #aaa;
+  --dark-blue: #c4c4c4;
+  --red: var(--alg-fout-vlak);
+  --dark-red: var(--alg-fout);
+  --input-red: #73302d;
+  --input-green: #147a41;
+  --action: var(--alg-tekst);
+  --background: transparent;
+  --surfacePrimary: #181818;
+  --surfaceSecondary: #262626;
+  --textPrimary: #a6a6a6;  /* gedempte tekst, ook leesbaar op een hover-rij (5:1) */
+  --textSecondary: var(--alg-tekst);
+  --divider: rgba(255, 255, 255, .08);
+  --iconPrimary: var(--alg-tekst);
+  --iconSecondary: #fff;
+  --iconTertiary: var(--alg-tekst);
+  --hover: var(--alg-rij-hover);
+  --borderPrimary: rgba(255, 255, 255, .06);
+  --borderSecondary: rgba(255, 255, 255, .14);
+  --dividerPrimary: rgba(30, 30, 30, .4);
+  --dividerSecondary: rgba(30, 30, 30, .6);
+}
+
+/* ---------- Vlakken in de hoofdkleur ----------------------------------- */
+/* vlakken die --blue als achtergrond met witte tekst gebruiken */
+html:has(> head > link#manifestPlaceholder) :is(.button:not(.button--flat, .button--red), #listing .item[aria-selected="true"], .file-list li[aria-selected="true"], #listing #multiple-selection, #search .boxes > div > div, .action .counter) {
+  background: var(--alg-knop) !important;
+  color: var(--alg-knop-tekst) !important;
+}
+
+html:has(> head > link#manifestPlaceholder) .button:not(.button--flat, .button--red):hover {
+  background: var(--alg-knop-hover) !important;
+  box-shadow: var(--alg-gloed) !important;
+}
+
+/* ---------- Pagina, kopbalk, login ------------------------------------- */
+/* het laadscherm is hard wit */
+html:has(> head > link#manifestPlaceholder) #loading {
+  background: var(--alg-achtergrond-kleur) !important;
+}
+
+/* login: geen dekkend vlak over het scherm, zodat verloop en netwerk
+   zichtbaar zijn (velden en knop hebben hun eigen vlak) */
+html:has(> head > link#manifestPlaceholder) #login {
+  background: transparent !important;
+}
+
+/* monospace is breder: op 2.5em breekt "File Browser" in twee regels */
+html:has(> head > link#manifestPlaceholder) #login h1 {
+  font-size: 2em;
+}
+
+/* kopbalk (vast bovenaan): glas */
+html:has(> head > link#manifestPlaceholder) body > #app header,
+html:has(> head > link#manifestPlaceholder) #app > div > header {
+  background: rgba(16, 16, 16, .78) !important;
+  -webkit-backdrop-filter: var(--alg-blur);
+  backdrop-filter: var(--alg-blur);
+}
+
+/* zoekveld: het vak eromheen draagt de kleur, het veld zelf is doorzichtig */
+html:has(> head > link#manifestPlaceholder) #search #input input {
+  background-color: transparent !important;
+}
+
+/* ---------- Kaarten (instellingen) ------------------------------------- */
+html:has(> head > link#manifestPlaceholder) .card:not(.floating) {
+  background: var(--alg-glas) !important;
+  border-radius: var(--alg-radius-groot) !important;
+  box-shadow: inset 0 0 0 1px var(--alg-rand), var(--alg-schaduw-midden) !important;
+}
+
+/* ---------- Dialogen ---------------------------------------------------- */
+/* zwevende kaart (nieuwe map, hernoemen, verwijderen): sterk glas */
+html:has(> head > link#manifestPlaceholder) .card.floating {
+  background: var(--alg-glas-sterk) !important;
+  border-radius: var(--alg-radius-groot) !important;
+  box-shadow: inset 0 0 0 1px var(--alg-rand-sterk), var(--alg-schaduw) !important;
+  -webkit-backdrop-filter: var(--alg-blur);
+  backdrop-filter: var(--alg-blur);
+}
+
+/* platte grijze knop (Annuleren) heeft een vaste #6f6f6f */
+html:has(> head > link#manifestPlaceholder) .button--flat.button--grey {
+  color: var(--alg-gedempt) !important;
+}
+
+/* ---------- Bestandslijst ---------------------------------------------- */
+/* tegels: lijstitem-stijl van allow (licht vlak, dunne rand als ring, zodat
+   niets verschuift); geselecteerde tegels houden de knopkleur hierboven */
+html:has(> head > link#manifestPlaceholder) #listing.mosaic .item:not(.header, [aria-selected="true"]) {
+  background: var(--alg-rij) !important;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .06) !important;
+  border-radius: var(--alg-radius) !important;
+}
+
+html:has(> head > link#manifestPlaceholder) #listing.mosaic .item:not(.header, [aria-selected="true"]):hover {
+  background: var(--alg-rij-hover) !important;
+  box-shadow: inset 0 0 0 1px var(--alg-rand-hover) !important;
+}
+
+html:has(> head > link#manifestPlaceholder) #listing.mosaic .item[aria-selected="true"] {
+  border-radius: var(--alg-radius) !important;
+}
+
+/* lijstweergave: rijen zonder eigen vlak, met hover */
+html:has(> head > link#manifestPlaceholder) #listing.list .item:not(.header, [aria-selected="true"]):hover {
+  background: var(--alg-rij-hover) !important;
+}
+
+/* schijfgebruik in de zijbalk (vue-simple-progress, kleuren inline) */
+html:has(> head > link#manifestPlaceholder) .vue-simple-progress {
+  background: rgba(255, 255, 255, .14) !important;
+}
+
+html:has(> head > link#manifestPlaceholder) .vue-simple-progress-bar {
+  background: var(--alg-accent-kleur) !important;
+}
+
+/* ---------- Velden en knoppen: afronding zoals allow ------------------- */
+html:has(> head > link#manifestPlaceholder) :is(.input, .button:not(.button--flat)) {
+  border-radius: var(--alg-radius) !important;
+}
+
