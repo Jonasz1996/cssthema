@@ -74,7 +74,11 @@ async def api(settings: Settings, engine: AsyncEngine, tmp_path: Path) -> AsyncI
 
     app = create_app(
         settings.model_copy(
-            update={"css_files_dir": css_dir, "public_base_url": "https://css.example.be"}
+            update={
+                "css_files_dir": css_dir,
+                "storage_dir": tmp_path / "storage",
+                "public_base_url": "https://css.example.be",
+            }
         ),
         css_refresh_transport=httpx.MockTransport(refresh),
     )
@@ -101,3 +105,4 @@ async def cleanup_test_themes(engine: AsyncEngine) -> None:
         await conn.execute(
             text("DELETE FROM host_bindings WHERE hostname LIKE 'it-%' OR hostname = '*'")
         )
+        await conn.execute(text("DELETE FROM services WHERE base_url LIKE 'https://it-%'"))

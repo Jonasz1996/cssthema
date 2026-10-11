@@ -545,6 +545,91 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/captures": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Een zip van vastleggen.py importeren als diensten en snapshots */
+        post: operations["captures_import"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/services": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Diensten met hun snapshots (nieuwste eerst) */
+        get: operations["services_list"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/services/{service_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Dienst verwijderen (met zijn snapshots uit de lijst) */
+        delete: operations["services_delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/snapshots/{snapshot_id}/document": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** HTML en stylesheets van een snapshot, voor de preview in de editor */
+        get: operations["snapshots_document"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/assets/{asset_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Een screenshot uit een capture */
+        get: operations["assets_image"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/host/{hostname}.css": {
         parameters: {
             query?: never;
@@ -617,6 +702,14 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        /** Body_captures_import */
+        Body_captures_import: {
+            /**
+             * File
+             * @description Zip (of een deel) van vastleggen.py
+             */
+            file: string;
+        };
         /** Body_scripts_upload */
         Body_scripts_upload: {
             /**
@@ -660,6 +753,38 @@ export interface components {
              * @description Naam (en slug).
              */
             name?: string | null;
+        };
+        /** CaptureImportResult */
+        CaptureImportResult: {
+            /**
+             * Services Created
+             * @description Hostnamen van nieuwe diensten.
+             */
+            services_created: string[];
+            /**
+             * Services Updated
+             * @description Hostnamen van bestaande diensten.
+             */
+            services_updated: string[];
+            /**
+             * Snapshots
+             * @description Aantal pagina's met een snapshot.
+             */
+            snapshots: number;
+            /**
+             * Without Snapshot
+             * @description Hostnamen zonder snapshot.html (bv. de app antwoordde niet): alleen status en screenshots.
+             */
+            without_snapshot: string[];
+            /** Skipped */
+            skipped: components["schemas"]["CaptureSkipped"][];
+        };
+        /** CaptureSkipped */
+        CaptureSkipped: {
+            /** Path */
+            path: string;
+            /** Reason */
+            reason: string;
         };
         /** Dashboard */
         Dashboard: {
@@ -1336,12 +1461,118 @@ export interface components {
              */
             world_readable: boolean;
         };
+        /** ServiceSummary */
+        ServiceSummary: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Slug */
+            slug: string;
+            /** Name */
+            name: string;
+            /** Hostname */
+            hostname: string;
+            /** Base Url */
+            base_url: string;
+            /**
+             * Snapshots
+             * @description Nieuwste eerst.
+             */
+            snapshots: components["schemas"]["SnapshotSummary"][];
+        };
         /** SkippedFile */
         SkippedFile: {
             /** Name */
             name: string;
             /** Reason */
             reason: string;
+        };
+        /** SnapshotDocument */
+        SnapshotDocument: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /**
+             * Service Id
+             * Format: uuid
+             */
+            service_id: string;
+            /** Hostname */
+            hostname: string;
+            /** Title */
+            title: string | null;
+            /** Url */
+            url: string;
+            /**
+             * Html
+             * @description snapshot.html zoals vastgelegd (zonder scripts).
+             */
+            html: string;
+            /**
+             * Stylesheets
+             * @description De CSS van de app, in de volgorde van de pagina.
+             */
+            stylesheets: string[];
+        };
+        /** SnapshotSummary */
+        SnapshotSummary: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /**
+             * Page
+             * @description Map in de zip: `start`, of de naam van een handmatige opname.
+             */
+            page: string;
+            /** Page Kind */
+            page_kind: string;
+            /** Title */
+            title: string | null;
+            /** Url */
+            url: string;
+            /**
+             * Status
+             * @description Uit vastleggen.py: ok, inlogpagina, http-502, …
+             */
+            status: string | null;
+            /**
+             * Has Document
+             * @description Er is een snapshot.html om tegen te previewen.
+             */
+            has_document: boolean;
+            /** Frameworks */
+            frameworks: string[];
+            /** Class Count */
+            class_count: number;
+            /** Has Shadow Dom */
+            has_shadow_dom: boolean;
+            /**
+             * Theme Links
+             * @description Thema-bestanden die de app toen laadde.
+             */
+            theme_links: string[];
+            /** Csp Errors */
+            csp_errors: number;
+            /**
+             * Screenshots
+             * @description `origineel`, `met_thema`, `mobiel` → URL van de afbeelding.
+             */
+            screenshots: {
+                [key: string]: string;
+            };
+            /** Captured At */
+            captured_at: string | null;
+            /**
+             * Imported At
+             * Format: date-time
+             */
+            imported_at: string;
         };
         /** Theme */
         Theme: {
@@ -3607,6 +3838,222 @@ export interface operations {
                 content?: never;
             };
             /** @description Koppeling niet gevonden */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+            /** @description Interne fout */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    captures_import: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": components["schemas"]["Body_captures_import"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CaptureImportResult"];
+                };
+            };
+            /** @description Geen geldige capture-zip */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Interne fout */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    services_list: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ServiceSummary"][];
+                };
+            };
+            /** @description Interne fout */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    services_delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                service_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Niet gevonden */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+            /** @description Interne fout */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    snapshots_document: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                snapshot_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SnapshotDocument"];
+                };
+            };
+            /** @description Niet gevonden */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+            /** @description Interne fout */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    assets_image: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                asset_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description De afbeelding */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "image/jpeg": unknown;
+                };
+            };
+            /** @description Niet gevonden */
             404: {
                 headers: {
                     [name: string]: unknown;

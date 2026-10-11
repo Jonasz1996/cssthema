@@ -7,6 +7,9 @@ import {
   makeDraft,
   makeLintResult,
   makePalette,
+  makeServiceSummary,
+  makeSnapshotDocument,
+  makeSnapshotSummary,
   makeTheme,
   makeVersion,
   makeVersionSummary,
@@ -20,6 +23,7 @@ import { hasUnsavedChanges, peekSession, resetSessions } from "../autosave/sessi
 import { EditorPage } from "../EditorPage";
 import { revealCalls } from "./mocks/reveal-calls";
 import { resetBridgeCache } from "../preview/bridge";
+import { usePreviewSourceStore } from "../preview/source";
 import { DEFAULT_LAYOUT, useEditorStore } from "../store";
 import BRIDGE from "../../../../public/preview-bridge.js?raw";
 
@@ -109,6 +113,7 @@ afterEach(() => {
   cleanup();
   resetSessions();
   useEditorStore.setState({ tabs: [], layout: DEFAULT_LAYOUT });
+  usePreviewSourceStore.setState({ choices: {} });
 });
 
 describe("EditorPage", () => {
@@ -622,5 +627,52 @@ describe("EditorPage", () => {
       }),
     ).toBeInTheDocument();
     expect(screen.queryByText(/Bad Gateway/)).toBeNull();
+  });
+
+  it("previews against a snapshot of the app and offers its classes in the editor", async () => {
+    const snapshot = makeSnapshotSummary({ page: "start", title: "Grafana" });
+    const service = makeServiceSummary({
+      hostname: "grafana.lan",
+      slug: "grafana-lan",
+      snapshots: [snapshot],
+    });
+    const { server, view } = setup((mock) =>
+      mock
+        .on("GET", "/api/v1/services", json([service]))
+        .on("GET", "/api/v1/snapshots/:id/document", ({ params }) =>
+          json(
+            makeSnapshotDocument({
+              id: params.id,
+              hostname: "grafana.lan",
+              html: '<body class="theme-dark"><nav class="sidemenu">menu</nav></body>',
+              stylesheets: [".panel-container{--panel-bg:#111}"],
+            }),
+          ),
+        ),
+    );
+    await editorTextarea();
+    // Grafana Nord past niet bij grafana.lan (geen koppeling, slug ≠ hostnaam): eerst de demo.
+    const picker = screen.getByRole("combobox", { name: "Bron van de preview" });
+    await waitFor(() => expect(picker).toHaveValue("demo"));
+    expect(screen.getByTestId("snapshot-completions")).toHaveTextContent("no snapshot");
+
+    fireEvent.change(picker, { target: { value: snapshot.id } });
+    await waitFor(() =>
+      expect(screen.getByTestId("snapshot-completions")).toHaveTextContent(
+        "grafana.lan start: sidemenu theme-dark panel-container",
+      ),
+    );
+    await waitFor(() =>
+      expect(view.container.querySelector("iframe")?.getAttribute("srcdoc")).toContain(
+        '<nav class="sidemenu">menu</nav>',
+      ),
+    );
+    // Preview en autocomplete delen één verzoek.
+    expect(server.callsTo("GET", "/api/v1/snapshots/:id/document")).toHaveLength(1);
+
+    fireEvent.change(picker, { target: { value: "demo" } });
+    await waitFor(() =>
+      expect(screen.getByTestId("snapshot-completions")).toHaveTextContent("no snapshot"),
+    );
   });
 });

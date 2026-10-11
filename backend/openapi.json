@@ -2792,6 +2792,270 @@
         }
       }
     },
+    "/api/v1/captures": {
+      "post": {
+        "tags": [
+          "services"
+        ],
+        "summary": "Een zip van vastleggen.py importeren als diensten en snapshots",
+        "operationId": "captures_import",
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/Body_captures_import"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CaptureImportResult"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Interne fout",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Geen geldige capture-zip",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/services": {
+      "get": {
+        "tags": [
+          "services"
+        ],
+        "summary": "Diensten met hun snapshots (nieuwste eerst)",
+        "operationId": "services_list",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/ServiceSummary"
+                  },
+                  "type": "array",
+                  "title": "Response Services List"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Interne fout",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/services/{service_id}": {
+      "delete": {
+        "tags": [
+          "services"
+        ],
+        "summary": "Dienst verwijderen (met zijn snapshots uit de lijst)",
+        "operationId": "services_delete",
+        "parameters": [
+          {
+            "name": "service_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Service Id"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "500": {
+            "description": "Interne fout",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Niet gevonden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/snapshots/{snapshot_id}/document": {
+      "get": {
+        "tags": [
+          "services"
+        ],
+        "summary": "HTML en stylesheets van een snapshot, voor de preview in de editor",
+        "operationId": "snapshots_document",
+        "parameters": [
+          {
+            "name": "snapshot_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Snapshot Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SnapshotDocument"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Interne fout",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Niet gevonden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/assets/{asset_id}": {
+      "get": {
+        "tags": [
+          "services"
+        ],
+        "summary": "Een screenshot uit een capture",
+        "operationId": "assets_image",
+        "parameters": [
+          {
+            "name": "asset_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Asset Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "De afbeelding",
+            "content": {
+              "image/jpeg": {}
+            }
+          },
+          "500": {
+            "description": "Interne fout",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Niet gevonden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/host/{hostname}.css": {
       "get": {
         "tags": [
@@ -3041,6 +3305,21 @@
   },
   "components": {
     "schemas": {
+      "Body_captures_import": {
+        "properties": {
+          "file": {
+            "type": "string",
+            "contentMediaType": "application/octet-stream",
+            "title": "File",
+            "description": "Zip (of een deel) van vastleggen.py"
+          }
+        },
+        "type": "object",
+        "required": [
+          "file"
+        ],
+        "title": "Body_captures_import"
+      },
       "Body_scripts_upload": {
         "properties": {
           "file": {
@@ -3125,6 +3404,73 @@
           "file"
         ],
         "title": "Body_themes_import"
+      },
+      "CaptureImportResult": {
+        "properties": {
+          "services_created": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Services Created",
+            "description": "Hostnamen van nieuwe diensten."
+          },
+          "services_updated": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Services Updated",
+            "description": "Hostnamen van bestaande diensten."
+          },
+          "snapshots": {
+            "type": "integer",
+            "title": "Snapshots",
+            "description": "Aantal pagina's met een snapshot."
+          },
+          "without_snapshot": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Without Snapshot",
+            "description": "Hostnamen zonder snapshot.html (bv. de app antwoordde niet): alleen status en screenshots."
+          },
+          "skipped": {
+            "items": {
+              "$ref": "#/components/schemas/CaptureSkipped"
+            },
+            "type": "array",
+            "title": "Skipped"
+          }
+        },
+        "type": "object",
+        "required": [
+          "services_created",
+          "services_updated",
+          "snapshots",
+          "without_snapshot",
+          "skipped"
+        ],
+        "title": "CaptureImportResult"
+      },
+      "CaptureSkipped": {
+        "properties": {
+          "path": {
+            "type": "string",
+            "title": "Path"
+          },
+          "reason": {
+            "type": "string",
+            "title": "Reason"
+          }
+        },
+        "type": "object",
+        "required": [
+          "path",
+          "reason"
+        ],
+        "title": "CaptureSkipped"
       },
       "Dashboard": {
         "properties": {
@@ -4742,6 +5088,49 @@
         ],
         "title": "ScriptFile"
       },
+      "ServiceSummary": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "slug": {
+            "type": "string",
+            "title": "Slug"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "hostname": {
+            "type": "string",
+            "title": "Hostname"
+          },
+          "base_url": {
+            "type": "string",
+            "title": "Base Url"
+          },
+          "snapshots": {
+            "items": {
+              "$ref": "#/components/schemas/SnapshotSummary"
+            },
+            "type": "array",
+            "title": "Snapshots",
+            "description": "Nieuwste eerst."
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "slug",
+          "name",
+          "hostname",
+          "base_url",
+          "snapshots"
+        ],
+        "title": "ServiceSummary"
+      },
       "SkippedFile": {
         "properties": {
           "name": {
@@ -4759,6 +5148,184 @@
           "reason"
         ],
         "title": "SkippedFile"
+      },
+      "SnapshotDocument": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "service_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Service Id"
+          },
+          "hostname": {
+            "type": "string",
+            "title": "Hostname"
+          },
+          "title": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Title"
+          },
+          "url": {
+            "type": "string",
+            "title": "Url"
+          },
+          "html": {
+            "type": "string",
+            "title": "Html",
+            "description": "snapshot.html zoals vastgelegd (zonder scripts)."
+          },
+          "stylesheets": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Stylesheets",
+            "description": "De CSS van de app, in de volgorde van de pagina."
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "service_id",
+          "hostname",
+          "title",
+          "url",
+          "html",
+          "stylesheets"
+        ],
+        "title": "SnapshotDocument"
+      },
+      "SnapshotSummary": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "page": {
+            "type": "string",
+            "title": "Page",
+            "description": "Map in de zip: `start`, of de naam van een handmatige opname."
+          },
+          "page_kind": {
+            "type": "string",
+            "title": "Page Kind"
+          },
+          "title": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Title"
+          },
+          "url": {
+            "type": "string",
+            "title": "Url"
+          },
+          "status": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Status",
+            "description": "Uit vastleggen.py: ok, inlogpagina, http-502, …"
+          },
+          "has_document": {
+            "type": "boolean",
+            "title": "Has Document",
+            "description": "Er is een snapshot.html om tegen te previewen."
+          },
+          "frameworks": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Frameworks"
+          },
+          "class_count": {
+            "type": "integer",
+            "title": "Class Count"
+          },
+          "has_shadow_dom": {
+            "type": "boolean",
+            "title": "Has Shadow Dom"
+          },
+          "theme_links": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Theme Links",
+            "description": "Thema-bestanden die de app toen laadde."
+          },
+          "csp_errors": {
+            "type": "integer",
+            "title": "Csp Errors"
+          },
+          "screenshots": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "type": "object",
+            "title": "Screenshots",
+            "description": "`origineel`, `met_thema`, `mobiel` → URL van de afbeelding."
+          },
+          "captured_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Captured At"
+          },
+          "imported_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Imported At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "page",
+          "page_kind",
+          "title",
+          "url",
+          "status",
+          "has_document",
+          "frameworks",
+          "class_count",
+          "has_shadow_dom",
+          "theme_links",
+          "csp_errors",
+          "screenshots",
+          "captured_at",
+          "imported_at"
+        ],
+        "title": "SnapshotSummary"
       },
       "Theme": {
         "properties": {

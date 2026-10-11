@@ -69,6 +69,14 @@ Het volledige snippet voor *Advanced* (met `Accept-Encoding` en de websocket-reg
 
 In NPM moet de `location` voor publieke bestanden op je CSS-domein zowel `.css` als `.js` doorlaten (§ 4).
 
+### Diensten en snapshots (vastleggen.py)
+
+Het capture-script `vastleggen.py` (op je pc, zie zijn README) legt per app de pagina vast zonder scripts, met de CSS van de app en screenshots zonder en met thema, en maakt daar zips van (delen van hoogstens 24 MB). Upload die zips in het dashboard op **Services**: elke app wordt een dienst met zijn snapshot. Een nieuwe zip van dezelfde app vervangt de vorige snapshot van die pagina.
+
+- In de editor kies je in de preview een snapshot in plaats van de demopagina: je ziet je thema dan op de vastgelegde pagina van de app, en de editor vult classes, id's en CSS-variabelen van die app aan.
+- De snapshots, CSS en screenshots staan in `/var/lib/cssthema/storage/` (en dus in de back-ups). Ze bevatten de tekst van de vastgelegde pagina's, geen wachtwoorden; leg je met `--anoniem` vast, dan ook geen paginatekst.
+- Afbeeldingen van de app zelf (logo's, iconen) laadt de preview niet: die komen van de app en de preview mag niets van buiten laden.
+
 ## 4. Nginx Proxy Manager
 
 Pas de bestaande proxy host van je CSS-domein aan (of maak er een):

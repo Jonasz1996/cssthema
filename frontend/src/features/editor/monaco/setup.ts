@@ -16,7 +16,7 @@ import CssWorker from "monaco-editor/language/css/css.worker?worker";
 import "monaco-editor/languages/definitions/css/register";
 import { cssDefaults } from "monaco-editor/languages/features/css/register";
 import { t } from "@/lib/i18n";
-import { registerPaletteProviders } from "./providers";
+import { registerPaletteProviders, registerSnapshotProviders } from "./providers";
 import { MONACO_THEME_NAME, monacoTheme } from "./theme";
 
 const CSS_LABELS = new Set(["css", "scss", "less"]);
@@ -45,6 +45,12 @@ cssDefaults.setOptions({
 registerPaletteProviders(monaco, {
   detail: (name) => t("editor.paletteDetail", { name }),
   hoverTitle: (name) => t("editor.paletteHover", { name }),
+});
+
+registerSnapshotProviders(monaco, {
+  onPage: (count, page) => t("editor.snapshotOnPage", { count, page }),
+  inCss: (hostname) => t("editor.snapshotInCss", { hostname }),
+  variable: (value, hostname) => t("editor.snapshotVariable", { value, hostname }),
 });
 
 export { monaco };

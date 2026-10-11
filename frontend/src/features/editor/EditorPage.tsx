@@ -1,4 +1,4 @@
-import { Suspense, useCallback, useEffect, useId, useRef, useState } from "react";
+import { Suspense, useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router";
 import { saveBlob } from "@/api/client";
 import { useDraft, useLint, useSaveDraft } from "@/api/queries/editor";
@@ -32,9 +32,12 @@ import { Splitter } from "./components/Splitter";
 import { StatusBar } from "./components/StatusBar";
 import { useFillHeight, useMediaQuery } from "./lib/layout-hooks";
 import { type EditorShortcut, editorShortcut, LINT_DEBOUNCE_MS } from "./lib/shortcuts";
+import { collectSnapshotSymbols } from "./lib/snapshot-symbols";
 import { themeStatusTags } from "./lib/theme-status";
 import { disposeThemeModel } from "./monaco/load";
+import type { ModelSnapshot } from "./monaco/providers";
 import { PreviewPane } from "./preview/PreviewPane";
+import { usePreviewSource } from "./preview/use-preview-source";
 import { EXPLORER_WIDTH, PREVIEW_SIZE, useEditorStore } from "./store";
 
 const selectConflict = (snapshot: SessionSnapshot): SaveState | null =>
@@ -74,6 +77,19 @@ export function EditorPage() {
   const lintCss = useDebouncedSessionCss(session, LINT_DEBOUNCE_MS);
   const lint = useLint(themeId, session ? lintCss : undefined);
   const exportTheme = useExportTheme();
+  // Dezelfde bron als de preview (gedeelde keuze en cache): autocomplete op de classes, id's en
+  // variabelen van die snapshot, ook als de preview verborgen is.
+  const previewSource = usePreviewSource(theme);
+  const snapshotData = previewSource.document.data;
+  const snapshotPage = previewSource.selected?.snapshot.page;
+  const snapshotCompletions = useMemo((): ModelSnapshot | null => {
+    if (!previewSource.snapshotId || snapshotData?.id !== previewSource.snapshotId) return null;
+    return {
+      hostname: snapshotData.hostname,
+      page: snapshotPage ?? snapshotData.title ?? snapshotData.hostname,
+      symbols: collectSnapshotSymbols(snapshotData),
+    };
+  }, [previewSource.snapshotId, snapshotData, snapshotPage]);
 
   const tabs = useEditorStore((state) => state.tabs);
   const openTab = useEditorStore((state) => state.openTab);
@@ -476,6 +492,7 @@ export function EditorPage() {
                       themeId={themeId}
                       session={session}
                       palette={palette}
+                      snapshot={snapshotCompletions}
                       lint={lint.data}
                       readOnly={readOnly}
                       compact={narrow}
@@ -523,6 +540,7 @@ export function EditorPage() {
               >
                 <PreviewPane
                   session={session}
+                  theme={theme}
                   paletteTokens={palette?.tokens}
                   onShortcut={runShortcut}
                 />

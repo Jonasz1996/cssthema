@@ -1,4 +1,5 @@
 import type {
+  CaptureImportResult,
   Dashboard,
   Draft,
   HostBinding,
@@ -10,6 +11,9 @@ import type {
   LocalCssFile,
   Palette,
   ScriptFile,
+  ServiceSummary,
+  SnapshotDocument,
+  SnapshotSummary,
   Theme,
   UserRef,
   Version,
@@ -242,6 +246,78 @@ export function makeDashboard(overrides: Partial<Dashboard> = {}): Dashboard {
     palettes_total: 7,
     recent: [],
     local_files: { dir: "/var/lib/cssthema/css-files", total: 0, importable: 0 },
+    ...overrides,
+  };
+}
+
+/** Snapshot van de startpagina met de drie screenshots (`/api/v1/assets/<id>`). */
+export function makeSnapshotSummary(overrides: Partial<SnapshotSummary> = {}): SnapshotSummary {
+  const n = ++counter;
+  return {
+    id: testId(n),
+    page: "start",
+    page_kind: "home",
+    title: "Proxmox Virtual Environment",
+    url: "https://proxmox.example/",
+    status: "ok",
+    has_document: true,
+    frameworks: [],
+    class_count: 120,
+    has_shadow_dom: false,
+    theme_links: [],
+    csp_errors: 0,
+    screenshots: {
+      origineel: `/api/v1/assets/${testId(n + 1000)}`,
+      met_thema: `/api/v1/assets/${testId(n + 2000)}`,
+      mobiel: `/api/v1/assets/${testId(n + 3000)}`,
+    },
+    captured_at: NOW,
+    imported_at: NOW,
+    ...overrides,
+  };
+}
+
+export function makeServiceSummary(overrides: Partial<ServiceSummary> = {}): ServiceSummary {
+  const hostname = overrides.hostname ?? "proxmox.example";
+  const name = overrides.name ?? hostname.split(".")[0]!;
+  return {
+    id: testId(),
+    slug: name.toLowerCase(),
+    name,
+    hostname,
+    base_url: `https://${hostname}/`,
+    snapshots: [makeSnapshotSummary({ url: `https://${hostname}/` })],
+    ...overrides,
+  };
+}
+
+export function makeCaptureImportResult(
+  overrides: Partial<CaptureImportResult> = {},
+): CaptureImportResult {
+  return {
+    services_created: [],
+    services_updated: [],
+    snapshots: 0,
+    without_snapshot: [],
+    skipped: [],
+    ...overrides,
+  };
+}
+
+/** HTML + CSS van een snapshot (`GET /api/v1/snapshots/{id}/document`), voor de preview. */
+export function makeSnapshotDocument(overrides: Partial<SnapshotDocument> = {}): SnapshotDocument {
+  return {
+    id: testId(),
+    service_id: testId(),
+    hostname: "proxmox.example",
+    title: "Proxmox Virtual Environment",
+    url: "https://proxmox.example/",
+    html:
+      '<!doctype html><html lang="en" class="x-viewport"><head>' +
+      '<link rel="stylesheet" href="../../_css/0123456789abcdef.css"></head>' +
+      '<body class="x-body"><div id="app" class="x-panel" style="--pve-accent: #e57000">' +
+      '<button class="x-btn x-btn-primary">Create VM</button></div></body></html>',
+    stylesheets: [".x-panel{background:#fff;--pve-bg:#f5f5f5}.x-btn{color:var(--pve-accent)}"],
     ...overrides,
   };
 }

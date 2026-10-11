@@ -1,6 +1,6 @@
 import type { I18n } from "@/lib/i18n";
 
-export type PreviewErrorCode = "unexpected" | "http" | "notInlineable";
+export type PreviewErrorCode = "unexpected" | "http" | "notInlineable" | "snapshotTooLarge";
 
 /**
  * Fout bij het opbouwen van de preview, met een code voor een vertaalde tekst in het

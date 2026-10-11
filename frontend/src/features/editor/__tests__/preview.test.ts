@@ -35,6 +35,8 @@ interface BridgeEnv {
   send: (data: unknown, source?: unknown) => void;
   /** Een toets in de iframe; geeft het event terug (zie `defaultPrevented`). */
   press: (init: KeyboardEventInit) => KeyboardEvent;
+  /** Een `click`/`submit` op `window` (capture), zoals de browser hem doorgeeft. */
+  dispatch: (event: Event) => Event;
 }
 
 class FakeSheet {
@@ -44,16 +46,22 @@ class FakeSheet {
   }
 }
 
-/** Voert het echte bridge-script uit met een nep-`window` en een los document. */
-function runBridge({ standalone = false } = {}): BridgeEnv {
+/**
+ * Voert het echte bridge-script uit met een nep-`window` en een los document. `loading`: het
+ * document is nog aan het parsen (`DOMContentLoaded` volgt nog).
+ */
+function runBridge({ standalone = false, loading = false } = {}): BridgeEnv {
   const doc = document.implementation.createHTMLDocument("preview");
+  if (loading) Object.defineProperty(doc, "readyState", { value: "loading", configurable: true });
   const listeners: ((event: { source: unknown; data: unknown }) => void)[] = [];
   const keyListeners: ((event: KeyboardEvent) => void)[] = [];
+  const otherListeners: { type: string; listener: (event: Event) => void }[] = [];
   const parent = { postMessage: vi.fn() };
   const fakeWindow: Record<string, unknown> = {
     addEventListener: (type: string, listener: (event: never) => void) => {
       if (type === "message") listeners.push(listener as (typeof listeners)[number]);
-      if (type === "keydown") keyListeners.push(listener as (typeof keyListeners)[number]);
+      else if (type === "keydown") keyListeners.push(listener as (typeof keyListeners)[number]);
+      else otherListeners.push({ type, listener: listener as (event: Event) => void });
     },
   };
   fakeWindow.parent = standalone ? fakeWindow : parent;
@@ -68,6 +76,12 @@ function runBridge({ standalone = false } = {}): BridgeEnv {
     press: (init) => {
       const event = new KeyboardEvent("keydown", { cancelable: true, ...init });
       keyListeners.forEach((listener) => listener(event));
+      return event;
+    },
+    dispatch: (event) => {
+      otherListeners
+        .filter((entry) => entry.type === event.type)
+        .forEach((entry) => entry.listener(event));
       return event;
     },
   };
@@ -149,6 +163,49 @@ describe("preview-bridge.js", () => {
     expect(
       (shadow as unknown as { adoptedStyleSheets: FakeSheet[] }).adoptedStyleSheets[0]!.css,
     ).toBe("p{margin:1px}");
+  });
+
+  it("also mirrors into shadow roots that were parsed after the first message", () => {
+    const { doc, send } = runBridge({ loading: true });
+    send({ type: "palette", css: ":root{--ct-bg:#000}" });
+    send({ type: "css", css: "p{margin:0}", seq: 1 });
+    // Een grote snapshot: de declaratieve shadow root staat er pas na het eerste bericht.
+    const host = doc.createElement("div");
+    doc.body.appendChild(host);
+    const shadow = host.attachShadow({ mode: "open" });
+    const adopted = () =>
+      (shadow as unknown as { adoptedStyleSheets?: FakeSheet[] }).adoptedStyleSheets ?? [];
+    expect(adopted()).toHaveLength(0);
+    doc.dispatchEvent(new Event("DOMContentLoaded"));
+    expect(adopted().map((sheet) => sheet.css)).toEqual([":root{--ct-bg:#000}", "p{margin:0}"]);
+  });
+
+  it("keeps the preview on its page: links and forms do not navigate", () => {
+    const { doc, dispatch } = runBridge();
+    doc.body.innerHTML =
+      '<a id="link" href="https://app.lan/settings"><span id="inner">x</span></a>' +
+      '<button id="plain">y</button><form id="form"></form>';
+    const click = (target: Element, path: EventTarget[] = []) => {
+      const event = new MouseEvent("click", { bubbles: true, cancelable: true });
+      Object.defineProperty(event, "target", { value: target });
+      Object.defineProperty(event, "composedPath", {
+        value: () => [...path, target, ...ancestors(target)],
+      });
+      return dispatch(event);
+    };
+    const ancestors = (node: Element) => {
+      const out: Element[] = [];
+      for (let parent = node.parentElement; parent; parent = parent.parentElement) out.push(parent);
+      return out;
+    };
+    expect(click(doc.getElementById("inner")!).defaultPrevented).toBe(true);
+    expect(click(doc.getElementById("plain")!).defaultPrevented).toBe(false);
+    // Een link in een shadow root: alleen via composedPath() te zien.
+    const shadowLink = doc.createElement("a");
+    shadowLink.setAttribute("href", "/elders");
+    expect(click(doc.getElementById("plain")!, [shadowLink]).defaultPrevented).toBe(true);
+    const submit = new Event("submit", { cancelable: true });
+    expect(dispatch(submit).defaultPrevented).toBe(true);
   });
 
   it("forwards Ctrl/⌘+S and Ctrl+\\ to the editor and blocks the browser's save dialog", () => {

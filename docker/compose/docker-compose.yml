@@ -11,6 +11,7 @@ x-backend-env: &backend-env
   POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?zet POSTGRES_PASSWORD in .env}
   POSTGRES_DB: ${POSTGRES_DB:-cssthema}
   REDIS_URL: redis://redis:6379/0
+  STORAGE_DIR: /data/storage
   SECRET_KEY: ${SECRET_KEY:?zet SECRET_KEY in .env}
   ENCRYPTION_KEY: ${ENCRYPTION_KEY:-}
   LOG_LEVEL: ${LOG_LEVEL:-INFO}

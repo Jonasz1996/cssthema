@@ -13,7 +13,7 @@ import {
   MONACO_LINE_HEIGHT,
   MONACO_THEME_NAME,
 } from "../monaco/theme";
-import { setModelPalette } from "../monaco/providers";
+import { type ModelSnapshot, setModelPalette, setModelSnapshot } from "../monaco/providers";
 
 type MonacoEditor = Parameters<OnMount>[0];
 
@@ -40,6 +40,8 @@ export interface CodeEditorProps {
   themeId: string;
   session: DraftSession;
   palette: { name: string; tokens: Readonly<Record<string, string>> } | null;
+  /** Classes, id's en variabelen van de snapshot in de preview (autocomplete), of `null`. */
+  snapshot?: ModelSnapshot | null;
   lint: LintResult | undefined;
   readOnly?: boolean;
   /** Smal scherm (telefoon): geen minimap, die kost daar te veel breedte. */
@@ -58,6 +60,7 @@ export interface CodeEditorProps {
 export function CodeEditor(props: CodeEditorProps) {
   const { monaco } = use(monacoModule());
   const { themeId, session, palette, lint, readOnly = false, compact = false, ariaLabel } = props;
+  const snapshot = props.snapshot ?? null;
   // Monaco animeert scrollen en sprongen (125 ms); bij "minder beweging" niet.
   const reducedMotion = useReducedMotion();
   const editorRef = useRef<MonacoEditor | null>(null);
@@ -154,6 +157,13 @@ export function CodeEditor(props: CodeEditorProps) {
     const uri = monaco.Uri.parse(path).toString();
     setModelPalette(uri, palette);
   }, [monaco, path, palette]);
+
+  // Classes, id's en variabelen van de snapshot; weg bij wisselen van bron of thema.
+  useEffect(() => {
+    const uri = monaco.Uri.parse(path).toString();
+    setModelSnapshot(uri, snapshot);
+    return () => setModelSnapshot(uri, null);
+  }, [monaco, path, snapshot]);
 
   return (
     <Editor

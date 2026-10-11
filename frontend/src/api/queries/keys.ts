@@ -19,6 +19,8 @@ import type { DiffRef, ThemeListFilters } from "../types";
  * ["scripts", "content", name]                 inhoud van één script
  * ["hosts", "list"] / ["hosts", "options"]     host-koppelingen en de keuzes ervoor
  * ["hosts", "health"]                          laatst geladen en laatste controle per host
+ * ["services", "list"]                         diensten met hun snapshots (capture-zips)
+ * ["services", "document", snapshotId]         HTML + CSS van een snapshot (preview)
  * ["dashboard"]
  * ```
  *
@@ -67,6 +69,12 @@ export const hostKeys = {
   list: () => [...hostKeys.all, "list"] as const,
   options: () => [...hostKeys.all, "options"] as const,
   health: () => [...hostKeys.all, "health"] as const,
+};
+
+export const serviceKeys = {
+  all: ["services"] as const,
+  list: () => [...serviceKeys.all, "list"] as const,
+  document: (snapshotId: string) => [...serviceKeys.all, "document", snapshotId] as const,
 };
 
 export const dashboardKeys = {

@@ -29,7 +29,11 @@
  *                                            default ("Save page as") is prevented here, the
  *                                            editor decides what to do
  * Both stylesheets are mirrored into every open shadow root via adoptedStyleSheets,
- * approximating what a userscript injection would do.
+ * approximating what a userscript injection would do. A captured page of a real app (snapshot)
+ * brings declarative shadow roots that may finish parsing after the first message, so the
+ * sheets are adopted again once the document has loaded.
+ * Clicking a link or submitting a form never navigates the preview away (a snapshot has real
+ * links into the app; the CSP already blocks form submissions).
  *
  * Inspector mode ({type:"click", selectorPath}) follows in a later phase.
  * Safety: only messages from the direct parent with the exact expected shape are accepted;
@@ -65,6 +69,15 @@
     return out;
   }
 
+  function adoptEverywhere(sheet) {
+    collectOpenShadowRoots(document, []).forEach(function (sr) {
+      var sheets = sr.adoptedStyleSheets || [];
+      if (sheets.indexOf(sheet) === -1) {
+        sr.adoptedStyleSheets = sheets.concat([sheet]);
+      }
+    });
+  }
+
   function applyToShadowRoots(kind, css) {
     if (typeof CSSStyleSheet !== "function" || !("replaceSync" in CSSStyleSheet.prototype)) return;
     if (!shadowSheets[kind]) shadowSheets[kind] = new CSSStyleSheet();
@@ -74,13 +87,50 @@
     } catch {
       return; // invalid CSS for constructable sheets: keep previous state
     }
-    collectOpenShadowRoots(document, []).forEach(function (sr) {
-      var sheets = sr.adoptedStyleSheets || [];
-      if (sheets.indexOf(sheet) === -1) {
-        sr.adoptedStyleSheets = sheets.concat([sheet]);
-      }
-    });
+    adoptEverywhere(sheet);
   }
+
+  // Shadow roots parsed after the first message (large snapshot) get the current sheets too.
+  function adoptCurrentSheets() {
+    if (shadowSheets.palette) adoptEverywhere(shadowSheets.palette);
+    if (shadowSheets.css) adoptEverywhere(shadowSheets.css);
+  }
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", adoptCurrentSheets);
+  }
+
+  // Keep the preview on its page: no navigation through links (also inside shadow roots).
+  function isLink(node) {
+    return (
+      node &&
+      node.nodeType === 1 &&
+      (node.localName === "a" || node.localName === "area") &&
+      (node.hasAttribute("href") || node.hasAttribute("xlink:href"))
+    );
+  }
+
+  window.addEventListener(
+    "click",
+    function (event) {
+      var path = typeof event.composedPath === "function" ? event.composedPath() : [event.target];
+      for (var i = 0; i < path.length; i++) {
+        if (isLink(path[i])) {
+          event.preventDefault();
+          return;
+        }
+      }
+    },
+    true,
+  );
+
+  window.addEventListener(
+    "submit",
+    function (event) {
+      event.preventDefault();
+    },
+    true,
+  );
 
   function isStyleMessage(data) {
     return (

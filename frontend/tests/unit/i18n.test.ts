@@ -77,6 +77,7 @@ describe("vertaalbestanden", () => {
         "palettes",
         "import",
         "hosts",
+        "services",
       ]),
     );
   });

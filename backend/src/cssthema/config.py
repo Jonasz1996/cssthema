@@ -51,6 +51,10 @@ class Settings(BaseSettings):
     # Handgemaakte CSS-bestanden die nginx vóór de api serveert (installatie zonder
     # Docker). Bestaat de map niet (Docker), dan zijn er gewoon geen lokale bestanden.
     css_files_dir: Path = Path("/var/lib/cssthema/css-files")
+    # Assets (snapshots, stylesheets en screenshots uit de capture-zips), content-addressed.
+    storage_dir: Path = Path("/var/lib/cssthema/storage")
+    # Grootte van één capture-zip (vastleggen.py maakt delen van hoogstens 24 MB).
+    capture_max_bytes: int = Field(default=25 * 1024 * 1024, gt=0)
 
     @field_validator("css_url_allowlist", mode="before")
     @classmethod

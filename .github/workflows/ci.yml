@@ -212,6 +212,19 @@ jobs:
         run: docker exec -e TRUSTED_PROXIES=192.0.2.10 deb bash /opt/cssthema/deploy/debian/install.sh
       - name: install.sh, nog een keer (bijwerken)
         run: docker exec -e PUBLIC_BASE_URL=https://css.example.test deb bash /opt/cssthema/deploy/debian/install.sh
+      - name: Capture-zip voor de rooktest
+        run: |
+          python3 - <<'PY'
+          import json, zipfile
+          info = {"titel": "CI", "dienst": "ci.example.test", "start_url": "https://ci.example.test/", "status": "ok"}
+          html = '<html><head><link rel="stylesheet" href="../../_css/0123456789abcdef.css"></head><body class="ci">x</body></html>'
+          with zipfile.ZipFile("cap.zip", "w") as z:
+              z.writestr("vastgelegd/_css/0123456789abcdef.css", ".ci{color:red}")
+              z.writestr("vastgelegd/ci-example-test/start/info.json", json.dumps(info))
+              z.writestr("vastgelegd/ci-example-test/start/snapshot.html", html)
+              z.writestr("vastgelegd/ci-example-test/start/origineel.jpg", b"\xff\xd8\xff\xe0ci")
+          PY
+          docker cp cap.zip deb:/root/cap.zip
       - name: Rooktest
         run: |
           docker exec deb bash -euxc '
@@ -282,6 +295,10 @@ jobs:
             curl -fsS http://127.0.0.1/host/ha.example.test.css | grep -qF "Home_Assistant (bestand)"
             curl -fsS http://127.0.0.1/host/ha.example.test.css | grep -qF "\"ontbreekt\" niet gevonden"
             test "$(curl -s -o /dev/null -w "%{http_code}" "http://127.0.0.1/host/Bad_Host.css")" = 404
+            # Capture-zip importeren: dienst, snapshot met CSS, screenshot in storage (D1).
+            curl -fsS -F "file=@/root/cap.zip" http://127.0.0.1/api/v1/captures | grep -qF "\"snapshots\":1"
+            curl -fsS http://127.0.0.1/api/v1/services | grep -qF "\"hostname\":\"ci.example.test\""
+            test -n "$(find /var/lib/cssthema/storage/assets -type f -user cssthema | head -n1)"
             # Back-ups: één vóór de tweede run, de timer staat aan, en terugzetten werkt.
             ls /var/backups/cssthema | grep -q -- "-voor-update$"
             systemctl is-enabled cssthema-backup.timer

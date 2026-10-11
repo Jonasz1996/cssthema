@@ -1,6 +1,8 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
-import { Button, Callout, Input, Loading } from "@/components/ui";
-import { useI18n } from "@/lib/i18n";
+import { isApiError } from "@/api/client";
+import { Button, Callout, Input, Loading, Select } from "@/components/ui";
+import { errorText } from "@/features/themes/lib/errors";
+import { type I18n, useI18n } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
 import type { DraftSession } from "../autosave/draft-session";
 import type { EditorShortcut } from "../lib/shortcuts";
@@ -18,9 +20,12 @@ import { previewFrameHeight, previewScale } from "./scale";
 import { formatBytes } from "../lib/format";
 import { demoBodyHtml } from "./demo-page";
 import { demoTexts } from "./demo-texts";
-import { previewErrorText } from "./errors";
+import { PreviewError, previewErrorText } from "./errors";
+import { buildSnapshotDocument } from "./snapshot-document";
+import { DEMO_SOURCE, type PreviewSourceTheme, type SnapshotOption } from "./source";
 import { buildPreviewDocument } from "./srcdoc";
 import { useBridge } from "./use-bridge";
+import { type PreviewSource, usePreviewSource } from "./use-preview-source";
 
 const PRESETS: readonly ViewportPreset[] = ["desktop", "tablet", "mobile", "custom"];
 
@@ -30,16 +35,43 @@ export interface PreviewPaneProps {
   paletteTokens: Readonly<Record<string, string>> | null | undefined;
   /** Ctrl/⌘+S of Ctrl+\ terwijl de preview de focus heeft (de iframe stuurt ze door). */
   onShortcut?: (action: EditorShortcut) => void;
+  /**
+   * Het thema: bepaalt de bron (demo-pagina of een snapshot van de app, zie `source.ts`) en
+   * waar de keuze onthouden wordt. Zonder thema alleen de demo-pagina, zonder keuzelijst.
+   */
+  theme?: PreviewSourceTheme | null;
   className?: string;
 }
 
+/** Tekst van een snapshot in de keuzelijst (de dienst staat in de `optgroup`). */
+function snapshotLabel(snapshot: SnapshotOption): string {
+  return snapshot.title && snapshot.title !== snapshot.page
+    ? `${snapshot.page} · ${snapshot.title}`
+    : snapshot.page;
+}
+
+/** Foutmelding bij het laden van een snapshot-document. */
+function snapshotErrorText(error: unknown, i18n: I18n): string {
+  if (isApiError(error) && error.status === 404) return i18n.t("editor.snapshotNotFound");
+  return errorText(error, i18n);
+}
+
 /**
- * Live preview (F-ED-06/08): de demo-pagina in een sandboxed iframe met het palet als
- * `:root`-variabelen en de CSS uit de editor, bijgewerkt per animatieframe. De viewport is
- * instelbaar (desktop/tablet/mobiel/eigen maat) en wordt geschaald tot hij in het paneel past.
+ * Live preview (F-ED-06/07a/08): de demo-pagina of een vastgelegde pagina van de app (snapshot)
+ * in een sandboxed iframe met het palet als `:root`-variabelen en de CSS uit de editor,
+ * bijgewerkt per animatieframe. De viewport is instelbaar (desktop/tablet/mobiel/eigen maat) en
+ * wordt geschaald tot hij in het paneel past.
  */
-export function PreviewPane({ session, paletteTokens, onShortcut, className }: PreviewPaneProps) {
-  const { t, locale } = useI18n();
+export function PreviewPane({
+  session,
+  paletteTokens,
+  onShortcut,
+  theme,
+  className,
+}: PreviewPaneProps) {
+  const i18n = useI18n();
+  const { t, locale } = i18n;
+  const source = usePreviewSource(theme);
   const layout = useEditorStore((state) => state.layout);
   const setLayout = useEditorStore((state) => state.setLayout);
   const { state: bridgeState, retry } = useBridge();
@@ -50,9 +82,35 @@ export function PreviewPane({ session, paletteTokens, onShortcut, className }: P
   const [available, setAvailable] = useState(0);
   const [availableHeight, setAvailableHeight] = useState(0);
 
+  // Het document van de gekozen snapshot (alleen als het bij die snapshot hoort).
+  const snapshotDocument =
+    source.snapshotId && source.document.data?.id === source.snapshotId
+      ? source.document.data
+      : null;
+  const frameTitle = snapshotDocument
+    ? t("editor.previewFrameTitleSnapshot", {
+        name: source.selected
+          ? `${snapshotDocument.hostname} · ${source.selected.snapshot.page}`
+          : snapshotDocument.hostname,
+      })
+    : t("editor.previewFrameTitle");
+
   const built = useMemo((): { doc: string } | { error: unknown } | null => {
-    if (bridgeState.status !== "ready") return null;
+    if (bridgeState.status !== "ready" || source.value === null) return null;
     try {
+      if (source.snapshotId) {
+        if (!snapshotDocument) return null;
+        return {
+          doc: buildSnapshotDocument({
+            bridgeSource: bridgeState.bridge.source,
+            bridgeHash: bridgeState.bridge.hash,
+            // Vast per document: de dienstenlijst die later binnenkomt, herlaadt de iframe niet.
+            title: snapshotDocument.title ?? snapshotDocument.hostname,
+            html: snapshotDocument.html,
+            stylesheets: snapshotDocument.stylesheets,
+          }),
+        };
+      }
       return {
         doc: buildPreviewDocument({
           bridgeSource: bridgeState.bridge.source,
@@ -65,17 +123,27 @@ export function PreviewPane({ session, paletteTokens, onShortcut, className }: P
     } catch (error) {
       return { error };
     }
-  }, [bridgeState, locale, t]);
+  }, [bridgeState, locale, t, source.value, source.snapshotId, snapshotDocument]);
   const srcdoc = built && "doc" in built ? built.doc : null;
+  const buildError = built && "error" in built ? built.error : null;
   const failure =
     bridgeState.status === "error"
       ? previewErrorText(bridgeState.error, t)
-      : built && "error" in built
-        ? previewErrorText(built.error, t)
+      : buildError !== null
+        ? previewErrorText(buildError, t)
         : null;
+  // Een snapshot die niet lukt (te groot): terug naar de demo helpt, opnieuw proberen niet.
+  const snapshotFailed =
+    source.snapshotId !== null &&
+    buildError instanceof PreviewError &&
+    buildError.code === "snapshotTooLarge";
+  const documentError = source.snapshotId && source.document.isError ? source.document.error : null;
+  const sourceLoading =
+    bridgeState.status !== "loading" &&
+    (source.value === null || (source.snapshotId !== null && source.document.isPending));
 
   // Welk document de iframe toont; "klaar" geldt per document (verbergt de ongestijlde flits).
-  const documentKey = `${frameKey}:${locale}:${bridgeState.status}`;
+  const documentKey = `${frameKey}:${locale}:${bridgeState.status}:${source.value ?? ""}`;
   const documentKeyRef = useRef(documentKey);
   const [appliedKey, setAppliedKey] = useState<string | null>(null);
   // De bridge weigerde de CSS (te groot): melding tonen en de iframe toch zichtbaar maken.
@@ -162,6 +230,7 @@ export function PreviewPane({ session, paletteTokens, onShortcut, className }: P
         <span className="mr-1 text-[11px] tracking-[.08em] text-muted uppercase">
           {t("editor.previewTitle")}
         </span>
+        {theme && <SourcePicker source={source} />}
         <div role="group" aria-label={t("editor.viewportLabel")} className="flex flex-wrap gap-1">
           {PRESETS.map((preset) => (
             <Button
@@ -239,17 +308,44 @@ export function PreviewPane({ session, paletteTokens, onShortcut, className }: P
 
       <div ref={stageRef} className="min-h-0 flex-1 overflow-auto p-2">
         {bridgeState.status === "loading" && <Loading />}
+        {sourceLoading && (
+          <Loading label={source.snapshotId ? t("editor.snapshotLoading") : undefined} />
+        )}
         {failure !== null && (
           <Callout
             tone="err"
             title={t("editor.previewUnavailable")}
             actions={
-              <Button variant="alt" size="sm" onClick={retry}>
-                {t("editor.retry")}
-              </Button>
+              snapshotFailed ? (
+                <Button variant="alt" size="sm" onClick={() => source.select(DEMO_SOURCE)}>
+                  {t("editor.snapshotShowDemo")}
+                </Button>
+              ) : (
+                <Button variant="alt" size="sm" onClick={retry}>
+                  {t("editor.retry")}
+                </Button>
+              )
             }
           >
             {failure}
+          </Callout>
+        )}
+        {documentError !== null && (
+          <Callout
+            tone="err"
+            title={t("editor.snapshotUnavailable")}
+            actions={
+              <>
+                <Button variant="alt" size="sm" onClick={() => void source.document.refetch()}>
+                  {t("editor.retry")}
+                </Button>
+                <Button variant="alt" size="sm" onClick={() => source.select(DEMO_SOURCE)}>
+                  {t("editor.snapshotShowDemo")}
+                </Button>
+              </>
+            }
+          >
+            {snapshotErrorText(documentError, i18n)}
           </Callout>
         )}
         {srcdoc && tooLargeMax && (
@@ -268,7 +364,7 @@ export function PreviewPane({ session, paletteTokens, onShortcut, className }: P
             <iframe
               key={frameKey}
               ref={iframeRef}
-              title={t("editor.previewFrameTitle")}
+              title={frameTitle}
               sandbox="allow-scripts"
               referrerPolicy="no-referrer"
               srcDoc={srcdoc}
@@ -284,6 +380,48 @@ export function PreviewPane({ session, paletteTokens, onShortcut, className }: P
         )}
       </div>
     </section>
+  );
+}
+
+/**
+ * Keuze van de bron: de demo-pagina of een snapshot, gegroepeerd per dienst (hostnaam). Een
+ * gewone `<select>`: typen springt naar de eerste passende optie.
+ */
+function SourcePicker({ source }: { source: PreviewSource }) {
+  const { t } = useI18n();
+  const known = source.snapshotId === null || source.selected !== null;
+  return (
+    <Select
+      aria-label={t("editor.previewSource")}
+      title={t("editor.previewSource")}
+      value={source.value ?? ""}
+      disabled={source.value === null}
+      onChange={(event) => source.select(event.target.value)}
+      className="w-auto max-w-[min(260px,60vw)] py-1 pr-7 pl-2 text-[12px]"
+    >
+      {source.value === null && <option value="">{t("common.loading")}</option>}
+      <option value={DEMO_SOURCE}>{t("editor.previewSourceDemo")}</option>
+      {!known && source.snapshotId && (
+        // Bewaarde keuze terwijl de lijst (nog) niet geladen is.
+        <option value={source.snapshotId}>
+          {source.document.data?.hostname ?? t("editor.previewSourceSnapshot")}
+        </option>
+      )}
+      {source.groups.map((group) => (
+        <optgroup key={group.serviceId} label={group.hostname}>
+          {group.snapshots.map((snapshot) => (
+            <option key={snapshot.id} value={snapshot.id}>
+              {snapshotLabel(snapshot)}
+            </option>
+          ))}
+        </optgroup>
+      ))}
+      {source.servicesLoaded && source.groups.length === 0 && (
+        <option value="" disabled>
+          {t("editor.previewSourceNone")}
+        </option>
+      )}
+    </Select>
   );
 }
 

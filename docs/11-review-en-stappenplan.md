@@ -1,6 +1,6 @@
 # 11 — Projectreview en stappenplan
 
-> Status: **in uitvoering** · Versie 0.3 · 2026-10-11 (zie *Voortgang* onderaan)
+> Status: **in uitvoering** · Versie 0.4 · 2026-10-11 (zie *Voortgang* onderaan)
 >
 > Getoetst: de volledige repo op de PR #8-branch (commit b6c40b2: backend, frontend, nginx, installer, CI, docs, capture-script) en de thema's in de projectmap (`algemeen.css`, `algemeen.js`, 58 × `alg-<app>.css`), naast de ontwerpdocumenten 01–10 en hoe cssthema echt draait (Debian-LXC achter NPM + Authentik, thema's cross-origin vanaf `https://css.jbogaert.be`).
 
@@ -162,3 +162,6 @@ Kies je liever iets anders eerst, zeg dan de nummers.
 | Tweede controle | Klaar (PR #9): terugzetten van de oudste back-up wiste die eerst (bewaartermijn), een mislukte back-up hield de update niet tegen, hosts die `*` volgen kregen een wijziging pas na een minuut (nu een redirect naar één gedeelde bundel, ook tegen het volspammen van de cache), host-refresh op de achtergrond en alleen `.css` of `.js`, hernoemen van een thema past de host-koppelingen aan, één fout script houdt de andere niet meer tegen, opruimen van halve back-ups, `# 1.5 MB` is geen hostnaam meer. |
 | C3 | Klaar (PR #9): per host *laatst geladen*, ontbrekende onderdelen en een controle van de pagina (regel aanwezig, CSP), dagelijks om 06:15 en met een knop. Schermafbeeldingen per host (D5) nog niet. |
 | C4 | Klaar (PR #9): `themes/varianten/` met Nord, Dracula, Catppuccin, Gruvbox en Oceaan (`scripts/themes/varianten.py`, contrast gecontroleerd). Kiezen per host of via `*` op de Hosts-pagina. |
+| D1 | Klaar (PR #9): capture-zips van `vastleggen.py` uploaden op **Services** (diensten, snapshots, CSS en screenshots in storage); getest met `vastgelegd-deel1.zip`: 104 diensten, 88 snapshots. |
+| D2 | Klaar (PR #9, deels): preview in de editor op de snapshot van een app, met autocomplete van classes, id's en variabelen. Nog niet: waarschuwing "selector matcht niets" (2.11), mobiele weergave. |
+| D5 | Deels: de screenshots zonder en met thema staan per dienst op **Services** (uit de zip, niet automatisch ververst). |
