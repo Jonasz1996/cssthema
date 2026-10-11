@@ -11,6 +11,7 @@
 import enCommon from "./en/common.json";
 import enDashboard from "./en/dashboard.json";
 import enEditor from "./en/editor.json";
+import enHosts from "./en/hosts.json";
 import enImport from "./en/import.json";
 import enNav from "./en/nav.json";
 import enPalettes from "./en/palettes.json";
@@ -19,6 +20,7 @@ import enVersions from "./en/versions.json";
 import nlCommon from "./nl/common.json";
 import nlDashboard from "./nl/dashboard.json";
 import nlEditor from "./nl/editor.json";
+import nlHosts from "./nl/hosts.json";
 import nlImport from "./nl/import.json";
 import nlNav from "./nl/nav.json";
 import nlPalettes from "./nl/palettes.json";
@@ -34,6 +36,7 @@ export const en = {
   versions: enVersions,
   palettes: enPalettes,
   import: enImport,
+  hosts: enHosts,
 };
 
 export type Namespaces = typeof en;
@@ -49,4 +52,5 @@ export const nl: { [N in NamespaceName]: Partial<Record<keyof Namespaces[N], str
   versions: nlVersions,
   palettes: nlPalettes,
   import: nlImport,
+  hosts: nlHosts,
 };

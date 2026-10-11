@@ -1,0 +1,12 @@
+/* alg-app-authentik.css - gegenereerd uit algemeen.css door scripts/themes/modules.py;
+   niet met de hand aanpassen. Laadt na alg-kern.css (zie themes/README.md). */
+/* ==========================================================================
+   60 AUTHENTIK
+   Ongetest, dus bewust nog geen regels (liever minder en correct).
+   Lit-componenten met PatternFly 4 in shadow DOM; gewone regels komen er
+   niet in, alleen variabelen erven door; heeft een eigen donker thema
+   (standaard automatisch).
+   Tot er regels zijn: het eigen donkere thema van de app aanzetten; de
+   algemene delen (00-35) geven dan de achtergrond, velden en knoppen.
+   ========================================================================== */
+

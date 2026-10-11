@@ -1,0 +1,99 @@
+/* ==========================================================================
+   alg-lubelogger.css - LubeLogger (ASP.NET MVC + Bootstrap 5.3)
+   Host: lubelogger.jbogaert.be
+   Laadt NA algemeen.css (Bootstrap 5.3 en data-bs-theme doet dat al).
+
+   LubeLogger kiest zijn vlakken zelf per thema met html[data-bs-theme=light]
+   (staat op licht). Wat het afwerkt:
+   - bovenbalk (.frosted): wit 70% met vervaging, onleesbare grijze tabs
+     erop; nu glas zoals de rest
+   - contextmenu's van garage en tabellen (ook wit-doorzichtig): glas
+   - .btn-adaptive (menuknop op mobiel) met de lichte variabelen: grijs
+   - mobiel uitschuifmenu (--bs-body-bg) dekkend glas, actieve link wit
+   - blauwe accenten: geselecteerd voertuig (rand), actief menu-item
+   - API-methoden: hover zoals een rij
+
+   Beperkingen: vastgelegd is de garage zonder voertuigen. De regels voor
+   voertuigpagina's, tabellen en menu's volgen LubeLoggers eigen klassen
+   (site.css), maar zijn niet getest.
+   ========================================================================== */
+
+/* ---------- Bovenbalk en menu's ----------------------------------------- */
+html[data-bs-theme] .frosted {
+  background-color: var(--alg-glas-sterk);
+  -webkit-backdrop-filter: var(--alg-blur);
+  backdrop-filter: var(--alg-blur);
+}
+
+/* de lijn onder de bovenbalk */
+.lubelogger-navbar-container > hr {
+  border-color: var(--alg-rand-sterk);
+  opacity: 1;
+}
+
+html[data-bs-theme] :is(.table-context-menu, .garage-context-menu) {
+  background-color: var(--alg-glas-sterk);
+  border-color: var(--alg-rand-sterk);
+  -webkit-backdrop-filter: var(--alg-blur);
+  backdrop-filter: var(--alg-blur);
+}
+
+html[data-bs-theme] .btn-adaptive {
+  --bs-btn-color: var(--alg-tekst);
+  --bs-btn-bg: transparent;
+  --bs-btn-border-color: transparent;
+  --bs-btn-hover-color: var(--alg-tekst-sterk);
+  --bs-btn-hover-bg: var(--alg-knop-zacht-hover);
+  --bs-btn-hover-border-color: transparent;
+  --bs-btn-active-color: var(--alg-tekst-sterk);
+  --bs-btn-active-bg: var(--alg-rij-actief);
+  --bs-btn-active-border-color: transparent;
+  --bs-btn-focus-shadow-rgb: var(--alg-accent);
+}
+
+/* tabs in de bovenbalk: gewone tab gedempt, actieve wit */
+.lubelogger-tab .nav-link {
+  color: var(--alg-gedempt);
+}
+
+.lubelogger-tab .nav-link:hover,
+.lubelogger-tab .nav-link.active {
+  color: var(--alg-tekst-sterk);
+}
+
+/* mobiel uitschuifmenu: volledig scherm boven de pagina */
+.lubelogger-mobile-nav {
+  background-color: var(--alg-glas-sterk);
+  -webkit-backdrop-filter: var(--alg-blur);
+  backdrop-filter: var(--alg-blur);
+}
+
+.lubelogger-mobile-nav > ul > li > .nav-link.active {
+  color: var(--alg-tekst-sterk) !important;
+}
+
+/* ---------- Accenten (niet getest) --------------------------------------- */
+.garage-item.garage-active .card {
+  border-color: var(--alg-accent-kleur) !important;
+  box-shadow: var(--alg-gloed);
+}
+
+.btn-check:checked + .dropdown-item,
+:not(.btn-check) + .dropdown-item:active {
+  background-color: var(--alg-rij-actief);
+  color: var(--alg-tekst-sterk);
+}
+
+html[data-bs-theme] .api-method:hover {
+  background-color: var(--alg-rij-hover);
+}
+
+/* ---------- Kaart "voertuig toevoegen" ----------------------------------- */
+/* gestippelde kaart: rand iets sterker, zodat ze op glas zichtbaar blijft */
+.garage-item-add .card {
+  border-color: var(--alg-rand-hover) !important;
+}
+
+.garage-item-add .card:hover {
+  background-color: var(--alg-rij-hover);
+}

@@ -84,12 +84,21 @@ Pas de bestaande proxy host van je CSS-domein aan (of maak er een):
 Bij **Advanced** het volgende. CSS en thema-scripts blijven publiek, de rest (dashboard en api) gaat via Authentik. Vervang het adres van de outpost door het jouwe:
 
 ```nginx
-# Thema-CSS en thema-scripts (bv. algemeen.js): publiek, want apps laden ze ook op hun loginpagina.
-location ~ \.(css|js)$ {
+# Thema-CSS, thema-scripts (bv. algemeen.js) en lettertypes: publiek, want apps laden ze ook
+# op hun loginpagina. Alleen lezen (GET/HEAD) en alleen platte namen, /themes/... en /host/....
+location ~ "^/(?:themes/|host/)?[A-Za-z0-9][A-Za-z0-9._@-]*\.(?:css|js|woff2?|ttf|otf)$" {
+    limit_except GET HEAD { deny all; }
     proxy_pass $forward_scheme://$server:$port;
     proxy_set_header Host $host;
     proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
     proxy_set_header X-Forwarded-Proto $scheme;
+}
+
+# Gezondheid voor Uptime Kuma of een andere monitor (zonder login, alleen lezen).
+location = /readyz {
+    limit_except GET HEAD { deny all; }
+    proxy_pass $forward_scheme://$server:$port;
+    proxy_set_header Host $host;
 }
 
 # Dashboard en api: alleen na Authentik-login (tot cssthema zelf een login heeft).
@@ -137,11 +146,32 @@ curl -I https://css.jouwdomein.be/proxmox.css   # 200, content-type: text/css, z
 
 `https://css.jouwdomein.be/` in de browser stuurt je eerst naar Authentik en toont daarna het dashboard. De `sub_filter`-regels in je andere proxy hosts hoeven niet te veranderen.
 
+Bewaking: `https://css.jouwdomein.be/readyz` is zonder login bereikbaar en geeft `200` met `"status":"ok"` als database en Redis werken (anders `503`). Zet die URL in Uptime Kuma (*HTTP(s) - Keyword*, keyword `"ok"`).
+
+### Eén regel voor alle hosts
+
+In plaats van per proxy host een eigen `sub_filter` met de juiste bestanden, kan elke host dezelfde regel krijgen. NPM vult `$host` in met de hostnaam van het verzoek, en cssthema levert op `/host/<hostnaam>.css` en `.js` de thema's en scripts die je op de pagina **Hosts** in het dashboard aan die hostnaam koppelt (samengevoegd tot één bestand). De koppeling `*` geldt voor elke host zonder eigen koppeling.
+
+```nginx
+sub_filter '</head>' '<link rel="stylesheet" href="https://css.jouwdomein.be/host/$host.css"><script src="https://css.jouwdomein.be/host/$host.js" defer></script></head>';
+sub_filter_once on;
+proxy_set_header Accept-Encoding "";
+```
+
+1. Open **Hosts**, maak de koppeling `*` (bv. thema `algemeen`, script `algemeen`).
+2. Heb je al regels per host (zoals `npm-sub_filter-per-dienst.conf`), plak ze bij **Importeren**: elke `# hostnaam` met de `sub_filter` eronder wordt een koppeling.
+3. Vervang in één proxy host (Advanced) de oude `sub_filter` door de regel hierboven, kijk of de app er goed uitziet, en doe dan de rest.
+
+Daarna verander je een thema of de bestanden van een host alleen nog in het dashboard, nooit meer in NPM. Apps die geen bestanden van een ander domein laden (CSP), krijgen de variant met `/alg-thema/host/$host.css` plus hun bestaande `location ^~ /alg-thema/`; de pagina Hosts toont beide.
+
+De regel moet in elke proxy host staan: een globale `server_proxy.conf` in NPM werkt niet betrouwbaar, omdat een `proxy_set_header` in een host die van de server-config opheft.
+
 ### Wie mag schrijven
 
 Tot fase 3 heeft cssthema geen eigen login: Authentik in NPM is de enige bescherming. Wie poort 80 van deze container rechtstreeks bereikt (een ander toestel op het LAN, een container op hetzelfde Docker-netwerk), komt niet langs Authentik. Daarom aanvaardt nginx van cssthema wijzigingen via de api (opslaan, publiceren, importeren, scripts uploaden of verwijderen) alleen van de adressen in `TRUSTED_PROXIES` en van de container zelf. Van elders geeft dat `403` (*Schrijven kan alleen via de reverse proxy*); lezen blijft mogen, dus `http://<ip>/` toont het dashboard wel, maar zonder dat je iets kan wijzigen. Een verzonnen `X-Forwarded-For` helpt niet: nginx kijkt naar het adres van de verbinding zelf.
 
 - Zet daarom het IP van NPM in `TRUSTED_PROXIES` (§ 2), en niet meer dan dat.
+- Wie langs Authentik op het dashboard komt, kan thema's en scripts uitrollen naar al je apps. Beperk de applicatie van je CSS-domein in Authentik daarom tot jezelf of een admin-groep: *Applications* → de app → *Policy / Group / User Bindings* → bind je admin-groep (zonder binding mag elke Authentik-gebruiker erin).
 - Docker: de standaardwaarde `172.16.0.0/12` vertrouwt elk Docker-netwerk op de host. Maak ze krapper, bv. alleen het subnet van het NPM-netwerk (`docker network inspect <netwerk>`).
 - Beter nog: laat poort 80 alleen open voor NPM, bv. met een firewallregel op de container (nftables) of in Proxmox (*Firewall* van de container).
 - Daarnaast weigert de api zelf wijzigingen die van een andere webpagina komen (CSRF), ook van een andere app op hetzelfde domein: alleen het dashboard zelf mag schrijven. curl en scripts op de server zelf werken gewoon.
@@ -152,7 +182,22 @@ Tot fase 3 heeft cssthema geen eigen login: Authentik in NPM is de enige bescher
 git -C /opt/cssthema pull && bash /opt/cssthema/deploy/debian/install.sh
 ```
 
-Configuratie, wachtwoorden, database en CSS-bestanden blijven staan; databasemigraties draaien vanzelf. Wil je `TRUSTED_PROXIES` of `PUBLIC_BASE_URL` veranderen, geef ze dan opnieuw mee vóór `bash` (zoals in § 2), of pas ze aan in `/etc/cssthema/cssthema.env` en draai het script opnieuw.
+Configuratie, wachtwoorden, database en CSS-bestanden blijven staan; databasemigraties draaien vanzelf. Vlak daarvoor maakt het script een back-up (`…-voor-update`, zie § 6). Mislukt het bouwen van het dashboard, dan blijft het vorige dashboard draaien.
+
+Installeerde je cssthema vóór oktober 2026, dan volgt `/opt/cssthema` nog de oude branch `claude/css-theme-builder-design-adj6mk`. Nieuwe versies verschijnen op `main`; het script waarschuwt daarvoor. Eén keer overschakelen:
+
+```bash
+git -C /opt/cssthema fetch && git -C /opt/cssthema switch main && bash /opt/cssthema/deploy/debian/install.sh
+```
+
+**Terug naar de vorige versie** na een slechte update:
+
+```bash
+cssthema-backup lijst                                  # zoek de back-up die eindigt op -voor-update
+cssthema-backup terugzetten 20261011-120000-voor-update
+```
+
+Dat zet database, CSS-bestanden en storage terug (na nog een back-up van de huidige toestand) en toont het commando om de bijbehorende code terug te zetten. Later weer naar de laatste versie: `git -C /opt/cssthema switch main && git -C /opt/cssthema pull && bash /opt/cssthema/deploy/debian/install.sh`. Wil je `TRUSTED_PROXIES` of `PUBLIC_BASE_URL` veranderen, geef ze dan opnieuw mee vóór `bash` (zoals in § 2), of pas ze aan in `/etc/cssthema/cssthema.env` en draai het script opnieuw.
 
 ## 6. Waar staat wat
 
@@ -164,8 +209,32 @@ Configuratie, wachtwoorden, database en CSS-bestanden blijven staan; databasemig
 | Uploads en exports | `/var/lib/cssthema/storage/` |
 | Python-venv en Node.js | `/usr/local/lib/cssthema/` |
 | nginx-site | `/etc/nginx/sites-available/cssthema` (wordt bij elke run overschreven: pas `docker/nginx/conf.d/cssthema.conf` in de repo aan) |
+| Back-ups | `/var/backups/cssthema/` (instelbaar met `BACKUP_DIR`) |
 
-Een back-up van de container in Proxmox (vzdump) neemt alles mee. Alleen de database: `runuser -u postgres -- pg_dump cssthema > cssthema.sql`.
+### Back-ups
+
+Elke nacht om ± 03:30 maakt `cssthema-backup.timer` een back-up, en `install.sh` maakt er een vóór elke update. Elke back-up is een map met:
+
+- `database.dump`: de hele database (`pg_dump -Fc`);
+- `css-files.tar.gz` (met `.geimporteerd/` en `.scripts-archief/`) en `storage.tar.gz`;
+- `cssthema.env`: de configuratie met de geheimen;
+- `commit`: de versie van de code die toen draaide.
+
+De laatste 14 blijven bewaard. In `/etc/cssthema/cssthema.env`:
+
+```bash
+BACKUP_DIR=/mnt/backup/cssthema   # liefst een map buiten de container (NFS, SMB, bind mount)
+BACKUP_KEEP=30
+```
+
+| Wat | Commando |
+|---|---|
+| Nu een back-up maken | `cssthema-backup` |
+| Back-ups bekijken | `cssthema-backup lijst` |
+| Terugzetten | `cssthema-backup terugzetten <map>` |
+| Wanneer draait de volgende | `systemctl list-timers cssthema-backup.timer` |
+
+Een back-up van de hele container in Proxmox (vzdump) neemt ook alles mee.
 
 ## 7. Handige commando's en problemen
 

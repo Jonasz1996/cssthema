@@ -1,0 +1,189 @@
+/* alg-fw-tabler.css - gegenereerd uit algemeen.css door scripts/themes/modules.py;
+   niet met de hand aanpassen. Laadt na alg-kern.css (zie themes/README.md). */
+/* ==========================================================================
+   31 TABLER - Tabler 1.x (--tblr-*), o.a. Nginx Proxy Manager
+   Tabler 1.4+ kiest kleuren met light-dark(); door color-scheme: dark (01) staat
+   die al op donker. Hieronder de oppervlakken, randen en accentkleur, plus
+   directe regels voor oudere versies zonder light-dark().
+   ========================================================================== */
+
+:root,
+[data-bs-theme],
+[data-theme],
+.theme-dark,
+.theme-light {
+  color-scheme: dark;
+  --tblr-body-color: var(--alg-tekst) !important;
+  --tblr-body-color-rgb: 221, 221, 221 !important;
+  --tblr-body-bg: var(--alg-achtergrond-kleur) !important;
+  --tblr-body-bg-rgb: 20, 20, 20 !important;
+  --tblr-bg-surface: var(--alg-vlak) !important;
+  --tblr-bg-surface-primary: var(--alg-vlak) !important;
+  --tblr-bg-surface-secondary: #1e1e1e !important;
+  /* tekst op de lichte themakleuren (knoppen, badges): wit haalt daar
+     geen 4.5:1 (limoen 2.3, oranje 2.9, azuur 2.9) */
+  --tblr-lime-fg: var(--alg-donker-tekst) !important;
+  --tblr-green-fg: var(--alg-donker-tekst) !important;
+  --tblr-teal-fg: var(--alg-donker-tekst) !important;
+  --tblr-cyan-fg: var(--alg-donker-tekst) !important;
+  --tblr-azure-fg: var(--alg-donker-tekst) !important;
+  --tblr-yellow-fg: var(--alg-donker-tekst) !important;
+  --tblr-orange-fg: var(--alg-donker-tekst) !important;
+  --tblr-bg-surface-tertiary: #222 !important;
+  --tblr-bg-surface-dark: #0c0c0c !important;
+  --tblr-bg-forms: var(--alg-veld) !important;
+  --tblr-bg-forms-disabled: rgba(255, 255, 255, .04) !important;
+  --tblr-font-sans-serif: var(--alg-font) !important;
+  --tblr-body-font-family: var(--alg-font) !important;
+  --tblr-emphasis-color: var(--alg-tekst-sterk) !important;
+  --tblr-secondary: var(--alg-gedempt) !important;
+  --tblr-secondary-color: var(--alg-gedempt) !important;
+  --tblr-muted: var(--alg-gedempt) !important;
+  --tblr-heading-color: var(--alg-tekst-sterk) !important;
+  --tblr-link-color: var(--alg-link) !important;
+  --tblr-link-color-rgb: 181, 181, 181 !important;
+  --tblr-link-hover-color: var(--alg-link-hover) !important;
+  --tblr-link-hover-color-rgb: 255, 255, 255 !important;
+  --tblr-border-color: var(--alg-rand) !important;
+  --tblr-border-color-translucent: var(--alg-rand) !important;
+  --tblr-border-dark-color: var(--alg-rand-sterk) !important;
+  --tblr-border-active-color: var(--alg-rand-hover) !important;
+  --tblr-hover-bg: var(--alg-rij-hover) !important;
+  --tblr-active-bg: var(--alg-rij-actief) !important;
+  --tblr-code-color: var(--alg-code) !important;
+  --tblr-code-bg: rgba(255, 255, 255, .09) !important;
+  --tblr-primary: var(--alg-knop) !important;
+  --tblr-primary-rgb: 106, 106, 106 !important;
+  --tblr-primary-fg: #fff !important;
+  --tblr-primary-text: var(--alg-tekst) !important;
+  --tblr-primary-lt: rgba(255, 255, 255, .08) !important;
+  --tblr-border-radius: var(--alg-radius) !important;
+  --tblr-border-radius-lg: var(--alg-radius-groot) !important;
+  --tblr-box-shadow-card: var(--alg-schaduw-klein) !important;
+  --tblr-box-shadow-dropdown: var(--alg-schaduw-midden) !important;
+  --tblr-focus-ring-color: rgba(var(--alg-accent), .25) !important;
+}
+
+/* pagina: verloop laten doorschijnen */
+.page,
+.page-wrapper,
+.page-body {
+  background: transparent !important;
+}
+
+/* navigatiebalken in Tabler zijn standaard wit (bg-surface) */
+.page > .navbar,
+.page header.navbar,
+.page .navbar-expand-md > .navbar,
+.navbar.navbar-light,
+.navbar-overlap::after {
+  background-color: rgba(10, 10, 10, .55) !important;
+  border-color: var(--alg-rand) !important;
+}
+
+.navbar .nav-item.active .nav-link,
+.navbar .nav-link.active {
+  color: var(--alg-tekst-sterk) !important;
+}
+
+/* standaardknop van Tabler is een wit vlak met rand; alleen via de
+   --tblr-btn-variabelen, zodat een kale Bootstrap-.btn niet verandert */
+.btn:not(:is(.btn-primary, .btn-secondary, .btn-success, .btn-danger, .btn-warning, .btn-info,
+             .btn-light, .btn-dark, .btn-link, .btn-close, [class*="btn-outline"], [class*="btn-ghost"],
+             .btn-blue, .btn-azure, .btn-indigo, .btn-purple, .btn-pink, .btn-red, .btn-orange,
+             .btn-yellow, .btn-lime, .btn-green, .btn-teal, .btn-cyan, .btn-white, .btn-default)) {
+  --tblr-btn-bg: var(--alg-knop-zacht) !important;
+  --tblr-btn-color: var(--alg-tekst) !important;
+  --tblr-btn-border-color: var(--alg-rand-sterk) !important;
+  --tblr-btn-hover-bg: var(--alg-knop-zacht-hover) !important;
+  --tblr-btn-hover-color: var(--alg-tekst-sterk) !important;
+  --tblr-btn-hover-border-color: var(--alg-rand-hover) !important;
+  --tblr-btn-active-bg: var(--alg-rij-actief) !important;
+  --tblr-btn-active-color: var(--alg-tekst-sterk) !important;
+}
+
+/* spookknoppen (icoonknoppen in de kop, thema- en taalknop): btn-ghost-dark
+   heeft donkere tekst (#1f2937) en is op donker onzichtbaar; apps zetten de
+   kleur soms zelf met !important (NPM), dus hier .btn erbij voor gewicht */
+.btn.btn-ghost-dark,
+.btn.btn-ghost-light,
+.btn.btn-ghost-secondary {
+  --tblr-btn-color: var(--alg-tekst) !important;
+  --tblr-btn-hover-color: var(--alg-tekst-sterk) !important;
+  --tblr-btn-hover-bg: var(--alg-knop-zacht-hover) !important;
+  --tblr-btn-active-color: var(--alg-tekst-sterk) !important;
+  --tblr-btn-active-bg: var(--alg-rij-actief) !important;
+  color: var(--alg-tekst) !important;
+}
+
+.btn.btn-ghost-dark:hover,
+.btn.btn-ghost-light:hover,
+.btn.btn-ghost-secondary:hover {
+  color: var(--alg-tekst-sterk) !important;
+}
+
+/* hoofdknop met een paletklasse erbij (NPM: btn-primary bg-lime): welke van
+   de twee wint hangt af van de laadvolgorde; altijd onze knopkleur */
+.btn.btn-primary:is(.bg-lime, .bg-green, .bg-teal, .bg-cyan, .bg-azure, .bg-yellow, .bg-orange, .bg-blue, .bg-red) {
+  background-color: var(--alg-knop) !important;
+  color: var(--alg-knop-tekst) !important;
+}
+
+.btn.btn-primary:is(.bg-lime, .bg-green, .bg-teal, .bg-cyan, .bg-azure, .bg-yellow, .bg-orange, .bg-blue, .bg-red):hover {
+  background-color: var(--alg-knop-hover) !important;
+  box-shadow: var(--alg-gloed) !important;
+}
+
+/* lichte badges (bg-*-lt) blijven tint, met leesbare tekst */
+.badge[class*="-lt"] {
+  background-color: rgba(255, 255, 255, .08) !important;
+  color: var(--alg-tekst) !important;
+}
+
+.bg-green-lt { background-color: var(--alg-ok-tint) !important; color: var(--alg-ok) !important; }
+.bg-red-lt { background-color: var(--alg-fout-tint) !important; color: var(--alg-fout) !important; }
+.bg-yellow-lt, .bg-orange-lt { background-color: var(--alg-waarschuwing-tint) !important; color: var(--alg-waarschuwing) !important; }
+.bg-blue-lt, .bg-azure-lt, .bg-cyan-lt { background-color: var(--alg-info-tint) !important; color: var(--alg-info) !important; }
+
+.avatar {
+  background-color: rgba(255, 255, 255, .08);
+  color: var(--alg-tekst);
+}
+
+.page-pretitle,
+.subheader,
+.form-hint {
+  color: var(--alg-gedempt) !important;
+}
+
+.page-title {
+  color: var(--alg-tekst-sterk);
+}
+
+.card-table thead th,
+.table thead th {
+  background-color: rgba(255, 255, 255, .03) !important;
+  color: var(--alg-gedempt) !important;
+}
+
+/* Tabler kleurt de voettekst met --tblr-gray-500 (3.4:1 op donker); een later
+   geladen app-stylesheet wint van de kleur hier, de variabele niet */
+.footer {
+  background-color: transparent !important;
+  border-color: var(--alg-rand) !important;
+  color: var(--alg-gedempt);
+  --tblr-gray-500: var(--alg-gedempt) !important;
+}
+
+/* sluitkruisje rechtsboven in Tabler-dialogen (Tabler 1.x: zie ook .btn-close
+   in 30, kleur zwart zodat de filter er wit van maakt) */
+.modal-content > .btn-close {
+  filter: invert(1) grayscale(100%) brightness(200%) !important;
+}
+
+/* vlakke invoergroep (zoekveld met vergrootglas): het icoonvak hoort bij het
+   veld, dus dezelfde achtergrond als het veld (30 geeft het een eigen tint) */
+.input-group-flat > .input-group-text {
+  background-color: var(--alg-veld) !important;
+}
+

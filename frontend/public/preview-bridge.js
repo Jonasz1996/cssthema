@@ -22,6 +22,8 @@
  * iframe -> parent:
  *   { type: "cssthema:ready" }               once the bridge listens (send the CSS now)
  *   { type: "cssthema:applied", seq }        after a "css" message was applied
+ *   { type: "cssthema:too-large", kind, max } a "css"/"palette" message was over the size cap
+ *                                            (max characters) and was NOT applied
  *   { type: "cssthema:shortcut", action }    Ctrl/Cmd+S ("publish") or Ctrl+\ ("togglePreview")
  *                                            pressed while the preview has focus; the browser
  *                                            default ("Save page as") is prevented here, the
@@ -85,8 +87,7 @@
       data !== null &&
       typeof data === "object" &&
       (data.type === "css" || data.type === "palette") &&
-      typeof data.css === "string" &&
-      data.css.length <= MAX_CSS_LENGTH
+      typeof data.css === "string"
     );
   }
 
@@ -119,6 +120,10 @@
     if (event.source !== window.parent) return;
     var data = event.data;
     if (!isStyleMessage(data)) return;
+    if (data.css.length > MAX_CSS_LENGTH) {
+      reply({ type: "cssthema:too-large", kind: data.type, max: MAX_CSS_LENGTH });
+      return;
+    }
     getStyleElement(TARGETS[data.type]).textContent = data.css;
     applyToShadowRoots(data.type, data.css);
     if (data.type === "css") {

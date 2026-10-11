@@ -1,0 +1,55 @@
+/* ==========================================================================
+   alg-guest.css - gastnetwerk-welkomstpagina (eigen pagina, OPNsense
+   captive portal)
+   Host: guest.jbogaert.be
+   Laadt na algemeen.css (sub_filter: eerst algemeen.css, dan dit bestand).
+
+   De pagina is zelf al in de allow-stijl gebouwd (glaskaart, terminalbalk,
+   monospace, eigen netwerkcanvas #bg/#top). Dit bestand zorgt dat
+   algemeen.css er niets aan verstoort en trekt de laatste details gelijk:
+   - geen tweede netwerk: de pagina tekent er zelf een, dus algemeen.js
+     blijft weg (--alg-netwerk: 0);
+   - de eigen variabelen (--btn, --text, --ok ...) op de algemeen-tokens;
+   - de scanlijnen van body::after weg (zoals in algemeen: op vraag van
+     Jonas geen scanlijnen meer);
+   - de links in de regels weer wit met groene hover; algemeen.css kleurt
+     links zonder klasse grijs en won daar van de pagina.
+
+   Beperkingen: in de vastlegging zijn de twee netwerkcanvassen stilstaande
+   zwarte beelden die de pagina bedekken (live zijn het doorzichtige
+   canvassen). Voor de controle en de voor/na-voorbeelden zijn die twee
+   beelden met een aparte test-CSS weggelaten; dat zit niet in dit bestand.
+   Bij het vastleggen laadde deze host geen enkele themalink (geen
+   sub_filter, server OPNsense); de twee link-tags kunnen ook rechtstreeks
+   in de eigen HTML van de pagina.
+   ========================================================================== */
+
+/* ---------- Netwerk van algemeen.js uit, eigen variabelen --------------- */
+:root {
+  --alg-netwerk: 0;
+
+  --bg: var(--alg-achtergrond);
+  --btn: var(--alg-knop);
+  --btn-h: var(--alg-knop-hover);
+  --text: var(--alg-tekst);
+  --text-h: var(--alg-tekst-sterk);
+  --muted: var(--alg-gedempt);
+  --accent: var(--alg-accent);
+  --ok: var(--alg-ok);
+  --err: var(--alg-fout);
+  --mono: var(--alg-font);
+}
+
+/* ---------- Geen scanlijnen ---------------------------------------------- */
+body::after {
+  background: none;
+}
+
+/* ---------- Links in de regels (algemeen.css won hier) ------------------- */
+.rules li a {
+  color: var(--alg-tekst-sterk);
+}
+
+.rules li a:hover {
+  color: var(--alg-ok);
+}

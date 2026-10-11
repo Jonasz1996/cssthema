@@ -15,8 +15,10 @@ import {
 } from "../store";
 import { PreviewChannel } from "./channel";
 import { previewFrameHeight, previewScale } from "./scale";
+import { formatBytes } from "../lib/format";
 import { demoBodyHtml } from "./demo-page";
 import { demoTexts } from "./demo-texts";
+import { previewErrorText } from "./errors";
 import { buildPreviewDocument } from "./srcdoc";
 import { useBridge } from "./use-bridge";
 
@@ -48,7 +50,7 @@ export function PreviewPane({ session, paletteTokens, onShortcut, className }: P
   const [available, setAvailable] = useState(0);
   const [availableHeight, setAvailableHeight] = useState(0);
 
-  const built = useMemo((): { doc: string } | { error: string } | null => {
+  const built = useMemo((): { doc: string } | { error: unknown } | null => {
     if (bridgeState.status !== "ready") return null;
     try {
       return {
@@ -61,22 +63,25 @@ export function PreviewPane({ session, paletteTokens, onShortcut, className }: P
         }),
       };
     } catch (error) {
-      return { error: error instanceof Error ? error.message : String(error) };
+      return { error };
     }
   }, [bridgeState, locale, t]);
   const srcdoc = built && "doc" in built ? built.doc : null;
   const failure =
     bridgeState.status === "error"
-      ? bridgeState.message
+      ? previewErrorText(bridgeState.error, t)
       : built && "error" in built
-        ? built.error
+        ? previewErrorText(built.error, t)
         : null;
 
   // Welk document de iframe toont; "klaar" geldt per document (verbergt de ongestijlde flits).
   const documentKey = `${frameKey}:${locale}:${bridgeState.status}`;
   const documentKeyRef = useRef(documentKey);
   const [appliedKey, setAppliedKey] = useState<string | null>(null);
-  const ready = appliedKey === documentKey;
+  // De bridge weigerde de CSS (te groot): melding tonen en de iframe toch zichtbaar maken.
+  const [tooLarge, setTooLarge] = useState<{ key: string; max: number | null } | null>(null);
+  const tooLargeMax = tooLarge?.key === documentKey ? tooLarge : null;
+  const ready = appliedKey === documentKey || tooLargeMax !== null;
 
   const onShortcutRef = useRef(onShortcut);
   useLayoutEffect(() => {
@@ -86,7 +91,11 @@ export function PreviewPane({ session, paletteTokens, onShortcut, className }: P
   useEffect(() => {
     const channel = new PreviewChannel({
       getTarget: () => iframeRef.current?.contentWindow ?? null,
-      onApplied: () => setAppliedKey(documentKeyRef.current),
+      onApplied: () => {
+        setAppliedKey(documentKeyRef.current);
+        setTooLarge(null);
+      },
+      onTooLarge: (_kind, max) => setTooLarge({ key: documentKeyRef.current, max }),
       onShortcut: (action) => onShortcutRef.current?.(action),
     });
     channelRef.current = channel;
@@ -241,6 +250,14 @@ export function PreviewPane({ session, paletteTokens, onShortcut, className }: P
             }
           >
             {failure}
+          </Callout>
+        )}
+        {srcdoc && tooLargeMax && (
+          <Callout tone="mid" role="status" title={t("editor.previewTooLarge")}>
+            {t("editor.previewTooLargeBody", {
+              // De bridge telt tekens; voor de melding volstaat dat als grootte.
+              max: tooLargeMax.max ? formatBytes(tooLargeMax.max, locale) : "?",
+            })}
           </Callout>
         )}
         {srcdoc && (

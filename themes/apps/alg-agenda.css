@@ -1,0 +1,172 @@
+/* ==========================================================================
+   alg-agenda.css - Interactieve Kalender (eigen pagina, FullCalendar 7)
+   Host: agenda.jbogaert.be
+   Laadt na algemeen.css (sub_filter: eerst algemeen.css, dan dit bestand).
+
+   Werkt af: FullCalendar-variabelen (--fc-*) op de algemeen-tokens, de
+   kalender als glazen paneel in allow-stijl, grijze knoppen (actieve weergave
+   met gloed), rustige randen, "vandaag" als lichte markering in plaats van
+   geel, grijze bolletjes voor afspraken, kop en ondertitel in monospace.
+   Week-, dag- en lijstweergave en de "+meer"-popover volgen via de
+   variabelen; alleen de maandweergave is vastgelegd en getest.
+
+   Beperkingen: de render is genomen tijdens de eigen fade-in van de pagina
+   (keyframes fadeInScale), dus voor/na ogen gedimd; dat is de app, niet het
+   thema. Het icoon (agenda.ico) ontbreekt in de render (geen netwerk).
+   ========================================================================== */
+
+/* ---------- FullCalendar-variabelen ------------------------------------- */
+:root {
+  --fc-page-bg-color: var(--alg-vlak);
+  --fc-neutral-bg-color: var(--alg-paneel);
+  --fc-neutral-text-color: var(--alg-gedempt);
+  --fc-border-color: var(--alg-rand-sterk);
+
+  --fc-button-text-color: var(--alg-tekst);
+  --fc-button-bg-color: var(--alg-knop-zacht);
+  --fc-button-border-color: var(--alg-rand-sterk);
+  --fc-button-hover-bg-color: var(--alg-knop-zacht-hover);
+  --fc-button-hover-border-color: var(--alg-rand-hover);
+  --fc-button-active-bg-color: var(--alg-knop);
+  --fc-button-active-border-color: var(--alg-rand-hover);
+
+  --fc-event-bg-color: var(--alg-knop);
+  --fc-event-border-color: var(--alg-accent-kleur);
+  --fc-event-text-color: var(--alg-knop-tekst);
+  --fc-event-selected-overlay-color: var(--alg-rij-actief);
+  --fc-more-link-bg-color: var(--alg-knop-zacht-hover);
+  --fc-more-link-text-color: var(--alg-tekst);
+  --fc-non-business-color: var(--alg-zebra);
+  --fc-bg-event-color: var(--alg-ok);
+  --fc-highlight-color: var(--alg-rij-actief);
+  --fc-today-bg-color: var(--alg-rij-hover);
+  --fc-now-indicator-color: var(--alg-fout);
+  --fc-list-event-hover-bg-color: var(--alg-rij-hover);
+}
+
+/* ---------- Kop en ondertitel ------------------------------------------- */
+h1.header-with-icon {
+  font-family: var(--alg-font);
+  color: var(--alg-tekst-sterk);
+  text-shadow: 0 0 18px rgba(255, 255, 255, .12);
+  letter-spacing: -.02em;
+}
+
+p.small-text {
+  font-family: var(--alg-font);
+  color: var(--alg-gedempt);
+}
+
+/* ---------- Kalender als glazen paneel ---------------------------------- */
+#calendar {
+  background-color: var(--alg-glas);
+  border-radius: var(--alg-radius-groot);
+  box-shadow: var(--alg-schaduw-midden), inset 0 0 0 1px var(--alg-rand-sterk);
+  -webkit-backdrop-filter: var(--alg-blur);
+  backdrop-filter: var(--alg-blur);
+}
+
+.fc-toolbar-title {
+  color: var(--alg-tekst-sterk);
+}
+
+/* koppen van de weekdagen: als de "# kop"-regels in allow */
+.fc-header-cell {
+  background-color: var(--alg-paneel);
+  color: var(--alg-gedempt);
+  text-transform: uppercase;
+  letter-spacing: .08em;
+  font-size: .8em;
+}
+
+.fc-daygrid-day-number {
+  color: var(--alg-tekst);
+}
+
+.fc-day-today .fc-daygrid-day-number {
+  color: var(--alg-tekst-sterk);
+  font-weight: 700;
+}
+
+/* vandaag: lichte markering met een zachte rand in plaats van geel */
+.fc-daygrid-day.fc-day-today,
+.fc-timegrid-day.fc-day-today {
+  box-shadow: inset 0 0 0 1px var(--alg-rand-hover);
+}
+
+/* ---------- Knoppen ------------------------------------------------------ */
+/* De app zet border: none op .fc-button; de rand komt daarom als inset
+   schaduw (geen verschuivingen). */
+.fc .fc-button {
+  background-color: var(--fc-button-bg-color);
+  color: var(--fc-button-text-color);
+  border-radius: var(--alg-radius-midden);
+  box-shadow: inset 0 0 0 1px var(--fc-button-border-color);
+}
+
+.fc .fc-button:hover:not(:disabled) {
+  background-color: var(--fc-button-hover-bg-color);
+  color: var(--alg-tekst-sterk);
+}
+
+.fc .fc-button-primary:not(:disabled).fc-button-active,
+.fc .fc-button-primary:not(:disabled):active {
+  background-color: var(--fc-button-active-bg-color);
+  color: var(--alg-knop-tekst);
+  box-shadow: var(--alg-gloed);
+}
+
+.fc .fc-button:disabled {
+  background-color: var(--alg-knop-zacht);
+  color: var(--alg-gedempt);
+  opacity: 1;
+}
+
+.fc .fc-button:focus {
+  box-shadow: inset 0 0 0 1px var(--alg-rand-hover), var(--alg-focus-ring);
+}
+
+/* ---------- Afspraken ---------------------------------------------------- */
+.fc-daygrid-dot-event {
+  color: var(--alg-tekst);
+  border-radius: var(--alg-radius-klein);
+}
+
+.fc-daygrid-dot-event:hover {
+  background-color: var(--alg-rij-hover);
+  color: var(--alg-tekst-sterk);
+}
+
+.fc-daygrid-dot-event .fc-event-time {
+  color: var(--alg-gedempt);
+}
+
+.fc-h-event,
+.fc-v-event {
+  border-radius: var(--alg-radius-klein);
+}
+
+/* ---------- Popover "+meer" (niet vastgelegd) ---------------------------- */
+.fc-theme-standard .fc-popover {
+  background-color: var(--alg-glas-sterk);
+  border-color: var(--alg-rand-sterk);
+  border-radius: var(--alg-radius);
+  box-shadow: var(--alg-schaduw-midden);
+  -webkit-backdrop-filter: var(--alg-blur);
+  backdrop-filter: var(--alg-blur);
+}
+
+/* ---------- Smal scherm -------------------------------------------------- */
+/* Herstel: de knoppenbalk paste ook zonder thema niet op een telefoon (de
+   weergaveknoppen staan naast het scherm); in monospace is de titel nog
+   breder. Hier laten we de balk afbreken en de titel iets kleiner. */
+@media (max-width: 600px) {
+  .fc .fc-header-toolbar {
+    flex-wrap: wrap;
+    gap: .6rem;
+  }
+
+  .fc .fc-toolbar-title {
+    font-size: 1.15rem;
+  }
+}

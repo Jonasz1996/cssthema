@@ -302,7 +302,7 @@ async def test_create_with_unknown_palette_or_service(api: Api) -> None:
 
 async def test_create_too_large(api: Api) -> None:
     response = await api.client.post(
-        THEMES, json={"name": "x", "slug": unique_slug(), "css": "a" * (512 * 1024 + 1)}
+        THEMES, json={"name": "x", "slug": unique_slug(), "css": "a" * (1024 * 1024 + 1)}
     )
     assert response.status_code == 413
     assert response.json()["code"] == "payload_too_large"

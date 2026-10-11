@@ -1,0 +1,58 @@
+/* ==========================================================================
+   alg-home-assistant.css - Home Assistant (frontend 2025+, Lit, shadow DOM)
+   Host: homeassistant.jbogaert.be
+   Laadt NA algemeen.css. Dat heeft al een volledig HA-deel (donkere modus
+   altijd aan, grijs in plaats van HA-blauw, glazen kaarten en zijbalk,
+   monospace). Hier alleen wat daarna nog niet in stijl was.
+
+   Shadow DOM: gewone selectors komen niet in de componenten; CSS-variabelen
+   op html erven wel door, en ::part() bereikt wat een component zelf
+   blootstelt. Het loginvak (ha-authorize, ha-auth-flow) staat in de light
+   DOM en is wel gewoon te stijlen.
+
+   Wat het afwerkt:
+   - loginvak: glas met vervaging en schaduw (was een plat vlak)
+   - knop "Log in": zachte witte gloed bij hover, zoals de andere knoppen
+   - kaarten in het hoofdscherm: vervaging op het glas via HA's eigen
+     variabele --ha-card-backdrop-filter
+
+   Beperkingen: alleen de loginpagina vastgelegd. De kaartvariabele hieronder
+   komt uit kennis van HA (ha-card), niet getest. De zwarte achtergrond in de
+   render is een vastgelegd canvasbeeld (jpeg zonder doorzichtigheid), niet de
+   echte pagina; het logo ontbreekt alleen in de render (geen netwerk).
+   ========================================================================== */
+
+/* ---------- Hoofdscherm: kaarten met vervaging (niet getest) ------------- */
+/* algemeen.css maakt --ha-card-background al glas (doorschijnend); zonder
+   vervaging lezen verloop en netwerk door de tekst heen */
+html:is(:has(> head > meta[name="application-name"][content="Home Assistant"]), :has(ha-authorize)) {
+  --ha-card-backdrop-filter: var(--alg-blur);
+}
+
+/* ---------- Loginpagina: vak als glazen paneel -------------------------- */
+ha-authorize .card-content {
+  border-color: var(--alg-rand-sterk);
+  box-shadow: var(--alg-schaduw-midden);
+  -webkit-backdrop-filter: var(--alg-blur);
+  backdrop-filter: var(--alg-blur);
+}
+
+/* ---------- Loginpagina: knoppen met gloed ------------------------------ */
+/* ha-button stelt zijn knop bloot als part "base" */
+ha-authorize ha-button[appearance="accent"]::part(base) {
+  transition: box-shadow .15s ease, background-color .15s ease;
+}
+
+ha-authorize ha-button[appearance="accent"]::part(base):hover {
+  box-shadow: var(--alg-gloed);
+}
+
+/* "Forgot password?" en de voettekst: gewone linkkleur van het thema
+   (HA kleurt ze met --primary-color, bij ons het donkerdere accentgrijs) */
+ha-authorize a.forgot-password {
+  color: var(--alg-link);
+}
+
+ha-authorize a.forgot-password:hover {
+  color: var(--alg-link-hover);
+}

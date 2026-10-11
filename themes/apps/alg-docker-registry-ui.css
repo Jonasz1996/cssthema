@@ -1,0 +1,196 @@
+/* ==========================================================================
+   alg-docker-registry-ui.css - Joxit Docker Registry UI 2.5 (Riot + eigen
+   material-componenten)
+   Host: dockerhub.jbogaert.be
+   Laadt na algemeen.css (sub_filter in NPM, zelfde map op css.jbogaert.be).
+
+   WAT HET AFWERKT
+   De UI zet haar themavariabelen inline op body (--background,
+   --primary-text, --header-background ...); die worden hier met !important
+   op de tokens gezet, voor licht en donker gelijk. Daarmee: witte kaarten
+   worden glas (de kopkaart was wit met witte tekst), lijstrijen glas met
+   hover, de blauwgrijze kopbalk glas, de grijze voet glas, zoekveld,
+   tabellen (taglijst), dropdownmenu, popups, snackbar, knoppen, vinkjes
+   en de licht/donker-schakelaar in de voet.
+
+   BEPERKINGEN
+   - Vastgelegd: de repositorylijst (catalogus). Taglijst, taggeschiedenis,
+     dialogen en het menu (drie puntjes) zijn uit de CSS van 2.5.7 afgeleid,
+     niet getest.
+   - Pictogrammen zijn het lettertype Material Icons; in de render ontbrak
+     dat (je ziet dan woorden als "send" en "more_vert").
+   ========================================================================== */
+
+/* ---------- Themavariabelen (inline op body, dus !important) ------------ */
+body {
+  --primary-text: var(--alg-tekst) !important;
+  --neutral-text: var(--alg-gedempt) !important;
+  --background: var(--alg-glas) !important;
+  --hover-background: var(--alg-rij-hover) !important;
+  --accent-text: var(--alg-tekst-sterk) !important;
+  --header-text: var(--alg-tekst-sterk) !important;
+  --header-background: transparent !important;
+  --footer-text: var(--alg-tekst) !important;
+  --footer-neutral-text: var(--alg-gedempt) !important;
+  --footer-background: var(--alg-glas-sterk) !important;
+}
+
+/* de UI zet Roboto met !important op html > body; monospace terug */
+html > body {
+  font-family: var(--alg-font) !important;
+}
+
+/* ---------- Kopbalk en voet --------------------------------------------- */
+docker-registry-ui material-navbar {
+  background-color: var(--alg-glas-sterk);
+  border-bottom: 1px solid var(--alg-rand);
+  box-shadow: var(--alg-schaduw-klein);
+  -webkit-backdrop-filter: var(--alg-blur);
+  backdrop-filter: var(--alg-blur);
+}
+
+docker-registry-ui material-footer {
+  border-top: 1px solid var(--alg-rand);
+}
+
+/* knop met drie puntjes: inline var(--header-background) = nu doorzichtig */
+material-button > :first-child {
+  background: var(--alg-knop);
+  color: var(--alg-knop-tekst);
+}
+
+material-button > :first-child:hover {
+  box-shadow: var(--alg-gloed);
+}
+
+material-button > :first-child[outlined="true"] {
+  border-color: var(--alg-rand-sterk);
+  color: var(--alg-tekst);
+}
+
+material-button > :first-child[disabled="true"] {
+  background: var(--alg-knop-zacht);
+  color: var(--alg-gedempt);
+}
+
+/* zoekveld in de kop: onderlijn grijs */
+material-input .underline :is(.unfocused-line, .focused-line) {
+  background: var(--alg-rand-hover) !important;
+}
+
+material-input .input-content input {
+  border-radius: var(--alg-radius-klein);
+}
+
+/* ---------- Kaarten en lijst -------------------------------------------- */
+material-card {
+  border: 1px solid var(--alg-rand);
+  border-radius: var(--alg-radius);
+  box-shadow: var(--alg-schaduw-klein);
+  -webkit-backdrop-filter: var(--alg-blur);
+  backdrop-filter: var(--alg-blur);
+}
+
+material-card .material-card-title,
+material-card .material-card-action,
+material-card .material-card-action .material-card-action-item {
+  border-color: var(--alg-rand);
+  color: var(--alg-tekst-sterk);
+}
+
+material-card h2 .item-count {
+  color: var(--alg-gedempt);
+}
+
+.list.highlight:hover,
+material-card table tbody tr:hover {
+  background-color: var(--alg-rij-hover) !important;
+}
+
+material-card table td {
+  border-color: var(--alg-rand);
+}
+
+/* ---------- Menu, popups, snackbar -------------------------------------- */
+material-dropdown .material-dropdown-container,
+material-popup .popup > .content {
+  background-color: var(--alg-glas-sterk);
+  border: 1px solid var(--alg-rand-sterk);
+  border-radius: var(--alg-radius);
+  box-shadow: var(--alg-schaduw-midden);
+  -webkit-backdrop-filter: var(--alg-blur);
+  backdrop-filter: var(--alg-blur);
+}
+
+material-dropdown .material-dropdown-container .material-dropdown-item {
+  background-color: transparent;
+  color: var(--alg-tekst);
+}
+
+material-dropdown .material-dropdown-container .material-dropdown-item:hover {
+  background-color: var(--alg-rij-hover);
+}
+
+material-dropdown .material-dropdown-container .material-dropdown-item.selected {
+  background-color: var(--alg-rij-actief);
+  color: var(--alg-tekst-sterk);
+}
+
+material-popup .overlay {
+  background: var(--alg-overlay);
+}
+
+material-snackbar .toast {
+  background-color: var(--alg-glas-sterk);
+  border: 1px solid var(--alg-rand-sterk);
+  color: var(--alg-tekst);
+}
+
+material-snackbar .toast.error {
+  background-color: var(--alg-fout-vlak);
+  color: var(--alg-knop-tekst);
+}
+
+/* ---------- Vinkjes, tabs, schakelaar ----------------------------------- */
+material-checkbox .checkbox.checked {
+  background-color: var(--alg-knop-hover);
+}
+
+material-checkbox .checkbox.checked .checkmark {
+  border-color: var(--alg-knop-tekst);
+}
+
+material-tabs material-button > :first-child {
+  background: var(--alg-vlak-2);
+  color: var(--alg-gedempt);
+}
+
+material-tabs material-button.selected > :first-child {
+  color: var(--alg-tekst-sterk);
+}
+
+material-tabs .line-wrapper {
+  background: var(--alg-rand);
+}
+
+material-tabs .line-wrapper .line {
+  background: var(--alg-tekst-sterk);
+}
+
+material-switch .material-switch-container .material-switch-track {
+  background-color: var(--alg-veld);
+  border-color: var(--alg-rand-hover);
+}
+
+material-switch .material-switch-container .material-switch-thumb {
+  background-color: var(--alg-gedempt);
+}
+
+material-switch .material-switch-container[checked] .material-switch-track {
+  background-color: var(--alg-knop-hover);
+  border-color: var(--alg-knop-hover);
+}
+
+material-switch .material-switch-container[checked] .material-switch-thumb {
+  background-color: var(--alg-tekst-sterk);
+}

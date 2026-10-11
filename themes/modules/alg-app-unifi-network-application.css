@@ -1,0 +1,251 @@
+/* alg-app-unifi-network-application.css - gegenereerd uit algemeen.css door scripts/themes/modules.py;
+   niet met de hand aanpassen. Laadt na alg-kern.css (zie themes/README.md). */
+/* ==========================================================================
+   60 UNIFI NETWORK APPLICATION (10.x, self-hosted)
+   Setup-wizard (/setup/) en beheer (/manage/) gebruiken de componenten-
+   bibliotheek van Ubiquiti: CSS-modules met vaste lichte en donkere varianten
+   (klassen als "text-light-header__f7qlgEeP"). De hash verschilt per versie,
+   dus selectors op het vaste deel ([class*="text-light-header__"]).
+   Alleen de setup-wizard (base href /setup/) wordt hier omgezet: die heeft
+   geen eigen donker thema.
+   Het beheer (/manage/) heeft dat wel (Settings > System > Theme: Dark of
+   System). Daarmee past het al bij dit thema. In de lichte variant schildert
+   het beheer zijn vlakken met vaste witte klassen (niet via variabelen);
+   lichte tekst daarop werd onleesbaar, dus het beheer blijft hier ongemoeid
+   (op herstel van de basis na, onderaan). Alleen de aanmeldpagina van het
+   beheer (blauw verloop, geen eigen thema) krijgt onze stijl.
+   ========================================================================== */
+
+/* ---------- Tekst (lichte variant = zwart met alfa) --------------------- */
+html:has(> head > base[href="/setup/"]) [class*="text-light-header__"] {
+  color: var(--alg-tekst-sterk) !important;
+}
+
+html:has(> head > base[href="/setup/"]) [class*="text-light-primary__"] {
+  color: var(--alg-tekst) !important;
+}
+
+html:has(> head > base[href="/setup/"]) [class*="text-light-secondary__"] {
+  color: #bbb !important;
+}
+
+html:has(> head > base[href="/setup/"]) [class*="text-light-tertiary__"] {
+  color: var(--alg-gedempt) !important;
+}
+
+/* statuskleuren van de bibliotheek, op donker */
+html:has(> head > base[href="/setup/"]) [class*="text-light-danger__"] {
+  color: var(--alg-fout) !important;
+}
+
+html:has(> head > base[href="/setup/"]) [class*="text-light-success__"] {
+  color: var(--alg-ok) !important;
+}
+
+html:has(> head > base[href="/setup/"]) [class*="text-light-warning__"] {
+  color: var(--alg-waarschuwing) !important;
+}
+
+html:has(> head > base[href="/setup/"]) [class*="text-light-info__"] {
+  color: var(--alg-info) !important;
+}
+
+html:has(> head > base[href="/setup/"]) [class*="text-light-disabled__"] {
+  color: #777 !important;
+}
+
+/* kopjes in dialogen en panelen */
+html:has(> head > base[href="/setup/"]) [class*="title-light__"] {
+  color: var(--alg-tekst-sterk) !important;
+}
+
+/* lettertype: de bibliotheek zet "UI Sans"/Lato op elke tekstspan en knop
+   (geen icoonfont; iconen zijn svg) */
+html:has(> head > base[href="/setup/"]) :is([class*="text-base__"], [class*="title-light__"], button[class*="button__"]:not([class*="icon"])) {
+  font-family: var(--alg-font) !important;
+}
+
+/* labels van velden en vinkjes */
+html:has(> head > base[href="/setup/"]) [class*="label-light__"] {
+  color: var(--alg-gedempt) !important;
+}
+
+html:has(> head > base[href="/setup/"]) [class*="label-light__"]:is([class*="label-primary__"], [class*="label-secondary__"]) {
+  color: var(--alg-tekst) !important;
+}
+
+/* label van het veld met focus: blauw (#006fff) wordt wit */
+html:has(> head > base[href="/setup/"]) [class*="-light-focused__"][class*="label"] {
+  color: var(--alg-tekst-sterk) !important;
+}
+
+/* ---------- Links en tekstknoppen --------------------------------------- */
+html:has(> head > base[href="/setup/"]) :is([class*="inline-light__"], [class*="link-light__"]):not([class*="color-danger__"], [class*="color-success__"]) {
+  color: var(--alg-tekst-sterk) !important;
+  text-decoration: underline;
+  text-decoration-color: rgba(255, 255, 255, .35);
+  text-underline-offset: 2px;
+}
+
+/* ---------- Knoppen ----------------------------------------------------- */
+/* hoofdknop: blauw (#006fff) wordt de grijze knop met gloed */
+html:has(> head > base[href="/setup/"]) button[class*="primary-light__"]:not([class*="color-danger__"], [class*="color-success__"]) {
+  background-color: var(--alg-knop) !important;
+  border-color: var(--alg-knop) !important;
+  color: var(--alg-knop-tekst) !important;
+  font-weight: 700;
+}
+
+html:has(> head > base[href="/setup/"]) button[class*="primary-light__"]:not([class*="color-danger__"], [class*="color-success__"], [class*="disabled__"]):hover {
+  background-color: var(--alg-knop-hover) !important;
+  border-color: var(--alg-knop-hover) !important;
+  box-shadow: var(--alg-gloed) !important;
+}
+
+html:has(> head > base[href="/setup/"]) button[class*="primary-light__"][class*="disabled__"] {
+  background-color: rgba(255, 255, 255, .08) !important;
+  border-color: var(--alg-rand) !important;
+  color: #9a9a9a !important;
+}
+
+html:has(> head > base[href="/setup/"]) button[class*="primary-light__"][class*="color-danger__"] {
+  background-color: var(--alg-fout-vlak) !important;
+  border-color: var(--alg-fout-vlak) !important;
+}
+
+/* omlijnde knop (blauw) en tekstknop (zwart 65 %) */
+html:has(> head > base[href="/setup/"]) button[class*="secondary-light__"]:not([class*="color-danger__"], [class*="color-success__"]) {
+  background-color: var(--alg-knop-zacht) !important;
+  border-color: var(--alg-rand-sterk) !important;
+  color: var(--alg-tekst) !important;
+}
+
+html:has(> head > base[href="/setup/"]) button:is([class*="secondary-light__"], [class*="tertiary-light__"]):not([class*="color-danger__"], [class*="color-success__"]):hover {
+  background-color: var(--alg-knop-zacht-hover) !important;
+  border-color: var(--alg-rand-hover) !important;
+  color: var(--alg-tekst-sterk) !important;
+}
+
+html:has(> head > base[href="/setup/"]) button:is([class*="tertiary-light__"], [class*="default-light__"]):not([class*="color-danger__"], [class*="color-success__"]) {
+  color: var(--alg-tekst) !important;
+}
+
+html:has(> head > base[href="/setup/"]) button[class*="default-light__"]:not([class*="disabled__"]):hover {
+  background-color: var(--alg-knop-zacht-hover) !important;
+  color: var(--alg-tekst-sterk) !important;
+}
+
+html:has(> head > base[href="/setup/"]) button:is([class*="secondary-light__"], [class*="tertiary-light__"])[class*="disabled__"] {
+  color: #9a9a9a !important;
+}
+
+/* ---------- Invoervelden en keuzelijsten -------------------------------- */
+/* het lichtgrijze vak rond het veld (#f6f6f8) wordt het donkere veld */
+html:has(> head > base[href="/setup/"]) :is([class*="inputContainer-light__"], [class*="inputContainer-light-secondary__"], [class*="inputContainer-light-tertiary-focused__"], [class*="inputContainer-secondary-light__"], [class*="inputContainer-light-autofill__"]) {
+  background-color: var(--alg-veld) !important;
+  border-radius: var(--alg-radius-klein);
+}
+
+html:has(> head > base[href="/setup/"]) :is([class*="inputContainer-light-secondary__"], [class*="inputContainer-secondary-light__"], [class*="inputContainer-light-tertiary__"]):hover {
+  background-color: rgba(255, 255, 255, .06) !important;
+}
+
+/* het veld zelf is doorzichtig in het vak (anders twee tinten) */
+html:has(> head > base[href="/setup/"]) input[class*="input-light__"] {
+  background-color: transparent !important;
+  color: var(--alg-tekst-sterk) !important;
+  caret-color: var(--alg-tekst-sterk) !important;
+}
+
+html:has(> head > base[href="/setup/"]) :is([class*="input-light__"], [class*="inputComponent-light__"]) {
+  color: var(--alg-tekst-sterk) !important;
+}
+
+html:has(> head > base[href="/setup/"]) [class*="input-light__"]::placeholder {
+  color: var(--alg-placeholder) !important;
+}
+
+/* uitklaplijsten (land, tijdzone) */
+html:has(> head > base[href="/setup/"]) :is([class*="options-default-light__"], [class*="options-secondary-light__"], [class*="options-tertiary-light__"], [class*="options-popout-light__"], [class*="inputContainer-popout-light__"]) {
+  background-color: var(--alg-glas-sterk) !important;
+  border-color: var(--alg-rand-sterk) !important;
+  color: var(--alg-tekst) !important;
+  box-shadow: var(--alg-schaduw-midden) !important;
+}
+
+html:has(> head > base[href="/setup/"]) :is([class*="option-default-light__"], [class*="option-secondary-light__"], [class*="option-tertiary-light__"], [class*="option-popout-light__"]) {
+  color: var(--alg-tekst) !important;
+}
+
+html:has(> head > base[href="/setup/"]) :is([class*="option-default-light__"], [class*="option-secondary-light__"], [class*="option-tertiary-light__"], [class*="option-popout-light__"]):is(:hover, [class*="selected__"]) {
+  background: var(--alg-rij-hover) !important;
+  color: var(--alg-tekst-sterk) !important;
+}
+
+/* vinkjes: grijze rand */
+html:has(> head > base[href="/setup/"]) [class*="checkbox-light__"] [class*="input__"] {
+  border-color: var(--alg-rand-hover) !important;
+}
+
+/* ---------- Dialogen ---------------------------------------------------- */
+html:has(> head > base[href="/setup/"]) [class*="modal-light__"] {
+  background-color: var(--alg-glas-sterk) !important;
+  color: var(--alg-tekst) !important;
+  border-radius: var(--alg-radius-groot) !important;
+  box-shadow: var(--alg-schaduw), inset 0 0 0 1px var(--alg-rand-sterk) !important;
+  -webkit-backdrop-filter: var(--alg-blur);
+  backdrop-filter: var(--alg-blur);
+}
+
+/* ---------- Setup-wizard ------------------------------------------------ */
+/* wit vlak achter de productafbeelding links (de afbeelding zelf blijft) */
+html:has(> head > base[href="/setup/"]) img[alt="Network application"] + div {
+  background-color: var(--alg-glas) !important;
+  box-shadow: inset -1px 0 0 var(--alg-rand);
+}
+
+/* ---------- Beheer (/manage/) in UniFi's lichte variant ----------------- */
+/* de basis maakt kolomkoppen wit (bedoeld voor een donker vlak); hier staan
+   ze op wit: terug naar de kleur van de tabel. Specificiteit 0, zodat eigen
+   UniFi-kleuren op kolomkoppen blijven gelden. */
+:where(html:has(> head > base[href="/manage/"]) body[data-theme="light"] th) {
+  color: inherit;
+}
+
+/* lettertype: het beheer zet "Inter" op zijn tekstspans, maar niet op
+   kolomkoppen en enkele vakken; die erfden onze monospace (gemengd). Het
+   beheer (body met data-theme) houdt overal zijn eigen letter. */
+html:has(> head > base[href="/manage/"]):has(> body[data-theme]),
+html:has(> head > base[href="/manage/"]) > body[data-theme] {
+  font-family: Inter, Lato, Arial, sans-serif !important;
+}
+
+/* knoppen: de basis gaf knoppen zonder eigen hoeken een ronde hoek van
+   10px; de gesegmenteerde knoppen (Activity|Airtime, 1h/1D/1W/1M) laten de
+   binnenhoeken bewust recht en vielen zo uiteen in losse knopjes. Hier de
+   hoeken terug naar de browserstandaard (recht), specificiteit 0: hoeken die
+   UniFi zelf zet, blijven gelden. */
+:where(html:has(> head > base[href="/manage/"]) :is(button, input[type="button"], input[type="submit"], input[type="reset"])) {
+  border-radius: revert;
+}
+
+/* ---------- Aanmeldpagina van het beheer (/manage/account/login) -------- */
+/* blauw verloop weg (verloop en netwerk tonen), blauwe hoofdknop grijs */
+html:has(> head > base[href="/manage/"]) .unifiAccountContainer {
+  background: transparent !important;
+}
+
+html:has(> head > base[href="/manage/"]) .unifiLogin .appMainButton--primary {
+  background-color: var(--alg-knop) !important;
+  border-color: var(--alg-knop) !important;
+  color: var(--alg-knop-tekst) !important;
+  border-radius: var(--alg-radius);
+  font-weight: 700;
+}
+
+html:has(> head > base[href="/manage/"]) .unifiLogin .appMainButton--primary:hover:not(:disabled) {
+  background-color: var(--alg-knop-hover) !important;
+  border-color: var(--alg-knop-hover) !important;
+  box-shadow: var(--alg-gloed) !important;
+}
+

@@ -67,7 +67,17 @@ describe("vertaalbestanden", () => {
     expect(keys).toContain("common.close");
     expect(keys.every((key) => /^[a-z]+\.[A-Za-z0-9_.]+$/.test(key))).toBe(true);
     expect(new Set(keys.map((k) => k.split(".")[0]))).toEqual(
-      new Set(["common", "nav", "dashboard", "themes", "editor", "versions", "palettes", "import"]),
+      new Set([
+        "common",
+        "nav",
+        "dashboard",
+        "themes",
+        "editor",
+        "versions",
+        "palettes",
+        "import",
+        "hosts",
+      ]),
     );
   });
 });

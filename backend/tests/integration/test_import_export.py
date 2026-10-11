@@ -190,7 +190,7 @@ async def test_import_errors(api: Api) -> None:
     assert (status, body["code"]) == (422, "validation_error")
     status, body = await upload(f"{unique_slug()}.css", b"\xff\xfe")
     assert (status, body["code"]) == (422, "validation_error")
-    status, body = await upload(f"{unique_slug()}.css", b"a" * (512 * 1024 + 1))
+    status, body = await upload(f"{unique_slug()}.css", b"a" * (1024 * 1024 + 1))
     assert (status, body["code"]) == (413, "payload_too_large")
     status, body = await upload("api.css", b"a{}")
     assert (status, body["code"]) == (422, "invalid_slug")

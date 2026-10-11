@@ -1,0 +1,213 @@
+/* ==========================================================================
+   alg-kdenlive.css - Kdenlive als webdesktop (linuxserver.io, Selkies)
+   Host: kdenlive.jbogaert.be
+   Laadt na algemeen.css (sub_filter in NPM, zelfde map op css.jbogaert.be).
+
+   WAT HET AFWERKT
+   Alleen de HTML-schil van Selkies rond de stroom: de dashboard-zijbalk
+   (stevig glas met blur, monospace, grijze koppen i.p.v. cyaan), de
+   knoppen (video/audio/microfoon/gamepad, schermresolutie, sneltoetsen),
+   keuzelijsten, schuifbalken, schakelaars, meldingen, het bestanden- en
+   apps-venster, de afspeelknop/statusbalk en het lipje links dat de
+   zijbalk opent (grijs met gloed i.p.v. een cyaan streepje).
+
+   BEPERKINGEN
+   - Kdenlive zelf is een videostroom van de X-desktop (img/canvas): CSS kan
+     het programma niet kleuren. Kdenlive heeft zelf donkere kleurenschema's (Instellingen > Kleurenschema, bv. Breeze Dark).
+   - De zijbalk was dicht bij het vastleggen. Getest op een kopie met de
+     zijbalk open (kop, knoppen, secties); uitgeklapte secties, meldingen,
+     bestanden-/apps-venster en gamepad-weergave zijn uit de Selkies-CSS
+     afgeleid en niet getest.
+   - Wisselt linuxserver.io terug naar KasmVNC, dan gelden deze regels niet
+     (andere klassen); algemeen.css blijft dan het enige thema.
+   ========================================================================== */
+
+/* ---------- Variabelen van de Selkies-dashboard ------------------------- */
+/* Selkies zet ze op :root en op .theme-dark/.theme-light (de zijbalk zelf);
+   zelfde specificiteit, wij laden later. Beide modi worden gelijk. */
+:root,
+.theme-dark,
+.theme-light {
+  --sidebar-bg: var(--alg-glas-sterk);
+  --sidebar-text: var(--alg-tekst);
+  --sidebar-text-secondary: var(--alg-gedempt);
+  --sidebar-header-color: var(--alg-tekst-sterk);
+  --sidebar-border: var(--alg-rand);
+  --sidebar-shadow: var(--alg-overlay);
+  --section-bg: var(--alg-paneel);
+  --item-border: var(--alg-rand-sterk);
+  --item-bg-hover: var(--alg-knop-zacht-hover);
+  --input-bg: var(--alg-veld);
+  --input-text: var(--alg-tekst-sterk);
+  --input-border: var(--alg-rand-sterk);
+  --button-bg: var(--alg-knop);
+  --button-text: var(--alg-knop-tekst);
+  --button-hover-bg: var(--alg-knop-hover);
+  --pre-bg: var(--alg-pre-vlak);
+  --pre-text: var(--alg-code);
+  --tooltip-bg: var(--alg-vlak);
+  --tooltip-text: var(--alg-tekst);
+  --tooltip-border: var(--alg-rand-sterk);
+  --icon-sun-color: var(--alg-waarschuwing);
+  --icon-moon-color: var(--alg-tekst);
+  --slider-track-color: var(--alg-rij-actief);
+  --slider-thumb-color: var(--alg-tekst-sterk);
+  --notification-progress-bg: var(--alg-rij-actief);
+  --notification-progress-fill: var(--alg-knop-hover);
+  --notification-success-color: var(--alg-ok);
+  --notification-error-color: var(--alg-fout);
+  --notification-warn-color: var(--alg-waarschuwing);
+  --notification-shadow: var(--alg-overlay);
+  --notification-close-hover-bg: var(--alg-knop-zacht-hover);
+  --error-color: var(--alg-fout);
+}
+
+/* ---------- Zijbalk, vensters en meldingen: glas en monospace ----------- */
+.sidebar,
+.files-modal,
+.apps-modal,
+.notification-item {
+  -webkit-backdrop-filter: var(--alg-blur);
+  backdrop-filter: var(--alg-blur);
+  font-family: var(--alg-font);
+}
+
+.sidebar {
+  border-right: 1px solid var(--alg-rand);
+}
+
+.sidebar.is-open {
+  box-shadow: var(--alg-schaduw-midden);
+}
+
+.files-modal,
+.apps-modal {
+  border-color: var(--alg-rand-sterk);
+  border-radius: var(--alg-radius-groot);
+  box-shadow: var(--alg-schaduw);
+}
+
+/* meldingen liggen over de videostroom: stevig glas i.p.v. het paneelvlak */
+.notification-item {
+  background-color: var(--alg-glas-sterk);
+  border-color: var(--alg-rand-sterk);
+  border-radius: var(--alg-radius);
+}
+
+/* Selkies-logo in de kop: grijs i.p.v. cyaan */
+.sidebar-header svg path[fill="#61dafb"] {
+  fill: var(--alg-tekst);
+}
+
+.sidebar-section {
+  border-color: var(--alg-rand);
+  border-radius: var(--alg-radius);
+}
+
+.sidebar-section-header:hover {
+  background-color: var(--alg-rij-hover);
+}
+
+.header-action-button:hover {
+  background-color: var(--alg-knop-zacht-hover);
+}
+
+/* ---------- Knoppen: zacht grijs, actief = grijze knop met gloed --------- */
+:is(.action-button, .toggle-button, .resolution-button, .mobile-key-button, .app-detail-back-button) {
+  background-color: var(--alg-knop-zacht);
+  border-color: var(--alg-rand-sterk);
+}
+
+:is(.action-button, .toggle-button, .resolution-button, .mobile-key-button, .app-detail-back-button, .copy-button):hover {
+  background-color: var(--alg-knop-zacht-hover);
+  border-color: var(--alg-rand-hover);
+  box-shadow: var(--alg-gloed);
+}
+
+:is(.action-button, .toggle-button, .mobile-key-button, .header-action-button).active {
+  background-color: var(--alg-knop);
+  border-color: var(--alg-rand-hover);
+  color: var(--alg-knop-tekst);
+}
+
+:is(.action-button, .toggle-button, .mobile-key-button).active:hover {
+  background-color: var(--alg-knop-hover);
+  border-color: var(--alg-rand-hover);
+  box-shadow: var(--alg-gloed);
+}
+
+.app-action-button {
+  border-radius: var(--alg-radius);
+}
+
+.app-action-button:hover,
+.virtual-keyboard-button:hover {
+  box-shadow: var(--alg-gloed);
+}
+
+.app-action-button.update {
+  background-color: var(--alg-waarschuwing-vlak);
+  color: var(--alg-donker-tekst);
+}
+
+.app-action-button.remove,
+.app-action-button.remove:hover {
+  background-color: var(--alg-fout-vlak);
+  color: var(--alg-knop-tekst);
+}
+
+.app-card-installed-badge {
+  background-color: var(--alg-ok-vlak);
+  color: var(--alg-knop-tekst);
+}
+
+/* schakelaar aan: grijs spoor, witte knop blijft zichtbaar */
+.toggle-button-sidebar.active {
+  background-color: var(--alg-knop-hover);
+}
+
+/* lipje links waarmee de zijbalk opengaat: grijs met zachte gloed */
+.toggle-indicator {
+  background-color: var(--alg-knop-hover);
+  box-shadow: var(--alg-gloed);
+}
+
+/* ---------- Gamepad-weergave: grijs i.p.v. blauw ------------------------ */
+.gp-vis-base {
+  fill: var(--alg-vlak-2);
+  stroke: var(--alg-rand-sterk);
+}
+
+:is(.gp-vis-button, .gp-vis-dpad, .gp-vis-bumper, .gp-vis-trigger) {
+  fill: var(--alg-knop);
+  stroke: var(--alg-rand-hover);
+}
+
+.gp-vis-stick-base {
+  fill: var(--alg-vlak);
+}
+
+.gp-vis-stick-top {
+  fill: var(--alg-knop-hover);
+  stroke: var(--alg-rand-hover);
+}
+
+:is(.gp-vis-button-pressed, .gp-vis-dpad-pressed, .gp-vis-bumper-pressed) {
+  fill: var(--alg-tekst-sterk);
+}
+
+/* ---------- Stroom: afspeelknop en statusbalk --------------------------- */
+#playButton {
+  background-color: var(--alg-glas-sterk);
+  border-color: var(--alg-rand-sterk);
+  border-radius: var(--alg-radius);
+  color: var(--alg-knop-tekst);
+  font-family: var(--alg-font);
+  box-shadow: var(--alg-gloed);
+}
+
+.video-container .status-bar {
+  background-color: var(--alg-glas-sterk);
+  color: var(--alg-tekst);
+  font-family: var(--alg-font);
+}

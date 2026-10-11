@@ -1,6 +1,6 @@
 """Publieke CSS: Redis-cache vóór de database, en verversen van de nginx-cache.
 
-Leespad (docs/02 § 3.3): `css:<slug>` (TTL 1 u) of `css:<slug>@<n>` (TTL 24 u) in Redis,
+Leespad (docs/02 § 3.3): `css:<slug>` (TTL 5 min) of `css:<slug>@<n>` (TTL 24 u) in Redis,
 anders de database. Een Redis-fout is nooit een 500: dan lezen we gewoon de database.
 
 Race tussen lezen en invalideren: een lezer die net vóór een publicatie de oude versie
@@ -30,14 +30,18 @@ from redis.asyncio import Redis
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
 from cssthema.logging import get_logger
+from cssthema.repositories import hosts as host_repo
 from cssthema.repositories import themes as theme_repo
 from cssthema.repositories.themes import PublicCssRow
 
 log = get_logger(__name__)
 
-LATEST_TTL_S = 3600
+# Kort, zodat een gemiste invalidatie (Redis even weg) hooguit 5 minuten oude CSS geeft.
+LATEST_TTL_S = 300
 FIXED_TTL_S = 24 * 3600
 GENERATION_TTL_S = 7 * 24 * 3600
+INVALIDATE_ATTEMPTS = 3
+INVALIDATE_RETRY_S = 0.2
 REDIS_TIMEOUT_S = 0.5
 REFRESH_TIMEOUT_S = 1.0
 # De refresh-server van nginx laat 10 r/s toe (burst 20) en antwoordt daarboven 429:
@@ -92,6 +96,14 @@ class CachedCss:
         return cls(row.version_number, bytes(row.sha256), row.published_at, row.css)
 
 
+@dataclass(frozen=True, slots=True)
+class HostBindingView:
+    hostname: str
+    styles: list[str]
+    scripts: list[str]
+    enabled: bool
+
+
 def latest_key(slug: str) -> str:
     return f"css:{slug}"
 
@@ -107,6 +119,10 @@ def generation_key(slug: str) -> str:
 def refresh_paths(slug: str, fixed_versions: Iterable[int] = ()) -> list[str]:
     """De publieke paden van een slug die nginx cachet."""
     return [f"/{slug}.css", f"/themes/{slug}.css", *fixed_refresh_paths(slug, fixed_versions)]
+
+
+def host_refresh_paths(hostname: str) -> list[str]:
+    return [f"/host/{hostname}.css", f"/host/{hostname}.js"]
 
 
 def fixed_refresh_paths(slug: str, fixed_versions: Iterable[int]) -> list[str]:
@@ -209,19 +225,71 @@ class CssDelivery:
             return
         await self._clear_redis(unique, fixed)
         await self._refresh_nginx(unique, fixed)
+        await self.refresh_hosts_using(styles=unique)
+
+    async def refresh_hosts_using(
+        self, *, styles: Iterable[str] = (), scripts: Iterable[str] = ()
+    ) -> None:
+        """Ververst `/host/<h>.css|.js` van elke host die een van deze namen gebruikt."""
+        if not self._refresh_url or self._http is None:
+            return
+        try:
+            async with self._sessionmaker() as session:
+                hostnames = await host_repo.hostnames_using(
+                    session, styles=list(styles), scripts=list(scripts)
+                )
+        except Exception as exc:
+            log.warning("host_refresh_lookup_failed", error=repr(exc))
+            return
+        await self.refresh_hosts(hostnames)
+
+    async def refresh_hosts(self, hostnames: Iterable[str]) -> None:
+        """Ververst de nginx-cache van deze hosts (na een gewijzigde koppeling).
+
+        Hosts zonder eigen koppeling (die `*` volgen) kent cssthema niet: die krijgen een
+        wijziging pas als hun cache-entry verloopt (60 s).
+        """
+        http = self._http
+        if not self._refresh_url or http is None:
+            return
+        paths = [path for name in dict.fromkeys(hostnames) for path in host_refresh_paths(name)]
+        if paths:
+            await self._refresh_many(http, paths)
+
+    async def host_binding(self, hostname: str) -> HostBindingView | None:
+        """De koppeling voor een host (of `*`), voor de publieke `/host/`-routes."""
+        async with self._sessionmaker() as session:
+            binding = await host_repo.resolve(session, hostname)
+            if binding is None:
+                return None
+            return HostBindingView(
+                hostname=binding.hostname,
+                styles=[str(name) for name in binding.styles],
+                scripts=[str(name) for name in binding.scripts],
+                enabled=binding.enabled,
+            )
 
     async def _clear_redis(self, slugs: list[str], fixed: Mapping[str, list[int]]) -> None:
-        try:
-            async with asyncio.timeout(REDIS_TIMEOUT_S * 2):
-                pipe = self._redis.pipeline(transaction=True)
-                for slug in slugs:
-                    pipe.incr(generation_key(slug))
-                    pipe.expire(generation_key(slug), GENERATION_TTL_S)
-                    keys = [latest_key(slug), *(fixed_key(slug, n) for n in fixed.get(slug, []))]
-                    pipe.delete(*keys)
-                await pipe.execute()
-        except Exception as exc:
-            log.warning("css_cache_invalidate_failed", slugs=slugs, error=repr(exc))
+        for attempt in range(1, INVALIDATE_ATTEMPTS + 1):
+            try:
+                async with asyncio.timeout(REDIS_TIMEOUT_S * 2):
+                    pipe = self._redis.pipeline(transaction=True)
+                    for slug in slugs:
+                        pipe.incr(generation_key(slug))
+                        pipe.expire(generation_key(slug), GENERATION_TTL_S)
+                        keys = [
+                            latest_key(slug),
+                            *(fixed_key(slug, n) for n in fixed.get(slug, [])),
+                        ]
+                        pipe.delete(*keys)
+                    await pipe.execute()
+                return
+            except Exception as exc:
+                log.warning(
+                    "css_cache_invalidate_failed", slugs=slugs, attempt=attempt, error=repr(exc)
+                )
+                if attempt < INVALIDATE_ATTEMPTS:
+                    await asyncio.sleep(INVALIDATE_RETRY_S * attempt)
 
     async def _refresh_nginx(self, slugs: list[str], fixed: Mapping[str, list[int]]) -> None:
         http = self._http

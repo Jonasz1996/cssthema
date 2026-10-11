@@ -23,9 +23,9 @@ describe("routeCommand()", () => {
 describe("navigatie", () => {
   const item = (to: string) => mainNav.find((n) => n.to === to)!;
 
-  it("bevat precies dashboard, thema's, paletten en import", () => {
-    expect(mainNav.map((n) => n.to)).toEqual(["/", "/themes", "/palettes", "/import"]);
-    expect(mainNav.map((n) => n.emoji)).toEqual(["📊", "🎨", "🖌️", "📥"]);
+  it("bevat precies dashboard, thema's, paletten, hosts en import", () => {
+    expect(mainNav.map((n) => n.to)).toEqual(["/", "/themes", "/palettes", "/hosts", "/import"]);
+    expect(mainNav.map((n) => n.emoji)).toEqual(["📊", "🎨", "🖌️", "🌐", "📥"]);
   });
 
   it("markeert dashboard alleen exact op /", () => {

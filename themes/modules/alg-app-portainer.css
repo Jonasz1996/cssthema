@@ -1,0 +1,523 @@
+/* alg-app-portainer.css - gegenereerd uit algemeen.css door scripts/themes/modules.py;
+   niet met de hand aanpassen. Laadt na alg-kern.css (zie themes/README.md). */
+/* ==========================================================================
+   60 PORTAINER (CE 2.4x: AngularJS + React, Bootstrap 3 + Tailwind)
+   Herkenning: html[ng-app="portainer"] (alleen Portainer). Werkwijze:
+   1. de eigen variabelen (--bg-*, --text-*, --border-*) krijgen onze kleuren;
+   2. de kleurregels van Portainers eigen donkere thema (die alleen gelden
+      met html[theme=dark]) staan hieronder gespiegeld, zodat ook het lichte
+      standaardthema donker wordt; alleen kleuren, nooit display;
+   3. daarna glas, knoppen en de paar vaste lichte vlakken.
+   Getest: login, home, containers, dashboard, instellingen, gebruikersmenu,
+   dialoog (container verwijderen, niet bevestigd), webeditor (nieuwe stack).
+   ========================================================================== */
+
+/* ---------- 1. Variabelen ------------------------------------------------ */
+html[ng-app="portainer"] {
+  color-scheme: dark;
+  --bg-body-color: transparent !important;
+  --bg-main-color: var(--alg-vlak) !important;
+  --bg-card-color: var(--alg-glas) !important;
+  --bg-widget-color: var(--alg-glas) !important;
+  --bg-widget-header-color: var(--alg-paneel) !important;
+  --bg-widget-table-color: var(--alg-paneel) !important;
+  --bg-header-color: transparent !important;
+  --bg-hover-table-color: var(--alg-rij-hover) !important;
+  --bg-table-color: transparent !important;
+  --bg-table-selected-color: var(--alg-rij-actief) !important;
+  --bg-md-checkbox-color: #555 !important;
+  --bg-checkbox-border-color: rgba(255, 255, 255, .5) !important;
+  --bg-checkbox: #181818 !important;
+  --bg-form-control-disabled-color: rgba(255, 255, 255, .04) !important;
+  --bg-modal-content-color: var(--alg-glas-sterk) !important;
+  --bg-dropdown-menu-color: var(--alg-glas-sterk) !important;
+  --bg-dropdown-hover: var(--alg-rij-hover) !important;
+  --bg-navtabs-hover-color: var(--alg-rij-hover) !important;
+  --bg-nav-tab-active-color: var(--alg-rij-actief) !important;
+  --bg-log-viewer-color: rgba(0, 0, 0, .45) !important;
+  --bg-log-line-selected-color: rgba(255, 255, 255, .12) !important;
+  --bg-pre-color: rgba(0, 0, 0, .45) !important;
+  --bg-code-color: rgba(0, 0, 0, .45) !important;
+  --bg-code-script-color: rgba(0, 0, 0, .45) !important;
+  --bg-webeditor-color: rgba(0, 0, 0, .45) !important;
+  --bg-progress-color: rgba(255, 255, 255, .1) !important;
+  --bg-pagination-color: var(--alg-rij-actief) !important;
+  --bg-pagination-span-color: transparent !important;
+  --bg-pagination-hover-color: var(--alg-rij-hover) !important;
+  --bg-pagination-disabled-color: transparent !important;
+  --bg-motd-body-color: var(--alg-paneel) !important;
+  --bg-motd-btn-color: var(--alg-knop) !important;
+  --bg-item-highlighted-color: var(--alg-rij-actief) !important;
+  --bg-item-highlighted-null-color: var(--alg-rij) !important;
+  --bg-panel-body-color: var(--alg-glas) !important;
+  --bg-input-group-addon-color: rgba(255, 255, 255, .06) !important;
+  --bg-tooltip-color: #1c1c1c !important;
+  --bg-input-sm-color: var(--alg-veld) !important;
+  --bg-inputbox: var(--alg-veld) !important;
+  --bg-searchbar: var(--alg-veld) !important;
+  --bg-small-select-color: var(--alg-veld) !important;
+  --bg-service-datatable-thead: var(--alg-paneel) !important;
+  --bg-inner-datatable-thead: var(--alg-paneel) !important;
+  --bg-app-datatable-thead: var(--alg-paneel) !important;
+  --bg-service-datatable-tbody: transparent !important;
+  --bg-app-datatable-tbody: transparent !important;
+  --bg-daterangepicker-color: var(--alg-glas-sterk) !important;
+  --bg-calendar-color: var(--alg-glas-sterk) !important;
+  --bg-calendar-table-color: transparent !important;
+  --bg-daterangepicker-end-date: #555 !important;
+  --bg-daterangepicker-hover: var(--alg-rij-hover) !important;
+  --bg-daterangepicker-in-range: var(--alg-rij-actief) !important;
+  --bg-blocklist-hover-color: var(--alg-rij-hover) !important;
+  --bg-blocklist-item-selected-color: var(--alg-rij-actief) !important;
+  --bg-stepper-color: var(--alg-rij) !important;
+  --bg-stepper-active-color: var(--alg-rij-actief) !important;
+  --bg-stepper-item-active: var(--alg-rij-actief) !important;
+  --bg-stepper-item-counter: #555 !important;
+  --bg-sortbutton-color: transparent !important;
+  --bg-dashboard-item: var(--alg-rij) !important;
+  --bg-button-group-color: transparent !important;
+  --bg-button-group: transparent !important;
+  --bg-sidebar-color: var(--alg-glas) !important;
+  --bg-sidebar-nav-color: rgba(255, 255, 255, .05) !important;
+  --text-input-textarea: var(--alg-vlak) !important;
+
+  --text-main-color: var(--alg-tekst) !important;
+  --text-body-color: var(--alg-tekst) !important;
+  --text-widget-header-color: var(--alg-tekst-sterk) !important;
+  --text-form-control-color: var(--alg-tekst-sterk) !important;
+  --text-muted-color: #aaa !important;          /* #999 haalt 4.5:1 niet op geselecteerde vakken */
+  --text-link-color: var(--alg-link) !important;
+  --text-link-hover-color: var(--alg-link-hover) !important;
+  --text-input-group-addon-color: var(--alg-gedempt) !important;
+  --text-blocklist-hover-color: var(--alg-tekst-sterk) !important;
+  --text-blocklist-item-selected-color: var(--alg-tekst-sterk) !important;
+  --text-dashboard-item-color: var(--alg-tekst) !important;
+  --text-danger-color: var(--alg-fout) !important;
+  --text-code-color: var(--alg-tekst-sterk) !important;
+  --text-pre-color: var(--alg-code) !important;
+  --text-log-viewer-color: var(--alg-tekst) !important;
+  --text-navtabs-color: var(--alg-gedempt) !important;
+  --text-navtabs-hover-color: var(--alg-tekst-sterk) !important;
+  --text-nav-tab-active-color: var(--alg-tekst-sterk) !important;
+  --text-dropdown-menu-color: var(--alg-tekst) !important;
+  --text-json-tree-color: #cfddfc !important;
+  --text-json-tree-leaf-color: #8fb0e6 !important;
+  --text-json-tree-branch-preview-color: #9cc9ff !important;
+  --text-progress-bar-color: #fff !important;
+  --text-pagination-color: var(--alg-tekst) !important;
+  --text-pagination-span-color: var(--alg-tekst) !important;
+  --text-pagination-span-hover-color: #fff !important;
+  --text-motd-body-color: var(--alg-tekst) !important;
+  --text-motd-btn-color: #fff !important;
+  --text-summary-color: var(--alg-tekst-sterk) !important;
+  --text-tooltip-color: #fff !important;
+  --text-rzslider-color: var(--alg-tekst) !important;
+  --text-rzslider-limit-color: var(--alg-tekst) !important;
+  --text-daterangepicker-end-date: var(--alg-gedempt) !important;
+  --text-daterangepicker-in-range: #fff !important;
+  --text-button-hover-color: #fff !important;
+  --text-small-select-color: #fff !important;
+  --text-bootbox: var(--alg-tekst) !important;
+  --text-button-group-color: var(--alg-tekst) !important;
+  --text-button-group: var(--alg-tekst) !important;
+  --text-button-dangerlight-color: var(--alg-fout) !important;
+  --text-stepper-active-color: #fff !important;
+  --blue-color: var(--alg-link) !important;
+
+  --border-color: var(--alg-rand) !important;
+  --border-widget-color: var(--alg-rand) !important;
+  --border-widget: var(--alg-rand) !important;
+  --border-sidebar-color: var(--alg-rand) !important;
+  --border-form-control-color: var(--alg-rand-sterk) !important;
+  --border-table-color: var(--alg-rand) !important;
+  --border-table-top-color: var(--alg-rand) !important;
+  --border-datatable-top-color: var(--alg-rand) !important;
+  --border-input-group-addon-color: var(--alg-rand-sterk) !important;
+  --border-btn-default-color: var(--alg-rand-sterk) !important;
+  --border-md-checkbox-color: rgba(255, 255, 255, .4) !important;
+  --border-checkbox: rgba(255, 255, 255, .4) !important;
+  --border-modal-header-color: var(--alg-rand) !important;
+  --border-navtabs-color: var(--alg-rand) !important;
+  --border-pre-color: var(--alg-rand) !important;
+  --border-blocklist: var(--alg-rand) !important;
+  --border-blocklist-item-selected-color: var(--alg-rand-hover) !important;
+  --border-pagination-span-color: transparent !important;
+  --border-pagination-hover-color: var(--alg-rand) !important;
+  --border-pagination-color: transparent !important;
+  --border-motd-body-color: var(--alg-rand) !important;
+  --border-panel-color: var(--alg-rand) !important;
+  --border-input-sm-color: var(--alg-rand-sterk) !important;
+  --border-daterangepicker-color: var(--alg-rand) !important;
+  --border-calendar-table: var(--alg-rand) !important;
+  --border-daterangepicker: var(--alg-rand) !important;
+  --border-daterangepicker-after: var(--alg-rand) !important;
+  --border-pre-next-month: #fff !important;
+  --border-sortbutton: var(--alg-rand-sterk) !important;
+  --border-bootbox: var(--alg-rand-sterk) !important;
+  --border-stepper-color: var(--alg-rand-sterk) !important;
+  --border-searchbar: var(--alg-rand-sterk) !important;
+  --border-button-group: var(--alg-rand-sterk) !important;
+  --button-close-color: #fff !important;
+  --button-opacity: .6 !important;
+  --button-opacity-hover: .9 !important;
+  --shadow-box-color: none !important;
+  --shadow-boxselector-color: none !important;
+  --user-menu-icon-color: rgba(255, 255, 255, .12) !important;
+  --sort-icon-muted: #777 !important;
+  --sort-icon-hover: #bbb !important;
+  --sort-icon: #ddd !important;
+  --BE-only: #5a5a5a !important;
+}
+
+/* ---------- 2. Gespiegeld donker thema (alleen kleuren) ------------------ */
+/* Gegenereerd uit Portainers eigen CSS: elke regel die alleen geldt met
+   html[theme=dark] (th-dark:-klassen, schakelaars, keuzevakken, editor).
+   Knoppen, links en de kalender staan niet hier maar in deel 3. */
+[ng-app=portainer] :is(.form-section-title,
+  .th-dark\:text-white,
+  .th-dark\:hover\:text-white:hover,
+  .portainer-selector-root .portainer-selector__multi-value__label,
+  .app-react-components-BoxSelector-BoxSelectorItem-module__box-selector-item .app-react-components-BoxSelector-BoxSelectorItem-module__header) { color:#ffffff; }
+[ng-app=portainer] :is(.text-warning,
+  .th-dark\:text-warning-7,
+  .icon-orange,
+  .icon-warning) { color:#f79009; }
+[ng-app=portainer] :is(.th-dark\:divide-gray-9>:not([hidden])~:not([hidden]),
+  .th-dark\:border-gray-9,
+  .inner-datatable) { border-color:#344054; }
+[ng-app=portainer] :is(.th-dark\:\!border-gray-8) { border-color:#475467!important; }
+[ng-app=portainer] :is(.th-dark\:border-\[\#343434\]) { border-color:#343434; }
+[ng-app=portainer] :is(.th-dark\:border-blue-6) { border-color:#36bffa; }
+[ng-app=portainer] :is(.th-dark\:border-blue-7) { border-color:#0ba5ec; }
+[ng-app=portainer] :is(.th-dark\:border-blue-8,
+  .th-dark\:hover\:border-blue-8:hover) { border-color:#0086c9; }
+[ng-app=portainer] :is(.th-dark\:border-error-8) { border-color:#d92d20; }
+[ng-app=portainer] :is(.th-dark\:border-graphite-500) { border-color:#484a4e; }
+[ng-app=portainer] :is(.th-dark\:border-gray-7) { border-color:#667085; }
+[ng-app=portainer] :is(.th-dark\:border-gray-8) { border-color:#475467; }
+[ng-app=portainer] :is(.th-dark\:border-gray-neutral-8) { border-color:#4d5761; }
+[ng-app=portainer] :is(.th-dark\:border-gray-warm-5) { border-color:#d7d3d0; }
+[ng-app=portainer] :is(.th-dark\:border-gray-warm-7) { border-color:#79716b; }
+[ng-app=portainer] :is(.th-dark\:border-gray-warm-8) { border-color:#57534e; }
+[ng-app=portainer] :is(.th-dark\:border-gray-warm-9) { border-color:#44403c; }
+[ng-app=portainer] :is(.th-dark\:border-green-8) { border-color:#099250; }
+[ng-app=portainer] :is(.th-dark\:border-indigo-8) { border-color:#444ce7; }
+[ng-app=portainer] :is(.th-dark\:border-legacy-grey-3) { border-color:var(--grey-3); }
+[ng-app=portainer] :is(.th-dark\:border-success-8) { border-color:#039855; }
+[ng-app=portainer] :is(.th-dark\:border-warning-8) { border-color:#dc6803; }
+[ng-app=portainer] :is(.th-dark\:border-b-gray-7) { border-bottom-color:#667085; }
+[ng-app=portainer] :is(.th-dark\:border-b-gray-8) { border-bottom-color:#475467; }
+[ng-app=portainer] :is(.th-dark\:border-l-gray-8) { border-left-color:#475467; }
+[ng-app=portainer] :is(.th-dark\:\!bg-blue-8,
+  .th-dark\:\[\&\[data-selected\]\]\:\!bg-blue-8[data-selected],
+  .switch input[type=checkbox]:disabled:is(:checked)+.slider) { background-color:#0086c9!important; }
+[ng-app=portainer] :is(.th-dark\:bg-black) { background-color:#000000; }
+[ng-app=portainer] :is(.th-dark\:bg-blue-10,
+  input:checked+.slider:hover) { background-color:#065986; }
+[ng-app=portainer] :is(.th-dark\:bg-blue-11,
+  .app-react-components-CodeEditor-CodeEditor-module__root .cm-button[name=prev]:hover,
+  .app-react-components-CodeEditor-CodeEditor-module__root .cm-button[name=replaceAll]:hover) { background-color:#0b4a6f; }
+[ng-app=portainer] :is(.th-dark\:bg-blue-3) { background-color:#e0f2fe; }
+[ng-app=portainer] :is(.th-dark\:bg-blue-7) { background-color:#0ba5ec; }
+[ng-app=portainer] :is(.th-dark\:bg-blue-8) { background-color:#0086c9; }
+[ng-app=portainer] :is(.th-dark\:bg-blue-9,
+  input:checked+.slider) { background-color:#026aa2; }
+[ng-app=portainer] :is(.th-dark\:bg-error-10) { background-color:#912018; }
+[ng-app=portainer] :is(.th-dark\:bg-error-11) { background-color:#7a271a; }
+[ng-app=portainer] :is(.th-dark\:bg-error-9) { background-color:#b42318; }
+[ng-app=portainer] :is(.th-dark\:bg-graphite-600,
+  .th-dark\:hover\:bg-graphite-600:hover) { background-color:#3a3b3f; }
+[ng-app=portainer] :is(.th-dark\:bg-graphite-700) { background-color:#2e2f33; }
+[ng-app=portainer] :is(.th-dark\:bg-graphite-800) { background-color:#222326; }
+[ng-app=portainer] :is(.th-dark\:bg-gray-10,
+  .th-dark\:hover\:bg-gray-10:hover,
+  .app-react-components-CodeEditor-CodeEditor-module__root .cm-editor .cm-gutters) { background-color:#1d2939; }
+[ng-app=portainer] :is(.th-dark\:bg-gray-7,
+  .app-react-components-BoxSelector-BoxOption-module__root input:disabled+label) { background-color:#667085; }
+[ng-app=portainer] :is(.th-dark\:bg-gray-8,
+  .th-dark\:hover\:bg-gray-8:hover) { background-color:#475467; }
+[ng-app=portainer] :is(.th-dark\:bg-gray-9,
+  .th-dark\:hover\:bg-gray-9:hover) { background-color:#344054; }
+[ng-app=portainer] :is(.th-dark\:bg-gray-iron-10,
+  .th-dark\:hover\:bg-gray-iron-10:hover,
+  .app-react-components-BoxSelector-BoxOption-module__root input:not(:disabled)~label) { background-color:#26272b; }
+[ng-app=portainer] :is(.th-dark\:bg-gray-iron-11) { background-color:#18181b; }
+[ng-app=portainer] :is(.th-dark\:bg-gray-true-8) { background-color:#525252; }
+[ng-app=portainer] :is(.th-dark\:bg-gray-true-9,
+  .th-dark\:hover\:bg-gray-true-9:hover) { background-color:#424242; }
+[ng-app=portainer] :is(.th-dark\:bg-gray-warm-11) { background-color:#1c1917; }
+[ng-app=portainer] :is(.th-dark\:bg-gray-warm-5) { background-color:#d7d3d0; }
+[ng-app=portainer] :is(.th-dark\:bg-gray-warm-7,
+  .slider:hover) { background-color:#79716b; }
+[ng-app=portainer] :is(.th-dark\:bg-gray-warm-9) { background-color:#44403c; }
+[ng-app=portainer] :is(.th-dark\:bg-green-10) { background-color:#095c37; }
+[ng-app=portainer] :is(.th-dark\:bg-green-9) { background-color:#087443; }
+[ng-app=portainer] :is(.th-dark\:bg-group-accent-10) { background-color:#5720b7; }
+[ng-app=portainer] :is(.th-dark\:bg-indigo-10) { background-color:#2d31a6; }
+[ng-app=portainer] :is(.th-dark\:bg-legacy-grey-3) { background-color:var(--grey-3); }
+[ng-app=portainer] :is(.th-dark\:bg-orange-10) { background-color:#932f19; }
+[ng-app=portainer] :is(.th-dark\:bg-orange-11) { background-color:#772917; }
+[ng-app=portainer] :is(.th-dark\:bg-orange-9) { background-color:#b93815; }
+[ng-app=portainer] :is(.th-dark\:bg-purple-10) { background-color:#4a1fb8; }
+[ng-app=portainer] :is(.th-dark\:bg-purple-9) { background-color:#5925dc; }
+[ng-app=portainer] :is(.th-dark\:bg-success-10) { background-color:#05603a; }
+[ng-app=portainer] :is(.th-dark\:bg-success-11) { background-color:#054f31; }
+[ng-app=portainer] :is(.th-dark\:bg-success-9) { background-color:#027a48; }
+[ng-app=portainer] :is(.th-dark\:bg-warning-10) { background-color:#93370d; }
+[ng-app=portainer] :is(.th-dark\:bg-warning-11) { background-color:#7a2e0e; }
+[ng-app=portainer] :is(.th-dark\:bg-warning-9) { background-color:#b54708; }
+[ng-app=portainer] :is(.th-dark\:bg-yellow-10) { background-color:#854a0e; }
+[ng-app=portainer] :is(.th-dark\:stroke-black) { stroke:#000; }
+[ng-app=portainer] :is(.th-dark\:\!text-gray-6) { color:#98a2b3!important; }
+[ng-app=portainer] :is(.th-dark\:\!text-group-accent-2) { color:#f5f3ff!important; }
+[ng-app=portainer] :is(.th-dark\:\!text-white,
+  .th-dark\:\[\&\[data-selected\]\]\:\!text-white[data-selected]) { color:#ffffff!important; }
+[ng-app=portainer] :is(.th-dark\:text-\[var\(--text-dropdown-menu-color\)\],
+  .th-dark\:hover\:text-\[var\(--text-dropdown-menu-color\)\]:hover,
+  .th-dark\:focus\:text-\[var\(--text-dropdown-menu-color\)\]:focus) { color:var(--text-dropdown-menu-color); }
+[ng-app=portainer] :is(.th-dark\:text-blue-2) { color:#f0f9ff; }
+[ng-app=portainer] :is(.th-dark\:text-blue-3) { color:#e0f2fe; }
+[ng-app=portainer] :is(.th-dark\:text-blue-4) { color:#b9e6fe; }
+[ng-app=portainer] :is(.th-dark\:text-blue-5) { color:#7cd4fd; }
+[ng-app=portainer] :is(.th-dark\:text-blue-6) { color:#36bffa; }
+[ng-app=portainer] :is(.th-dark\:text-blue-7) { color:#0ba5ec; }
+[ng-app=portainer] :is(.th-dark\:text-blue-8,
+  .th-dark\:hover\:text-blue-8:hover) { color:#0086c9; }
+[ng-app=portainer] :is(.th-dark\:text-error-3) { color:#fee4e2; }
+[ng-app=portainer] :is(.th-dark\:text-error-4) { color:#fecdca; }
+[ng-app=portainer] :is(.th-dark\:text-gray-2) { color:#f9fafb; }
+[ng-app=portainer] :is(.th-dark\:text-gray-3) { color:#f2f4f7; }
+[ng-app=portainer] :is(.th-dark\:text-gray-4,
+  .th-dark\:hover\:text-gray-4:hover) { color:#eaecf0; }
+[ng-app=portainer] :is(.th-dark\:text-gray-5) { color:#d0d5dd; }
+[ng-app=portainer] :is(.th-dark\:text-gray-6) { color:#98a2b3; }
+[ng-app=portainer] :is(.th-dark\:text-gray-iron-10) { color:#26272b; }
+[ng-app=portainer] :is(.th-dark\:text-gray-warm-5,
+  .searchBar .searchIcon) { color:#d7d3d0; }
+[ng-app=portainer] :is(.th-dark\:text-gray-warm-6) { color:#a9a29d; }
+[ng-app=portainer] :is(.th-dark\:text-gray-warm-7,
+  .app-react-components-PageHeader-HeaderTitle-module__menu-icon:hover) { color:#79716b; }
+[ng-app=portainer] :is(.th-dark\:text-group-accent-8) { color:#7839ee; }
+[ng-app=portainer] :is(.th-dark\:text-indigo-3) { color:#e0eaff; }
+[ng-app=portainer] :is(.th-dark\:text-orange-2) { color:#fef6ee; }
+[ng-app=portainer] :is(.th-dark\:text-purple-3) { color:#ebe9fe; }
+[ng-app=portainer] :is(.th-dark\:text-purple-8) { color:#6938ef; }
+[ng-app=portainer] :is(.th-dark\:text-success-2) { color:#ecfdf3; }
+[ng-app=portainer] :is(.th-dark\:text-success-3) { color:#d1fadf; }
+[ng-app=portainer] :is(.th-dark\:text-warning-2) { color:#fffaeb; }
+[ng-app=portainer] :is(.th-dark\:text-warning-3) { color:#fef0c7; }
+[ng-app=portainer] :is(.th-dark\:text-warning-4) { color:#fedf89; }
+[ng-app=portainer] :is(.th-dark\:text-warning-6) { color:#fdb022; }
+[ng-app=portainer] :is(.th-dark\:text-yellow-3) { color:#fef7c3; }
+[ng-app=portainer] :is(.th-dark\:placeholder-gray-7::-webkit-input-placeholder,
+  .th-dark\:placeholder-gray-7::-moz-placeholder,
+  .th-dark\:placeholder-gray-7:-ms-input-placeholder,
+  .th-dark\:placeholder-gray-7::-ms-input-placeholder,
+  .th-dark\:placeholder-gray-7::placeholder) { color:#667085; }
+[ng-app=portainer] :is(.th-dark\:hover\:border-blue-5:hover) { border-color:#7cd4fd; }
+[ng-app=portainer] :is(.hover\:th-dark\:\!bg-black:hover,
+  .\[\&\[aria-selected\=\"true\"\]\]\:th-dark\:\!bg-black[aria-selected=true]) { background-color:#000000!important; }
+[ng-app=portainer] :is(.th-dark\:hover\:bg-blue-5:hover) { background-color:#7cd4fd; }
+[ng-app=portainer] :is(.th-dark\:hover\:bg-blue-9\/30:hover) { background-color:rgba(2,106,162,.3); }
+[ng-app=portainer] :is(.th-dark\:hover\:bg-gray-iron-9:hover) { background-color:#3f3f46; }
+[ng-app=portainer] :is(.th-dark\:hover\:bg-gray-true-5\/20:hover) { background-color:hsla(0,0%,84%,.2); }
+[ng-app=portainer] :is(.th-dark\:hover\:\!text-gray-5:hover) { color:#d0d5dd!important; }
+[ng-app=portainer] :is(.th-dark\:hover\:text-blue-9:hover) { color:#026aa2; }
+[ng-app=portainer] :is(.th-dark\:hover\:text-inherit:hover,
+  .th-dark\:focus\:text-inherit:focus) { color:inherit; }
+[ng-app=portainer] :is(.group:hover .group-hover\:th-dark\:bg-gray-true-7) { background-color:#737373; }
+[ng-app=portainer] :is(.th-dark\:\[\&\[data-selected\]\]\:\!bg-gray-8[data-selected]) { background-color:#475467!important; }
+[ng-app=portainer] :is(.th-dark\:\[\&\[data-selected\]\]\:\!text-blue-4[data-selected]) { color:#b9e6fe!important; }
+[ng-app=portainer] :is(.switch i,
+  .slider) { background-color:#57534e; }
+[ng-app=portainer] :is(.control-label,
+  .app-react-components-CodeEditor-CodeEditor-module__root .cm-search label) { color:#f5f5f4; }
+[ng-app=portainer] :is(.switch input[type=checkbox]:disabled+.slider) { background-color:#a9a29d; }
+[ng-app=portainer] :is(.widget .widget-icon,
+  .icon-nested-blue) { background-color:#344054; color:#e0f2fe; }
+[ng-app=portainer] :is(.portainer-selector-root) { --multi-value-tag-bg:var(--grey-3); --single-value-option-text-color:var(--white-color); }
+[ng-app=portainer] :is(.app-react-components-BoxSelector-BoxSelectorItem-module__box-selector-item.app-react-components-BoxSelector-BoxSelectorItem-module__limited.app-react-components-BoxSelector-BoxSelectorItem-module__business input:checked+label,
+  .app-react-components-BoxSelector-BoxSelectorItem-module__box-selector-item.app-react-components-BoxSelector-BoxSelectorItem-module__limited.app-react-components-BoxSelector-BoxSelectorItem-module__business label) { border-color:#98a2b3; background-color:rgba(152,162,179,0.1); }
+[ng-app=portainer] :is(.app-react-components-BoxSelector-BoxOption-module__root label,
+  .app-react-portainer-environments-wizard-components-Option-Option-module__root) { border-color:#4d5761; background-color:#26272b; color:#ffffff; }
+[ng-app=portainer] :is(.app-react-components-BoxSelector-BoxOption-module__root input:checked+label,
+  .app-react-portainer-environments-wizard-components-Option-Option-module__active) { border-color:#0ba5ec; background-color:#065986; }
+[ng-app=portainer] :is(.app-react-components-CodeEditor-CodeEditor-module__root .cm-merge-b) { border-left-color:#667085; }
+[ng-app=portainer] :is(.app-react-components-CodeEditor-CodeEditor-module__root .cm-button[name=next]:hover,
+  .app-react-components-CodeEditor-CodeEditor-module__root .cm-button[name=replace]:hover) { border-color:#0ba5ec; background-color:#0ba5ec; }
+[ng-app=portainer] :is(.app-react-components-CodeEditor-CodeEditor-module__root .cm-button[name=prev],
+  .app-react-components-CodeEditor-CodeEditor-module__root .cm-button[name=replaceAll]) { border-color:#0ba5ec; background-color:#1d2939; color:#e0f2fe; }
+[ng-app=portainer] :is(.app-react-components-CodeEditor-CodeEditor-module__root .cm-button[name=select]) { border-color:#79716b; background-color:#26272b; color:#e7e5e4; }
+[ng-app=portainer] :is(.app-react-components-CodeEditor-CodeEditor-module__root .cm-button[name=select]:hover) { border-color:#98a2b3; background-color:#3f3f46; color:#e7e5e4; }
+[ng-app=portainer] :is(.app-react-components-CodeEditor-CodeEditor-module__root .cm-content[aria-readonly=true]) { background-color:rgba(38,39,43,.5); }
+[ng-app=portainer] :is(.app-react-components-CodeEditor-CodeEditor-module__root .cm-tooltip) { border-color:#667085; background-color:#344054; color:#ffffff; }
+[ng-app=portainer] :is(.app-react-components-CodeEditor-CodeEditor-module__root .cm-editor .cm-collapsedLines) { background-color:#065986; color:#ffffff; }
+[ng-app=portainer] :is(.app-react-components-CodeEditor-CodeEditor-module__root .cm-editor .cm-collapsedLines:hover) { background-color:#026aa2; color:#ffffff; }
+[ng-app=portainer] :is(.app-react-portainer-HomeView-EnvironmentList-KubeconfigButton-KubeconfigPrompt-module__checkbox-list) { background-color:var(--bg-modal-content-color); }
+
+/* ---------- 3. Glas, knoppen en vaste lichte vlakken -------------------- */
+/* zijbalk: glas in plaats van grafiet */
+[ng-app=portainer] .app-react-sidebar-Sidebar-module__root,
+[ng-app=portainer] .app-react-sidebar-Sidebar-module__nav {
+  background-color: var(--alg-glas) !important;
+}
+
+/* widgets en kaarten: glas, grote radius, dunne lichte rand */
+[ng-app=portainer] :is(.widget, .bg-widget-color, .bg-\[var\(--bg-widget-color\)\]) {
+  background-color: var(--alg-glas) !important;
+  border-color: var(--alg-rand) !important;
+}
+
+/* knoppen in de stijl van allow: grijs, wit, vet, gloed bij hover */
+[ng-app=portainer] .btn.btn-primary {
+  background-color: var(--alg-knop) !important;
+  border-color: transparent !important;
+  color: #fff !important;
+  font-weight: 700;
+}
+
+[ng-app=portainer] .btn.btn-primary:is(:hover, :focus-visible, :active, .active) {
+  background-color: var(--alg-knop-hover) !important;
+  color: #fff !important;
+  box-shadow: var(--alg-gloed) !important;
+}
+
+[ng-app=portainer] .btn:is(.btn-secondary, .btn-default, .btn-light) {
+  background-color: var(--alg-knop-zacht) !important;
+  border-color: var(--alg-rand-sterk) !important;
+  color: var(--alg-tekst) !important;
+}
+
+[ng-app=portainer] .btn:is(.btn-secondary, .btn-default, .btn-light):is(:hover, :focus-visible, .active) {
+  background-color: var(--alg-knop-zacht-hover) !important;
+  color: #fff !important;
+}
+
+[ng-app=portainer] .btn.btn-dangerlight {
+  background-color: var(--alg-fout-tint) !important;
+  border-color: var(--alg-fout-rand) !important;
+  color: var(--alg-fout) !important;
+}
+
+[ng-app=portainer] .btn.btn-link {
+  color: var(--alg-link) !important;
+}
+
+[ng-app=portainer] .btn:disabled,
+[ng-app=portainer] .btn.disabled {
+  opacity: .45;
+}
+
+/* links: grijs zoals in allow (Portainer kleurt ze blauw) */
+[ng-app=portainer] a:not(.btn, [class*="text-"]) {
+  color: var(--alg-link);
+}
+
+[ng-app=portainer] a:not(.btn, [class*="text-"]):hover {
+  color: var(--alg-link-hover);
+}
+
+/* zoekvelden: het buitenste vak draagt de kleur, het echte veld is doorzichtig */
+[ng-app=portainer] .searchBar .searchInput {
+  background-color: transparent !important;
+  box-shadow: none !important;
+}
+
+/* keuzelijsten: lettertype zoals de rest (Portainer zet Inter op .form-control) */
+[ng-app=portainer] select.form-control {
+  font-family: inherit;
+}
+
+/* blauwe labeltjes (sortering "Oldest", tellers): grijs met witte tekst */
+[ng-app=portainer] :is(.bg-blue-7, .bg-blue-8).text-white {
+  background-color: var(--alg-knop) !important;
+}
+
+/* filterknop in tabelkoppen is #767676 (te zwak op donker) */
+[ng-app=portainer] .table-filter {
+  color: var(--alg-gedempt) !important;
+}
+
+/* logo op het loginscherm: Portainer heeft zelf een licht en een donker logo
+   naast elkaar (th-dark:hidden / th-dark:!block); zonder wissel staat er een
+   donker logo op donker. Alleen als beide aanwezig zijn, en alleen afbeeldingen. */
+[ng-app=portainer] img.th-dark\:hidden:is(img.th-dark\:\!block + *, :has(+ img.th-dark\:\!block)) {
+  display: none !important;
+}
+
+[ng-app=portainer] img.th-dark\:\!block:is(img.th-dark\:hidden + *, :has(+ img.th-dark\:hidden)) {
+  display: block !important;
+}
+
+/* webeditor (CodeMirror 6): Portainer kleurt hem via eigen variabelen */
+[ng-app=portainer] .app-react-components-CodeEditor-CodeEditor-module__root {
+  --text-cm-default-color: var(--alg-info) !important;
+  --text-cm-meta-color: var(--alg-tekst) !important;
+  --text-cm-string-color: var(--alg-ok) !important;
+  --text-cm-number-color: var(--alg-waarschuwing) !important;
+  --text-cm-keyword-color: var(--alg-fout) !important;
+  --text-cm-comment-color: var(--alg-gedempt) !important;
+  --text-cm-variable-name-color: var(--alg-ok) !important;
+  --text-codemirror-color: var(--alg-tekst) !important;
+  --bg-codemirror-color: rgba(0, 0, 0, .45) !important;
+  --bg-codemirror-gutters-color: rgba(255, 255, 255, .04) !important;
+  --bg-codemirror-selected-color: rgba(255, 255, 255, .18) !important;
+  --border-codemirror-cursor-color: #fff !important;
+}
+
+[ng-app=portainer] .cm-editor {
+  border-color: var(--alg-rand-sterk) !important;
+  border-radius: var(--alg-radius-midden);
+}
+
+[ng-app=portainer] .cm-editor .cm-gutters {
+  background-color: var(--bg-codemirror-gutters-color) !important;
+  border-color: var(--alg-rand) !important;
+  color: #8a8a8a !important;
+}
+
+[ng-app=portainer] .cm-editor .cm-activeLine {
+  background-color: rgba(255, 255, 255, .05) !important;
+}
+
+[ng-app=portainer] .cm-editor .cm-activeLineGutter {
+  background-color: rgba(255, 255, 255, .08) !important;
+}
+
+[ng-app=portainer] .cm-editor :is(.cm-panels, .cm-tooltip) {
+  background-color: var(--alg-glas-sterk) !important;
+  border-color: var(--alg-rand-sterk) !important;
+  color: var(--alg-tekst) !important;
+}
+
+[ng-app=portainer] .cm-editor .cm-textfield {
+  background-color: var(--alg-veld) !important;
+  border-color: var(--alg-rand-sterk) !important;
+  color: var(--alg-tekst-sterk) !important;
+}
+
+[ng-app=portainer] .cm-editor .cm-foldPlaceholder {
+  background-color: rgba(255, 255, 255, .08) !important;
+  border-color: var(--alg-rand-sterk) !important;
+  color: var(--alg-gedempt) !important;
+}
+
+/* keuzevakken (Web editor / Upload / ...): gekozen vak grijs in plaats van blauw */
+[ng-app=portainer] .app-react-components-BoxSelector-BoxOption-module__root input:checked + label {
+  background-color: var(--alg-rij-actief) !important;
+  border-color: var(--alg-accent-kleur) !important;
+  color: var(--alg-tekst-sterk) !important;
+}
+
+/* ---------- Keuzerondjes in de keuzekaarten (BoxSelector) --------------- */
+/* niet gekozen: Tailwind bg-white (felwitte stip, leek "aan"); gekozen:
+   rand nog blauw */
+html[ng-app="portainer"] [class*="BoxOption-module__root"] .rounded-full.bg-white {
+  background-color: var(--alg-veld) !important;
+  border-color: rgba(255, 255, 255, .35) !important;
+}
+
+html[ng-app="portainer"] [class*="BoxOption-module__root"] .rounded-full.bg-blue-8 {
+  border-color: var(--alg-accent-kleur) !important;
+}
+

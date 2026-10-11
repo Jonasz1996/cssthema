@@ -60,6 +60,8 @@ from cssthema.services.theme_service import (
 
 ARCHIVE_DIR_NAME = ".geimporteerd"
 MAX_LISTED_FILES = 2000
+# Elke versie wordt bij een bundel-import gelint en gecompileerd binnen één request.
+MAX_BUNDLE_VERSIONS = 200
 LOCAL_FILE_RE = re.compile(r"^[a-z0-9][a-z0-9-]{0,62}[a-z0-9]\.css$")
 ZIP_MAGIC = b"PK\x03\x04"
 
@@ -364,6 +366,11 @@ async def _import_bundle(
         )
     except BundleError as exc:
         raise _file_error("Ongeldige bundel", str(exc)) from exc
+    if len(bundle.versions) > MAX_BUNDLE_VERSIONS:
+        raise _file_error(
+            "Ongeldige bundel",
+            f"De bundel heeft {len(bundle.versions)} versies; de limiet is {MAX_BUNDLE_VERSIONS}.",
+        )
     slug = checked_slug(bundle.theme.slug)
 
     # Elke versie is publiek bereikbaar via /themes/<slug>@<n>.css: allemaal linten.

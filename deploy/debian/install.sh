@@ -9,6 +9,8 @@
 #       bash /opt/cssthema/deploy/debian/install.sh
 #
 # Bijwerken: git -C /opt/cssthema pull && bash /opt/cssthema/deploy/debian/install.sh
+# Vóór elke update maakt het script een back-up (cssthema-backup lijst); terugzetten met
+# cssthema-backup terugzetten <map>. Daarnaast draait elke nacht een back-up (systemd-timer).
 # Opnieuw draaien is veilig: configuratie, geheimen en data blijven staan. Geef je
 # TRUSTED_PROXIES of PUBLIC_BASE_URL opnieuw mee, dan worden die in de configuratie aangepast.
 set -euo pipefail
@@ -118,8 +120,34 @@ else
 ALTER ROLE :"user" WITH LOGIN PASSWORD :'pw';
 SQL
 fi
+# Altijd UTF8, ook als de cluster iets anders heeft (een LXC zonder locale krijgt SQL_ASCII,
+# en dan geeft elke é of ë een fout 500).
+create_db() { runuser -u postgres -- createdb -E UTF8 -T template0 --locale=C.UTF-8 --owner="$POSTGRES_USER" "$1"; }
 if [ "$(psql_admin -tAc "SELECT 1 FROM pg_database WHERE datname = '$POSTGRES_DB'")" != 1 ]; then
-    runuser -u postgres -- createdb --owner="$POSTGRES_USER" "$POSTGRES_DB"
+    create_db "$POSTGRES_DB"
+else
+    encoding=$(psql_admin -tAc "SELECT pg_encoding_to_char(encoding) FROM pg_database WHERE datname = '$POSTGRES_DB'")
+    if [ "$encoding" != UTF8 ]; then
+        echo "De database staat in $encoding; omzetten naar UTF8."
+        systemctl stop cssthema-api cssthema-worker 2>/dev/null || true
+        stamp=$(date +%Y%m%d%H%M%S)
+        install -d -m 0700 "${BACKUP_DIR:-/var/backups/cssthema}"
+        dump=${BACKUP_DIR:-/var/backups/cssthema}/voor-utf8-$stamp.dump
+        runuser -u postgres -- pg_dump -Fc "$POSTGRES_DB" >"$dump"
+        new_db=${POSTGRES_DB}_utf8_$stamp
+        create_db "$new_db"
+        if ! runuser -u postgres -- pg_restore --no-owner --role="$POSTGRES_USER" -d "$new_db" <"$dump"; then
+            runuser -u postgres -- dropdb "$new_db"
+            die "omzetten naar UTF8 mislukt; de database is niet aangepast (dump: $dump)"
+        fi
+        old_db=${POSTGRES_DB}_$(echo "$encoding" | tr '[:upper:]' '[:lower:]')_$stamp
+        psql_admin -v old="$POSTGRES_DB" -v bak="$old_db" -v new="$new_db" <<'SQL'
+SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE datname = :'old' AND pid <> pg_backend_pid();
+ALTER DATABASE :"old" RENAME TO :"bak";
+ALTER DATABASE :"new" RENAME TO :"old";
+SQL
+        echo "Omgezet. De oude database staat nog als $old_db (weg: runuser -u postgres -- dropdb $old_db)."
+    fi
 fi
 
 step "Backend: Python-venv in $VENV"
@@ -154,9 +182,17 @@ chown -R root:root "$NODE_DIR"
     cd "$APP_DIR/frontend"
     export PATH=$NODE_DIR/bin:$PATH CI=true COREPACK_ENABLE_DOWNLOAD_PROMPT=0
     corepack pnpm install --frozen-lockfile
+    # In een aparte map bouwen en pas daarna omwisselen: een mislukte build laat het
+    # draaiende dashboard staan (vite maakt de uitvoermap eerst leeg).
+    rm -rf dist.nieuw
     log=$(mktemp)
-    corepack pnpm build >"$log" 2>&1 || { cat "$log" >&2; rm -f "$log"; die "dashboard bouwen mislukt"; }
+    { corepack pnpm exec tsc -b && corepack pnpm exec vite build --outDir dist.nieuw --emptyOutDir; } >"$log" 2>&1 ||
+        { cat "$log" >&2; rm -f "$log"; rm -rf dist.nieuw; die "dashboard bouwen mislukt; het vorige dashboard blijft draaien"; }
     rm -f "$log"
+    rm -rf dist.oud
+    if [ -d dist ]; then mv dist dist.oud; fi
+    mv dist.nieuw dist
+    rm -rf dist.oud
 )
 
 step "nginx"
@@ -180,6 +216,17 @@ nginx -t -q
 systemctl -q enable nginx
 systemctl reload-or-restart nginx
 
+step "Back-ups (cssthema-backup, elke nacht)"
+sed -e "s|@APP_DIR@|$APP_DIR|g" "$APP_DIR/deploy/debian/cssthema-backup.sh" >/usr/local/sbin/cssthema-backup
+chmod 0755 /usr/local/sbin/cssthema-backup
+install -m 0644 "$APP_DIR/deploy/debian/cssthema-backup.service" "$APP_DIR/deploy/debian/cssthema-backup.timer" \
+    /etc/systemd/system/
+# Vóór de migraties (die draaien bij het herstarten van de api) een back-up van de huidige
+# toestand, behalve bij de eerste installatie.
+if [ "$(psql_admin -d "$POSTGRES_DB" -tAc "SELECT to_regclass('public.alembic_version') IS NOT NULL")" = t ]; then
+    echo "back-up vóór de update: $(/usr/local/sbin/cssthema-backup maak voor-update)"
+fi
+
 step "Services (systemd)"
 for unit in cssthema-api cssthema-worker; do
     sed -e "s|@APP_DIR@|$APP_DIR|g" -e "s|@VENV@|$VENV|g" \
@@ -187,6 +234,7 @@ for unit in cssthema-api cssthema-worker; do
 done
 systemctl daemon-reload
 systemctl -q enable cssthema-api cssthema-worker
+systemctl -q enable --now cssthema-backup.timer
 systemctl restart cssthema-api cssthema-worker
 
 step "Controle"
@@ -201,6 +249,8 @@ if ! ready=$(curl -fsS http://127.0.0.1/readyz); then
     die "cssthema reageert niet op /readyz; zie de logs hierboven"
 fi
 echo "$ready"
+# Welke code nu draait: de back-ups noteren dit, zodat terugzetten de juiste versie noemt.
+git -C "$APP_DIR" rev-parse HEAD >"$DATA_DIR/geinstalleerde-commit" 2>/dev/null || true
 
 ip=$(hostname -I 2>/dev/null | awk '{print $1}' || true)
 cat <<EOF
@@ -210,8 +260,16 @@ cssthema draait.
   Eigen CSS-files:  $DATA_DIR/css-files/<naam>.css  ->  http://${ip:-<ip>}/<naam>.css
   Thema-scripts:    dashboard > Import > Scripts     ->  http://${ip:-<ip>}/<naam>.js
   Configuratie:     $ENV_FILE
+  Back-ups:         ${BACKUP_DIR:-/var/backups/cssthema} (cssthema-backup lijst)
   Logs:             journalctl -u cssthema-api -u cssthema-worker -f
 EOF
+branch=$(git -C "$APP_DIR" rev-parse --abbrev-ref HEAD 2>/dev/null || true)
+if [ -n "$branch" ] && [ "$branch" != main ] &&
+    git -C "$APP_DIR" cat-file -e origin/main:backend/pyproject.toml 2>/dev/null; then
+    echo
+    echo "Let op: deze installatie volgt '$branch', maar nieuwe versies verschijnen op main. Overschakelen:"
+    echo "  git -C $APP_DIR switch main && bash $APP_DIR/deploy/debian/install.sh"
+fi
 if [ "$TRUSTED_PROXIES" = 127.0.0.1 ]; then
     echo
     echo "Let op: zet het IP van Nginx Proxy Manager bij TRUSTED_PROXIES in $ENV_FILE en draai dit script opnieuw."

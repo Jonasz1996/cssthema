@@ -1,0 +1,54 @@
+/* ==========================================================================
+   alg-vaultwarden.css - Vaultwarden (Bitwarden web-vault 2026, Angular +
+   Tailwind met --color-* als "r g b"-drietallen)
+   Host: vaultwarden.jbogaert.be
+   Laadt NA algemeen.css. Dat heeft al een volledig Vaultwarden-deel
+   (donkere set, neutrale grijzen, glas, grijze primaire knop). Hier alleen
+   wat daarna nog niet in stijl was.
+
+   Wat het afwerkt:
+   - illustraties (kluis boven "Log in", laptop/tandwiel/vliegtuig onderaan):
+     blauw naar neutraal grijs, de kluis gedempt in plaats van fel
+   - "secondary"-schaal (randen van velden en kaarten): neutraal grijs in
+     plaats van Bitwardens blauwgrijs
+   - loginvak: vervaging en schaduw op het glas
+
+   De variabelen zijn drietallen "r g b" (Tailwind gebruikt ze als
+   rgb(var(--x) / alfa)); daarvoor bestaat geen token, dus vaste grijzen,
+   gelijk aan de grijzen van algemeen.css.
+
+   Beperkingen: alleen de loginpagina vastgelegd; kluis en instellingen
+   worden al door algemeen.css gedaan (getest), de secondary-schaal geldt
+   daar ook maar is hier niet opnieuw getest. CSP: style-src 'self'
+   'unsafe-inline' weigert css.jbogaert.be; via /alg-thema/ laden.
+   ========================================================================== */
+
+html:has(> head > link[rel="mask-icon"][color="#175DDC" i]) {
+  /* ---------- illustraties ---------- */
+  --color-illustration-outline: 150 150 150;
+  --color-illustration-bg-primary: 58 58 58;
+  --color-illustration-bg-secondary: 85 85 85;
+  --color-illustration-bg-tertiary: 34 34 34;
+  --color-illustration-tertiary: 200 200 200;
+  --color-illustration-logo: 221 221 221;
+
+  /* ---------- secondary: neutraal grijs ---------- */
+  --color-secondary-100: 42 42 42;
+  --color-secondary-300: 74 74 74;
+  --color-secondary-500: 110 110 110;
+  --color-secondary-600: 153 153 153;
+  --color-secondary-700: 187 187 187;
+}
+
+/* ---------- Loginvak: glas met vervaging --------------------------------- */
+html:has(> head > link[rel="mask-icon"][color="#175DDC" i]) :is(bit-landing-content bit-base-card, bit-landing-content .tw-rounded-xl.tw-border) {
+  -webkit-backdrop-filter: var(--alg-blur);
+  backdrop-filter: var(--alg-blur);
+}
+
+/* schaduw alleen vanaf md: op een telefoon tekent Bitwarden geen kader */
+@media (min-width: 768px) {
+  html:has(> head > link[rel="mask-icon"][color="#175DDC" i]) :is(bit-landing-content bit-base-card, bit-landing-content .tw-rounded-xl.tw-border) {
+    box-shadow: var(--alg-schaduw-midden);
+  }
+}

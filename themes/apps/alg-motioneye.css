@@ -1,0 +1,228 @@
+/* ==========================================================================
+   alg-motioneye.css - motionEye (0.43, jQuery, eigen main.css en ui.css)
+   Host: motioneye.jbogaert.be
+   Laadt NA algemeen.css. motionEye heeft geen CSS-variabelen; het blauw
+   (#317cad, hover #3498db) zit in vaste kleuren op eigen klassen. Die
+   klassen staan in de meegeleverde main.css en ui.css en gelden ook voor
+   het hoofdscherm (instellingen, camera's, media).
+
+   Wat het afwerkt:
+   - logindialoog (.modal-container): glas met vervaging, ronde hoeken
+   - blauwe randen van velden, keuzelijsten, schakelaars, schuifbalken: grijs
+   - knoppen: "Login"/standaard grijs met gloed, andere zacht grijs,
+     verwijderen/herstarten in onze foutkleur, "Apply" in waarschuwing
+   - kopbalk: glas met vervaging en lijn onderaan
+   - hoofdscherm: instellingenpaneel en sectiekoppen, cameravakken,
+     beweging gedetecteerd (fouttint), medialijst en mediaknoppen
+
+   Beperkingen: alleen de loginpagina vastgelegd; regels voor het
+   hoofdscherm uit motionEye's eigen stylesheet, niet getest. Iconen in de
+   kop zijn svg-achtergronden van de server en ontbreken in de render.
+   ========================================================================== */
+
+/* ---------- Kopbalk ----------------------------------------------------- */
+div.header {
+  background-color: var(--alg-glas);
+  border-bottom: 1px solid var(--alg-rand);
+  box-shadow: var(--alg-schaduw-klein);
+  -webkit-backdrop-filter: var(--alg-blur);
+  backdrop-filter: var(--alg-blur);
+}
+
+div.settings-top-bar.open {
+  background-color: var(--alg-vlak-2);
+}
+
+/* ---------- Dialogen en meldingen --------------------------------------- */
+/* het scherm achter een dialoog: onze overlay in plaats van zwart (motionEye
+   zet zelf de doorzichtigheid), zo blijft het verloop vaag zichtbaar */
+div.modal-glass {
+  background-color: var(--alg-overlay);
+}
+
+div.modal-container,
+div.popup-message-container {
+  background-color: var(--alg-glas-sterk);
+  border: 1px solid var(--alg-rand-sterk);
+  border-radius: var(--alg-radius-groot);
+  box-shadow: var(--alg-schaduw);
+  -webkit-backdrop-filter: var(--alg-blur);
+  backdrop-filter: var(--alg-blur);
+}
+
+/* ---------- Velden, keuzelijsten, schakelaars, schuifbalken -------------- */
+input[type="text"].styled,
+input[type="password"].styled,
+textarea.styled,
+select.styled,
+div.check-box,
+div.slider-bar-inside {
+  border-color: var(--alg-rand-sterk);
+  border-radius: var(--alg-radius-klein);
+}
+
+input[type="text"].styled:is(:hover, :focus),
+input[type="password"].styled:is(:hover, :focus),
+textarea.styled:is(:hover, :focus),
+select.styled:is(:hover, :focus),
+div.check-box:is(:hover, :focus),
+div.slider:is(:hover, :focus) div.slider-bar-inside {
+  border-color: var(--alg-accent-kleur);
+}
+
+select.styled:focus {
+  background-color: var(--alg-vlak-2);
+}
+
+/* schakelaar: uit = zacht grijs, aan = groen (zoals elders in het thema) */
+div.check-box-button {
+  background-color: var(--alg-knop-zacht-hover);
+  color: var(--alg-gedempt);
+}
+
+div.check-box.on div.check-box-button,
+div.check-box.on.section div.check-box-button {
+  background-color: var(--alg-ok-vlak);
+  color: var(--alg-knop-tekst);
+}
+
+div.check-box.on:is(:hover, :focus) div.check-box-button,
+div.check-box.on.section:is(:hover, :focus) div.check-box-button {
+  background-color: var(--alg-ok-vlak);
+  box-shadow: var(--alg-gloed);
+}
+
+/* ---------- Knoppen ----------------------------------------------------- */
+div.button.dialog {
+  background-color: var(--alg-knop-zacht);
+  border-color: var(--alg-rand-sterk);
+  border-radius: var(--alg-radius-klein);
+  color: var(--alg-tekst-sterk);
+}
+
+div.button.dialog:hover {
+  background-color: var(--alg-knop-zacht-hover);
+  border-color: var(--alg-rand-hover);
+}
+
+div.button.dialog.default,
+div:is(.update-button, .backup-button, .restore-button, .edit-mask-button, .save-mask-button, .clear-mask-button, .test-button, .media-list-download-button, .media-dialog-button) {
+  background-color: var(--alg-knop);
+  border-color: var(--alg-knop);
+  color: var(--alg-knop-tekst);
+}
+
+div.button.dialog.default:hover,
+div:is(.update-button, .backup-button, .restore-button, .edit-mask-button, .save-mask-button, .clear-mask-button, .test-button, .media-list-download-button, .media-dialog-button):hover {
+  background-color: var(--alg-knop-hover);
+  border-color: var(--alg-knop-hover);
+  box-shadow: var(--alg-gloed);
+}
+
+div.button.dialog.delete,
+div:is(.shut-down-button, .reboot-button, .media-list-delete-button, .media-dialog-delete-all-button) {
+  background-color: var(--alg-fout-vlak);
+  border-color: var(--alg-fout-vlak);
+  color: var(--alg-knop-tekst);
+}
+
+/* "Apply" verschijnt bij niet-opgeslagen wijzigingen: waarschuwing */
+div.apply-button,
+div.apply-button:hover,
+div.apply-button.progress {
+  background-color: var(--alg-waarschuwing-vlak);
+  color: var(--alg-donker-tekst);
+}
+
+div.apply-button:hover {
+  box-shadow: var(--alg-gloed);
+}
+
+/* ---------- Instellingenpaneel (niet getest) ----------------------------- */
+div.settings,
+div.settings.open,
+div.settings-progress {
+  background-color: var(--alg-glas-sterk);
+}
+
+/* rand alleen open: dicht is het paneel 0px breed (anders een lijn links) */
+div.settings.open {
+  border-right: 1px solid var(--alg-rand);
+}
+
+div.settings-section-title {
+  background-color: var(--alg-paneel);
+  border-bottom: 1px solid var(--alg-rand);
+}
+
+span.help-mark,
+div.settings-section-title span.help-mark {
+  background-color: var(--alg-knop-zacht-hover);
+  color: var(--alg-tekst);
+}
+
+div.check-box.section div.check-box-button {
+  background-color: var(--alg-knop-zacht-hover);
+}
+
+/* ---------- Cameravakken (niet getest) ---------------------------------- */
+div.camera-frame {
+  background-color: var(--alg-glas);
+  border-color: var(--alg-rand);
+  border-radius: var(--alg-radius-midden);
+}
+
+div.camera-frame:hover {
+  background-color: var(--alg-rij-hover);
+}
+
+div.camera-frame.motion-detected {
+  background-color: var(--alg-fout-tint);
+  border-color: var(--alg-fout-rand);
+}
+
+div.camera-action-button.preset {
+  color: var(--alg-tekst-sterk);
+}
+
+/* ---------- Media (niet getest) ----------------------------------------- */
+div.media-list-group-title {
+  background-color: var(--alg-vlak-2);
+}
+
+div.media-list-entry {
+  background-color: var(--alg-rij);
+  border-bottom-color: var(--alg-rand);
+}
+
+div.media-list-entry:hover {
+  background-color: var(--alg-rij-hover);
+}
+
+div.media-dialog-group-button {
+  background-color: var(--alg-knop-zacht);
+  color: var(--alg-tekst);
+}
+
+div.media-dialog-group-button:hover {
+  background-color: var(--alg-knop-zacht-hover);
+}
+
+div.media-dialog-group-button.current,
+div.media-dialog-group-button.current:hover {
+  background-color: var(--alg-rij-actief);
+  color: var(--alg-tekst-sterk);
+}
+
+div.slider-cursor-label {
+  background: var(--alg-glas-sterk);
+}
+
+div.progress-bar-fill {
+  background-color: var(--alg-knop);
+}
+
+/* ---------- Voet -------------------------------------------------------- */
+div.copyright-note {
+  border-top-color: var(--alg-rand);
+}

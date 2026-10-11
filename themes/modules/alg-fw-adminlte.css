@@ -1,0 +1,518 @@
+/* alg-fw-adminlte.css - gegenereerd uit algemeen.css door scripts/themes/modules.py;
+   niet met de hand aanpassen. Laadt na alg-kern.css (zie themes/README.md). */
+/* ==========================================================================
+   32 ADMINLTE - versie 2 (Bootstrap 3, o.a. Pi-hole) en 3 (Bootstrap 4)
+   plus de jQuery-plugins die er meestal bij zitten: DataTables en Select2.
+   ========================================================================== */
+
+/* ---------- Pagina-indeling --------------------------------------------- */
+/* De paginabrede .wrapper heeft de zijbalkkleur (#222d32) als achtergrond:
+   doorzichtig, zodat verloop en netwerk zichtbaar zijn. De inhoud staat op
+   boxen (glas), zijbalk en kopbalk hebben een eigen donker vlak. */
+.wrapper:has(> .content-wrapper) {
+  background-color: transparent !important;
+  background-image: none !important;
+}
+
+.content-wrapper,
+.right-side,
+.login-page,
+.register-page,
+.lockscreen {
+  background: transparent !important;
+  background-color: transparent !important;
+  color: var(--alg-tekst);
+}
+
+.main-header .navbar,
+.main-header.navbar,
+.main-header .logo,
+.navbar-white {
+  background-color: rgba(10, 10, 10, .55) !important;
+  background-image: none !important;
+  border-color: var(--alg-rand) !important;
+}
+
+.main-header .navbar .nav > li > a,
+.main-header .navbar .sidebar-toggle,
+.main-header .logo,
+.main-header.navbar-light .navbar-nav .nav-link {
+  color: rgba(221, 221, 221, .85) !important;
+}
+
+.main-header .navbar .nav > li > a:hover,
+.main-header .navbar .sidebar-toggle:hover {
+  background-color: var(--alg-rij-hover) !important;
+  color: var(--alg-tekst-sterk) !important;
+}
+
+.main-sidebar,
+.left-side,
+.control-sidebar,
+.control-sidebar-bg {
+  background-color: rgba(10, 10, 10, .62) !important;
+  border-color: var(--alg-rand) !important;
+}
+
+.brand-link {
+  border-bottom-color: var(--alg-rand) !important;
+  color: var(--alg-tekst-sterk) !important;
+}
+
+/* menu-items in de zijbalk */
+.sidebar-menu > li > a,
+.nav-sidebar .nav-link,
+[class*="sidebar-light"] .nav-sidebar > .nav-item > .nav-link {
+  color: rgba(221, 221, 221, .85) !important;
+}
+
+.sidebar-menu > li:hover > a,
+.sidebar-menu > li.active > a,
+.sidebar-menu > li.menu-open > a,
+.nav-sidebar .nav-link:hover {
+  background-color: var(--alg-rij-hover) !important;
+  color: var(--alg-tekst-sterk) !important;
+}
+
+[class*="sidebar-"] .nav-sidebar > .nav-item > .nav-link.active,
+.sidebar-menu > li.active > a {
+  background-color: var(--alg-knop) !important;
+  border-left-color: #9a9a9a !important;
+  color: #fff !important;
+  box-shadow: none !important;
+}
+
+.sidebar-menu .treeview-menu,
+.sidebar-menu > li > .treeview-menu {
+  background-color: rgba(0, 0, 0, .25) !important;
+}
+
+.sidebar-menu .treeview-menu > li > a,
+.nav-treeview > .nav-item > .nav-link {
+  color: var(--alg-gedempt) !important;
+}
+
+.sidebar-menu li.header,
+.nav-sidebar .nav-header {
+  background-color: transparent !important;
+  color: var(--alg-gedempt) !important;
+}
+
+.main-footer {
+  background-color: rgba(10, 10, 10, .45) !important;
+  border-color: var(--alg-rand) !important;
+  color: var(--alg-gedempt) !important;
+}
+
+.content-header > h1,
+.content-header h1 {
+  color: var(--alg-tekst-sterk);
+}
+
+.content-header > .breadcrumb > li > a {
+  color: var(--alg-link) !important;
+}
+
+/* ---------- Lettertype -------------------------------------------------- */
+/* AdminLTE zet koppen vast in Source Sans Pro en het logo in Helvetica:
+   ook monospace. Alleen onder de AdminLTE-bodyklassen. Iconen in koppen
+   zijn eigen elementen (.fa ...) met hun eigen lettertype en blijven heel;
+   .sidebar-toggle (zelf een icoon) krijgt niets. */
+:is(.sidebar-mini, .layout-boxed, .layout-top-nav, .layout-fixed, .hold-transition, .login-page, .register-page, .lockscreen, [class*="skin-"]) :is(h1, h2, h3, h4, h5, h6, .h1, .h2, .h3, .h4, .h5, .h6):not([class*="fa-"], [class*="icon"], [class*="glyphicon"]),
+.main-header .logo {
+  font-family: var(--alg-font);
+}
+
+/* ---------- Boxen (AdminLTE 2) en kaarten (3) --------------------------- */
+/* .callout: in AdminLTE 3 wit; de gekleurde callouts van AdminLTE 2 hebben
+   zelf !important met hogere specificiteit en blijven gekleurd. */
+.box,
+.nav-tabs-custom,
+.nav-tabs-custom > .tab-content,
+.timeline > li > .timeline-item,
+.info-box:not([class*="bg-"]),
+.callout:not([class*="bg-"]) {
+  background-color: var(--alg-glas) !important;
+  border-color: var(--alg-rand);
+  color: var(--alg-tekst) !important;
+}
+
+.box {
+  border-radius: var(--alg-radius-groot);
+  border-top-color: rgba(255, 255, 255, .18) !important;
+  box-shadow: var(--alg-schaduw-klein) !important;
+}
+
+.box.box-primary,
+.card-primary.card-outline {
+  border-top-color: #9a9a9a !important;
+}
+
+/* gekleurde bovenrand van AdminLTE 2 (box-warning, box-info ...) houdt zijn
+   betekenis, in onze statuskleuren (Pi-hole: HTTPS-melding, "Forgot password") */
+.box.box-success { border-top-color: var(--alg-ok) !important; }
+.box.box-danger { border-top-color: var(--alg-fout) !important; }
+.box.box-warning { border-top-color: var(--alg-waarschuwing) !important; }
+.box.box-info { border-top-color: var(--alg-info) !important; }
+
+.box-header,
+.box-header .box-title {
+  color: var(--alg-tekst-sterk) !important;
+}
+
+.box-header.with-border,
+.box-footer,
+.nav-tabs-custom > .nav-tabs {
+  border-color: var(--alg-rand) !important;
+}
+
+.box-footer {
+  background-color: var(--alg-paneel) !important;
+}
+
+.box.box-solid.box-primary > .box-header,
+.box.box-solid.box-default > .box-header {
+  background-color: var(--alg-knop) !important;
+  color: #fff !important;
+}
+
+.nav-tabs-custom > .nav-tabs {
+  background-color: transparent !important;
+}
+
+.nav-tabs-custom > .nav-tabs > li > a {
+  color: var(--alg-gedempt) !important;
+}
+
+.nav-tabs-custom > .nav-tabs > li:not(.active):hover {
+  background-color: var(--alg-rij-hover) !important;
+}
+
+.nav-tabs-custom > .nav-tabs > li:not(.active):hover > a {
+  color: var(--alg-tekst-sterk) !important;
+}
+
+.nav-tabs-custom > .nav-tabs > li.active > a,
+.nav-tabs-custom > .nav-tabs > li.active:hover > a {
+  background-color: transparent !important;
+  color: var(--alg-tekst-sterk) !important;
+}
+
+.nav-tabs-custom > .nav-tabs > li.active {
+  border-top-color: #9a9a9a !important;
+}
+
+/* gekleurde kaartkoppen van AdminLTE 3 behouden (30 maakt koppen neutraal) */
+.card-primary:not(.card-outline) > .card-header { background-color: var(--alg-knop) !important; color: #fff !important; }
+.card-secondary:not(.card-outline) > .card-header { background-color: #555 !important; color: #fff !important; }
+.card-success:not(.card-outline) > .card-header { background-color: var(--alg-ok-vlak) !important; color: #fff !important; }
+.card-danger:not(.card-outline) > .card-header { background-color: var(--alg-fout-vlak) !important; color: #fff !important; }
+.card-warning:not(.card-outline) > .card-header { background-color: var(--alg-waarschuwing-vlak) !important; color: var(--alg-donker-tekst) !important; }
+.card-info:not(.card-outline) > .card-header { background-color: var(--alg-info-vlak) !important; color: var(--alg-donker-tekst) !important; }
+.card-dark:not(.card-outline) > .card-header { background-color: #111 !important; color: var(--alg-tekst) !important; }
+
+/* ---------- Gekleurde vlakken: getint glas ----------------------------- */
+/* small-boxes, gevulde box-koppen en callouts: de felle AdminLTE-kleuren
+   halen met witte tekst geen 4.5:1 en zijn grote lichte vlakken. Zoals in
+   allow: donker glas met een tint, de statuskleur op het getal en de rand. */
+.small-box:is(.bg-success, .bg-green, .bg-olive, .bg-lime),
+.box.box-solid.box-success > .box-header,
+.callout.callout-success {
+  background-color: var(--alg-glas) !important;
+  background-image: linear-gradient(var(--alg-ok-tint), var(--alg-ok-tint)) !important;
+  box-shadow: inset 0 0 0 1px var(--alg-ok-rand) !important;
+  color: var(--alg-tekst) !important;
+  --alg-status: var(--alg-ok);
+}
+
+.small-box:is(.bg-danger, .bg-red, .bg-maroon),
+.box.box-solid.box-danger > .box-header,
+.callout.callout-danger {
+  background-color: var(--alg-glas) !important;
+  background-image: linear-gradient(var(--alg-fout-tint), var(--alg-fout-tint)) !important;
+  box-shadow: inset 0 0 0 1px var(--alg-fout-rand) !important;
+  color: var(--alg-tekst) !important;
+  --alg-status: var(--alg-fout);
+}
+
+.small-box:is(.bg-warning, .bg-yellow, .bg-orange),
+.box.box-solid.box-warning > .box-header,
+.callout.callout-warning {
+  background-color: var(--alg-glas) !important;
+  background-image: linear-gradient(var(--alg-waarschuwing-tint), var(--alg-waarschuwing-tint)) !important;
+  box-shadow: inset 0 0 0 1px var(--alg-waarschuwing-rand) !important;
+  color: var(--alg-tekst) !important;
+  --alg-status: var(--alg-waarschuwing);
+}
+
+.small-box:is(.bg-info, .bg-aqua, .bg-light-blue, .bg-blue, .bg-teal, .bg-navy, .bg-purple, .bg-fuchsia),
+.box.box-solid.box-info > .box-header,
+.callout.callout-info {
+  background-color: var(--alg-glas) !important;
+  background-image: linear-gradient(var(--alg-info-tint), var(--alg-info-tint)) !important;
+  box-shadow: inset 0 0 0 1px var(--alg-info-rand) !important;
+  color: var(--alg-tekst) !important;
+  --alg-status: var(--alg-info);
+}
+
+/* het getal en de titel in de statuskleur, de rest gewone tekst */
+.small-box[class*="bg-"] > .inner > h3,
+.small-box[class*="bg-"] > .inner > h3 *,
+.box.box-solid:is(.box-success, .box-danger, .box-warning, .box-info) > .box-header :is(.box-title, a, .btn-box-tool),
+.callout:is(.callout-success, .callout-danger, .callout-warning, .callout-info) > :is(h4, h5) {
+  color: var(--alg-status, var(--alg-tekst-sterk)) !important;
+}
+
+.small-box[class*="bg-"] > .inner > p,
+.callout:is(.callout-success, .callout-danger, .callout-warning, .callout-info) > p {
+  color: var(--alg-tekst) !important;
+}
+
+/* het grote icoon is zwart op 15 %: op donker licht op 10 % */
+.small-box[class*="bg-"] > .icon {
+  color: rgba(255, 255, 255, .1) !important;
+}
+
+.small-box[class*="bg-"] > .small-box-footer {
+  background-color: rgba(0, 0, 0, .25) !important;
+  color: var(--alg-tekst) !important;
+}
+
+.small-box[class*="bg-"] > .small-box-footer:hover {
+  background-color: rgba(0, 0, 0, .4) !important;
+  color: var(--alg-tekst-sterk) !important;
+}
+
+.box.box-solid:is(.box-success, .box-danger, .box-warning, .box-info) {
+  border-color: var(--alg-rand) !important;
+}
+
+/* labels (kleine tellers) blijven gevuld: dezelfde statusvlakken als 30 */
+.label:is(.bg-success, .bg-green) { background-color: var(--alg-ok-vlak) !important; color: #fff !important; }
+.label:is(.bg-danger, .bg-red) { background-color: var(--alg-fout-vlak) !important; color: #fff !important; }
+.label:is(.bg-warning, .bg-yellow, .bg-orange) { background-color: var(--alg-waarschuwing-vlak) !important; color: var(--alg-donker-tekst) !important; }
+.label:is(.bg-info, .bg-aqua, .bg-light-blue) { background-color: var(--alg-info-vlak) !important; color: var(--alg-donker-tekst) !important; }
+
+.card-tools .btn-tool {
+  color: var(--alg-gedempt);
+}
+
+.card-tools .btn-tool:hover {
+  color: var(--alg-tekst-sterk);
+}
+
+/* ---------- Inlogvak ---------------------------------------------------- */
+.login-box-body,
+.register-box-body,
+.login-card-body,
+.register-card-body,
+.lockscreen-wrapper .lockscreen-item {
+  background-color: var(--alg-glas) !important;
+  color: var(--alg-tekst) !important;
+  border-radius: var(--alg-radius-groot);
+  -webkit-backdrop-filter: var(--alg-blur);
+  backdrop-filter: var(--alg-blur);
+}
+
+.login-logo a,
+.register-logo a,
+.login-box-msg {
+  color: var(--alg-tekst-sterk) !important;
+}
+
+/* ---------- Tekstkleurklassen ------------------------------------------ */
+/* .text-green, .text-blue ... van AdminLTE zijn gemaakt voor wit (navy en
+   black zijn onzichtbaar op donker, blue en purple halen geen 4.5:1). Alleen
+   onder de AdminLTE-bodyklassen: dezelfde namen kunnen elders iets anders zijn. */
+:is(.sidebar-mini, .layout-boxed, .layout-top-nav, .layout-fixed, .hold-transition, [class*="skin-"]) :is(.text-green, .text-olive, .text-lime) { color: var(--alg-ok) !important; }
+:is(.sidebar-mini, .layout-boxed, .layout-top-nav, .layout-fixed, .hold-transition, [class*="skin-"]) :is(.text-red, .text-maroon) { color: var(--alg-fout) !important; }
+:is(.sidebar-mini, .layout-boxed, .layout-top-nav, .layout-fixed, .hold-transition, [class*="skin-"]) :is(.text-yellow, .text-orange) { color: var(--alg-waarschuwing) !important; }
+:is(.sidebar-mini, .layout-boxed, .layout-top-nav, .layout-fixed, .hold-transition, [class*="skin-"]) :is(.text-aqua, .text-blue, .text-light-blue, .text-teal, .text-navy, .text-purple, .text-fuchsia, .text-vivid-blue) { color: var(--alg-info) !important; }
+:is(.sidebar-mini, .layout-boxed, .layout-top-nav, .layout-fixed, .hold-transition, [class*="skin-"]) :is(.text-black, .text-gray) { color: var(--alg-tekst) !important; }
+
+/* ---------- Gebruikersmenu in de kopbalk (AdminLTE 2) ------------------- */
+/* kop in de skinkleur, midden lichtgrijs, voet wit: alles op het glas van
+   het uitklapmenu (30) */
+.navbar-nav > .user-menu > .dropdown-menu > li.user-header,
+.main-header li.user-header {
+  background-color: var(--alg-paneel) !important;
+  color: var(--alg-tekst-sterk) !important;
+}
+
+.navbar-nav > .user-menu > .dropdown-menu > li.user-header > p,
+.navbar-nav > .user-menu > .dropdown-menu > li.user-header > p > small {
+  color: var(--alg-tekst) !important;
+}
+
+.navbar-nav > .user-menu > .dropdown-menu > .user-body {
+  background-color: transparent !important;
+  border-color: var(--alg-rand) !important;
+  color: var(--alg-tekst) !important;
+}
+
+.navbar-nav > .user-menu > .dropdown-menu > .user-footer {
+  background-color: transparent !important;
+  color: var(--alg-tekst) !important;
+}
+
+.navbar-nav > .user-menu > .dropdown-menu > .user-footer a {
+  color: var(--alg-tekst) !important;
+}
+
+.navbar-nav > .user-menu > .dropdown-menu > .user-footer a:hover {
+  color: var(--alg-tekst-sterk) !important;
+}
+
+/* ---------- Kleine onderdelen ------------------------------------------- */
+.todo-list > li,
+.products-list > .item,
+.direct-chat-text:not([class*="bg-"]) {
+  background-color: var(--alg-rij) !important;
+  border-color: var(--alg-rand) !important;
+  color: var(--alg-tekst) !important;
+}
+
+.direct-chat-text::after,
+.direct-chat-text::before {
+  border-right-color: rgba(255, 255, 255, .05) !important;
+}
+
+.info-box-text,
+.info-box-number,
+.description-text {
+  color: inherit;
+}
+
+/* ---------- DataTables (1.x en 2.x) ------------------------------------- */
+:root:where(html) {
+  --dt-row-selected: 106, 106, 106 !important;
+  --dt-row-selected-text: 255, 255, 255 !important;
+  --dt-row-selected-link: 255, 255, 255 !important;
+  --dt-row-stripe: 255, 255, 255 !important;
+  --dt-row-hover: 255, 255, 255 !important;
+  --dt-column-ordering: 255, 255, 255 !important;
+  --dt-html-background: transparent !important;
+}
+
+table.dataTable tbody tr,
+table.dataTable.display tbody tr.odd > .sorting_1,
+table.dataTable.display tbody tr.even > .sorting_1 {
+  background-color: transparent !important;
+}
+
+table.dataTable.stripe tbody tr.odd,
+table.dataTable.display tbody tr.odd {
+  background-color: var(--alg-zebra) !important;
+}
+
+table.dataTable.hover tbody tr:hover,
+table.dataTable.display tbody tr:hover {
+  background-color: rgba(255, 255, 255, .05) !important;
+}
+
+table.dataTable thead th,
+table.dataTable tfoot th,
+table.dataTable thead td {
+  border-color: var(--alg-rand) !important;
+  color: var(--alg-tekst-sterk);
+}
+
+.dataTables_wrapper,
+.dt-container,
+.dataTables_wrapper .dataTables_info,
+.dataTables_wrapper .dataTables_length,
+.dataTables_wrapper .dataTables_filter {
+  color: var(--alg-tekst) !important;
+}
+
+.dataTables_wrapper .dataTables_paginate .paginate_button,
+.dt-container .dt-paging .dt-paging-button {
+  color: var(--alg-tekst) !important;
+}
+
+.dataTables_wrapper .dataTables_paginate .paginate_button.current,
+.dataTables_wrapper .dataTables_paginate .paginate_button.current:hover,
+.dt-container .dt-paging .dt-paging-button.current {
+  background: var(--alg-knop) !important;
+  border-color: var(--alg-knop) !important;
+  color: #fff !important;
+}
+
+.dataTables_wrapper .dataTables_paginate .paginate_button:hover {
+  background: var(--alg-rij-hover) !important;
+  border-color: var(--alg-rand-sterk) !important;
+  color: var(--alg-tekst-sterk) !important;
+}
+
+div.dataTables_processing,
+div.dt-processing {
+  background-color: var(--alg-glas-sterk) !important;
+  color: var(--alg-tekst) !important;
+}
+
+/* ---------- Select2 ----------------------------------------------------- */
+.select2-container--default .select2-selection--single,
+.select2-container--default .select2-selection--multiple,
+.select2-container--bootstrap4 .select2-selection,
+.select2-container--bootstrap-5 .select2-selection {
+  background-color: var(--alg-veld) !important;
+  border-color: var(--alg-rand-sterk) !important;
+  color: var(--alg-tekst-sterk) !important;
+}
+
+.select2-container .select2-selection__rendered {
+  color: var(--alg-tekst-sterk) !important;
+}
+
+.select2-container .select2-selection__placeholder {
+  color: var(--alg-placeholder) !important;
+}
+
+.select2-container--default .select2-selection--single .select2-selection__arrow b {
+  border-top-color: #bbb !important;
+}
+
+.select2-container--default.select2-container--open .select2-selection--single .select2-selection__arrow b {
+  border-bottom-color: #bbb !important;
+  border-top-color: transparent !important;
+}
+
+.select2-dropdown {
+  background-color: var(--alg-glas-sterk) !important;
+  border-color: var(--alg-rand-sterk) !important;
+  color: var(--alg-tekst) !important;
+  -webkit-backdrop-filter: var(--alg-blur);
+  backdrop-filter: var(--alg-blur);
+}
+
+.select2-results__option {
+  color: var(--alg-tekst);
+}
+
+.select2-container--default .select2-results__option--highlighted[aria-selected],
+.select2-container--default .select2-results__option--highlighted.select2-results__option--selectable,
+.select2-results__option--highlighted {
+  background-color: var(--alg-rij-hover) !important;
+  color: var(--alg-tekst-sterk) !important;
+}
+
+.select2-container--default .select2-results__option[aria-selected="true"],
+.select2-container--default .select2-results__option--selected {
+  background-color: var(--alg-rij-actief) !important;
+  color: var(--alg-tekst-sterk) !important;
+}
+
+.select2-container--default .select2-selection--multiple .select2-selection__choice {
+  background-color: rgba(255, 255, 255, .1) !important;
+  border-color: var(--alg-rand-sterk) !important;
+  color: var(--alg-tekst) !important;
+}
+
+/* ---------- Brede meldingen-dropdown (AdminLTE 3) ----------------------- */
+/* monospace is breder: de tijd rechts (.float-right) paste niet meer naast
+   de tekst en zakte naar de volgende regel. Iets kleiner lettertype in dit
+   menu van vaste breedte. */
+.dropdown-menu-lg .dropdown-item {
+  font-size: .875rem;
+}
+

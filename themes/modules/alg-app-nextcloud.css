@@ -1,0 +1,140 @@
+/* alg-app-nextcloud.css - gegenereerd uit algemeen.css door scripts/themes/modules.py;
+   niet met de hand aanpassen. Laadt na alg-kern.css (zie themes/README.md). */
+/* ==========================================================================
+   60 NEXTCLOUD (25 en nieuwer; getest met 35)
+   Herkenning: body[data-themes] met id body-user, body-login, body-public of
+   body-settings (alleen Nextcloud zet die combinatie).
+   Nextcloud kleurt alles via eigen variabelen uit apps/theming (op :root of
+   body[data-theme-*]). Wij zetten Nextcloud's eigen donkere waarden op body
+   (specificiteit 0,2,1 wint van zijn themaregels, ook als de gebruiker zelf
+   een thema koos), met onze stijl erover: grijze knoppen in plaats van blauw,
+   glas, monospace, geen achtergrondfoto (dan tonen verloop en netwerk).
+   --background-invert-if-dark: invert(100%) zegt ook aan de Vue-componenten
+   van Nextcloud dat het donker is (lichte iconen).
+   ========================================================================== */
+
+body[data-themes][id^="body-"] {
+  color-scheme: dark;
+
+  /* ---------- oppervlakken ---------- */
+  --color-main-background: #161616;
+  --color-main-background-rgb: 22, 22, 22;
+  --color-main-background-translucent: rgba(22, 22, 22, .97);
+  /* navigatie, loginvak, menu's in de kop: glas */
+  --color-main-background-blur: var(--alg-glas);
+  --filter-background-blur: var(--alg-blur);
+  --gradient-main-background: var(--color-main-background) 0%, var(--color-main-background-translucent) 85%, transparent 100%;
+  --color-background-hover: #232323;
+  --color-background-dark: #282828;
+  --color-background-darker: #333;
+  --color-placeholder-light: #2a2a2a;
+  --color-placeholder-dark: #404040;
+  /* geen achtergrondfoto en geen blauw vlak achter de kop */
+  --image-background: none;
+  --color-background-plain: transparent;
+  --color-background-plain-text: #fff;
+
+  /* ---------- tekst ---------- */
+  --color-main-text: var(--alg-tekst);
+  --color-text-maxcontrast: #9a9a9a;
+  --color-text-maxcontrast-default: #9a9a9a;
+  --color-text-maxcontrast-background-blur: #a8a8a8;
+  --color-text-light: var(--alg-tekst);
+  --color-text-lighter: #9a9a9a;
+  --color-text-error: var(--alg-fout);
+  --color-text-success: var(--alg-ok);
+
+  /* ---------- randen ---------- */
+  --color-border: #2a2a2a;
+  --color-border-dark: #3a3a3a;
+  --color-border-maxcontrast: #6e6e6e;
+
+  /* ---------- primair: onze grijze knoppen met witte tekst (5.4:1) ---------- */
+  --color-primary: var(--alg-knop);
+  --color-primary-text: #fff;
+  --color-primary-hover: var(--alg-knop-hover);
+  --color-primary-element: var(--alg-knop);
+  --color-primary-element-hover: var(--alg-knop-hover);
+  --color-primary-element-text: #fff;
+  --color-primary-element-text-dark: #eee;
+  --color-primary-light: #262626;
+  --color-primary-light-hover: #303030;
+  --color-primary-light-text: var(--alg-tekst);
+  --color-primary-element-light: #262626;
+  --color-primary-element-light-hover: #303030;
+  --color-primary-element-light-text: var(--alg-tekst);
+  --gradient-primary-background: linear-gradient(40deg, var(--alg-knop) 0%, var(--alg-knop-hover) 100%);
+  --color-background-selection: rgba(170, 170, 170, .35);
+  --color-text-selection: #fff;
+
+  /* ---------- donker: iconen omkeren (zoals Nextcloud's donkere thema) ---------- */
+  --background-invert-if-dark: invert(100%);
+  --background-invert-if-bright: no;
+  --background-image-invert-if-bright: no;
+  --primary-invert-if-bright: no;
+  --primary-invert-if-dark: invert(100%);
+
+  /* ---------- status (naar Nextcloud's donkere thema, AGPL) ---------- */
+  --color-element-error: var(--alg-fout);
+  --color-element-info: var(--alg-info);
+  --color-element-success: var(--alg-ok);
+  --color-element-warning: var(--alg-waarschuwing);
+  --color-border-error: var(--alg-fout);
+  --color-border-success: var(--alg-ok);
+  --color-error: #552121;
+  --color-error-hover: #7a2f2f;
+  --color-error-text: #fcc;
+  --color-error-rgb: 85, 33, 33;
+  --color-warning: #3d3010;
+  --color-warning-hover: #65501b;
+  --color-warning-text: #ffeec5;
+  --color-warning-rgb: 61, 48, 16;
+  --color-success: #11321a;
+  --color-success-hover: #1e582e;
+  --color-success-text: #d5f2dc;
+  --color-success-rgb: 17, 50, 26;
+  --color-info: #1d2a36;
+  --color-info-hover: #28394a;
+  --color-info-text: var(--alg-info);
+  --color-info-rgb: 29, 42, 54;
+  --color-mark: #4d3800;
+  --color-loading-light: #777;
+  --color-loading-dark: #ccc;
+  --color-scrollbar: #555 transparent;
+  --color-box-shadow-rgb: 0, 0, 0;
+  --color-box-shadow: #000;
+
+  /* ---------- vorm en lettertype ---------- */
+  --font-face: var(--alg-font);
+  --border-radius-element: var(--alg-radius);
+  --border-radius-container: 12px;
+  --border-radius-container-large: var(--alg-radius-groot);
+}
+
+/* ---------- Vinkjes, keuzerondjes en schakelaars (@nextcloud/vue) -------- */
+/* Aangevinkt kleurt Nextcloud met de primaire kleur: bij ons grijs #6a6a6a,
+   donkerder dan niet-aangevinkt (#ddd). Dat leest omgekeerd. Aangevinkt
+   wordt wit (gevuld tegen omlijnd); een schakelaar die aan staat groen. */
+body[data-themes][id^="body-"] .checkbox-radio-switch--checked:not(.checkbox-radio-switch--disabled) .checkbox-radio-switch__icon {
+  color: var(--alg-tekst-sterk) !important;
+}
+
+body[data-themes][id^="body-"] .checkbox-radio-switch-switch.checkbox-radio-switch--checked:not(.checkbox-radio-switch--disabled) .checkbox-radio-switch__icon {
+  color: var(--alg-ok) !important;
+}
+
+/* ---------- Inhoud van een app op het glas ------------------------------ */
+/* #content-vue is al glas (met vervaging); de inhoud erin (app-content)
+   kreeg nog een dekkend vlak (#161616) over het grootste deel van het
+   scherm. Doorzichtig: de tekst blijft op het glas van #content-vue. */
+body[data-themes][id^="body-"] #content-vue > :is(#app-content-vue, .app-content) {
+  background-color: transparent !important;
+}
+
+/* ---------- Datumveld: kalenderknop zichtbaar --------------------------- */
+/* Nextcloud zet color-scheme light op dit veld; de native kalenderknop was
+   donker op ons donkere veld */
+body[data-themes][id^="body-"] .native-datetime-picker--input {
+  color-scheme: dark !important;
+}
+

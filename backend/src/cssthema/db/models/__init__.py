@@ -3,6 +3,7 @@
 from cssthema.db.models.api_key import ApiKey
 from cssthema.db.models.asset import Asset
 from cssthema.db.models.audit import AuditLog
+from cssthema.db.models.host import HostBinding
 from cssthema.db.models.job import Job
 from cssthema.db.models.palette import Palette
 from cssthema.db.models.service import Service
@@ -16,6 +17,7 @@ __all__ = [
     "Asset",
     "AuditLog",
     "DomSnapshot",
+    "HostBinding",
     "Job",
     "Palette",
     "Service",

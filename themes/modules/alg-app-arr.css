@@ -1,0 +1,183 @@
+/* alg-app-arr.css - gegenereerd uit algemeen.css door scripts/themes/modules.py;
+   niet met de hand aanpassen. Laadt na alg-kern.css (zie themes/README.md). */
+/* ==========================================================================
+   60 ARR (Sonarr, Radarr, Prowlarr, Lidarr, Readarr, Whisparr; v4/v5)
+   Herkenning: meta-beschrijving met de appnaam. De *arr-apps zetten hun
+   thema als inline variabelen op html (style="--textColor: ..."), daarom
+   moet elke variabele hier !important zijn. De namen zijn algemeen
+   (--textColor, --black), maar gelden alleen binnen deze apps.
+   Statuskleuren (primair blauw, geselecteerd geel, labels) blijven van de
+   app; knoppen, vlakken, randen en meldingen krijgen onze kleuren.
+   Getest met Sonarr v4 (thema "auto" in lichte modus en thema "donker").
+   Radarr/Prowlarr e.a. gebruiken dezelfde namen (zelfde codebasis), ongetest.
+   ========================================================================== */
+
+html:is(:has(> head > meta[name="description"][content="Sonarr"]), :has(> head > meta[name="description"][content="Radarr"]), :has(> head > meta[name="description"][content="Prowlarr"]), :has(> head > meta[name="description"][content="Lidarr"]), :has(> head > meta[name="description"][content="Readarr"]), :has(> head > meta[name="description"][content="Whisparr"])) {
+  color-scheme: dark;
+  --textColor: var(--alg-tekst) !important; --defaultColor: var(--alg-tekst) !important;
+  --themeDarkColor: #262626 !important; --themeLightColor: #3a3a3a !important;
+  --pageBackground: transparent !important; --pageFooterBackground: rgba(0, 0, 0, .25) !important;
+  --pageHeaderBackgroundColor: rgba(10, 10, 10, .6) !important;
+  --sidebarBackgroundColor: rgba(10, 10, 10, .45) !important;
+  --sidebarActiveBackgroundColor: rgba(255, 255, 255, .08) !important;
+  --toolbarBackgroundColor: rgba(255, 255, 255, .04) !important;
+  --toolbarMenuItemBackgroundColor: #2a2a2a !important;
+  --toolbarMenuItemHoverBackgroundColor: #3a3a3a !important;
+  --borderColor: rgba(255, 255, 255, .14) !important;
+  --inputBorderColor: rgba(255, 255, 255, .14) !important;
+  --inputFocusBorderColor: var(--alg-accent-kleur) !important;
+  --inputFocusBoxShadowColor: rgba(170, 170, 170, .14) !important;
+  --defaultBackgroundColor: #2c2c2c !important; --defaultBorderColor: #3a3a3a !important;
+  --defaultHoverBackgroundColor: #3a3a3a !important; --defaultHoverBorderColor: #555 !important;
+  --primaryBackgroundColor: var(--alg-knop) !important;
+  --primaryBorderColor: var(--alg-knop) !important;
+  --primaryHoverBackgroundColor: var(--alg-knop-hover) !important;
+  --primaryHoverBorderColor: var(--alg-knop-hover) !important;
+  --successBackgroundColor: var(--alg-ok-vlak) !important;
+  --successBorderColor: var(--alg-ok-vlak) !important;
+  --successHoverBackgroundColor: #468a5b !important; --successHoverBorderColor: #468a5b !important;
+  --dangerBackgroundColor: var(--alg-fout-vlak) !important;
+  --dangerBorderColor: var(--alg-fout-vlak) !important;
+  --dangerHoverBackgroundColor: #b55353 !important; --dangerHoverBorderColor: #b55353 !important;
+  --warningBackgroundColor: #9a5b12 !important; --warningBorderColor: #9a5b12 !important;
+  --warningHoverBackgroundColor: #a86516 !important; --warningHoverBorderColor: #a86516 !important;
+  --modalBackgroundColor: #1c1c1c !important; --menuItemHoverColor: #fff !important;
+  --menuItemHoverBackgroundColor: #3a3a3a !important; --scrollbarBackgroundColor: #555 !important;
+  --scrollbarHoverBackgroundColor: #777 !important;
+  --cardBackgroundColor: var(--alg-glas) !important;
+  --cardShadowColor: rgba(0, 0, 0, .5) !important;
+  --cardAlternateBackgroundColor: rgba(255, 255, 255, .04) !important;
+  --cardCenterBackgroundColor: #1c1c1c !important;
+  --alertDangerBorderColor: var(--alg-fout-rand) !important;
+  --alertDangerBackgroundColor: var(--alg-fout-tint) !important;
+  --alertDangerColor: var(--alg-fout) !important;
+  --alertInfoBorderColor: var(--alg-info-rand) !important;
+  --alertInfoBackgroundColor: var(--alg-info-tint) !important;
+  --alertInfoColor: var(--alg-info) !important;
+  --alertSuccessBorderColor: var(--alg-ok-rand) !important;
+  --alertSuccessBackgroundColor: var(--alg-ok-tint) !important;
+  --alertSuccessColor: var(--alg-ok) !important;
+  --alertWarningBorderColor: var(--alg-waarschuwing-rand) !important;
+  --alertWarningBackgroundColor: var(--alg-waarschuwing-tint) !important;
+  --alertWarningColor: var(--alg-waarschuwing) !important;
+  --inputBackgroundColor: var(--alg-veld) !important;
+  --inputReadOnlyBackgroundColor: #1a1a1a !important;
+  --inputHoverBackgroundColor: rgba(255, 255, 255, .12) !important;
+  --inputSelectedBackgroundColor: rgba(255, 255, 255, .05) !important;
+  --linkColor: var(--alg-link) !important; --linkHoverColor: #fff !important;
+  --helpTextColor: var(--alg-gedempt) !important; --popoverTitleBackgroundColor: #2a2a2a !important;
+  --popoverTitleBorderColor: #1c1c1c !important; --popoverBodyBackgroundColor: #1c1c1c !important;
+  --popoverArrowBorderColor: #1c1c1c !important;
+  --popoverTitleBackgroundInverseColor: #3a3a3a !important;
+  --popoverTitleBorderInverseColor: #555 !important;
+  --popoverArrowBorderInverseColor: rgba(40, 40, 40, .75) !important;
+  --tableRowHoverBackgroundColor: var(--alg-rij-hover) !important;
+  --addSeriesBackgroundColor: rgba(255, 255, 255, .04) !important;
+  --seriesBackgroundColor: rgba(255, 255, 255, .04) !important;
+  --searchIconContainerBackgroundColor: #1c1c1c !important;
+  --collapseButtonBackgroundColor: #1c1c1c !important;
+  --seasonBackgroundColor: rgba(255, 255, 255, .05) !important;
+  --episodesBackgroundColor: rgba(255, 255, 255, .03) !important;
+  --progressBarBackTextColor: #fff !important; --progressBarBackgroundColor: #3a3a3a !important;
+  --logEventsBackgroundColor: #1c1c1c !important;
+  --calendarTodayBackgroundColor: #3a3a3a !important; --calendarBackgroundColor: #1c1c1c !important;
+  --calendarBorderColor: #333 !important;
+  /* actief menu-item in de zijbalk (alleen daar gebruikt) */
+  --themeAlternateBlue: var(--alg-tekst-sterk) !important;
+  /* aparte loginpagina (statische html met eigen variabelen) */
+  --panelBackground: var(--alg-glas) !important; --forgotPasswordColor: var(--alg-link) !important;
+  --forgotPasswordAltColor: var(--alg-link-hover) !important; --failedColor: var(--alg-fout) !important;
+  /* naar het donkere thema van de *arr-apps */
+  --successColor: #00853d !important; --infoColor: #5d9cec !important;
+  --disabledLabelColor: #838383 !important; --toolbarLabelColor: #e1e2e3 !important;
+  --colorImpairedGradient: #707070 !important; --colorImpairedGradientDark: #424242 !important;
+  --calendarTextDim: #eee !important; --calendarTextDimAlternate: #fff !important;
+}
+
+/* ---------- Dialogen (modals): glas met ronde hoeken ---------------------- */
+/* rand als schaduwring (geen border: die zou de maat met 1px veranderen) */
+html:has(> head > meta[name="description"]:is([content="Sonarr"], [content="Radarr"], [content="Prowlarr"], [content="Lidarr"], [content="Readarr"], [content="Whisparr"])) [class*="ModalContent-modalContent"] {
+  background-color: var(--alg-glas-sterk) !important;
+  border-radius: var(--alg-radius-groot);
+  box-shadow: 0 0 0 1px var(--alg-rand-sterk), var(--alg-schaduw);
+  -webkit-backdrop-filter: var(--alg-blur);
+  backdrop-filter: var(--alg-blur);
+}
+
+/* ---------- Koppen van formuliersecties: zachte lijn i.p.v. bijna wit ---- */
+html:has(> head > meta[name="description"]:is([content="Sonarr"], [content="Radarr"], [content="Prowlarr"], [content="Lidarr"], [content="Readarr"], [content="Whisparr"])) [class*="FieldSet-legend"] {
+  border-bottom-color: var(--alg-rand-sterk) !important;
+  color: var(--alg-tekst-sterk);
+}
+
+/* ---------- Vinkjes: donker vak i.p.v. wit, aangevinkt in knopgrijs ----- */
+html:has(> head > meta[name="description"]:is([content="Sonarr"], [content="Radarr"], [content="Prowlarr"], [content="Lidarr"], [content="Readarr"], [content="Whisparr"])) [class*="CheckInput-isNotChecked"] {
+  background-color: var(--alg-veld) !important;
+  border-color: rgba(255, 255, 255, .35) !important;
+}
+
+html:has(> head > meta[name="description"]:is([content="Sonarr"], [content="Radarr"], [content="Prowlarr"], [content="Lidarr"], [content="Readarr"], [content="Whisparr"])) [class*="CheckInput-primaryIsChecked"] {
+  background-color: var(--alg-knop) !important;
+  border-color: var(--alg-accent-kleur) !important;
+}
+
+/* ---------- Zijbalk: subitems iets kleiner ------------------------------ */
+/* monospace is breder: "Media Management" en "Download Clients" liepen
+   anders over twee regels */
+html:has(> head > meta[name="description"]:is([content="Sonarr"], [content="Radarr"], [content="Prowlarr"], [content="Lidarr"], [content="Readarr"], [content="Whisparr"])) [class*="PageSidebarItem-childLink"] {
+  font-size: 13px;
+}
+
+/* ---------- Loginpagina (statische html, eigen klassen) ------------------ */
+html:has(> head > meta[name="description"]:is([content="Sonarr"], [content="Radarr"], [content="Prowlarr"], [content="Lidarr"], [content="Readarr"], [content="Whisparr"])) body > .center .panel {
+  border-radius: var(--alg-radius-groot);
+  box-shadow: 0 0 0 1px var(--alg-rand-sterk), var(--alg-schaduw);
+}
+
+html:has(> head > meta[name="description"]:is([content="Sonarr"], [content="Radarr"], [content="Prowlarr"], [content="Lidarr"], [content="Readarr"], [content="Whisparr"])) body > .center .panel-header {
+  background-color: rgba(255, 255, 255, .04);
+  border-bottom: 1px solid var(--alg-rand);
+  border-radius: var(--alg-radius-groot) var(--alg-radius-groot) 0 0;
+}
+
+html:has(> head > meta[name="description"]:is([content="Sonarr"], [content="Radarr"], [content="Prowlarr"], [content="Lidarr"], [content="Readarr"], [content="Whisparr"])) body > .center .panel-body {
+  border-radius: 0 0 var(--alg-radius-groot) var(--alg-radius-groot);
+}
+
+html:has(> head > meta[name="description"]:is([content="Sonarr"], [content="Radarr"], [content="Prowlarr"], [content="Lidarr"], [content="Readarr"], [content="Whisparr"])) body > .center :is(.form-input, .button) {
+  border-radius: var(--alg-radius);
+}
+
+html:has(> head > meta[name="description"]:is([content="Sonarr"], [content="Radarr"], [content="Prowlarr"], [content="Lidarr"], [content="Readarr"], [content="Whisparr"])) body > .center .button {
+  font-weight: 700;
+}
+
+html:has(> head > meta[name="description"]:is([content="Sonarr"], [content="Radarr"], [content="Prowlarr"], [content="Lidarr"], [content="Readarr"], [content="Whisparr"])) body > .center .button:hover {
+  box-shadow: var(--alg-gloed);
+}
+
+/* "Remember Me" en "Forgot your password?" raakten elkaar in monospace */
+html:has(> head > meta[name="description"]:is([content="Sonarr"], [content="Radarr"], [content="Prowlarr"], [content="Lidarr"], [content="Readarr"], [content="Whisparr"])) body > .center .remember-me {
+  font-size: 13px;
+}
+
+html:has(> head > meta[name="description"]:is([content="Sonarr"], [content="Radarr"], [content="Prowlarr"], [content="Lidarr"], [content="Readarr"], [content="Whisparr"])) body > .center .forgot-password {
+  font-size: 12px;
+}
+
+/* ---------- Zijbalk: actief subitem duidelijk -------------------------- */
+/* --themeAlternateBlue (wit) alleen gaf #fff tegen #e1e1e1: niet te zien
+   op welke pagina je bent. Een vlak en vet (de groep heeft links al een
+   witte streep van de app). */
+html:has(> head > meta[name="description"]:is([content="Sonarr"], [content="Radarr"], [content="Prowlarr"], [content="Lidarr"], [content="Readarr"], [content="Whisparr"])) [class*="PageSidebarItem-isActiveLink"] {
+  background-color: var(--alg-rij-actief) !important;
+  font-weight: 700;
+}
+
+/* ---------- Pagina-inhoud op licht glas -------------------------------- */
+/* formulieren, tabellen en lege staten stonden rechtstreeks op het netwerk;
+   halfdoorzichtig glas houdt ze rustig, het netwerk blijft zwak zichtbaar */
+html:has(> head > meta[name="description"]:is([content="Sonarr"], [content="Radarr"], [content="Prowlarr"], [content="Lidarr"], [content="Readarr"], [content="Whisparr"])) [class*="PageContentBody-contentBody"] {
+  background-color: rgba(12, 12, 12, .6);
+}
+

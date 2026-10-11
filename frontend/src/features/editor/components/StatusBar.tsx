@@ -1,12 +1,14 @@
-import type { ReactNode } from "react";
+import { type ReactNode, useMemo, useSyncExternalStore } from "react";
 import type { LintResult } from "@/api/types";
 import { Button } from "@/components/ui";
+import { useMeta } from "@/features/themes/hooks/use-meta";
 import { apiErrorText } from "@/features/themes/lib/errors";
 import { useI18n } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
 import type { DraftSession, SaveState } from "../autosave/draft-session";
 import { useSessionValue } from "../autosave/sessions";
-import { formatBytes, utf8Length } from "../lib/format";
+import { createByteCounter, type SizeTone, sizeTone } from "../lib/css-size";
+import { formatBytes } from "../lib/format";
 import { type SaveStatusView, saveStatusView } from "../lib/save-status";
 import { lintCounts } from "../lint-markers";
 import type { CursorPosition } from "./CodeEditor";
@@ -21,9 +23,23 @@ const toneClass: Record<SaveStatusView["tone"], string> = {
   busy: "text-muted",
 };
 
-function Cell({ children, className }: { children: ReactNode; className?: string }) {
+/** Grootte: gewoon grijs, pas boven 90 % van de limiet gekleurd. */
+const sizeToneClass: Record<SizeTone, string> = { ok: "", mid: "text-mid", err: "text-err" };
+
+function Cell({
+  children,
+  className,
+  title,
+}: {
+  children: ReactNode;
+  className?: string;
+  title?: string;
+}) {
   return (
-    <span className={cn("inline-flex items-center gap-1 px-2 whitespace-nowrap", className)}>
+    <span
+      title={title}
+      className={cn("inline-flex items-center gap-1 px-2 whitespace-nowrap", className)}
+    >
       {children}
     </span>
   );
@@ -44,7 +60,7 @@ export interface StatusBarProps {
 
 /**
  * Statusbalk onder de editor (docs/04 § 3.2): autosave-toestand, fouten en waarschuwingen
- * (klik = probleempaneel), grootte, cursorpositie, taal en gekoppeld palet.
+ * (klik = probleempaneel), grootte t.o.v. de limiet van de server, cursorpositie, taal en gekoppeld palet.
  */
 export function StatusBar({
   session,
@@ -60,7 +76,9 @@ export function StatusBar({
   const i18n = useI18n();
   const { t, tc, locale } = i18n;
   const state = useSessionValue<SaveState>(session, (snapshot) => snapshot.state, IDLE);
-  const bytes = useSessionValue(session, (snapshot) => utf8Length(snapshot.css), 0);
+  const counter = useMemo(() => createByteCounter(session), [session]);
+  const bytes = useSyncExternalStore(counter.subscribe, counter.getBytes);
+  const maxBytes = useMeta().data?.css_max_bytes;
   const view = saveStatusView(state, locale);
   const counts = lintCounts(lint);
   const actionKey =
@@ -124,7 +142,22 @@ export function StatusBar({
       <span aria-hidden className="text-line-strong">
         │
       </span>
-      <Cell>{formatBytes(bytes, locale)}</Cell>
+      {maxBytes ? (
+        <Cell
+          className={sizeToneClass[sizeTone(bytes, maxBytes)]}
+          title={t("editor.sizeTitle", {
+            percent: Math.round((bytes / maxBytes) * 100),
+            limit: formatBytes(maxBytes, locale),
+          })}
+        >
+          {t("editor.sizeOfLimit", {
+            size: formatBytes(bytes, locale),
+            limit: formatBytes(maxBytes, locale),
+          })}
+        </Cell>
+      ) : (
+        <Cell>{formatBytes(bytes, locale)}</Cell>
+      )}
       {cursor && (
         <Cell>{t("editor.cursorPosition", { line: cursor.line, column: cursor.column })}</Cell>
       )}

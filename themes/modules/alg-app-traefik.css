@@ -1,0 +1,200 @@
+/* alg-app-traefik.css - gegenereerd uit algemeen.css door scripts/themes/modules.py;
+   niet met de hand aanpassen. Laadt na alg-kern.css (zie themes/README.md). */
+/* ==========================================================================
+   60 TRAEFIK (dashboard v3, Faency/Stitches met gehashte klassen)
+   Herkenning: meta-beschrijving "Traefik Proxy". Traefik zet zijn thema als
+   klasse .light of .dark op html met --colors-* variabelen. Wij zetten die op
+   html met hogere specificiteit, dus beide modi krijgen onze kleuren.
+   Kaarten en zijbalk gebruiken --colors-01dp (Stitches-variant
+   "elevation-1"); dat wordt glas. Klassen zijn gehasht, dus alleen
+   [class*="-elevation-1"] als selector (de variantnaam blijft gelijk).
+   Getest met traefik v3.7.13: dashboard, routers, router, middlewares,
+   zoeken.
+   ========================================================================== */
+
+html:has(> head > meta[name="description"][content="Traefik Proxy"]) {
+  color-scheme: dark;
+  /* lettertype: Faency zet alles via --fonts-rubik; het versienummer naast
+     het logo wordt (ook zonder thema) afgekapt met "..." */
+  --fonts-rubik: var(--alg-font);
+  /* betekenisvolle kleuren in onze stijl (tooltip: vlak = primair, dus donkere tekst) */
+  --colors-tooltipText: #111;
+  --colors-cardBackground: var(--alg-glas); --colors-cardHoverBackground: rgba(255, 255, 255, .12);
+  --colors-cardActiveBackground: rgba(255, 255, 255, .07);
+  --colors-cardActiveBorder: rgba(170, 170, 170, .5);
+  --colors-innerCardBgColor: rgba(255, 255, 255, .07); --colors-panelShadowLight: rgba(0, 0, 0, .3);
+  --colors-cardShadow: transparent; --colors-cardGhostBackground: rgba(255, 255, 255, .03);
+  --colors-00dp: #0e0e0e; --colors-02dp: #1a1a1a; --colors-03dp: #1e1e1e;
+  --colors-04dp: #222; --colors-05dp: #262626;
+  --colors-01dp: var(--alg-glas); --colors-primary: #aaa; --colors-hiContrast: #fff;
+  --colors-loContrast: #181818; --colors-divider: rgba(255, 255, 255, .1);
+  --colors-textDefault: var(--alg-tekst); --colors-textSubtle: var(--alg-gedempt);
+  --colors-textContrast: #fff; --colors-headingDefault: #e6e6e6; --colors-inputBg: var(--alg-veld);
+  --colors-inputFocusBorder: #aaa; --colors-inputHoverBg: rgba(255, 255, 255, .06);
+  --colors-inputText: #eee; --colors-inputPlaceholder: var(--alg-placeholder);
+  --colors-inputDisabledText: rgba(255, 255, 255, .35); --colors-textareaBg: var(--alg-veld);
+  --colors-textareaFocusBorder: #aaa; --colors-textareaHoverBg: rgba(255, 255, 255, .06);
+  --colors-textareaText: #eee; --colors-textareaPlaceholder: var(--alg-placeholder);
+  --colors-textareaDisabledText: rgba(255, 255, 255, .35); --colors-selectBg: var(--alg-veld);
+  --colors-selectFocusBorder: #aaa; --colors-selectHoverBg: rgba(255, 255, 255, .06);
+  --colors-selectText: #eee; --colors-selectPlaceholder: var(--alg-placeholder);
+  --colors-selectDisabledText: rgba(255, 255, 255, .35);
+  --colors-accordionBackground: var(--alg-glas);
+  --colors-accordionHoverShadow: rgba(255, 255, 255, .05);
+  --colors-accordionActiveShadow: rgba(255, 255, 255, .2); --colors-accordionText: var(--alg-tekst);
+  --colors-accordionLabel: var(--alg-gedempt); --colors-buttonPrimaryText: #111;
+  --colors-buttonPrimaryFocusBorder: #fff; --colors-buttonPrimaryGhostHoverText: #fff;
+  --colors-buttonSecondaryText: #ddd; --colors-buttonSecondaryFocusBorder: #aaa;
+  --colors-buttonRedBg: var(--alg-fout-vlak); --colors-buttonRedText: #fff;
+  --colors-buttonRedFocusBg: #b85555; --colors-buttonSwitchActiveColor: #181818;
+  --colors-iconButtonBackground: #181818; --colors-iconButtonHoverBorder: #555;
+  --colors-iconButtonHoverBackground: rgba(255, 255, 255, .08);
+  --colors-iconButtonFocusBorder: #777; --colors-switchBackground: rgba(255, 255, 255, .2);
+  --colors-switchFocusBorder: #aaa; --colors-switchThumb: rgba(0, 0, 0, .87);
+  --colors-checkboxIcon: #181818; --colors-checkboxBorder: #777; --colors-checkboxCheckedIcon: #111;
+  --colors-checkboxCheckedHoverBg: #c0c0c0; --colors-checkboxHoverBg: #262626;
+  --colors-checkboxDisabledBg: rgba(170, 170, 170, .5);
+  --colors-checkboxDisabledBorder: transparent; --colors-checkboxIndicatorDisabledBg: #181818;
+  --colors-radioHoverBg: #262626; --colors-radioDisabledBorder: #444;
+  --colors-linkBlueTextDecoration: #777; --colors-linkSubtle: #999;
+  --colors-linkSubtleTextDecoration: #555; --colors-linkSubtleHoverTextDecoration: #777;
+  --colors-linkSubtleFocusOutline: #444; --colors-linkPrimary: var(--alg-link);
+  --colors-linkPrimaryTextDecoration: #888; --colors-linkPrimaryHoverTextDecoration: #ccc;
+  --colors-linkPrimaryFocusOutline: #aaa; --colors-listItemHoverBg: var(--alg-rij-hover);
+  --colors-listItemActiveBg: var(--alg-rij-actief); --colors-listItemFocusBorder: #aaa;
+  --colors-tableText: var(--alg-tekst); --colors-tableSubtleText: var(--alg-gedempt);
+  --colors-tableHeaderLayerBackground: rgba(255, 255, 255, .03);
+  --colors-tableFooterLayerBackground: rgba(255, 255, 255, .03);
+  --colors-tableHeaderText: var(--alg-gedempt); --colors-tableFooterText: var(--alg-gedempt);
+  --colors-tableHoverBackground: rgba(255, 255, 255, .05); --colors-tableHoverText: #eee;
+  --colors-tableActiveText: #fff; --colors-tableRowBorder: rgba(255, 255, 255, .06);
+  --colors-skeletonBackground: #222; --colors-skeletonAnimation: #2a2a2a;
+  --colors-dialogBackground: #1c1c1c; --colors-sidePanelBackground: #1c1c1c;
+  --colors-navButtonHoverBg: rgba(255, 255, 255, .05);
+  --colors-navButtonHoverBg2: var(--colors-primary); --colors-navButtonFocusBorder: #aaa;
+  --colors-navButtonActiveBg: rgba(255, 255, 255, .09);
+  --colors-navButtonActiveBg2: var(--colors-primary); --colors-navButtonText: var(--alg-tekst);
+  --colors-navButtonHoverText: #fff; --colors-navButtonFocusText: #fff;
+  --colors-badgeInteractiveBackgroundHover: rgba(255, 255, 255, .1);
+  --colors-badgeInteractiveBackgroundActive: rgba(255, 255, 255, .2);
+
+  /* naar Traefik's eigen donkere thema: kleurschalen voor badges en status */
+  --colors-gray1: hsl(0, 0%, 9.5%); --colors-gray2: hsl(0, 0%, 10.5%);
+  --colors-gray3: hsl(0, 0%, 15.8%); --colors-gray4: hsl(0, 0%, 18.9%);
+  --colors-gray5: hsl(0, 0%, 21.7%); --colors-gray6: hsl(0, 0%, 24.7%);
+  --colors-gray7: hsl(0, 0%, 29.1%); --colors-gray8: hsl(0, 0%, 37.5%);
+  --colors-gray9: hsl(0, 0%, 43.0%);
+  /* gray10 is tekst op gray6 in grijze badges: lichter voor 5:1 (was 50.7%) */
+  --colors-gray10: hsl(0, 0%, 70%);
+  --colors-gray11: hsl(0, 0%, 69.5%); --colors-gray12: hsl(0, 0%, 93.5%);
+  --colors-grayA1: hsla(0, 0%, 100%, 0); --colors-grayA2: hsla(0, 0%, 100%, 0.013);
+  --colors-grayA3: hsla(0, 0%, 100%, 0.069); --colors-grayA4: hsla(0, 0%, 100%, 0.104);
+  --colors-grayA5: hsla(0, 0%, 100%, 0.134); --colors-grayA6: hsla(0, 0%, 100%, 0.169);
+  --colors-grayA7: hsla(0, 0%, 100%, 0.216); --colors-grayA8: hsla(0, 0%, 100%, 0.312);
+  --colors-grayA9: hsla(0, 0%, 100%, 0.372); --colors-grayA10: hsla(0, 0%, 100%, 0.455);
+  --colors-grayA11: hsla(0, 0%, 100%, 0.662); --colors-grayA12: hsla(0, 0%, 100%, 0.926);
+  --colors-blue1: hsl(212, 35.0%, 9.2%); --colors-blue2: hsl(216, 50.0%, 11.8%);
+  --colors-blue3: hsl(214, 57.6%, 15.6%); --colors-blue4: hsl(214, 62.3%, 18.4%);
+  --colors-blue5: hsl(213, 66.6%, 21.1%); --colors-blue6: hsl(212, 72.6%, 25.2%);
+  --colors-blue7: hsl(211, 81.3%, 32.4%); --colors-blue8: hsl(211, 85.2%, 47.8%);
+  --colors-blue10: var(--alg-info); --colors-blue11: hsl(205, 100%, 71.0%);
+  --colors-blue12: hsl(205, 100%, 88.0%); --colors-blueA1: hsla(240, 100%, 49.5%, 0.035);
+  --colors-blueA2: hsla(227, 100%, 50.0%, 0.091); --colors-blueA3: hsla(216, 100%, 50.0%, 0.169);
+  --colors-blueA4: hsla(214, 100%, 49.8%, 0.226); --colors-blueA5: hsla(213, 99.8%, 50.5%, 0.286);
+  --colors-blueA6: hsla(212, 99.8%, 51.5%, 0.377); --colors-blueA7: hsla(211, 99.8%, 51.4%, 0.546);
+  --colors-blueA8: hsla(211, 99.9%, 53.3%, 0.875); --colors-blueA10: hsla(206, 100%, 61.8%, 1);
+  --colors-blueA11: hsla(205, 100%, 71.0%, 1); --colors-blueA12: hsla(206, 100%, 88.0%, 1);
+  --colors-green1: hsl(146, 30.0%, 7.4%); --colors-green2: hsl(154, 31.8%, 8.6%);
+  --colors-green3: hsl(154, 37.6%, 11.5%); --colors-green4: hsl(154, 41.0%, 13.6%);
+  --colors-green5: hsl(154, 43.7%, 15.7%); --colors-green6: hsl(154, 46.7%, 18.7%);
+  --colors-green7: hsl(153, 50.3%, 24.4%); --colors-green8: hsl(151, 52.2%, 36.1%);
+  /* stap 10 is tekst en rand op stap 6 in gekleurde badges: lichter (ok-kleur) */
+  --colors-green10: var(--alg-ok); --colors-green11: hsl(151, 65.0%, 54.0%);
+  --colors-green12: hsl(144, 70.0%, 82.0%); --colors-greenA1: hsla(120, 100%, 43.9%, 0.005);
+  --colors-greenA2: hsla(120, 100%, 49.3%, 0.022); --colors-greenA3: hsla(149, 100%, 49.5%, 0.070);
+  --colors-greenA4: hsla(154, 100%, 49.7%, 0.109); --colors-greenA5: hsla(153, 98.9%, 53.1%, 0.148);
+  --colors-greenA6: hsla(155, 99.1%, 55.5%, 0.200);
+  --colors-greenA7: hsla(152, 99.3%, 59.1%, 0.304);
+  --colors-greenA8: hsla(151, 99.6%, 62.4%, 0.503);
+  --colors-greenA9: hsla(151, 99.6%, 62.4%, 0.607);
+  --colors-greenA10: hsla(151, 100%, 62.9%, 0.697);
+  --colors-greenA11: hsla(151, 99.9%, 63.5%, 0.823);
+  --colors-greenA12: hsla(144, 99.6%, 86.6%, 0.940); --colors-slate1: hsl(240, 5.0%, 9.8%);
+  --colors-slate2: hsl(240, 6.9%, 11.4%); --colors-slate3: hsl(227, 6.7%, 16.4%);
+  --colors-slate4: hsl(222, 6.6%, 19.4%); --colors-slate5: hsl(218, 6.5%, 22.1%);
+  --colors-slate6: hsl(214, 6.4%, 25.1%); --colors-slate7: hsl(209, 6.2%, 29.4%);
+  --colors-slate8: hsl(202, 5.8%, 37.5%); --colors-slate9: hsl(220, 6.0%, 44.0%);
+  --colors-slate10: hsl(218, 5.3%, 51.5%); --colors-slate11: hsl(220, 7.0%, 70.0%);
+  --colors-slate12: hsl(220, 7.0%, 93.5%); --colors-slateA1: hsla(240, 92.7%, 53.0%, 0.009);
+  --colors-slateA2: hsla(240, 92.5%, 72.7%, 0.031);
+  --colors-slateA3: hsla(230, 99.3%, 87.0%, 0.091);
+  --colors-slateA4: hsla(223, 97.1%, 88.8%, 0.126);
+  --colors-slateA5: hsla(223, 99.0%, 91.1%, 0.156);
+  --colors-slateA6: hsla(218, 97.1%, 91.5%, 0.191);
+  --colors-slateA7: hsla(210, 97.4%, 91.7%, 0.243);
+  --colors-slateA8: hsla(202, 97.3%, 93.4%, 0.334);
+  --colors-slateA9: hsla(219, 97.6%, 93.2%, 0.412);
+  --colors-slateA10: hsla(217, 98.3%, 94.7%, 0.494);
+  --colors-slateA11: hsla(218, 98.5%, 96.8%, 0.693);
+  --colors-slateA12: hsla(220, 87.4%, 99.3%, 0.936); --colors-purple1: hsl(284, 20.0%, 9.6%);
+  --colors-purple2: hsl(284, 31.1%, 12.0%); --colors-purple3: hsl(282, 35.1%, 16.8%);
+  --colors-purple4: hsl(281, 36.9%, 20.1%); --colors-purple5: hsl(280, 38.1%, 23.0%);
+  --colors-purple6: hsl(278, 39.5%, 27.3%); --colors-purple7: hsl(276, 41.1%, 35.1%);
+  --colors-purple8: hsl(272, 42.7%, 50.0%); --colors-purple10: hsl(270, 90.0%, 80.0%);
+  --colors-purple11: hsl(270, 90.0%, 78.0%); --colors-purple12: hsl(275, 75.0%, 91.5%);
+  --colors-purpleA1: hsla(278, 100%, 49.3%, 0.022);
+  --colors-purpleA2: hsla(283, 100%, 49.5%, 0.070);
+  --colors-purpleA3: hsla(282, 98.8%, 59.8%, 0.148);
+  --colors-purpleA4: hsla(281, 99.0%, 62.4%, 0.200);
+  --colors-purpleA5: hsla(280, 99.7%, 64.2%, 0.247);
+  --colors-purpleA6: hsla(278, 99.2%, 65.7%, 0.317);
+  --colors-purpleA7: hsla(276, 99.7%, 67.5%, 0.442);
+  --colors-purpleA8: hsla(272, 100%, 68.8%, 0.684);
+  --colors-purpleA9: hsla(272, 99.7%, 68.7%, 0.754);
+  --colors-purpleA10: hsla(271, 99.7%, 72.6%, 0.819);
+  --colors-purpleA11: hsla(270, 99.6%, 79.6%, 0.975);
+  --colors-purpleA12: hsla(275, 99.1%, 93.3%, 0.979); --colors-orange1: hsl(35 100% 7.2%);
+  --colors-orange2: hsl(35 100% 8.0%); --colors-orange3: hsl(34 87.5% 11.4%);
+  --colors-orange4: hsl(33 84.1% 14.0%); --colors-orange5: hsl(33 83.6% 16.6%);
+  --colors-orange6: hsl(33 85.7% 19.8%); --colors-orange7: hsl(34 91.5% 23.9%);
+  --colors-orange8: hsl(35 100% 29.0%); --colors-orange10: hsl(35, 100%, 50.0%);
+  --colors-orange11: hsl(35 100% 62.2%); --colors-orange12: hsl(24 97.0% 93.2%);
+  --colors-orangeA1: hsl(0 0% 100% / 0); --colors-orangeA2: hsl(30 100% 50.2% / 0.064);
+  --colors-orangeA3: hsl(33 100% 50.2% / 0.116); --colors-orangeA4: hsl(33 100% 50.2% / 0.176);
+  --colors-orangeA5: hsl(33 99.4% 14.4% / 0.973); --colors-orangeA6: hsl(33 99.5% 17.6% / 0.973);
+  --colors-orangeA7: hsl(34 100% 22.4% / 0.98); --colors-orangeA8: hsl(34 100% 28.6% / 0.98);
+  --colors-orangeA9: hsl(24 99.8% 48.4% / 0.969); --colors-orangeA10: hsl(35 100% 50% / 0.98);
+  --colors-orangeA11: hsl(36 100% 62.4% / 0.98); --colors-orangeA12: hsl(26 100% 94.2% / 0.98);
+  --colors-red1: hsl(347 23.0% 10.0%); --colors-red2: hsl(346 34.4% 12.0%);
+  --colors-red3: hsl(345 42.6% 16.5%); --colors-red4: hsl(345 46.5% 19.3%);
+  --colors-red5: hsl(346 49.9% 22.1%); --colors-red6: hsl(346 53.9% 26.2%);
+  --colors-red7: hsl(346 59.0% 32.3%); --colors-red8: hsl(347 64.8% 41.2%);
+  --colors-red10: hsl(347, 100%, 78%); --colors-red11: hsl(347 100% 72.0%);
+  --colors-red12: hsl(347 100% 98.0%); --colors-redA1: hsl(0 0% 0% / 0);
+  --colors-redA2: hsl(342 98.5% 53.6% / 0.045); --colors-redA3: hsl(344 99.1% 59.8% / 0.130);
+  --colors-redA4: hsl(343 98.8% 60.1% / 0.184); --colors-redA5: hsl(346 99.6% 60.5% / 0.237);
+  --colors-redA6: hsl(345 99.6% 60.5% / 0.322); --colors-redA7: hsl(346 99.7% 60.0% / 0.447);
+  --colors-redA8: hsl(347 100% 59.2% / 0.634); --colors-redA9: hsl(347 100% 60.1% / 0.980);
+  --colors-redA10: hsl(347 100% 67.3% / 0.980); --colors-redA11: hsl(347 100% 72.3% / 0.980);
+  --colors-redA12: hsl(338 100% 98.9% / 0.980);
+}
+
+/* kaarten: glas met dunne lichte rand (als schaduwring: geen verschuiving)
+   en de grote radius; de zijbalk (een Flex met variant direction) blijft
+   een vlak paneel met alleen een lijn rechts */
+html:has(> head > meta[name="description"][content="Traefik Proxy"]) [class*="-elevation-1"]:not([class*="-direction-"]) {
+  border-radius: var(--alg-radius-groot) !important;
+  box-shadow: inset 0 0 0 1px var(--alg-rand), var(--alg-schaduw-midden) !important;
+}
+
+html:has(> head > meta[name="description"][content="Traefik Proxy"]) [class*="-elevation-1"][class*="-direction-"] {
+  box-shadow: inset -1px 0 0 var(--alg-rand) !important;
+}
+
+/* logo in de zijbalk: inline svg met het woord "traefik proxy" in vast
+   zwart (fill="#000", voor licht; Traefiks eigen donkere modus wisselt de
+   svg via JS). Inline svg, geen afbeelding: alleen dat zwart wordt wit. */
+html:has(> head > meta[name="description"][content="Traefik Proxy"]) svg[viewBox="0 0 280 108"] :is(path, g)[fill="#000"] {
+  fill: var(--alg-tekst-sterk);
+}
+

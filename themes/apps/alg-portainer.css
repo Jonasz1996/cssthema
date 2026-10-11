@@ -1,0 +1,43 @@
+/* ==========================================================================
+   alg-portainer.css - Portainer CE 2.4x (AngularJS + React, BS3 + Tailwind)
+   Host: portainer.jbogaert.be
+   Laadt NA algemeen.css. Dat heeft al een uitgebreid, getest Portainer-deel
+   (variabelen, gespiegeld donker thema, zijbalk, widgets, knoppen, editor);
+   hier alleen de afwerking van het loginscherm.
+
+   Wat het afwerkt:
+   - loginkaart (.simple-box .panel) als glazen paneel: grote radius,
+     vervaging, schaduw, iets sterkere rand
+   - titel "Log in to your account" in sterke tekst, oogknop gedempt
+
+   Beperkingen: alleen het loginscherm vastgelegd; het hoofdscherm laat dit
+   bestand aan algemeen.css over.
+   CSP: Portainer stuurt script-src zonder css.jbogaert.be (geen style-src):
+   de stylesheet laadt, alleen algemeen.js niet (zonder /alg-thema/-omweg).
+   ========================================================================== */
+
+[ng-app="portainer"] .simple-box .panel {
+  border-color: var(--alg-rand-sterk) !important;
+  border-radius: var(--alg-radius-groot);
+  box-shadow: var(--alg-schaduw);
+  -webkit-backdrop-filter: var(--alg-blur);
+  backdrop-filter: var(--alg-blur);
+}
+
+[ng-app="portainer"] .simple-box .panel-body {
+  background-color: transparent !important;
+  border-radius: var(--alg-radius-groot);
+}
+
+[ng-app="portainer"] .simple-box p.text-xl {
+  color: var(--alg-tekst-sterk);
+}
+
+/* oogknop in het wachtwoordveld */
+[ng-app="portainer"] .simple-box-form button.absolute {
+  color: var(--alg-gedempt);
+}
+
+[ng-app="portainer"] .simple-box-form button.absolute:hover {
+  color: var(--alg-tekst-sterk);
+}

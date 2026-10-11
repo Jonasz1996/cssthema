@@ -4,7 +4,8 @@ import { loadBridge, type PreviewBridge } from "./bridge";
 export type BridgeState =
   | { status: "loading" }
   | { status: "ready"; bridge: PreviewBridge }
-  | { status: "error"; message: string };
+  /** `error`: de oorspronkelijke fout (zie `previewErrorText`). */
+  | { status: "error"; error: unknown };
 
 /** Laadt `/preview-bridge.js` (één keer per pagina); `retry` probeert opnieuw na een fout. */
 export function useBridge(): { state: BridgeState; retry: () => void } {
@@ -19,10 +20,7 @@ export function useBridge(): { state: BridgeState; retry: () => void } {
       },
       (error: unknown) => {
         if (!cancelled) {
-          setState({
-            status: "error",
-            message: error instanceof Error ? error.message : String(error),
-          });
+          setState({ status: "error", error });
         }
       },
     );

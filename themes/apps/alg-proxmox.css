@@ -1,0 +1,139 @@
+/* ==========================================================================
+   alg-proxmox.css - Proxmox VE (ExtJS 7 crisp + proxmox-widget-toolkit)
+   Hosts: proxmox100.jbogaert.be, proxmox150.jbogaert.be,
+          proxmox200.jbogaert.be (Pxvirt, de Proxmox-port voor Raspberry Pi)
+   Laadt NA algemeen.css.
+
+   algemeen.css (deel 40 EXTJS) doet al het grote werk: panelen, vensters,
+   rasters, bomen, knoppen, velden, menu's en de --pwt-grafiekkleuren. Dit
+   bestand werkt af wat daar niet in zit en uit Proxmox' eigen stylesheets
+   (ext6-pve.css en ext6-pmx.css van de widget-toolkit) komt:
+   - versietekst in de kop breekt niet meer af (monospace is breder);
+   - grijze (#555) actie-iconen en filtericoontjes in rasters worden licht;
+   - lichtblauwe gloed rond de statusbadges van VM's/CT's bij hover/selectie;
+   - tag-editor, Ceph-monitorkaders en OSD-tabel, journal/syslog-kleuren,
+     markdown-notities (codeblok, tabelrand, hover), install-masker;
+   - cloud-init-icoon in de hardwarelijst (zoals de andere hardware-iconen);
+   - statusklassen (good/warning/critical/info-blue) naar de statustokens.
+
+   Beperkingen: alleen de loginpagina is vastgelegd (en getest). Alle regels
+   voor het hoofdscherm komen uit de klassen in Proxmox' eigen CSS (die in de
+   vastlegging zat), maar zijn NIET getest op een ingelogd scherm.
+   Het vinkje "Save User name" en de boomiconen zijn een sprite/icoonfont en
+   ontbreken in de testrender (geen netwerk); live zijn ze er wel.
+   CSP: alleen frame-ancestors, css.jbogaert.be laadt gewoon.
+   ========================================================================== */
+
+/* ---------- Kop ---------------------------------------------------------- */
+/* "Virtual Environment 9.x" staat in een vak dat ExtJS op het oude lettertype
+   maat; in monospace brak de tekst af en viel de tweede regel weg */
+#versioninfo-innerCt {
+  white-space: nowrap;
+}
+
+/* ---------- Rasters: iconen ---------------------------------------------- */
+/* actie-iconen (bewerken, verwijderen, pijltjes) zijn #555 op donker */
+.x-body .x-action-col-icon::before,
+.x-body .x-grid-filters-filtered-column .x-column-header-text::after {
+  color: var(--alg-tekst);
+}
+
+.x-body .x-action-col-icon.good::before {
+  color: var(--alg-ok);
+}
+
+.x-body .x-action-col-icon.warning::before {
+  color: var(--alg-waarschuwing);
+}
+
+.x-body .x-action-col-icon.critical::before {
+  color: var(--alg-fout);
+}
+
+/* statusbadge (play, stop, slot) van VM's en containers: Proxmox geeft bij
+   hover en selectie een lichtblauwe gloed; algemeen.css zet het vlak al donker */
+:is(.x-grid-item-over, .x-grid-item-selected, .x-treelist-item-over, .x-treelist-item-selected)
+  :is(.lxc, .qemu)::after {
+  text-shadow: none !important;
+}
+
+/* cloud-init in de hardwarelijst: icoon is de celachtergrond, zoals cpu/ram
+   in algemeen.css (cel omkeren, tekst zwart = na het omkeren licht) */
+td.pve-itype-icon-cloud {
+  filter: invert(90%);
+}
+
+td.pve-itype-icon-cloud .x-grid-cell-inner {
+  color: #000 !important;
+}
+
+/* ---------- Statusklassen van de widget-toolkit -------------------------- */
+.x-body :is(i, span, div).good {
+  color: var(--alg-ok);
+}
+
+.x-body :is(i, span, div).warning:not(.x-progress) {
+  color: var(--alg-waarschuwing);
+}
+
+.x-body :is(i, span, div).critical:not(.x-progress) {
+  color: var(--alg-fout);
+}
+
+.x-body .info-blue,
+.x-body .pve-ceph-status-busy {
+  color: var(--alg-info) !important;
+}
+
+.x-body .faded {
+  color: var(--alg-zwak);
+}
+
+/* ---------- Tags, Ceph, installatie -------------------------------------- */
+.x-body .pve-edit-tag.editable span {
+  background-color: var(--alg-veld);
+  border-color: var(--alg-rand-sterk);
+  color: var(--alg-tekst-sterk);
+}
+
+.x-body div.monitor,
+.x-body table.osds tr,
+.x-body table.osds td {
+  border-color: var(--alg-rand-sterk);
+}
+
+.x-body .install-mask {
+  background-color: var(--alg-glas-sterk);
+  color: var(--alg-tekst);
+}
+
+/* ---------- Journal / syslog --------------------------------------------- */
+.x-body :is(.pmx-journal-prio-0, .pmx-journal-prio-1, .pmx-journal-prio-2, .pmx-journal-prio-3) {
+  color: var(--alg-fout);
+}
+
+.x-body .pmx-journal-prio-4 {
+  color: var(--alg-waarschuwing);
+}
+
+.x-body :is(.pmx-journal-prio-7, .pmx-journal-reboot) {
+  color: var(--alg-gedempt);
+}
+
+/* ---------- Markdown-notities (Summary > Notes) -------------------------- */
+.x-body .pmx-md pre code {
+  border-left-color: var(--alg-rand-hover);
+}
+
+.x-body .pmx-md blockquote {
+  border-left-color: var(--alg-rand-hover);
+}
+
+.x-body .pmx-md tbody td,
+.x-body .pmx-md tbody tr:last-of-type td {
+  border-bottom-color: var(--alg-rand-sterk);
+}
+
+.x-body .pmx-md tbody tr:hover td {
+  background-color: var(--alg-rij-hover);
+}

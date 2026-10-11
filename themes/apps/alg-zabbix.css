@@ -1,0 +1,187 @@
+/* ==========================================================================
+   alg-zabbix.css - Zabbix 7/8 (eigen frontend, thema "Dark")
+   Host: zabbix.jbogaert.be
+   Laadt NA algemeen.css.
+
+   Loginpagina: het grijze inlogvak (#2b2b2b) wordt een glazen kaart, de
+   blauwgrijze aanmeldknop (#69808d) grijs met gloed en monospace.
+   Hoofdscherm (klassen van Zabbix' dark-theme.css, NIET getest): kopbalk,
+   zijbalk/menu, inhoudsvlakken (container, filter, formulier, tabellen,
+   dashboardwidgets), popupmenu's en dialogen als glas; knoppen (btn, btn-alt,
+   btn-grey) grijs; blauwe links en blauwe focus-/tabaccenten grijs;
+   meldingen (msg-good/bad/warning/info) in de statusranden.
+   Ernstkleuren (--severity-color-*) blijven: dat is statusinformatie.
+
+   Beperkingen: alleen de loginpagina is vastgelegd en getest. Het
+   ZABBIX-logo is Zabbix' eigen rode merkteken (afbeelding) en blijft.
+   CSP: alleen frame-ancestors, css.jbogaert.be laadt gewoon.
+   ========================================================================== */
+
+/* ---------- Loginpagina -------------------------------------------------- */
+.signin-container {
+  background-color: var(--alg-glas);
+  border-color: var(--alg-rand-sterk);
+  border-radius: var(--alg-radius-groot);
+  box-shadow: var(--alg-schaduw-midden);
+  -webkit-backdrop-filter: var(--alg-blur);
+  backdrop-filter: var(--alg-blur);
+}
+
+.signin-links,
+body > .wrapper > footer {
+  color: var(--alg-gedempt);
+}
+
+/* ---------- Lettertype en knoppen --------------------------------------- */
+/* Zabbix zet zijn lettertype overal via --font-stack (Inter) */
+html:root {
+  --font-stack: var(--alg-font);
+}
+
+/* gewone knoppen (submit, knoppen zonder klasse, .btn, dialoogvoet):
+   blauwgrijs (#69808d) wordt de themaknop. Icoonknoppen (btn-icon, zi-*),
+   linkknoppen en keuzelijsten (.focusable) blijven buiten schot. */
+body :is(button[type="submit"], button:not([class]), .btn, .overlay-dialogue-footer button):not([class*="btn-"], [class*="zi-"], .focusable) {
+  background-color: var(--alg-knop);
+  border-color: var(--alg-knop);
+  color: var(--alg-knop-tekst);
+}
+
+body :is(button[type="submit"], button:not([class]), .btn, .overlay-dialogue-footer button):not([class*="btn-"], [class*="zi-"], .focusable):is(:hover, :focus):not(:disabled) {
+  background-color: var(--alg-knop-hover);
+  border-color: var(--alg-knop-hover);
+  box-shadow: var(--alg-gloed);
+}
+
+/* secundaire knoppen (hoofdscherm) */
+body .btn-alt {
+  background-color: transparent;
+  border-color: var(--alg-rand-hover);
+  color: var(--alg-tekst);
+}
+
+body .btn-alt:is(:hover, :focus, :active) {
+  background-color: var(--alg-knop-zacht-hover);
+  border-color: var(--alg-rand-hover);
+}
+
+body :is(.btn-grey, .btn-grey-icon, .btn-debug) {
+  background-color: var(--alg-knop-zacht);
+  border-color: var(--alg-rand-sterk);
+}
+
+body :is(.btn-grey, .btn-grey-icon, .btn-debug):is(:hover, :focus, :active) {
+  background-color: var(--alg-knop-zacht-hover);
+  border-color: var(--alg-rand-hover);
+}
+
+/* ---------- Hoofdscherm: vlakken (niet getest) --------------------------- */
+body > .wrapper > header,
+body .sidebar {
+  background: var(--alg-glas);
+  border-color: var(--alg-rand);
+  -webkit-backdrop-filter: var(--alg-blur);
+  backdrop-filter: var(--alg-blur);
+}
+
+body .container,
+body .filter-container,
+body .filter-container.tabfilter-container .tabfilter-content-container,
+body :is(.table-forms-container, .browser-warning-container),
+body .list-table,
+body .dashboard-grid-widget-contents,
+body .dashboard-grid-widget-header {
+  background-color: var(--alg-glas);
+  border-color: var(--alg-rand);
+}
+
+body .list-table.sticky-header thead,
+body .list-table.sticky-footer tfoot {
+  background-color: var(--alg-vlak);
+}
+
+body .list-table tbody tr:not(.hover-nobg):not(.row-selected):hover {
+  background-color: var(--alg-rij-hover);
+}
+
+body .list-table :is(th, td) {
+  border-bottom-color: var(--alg-rand);
+}
+
+/* menu in de zijbalk */
+body .menu-main .submenu,
+body .menu-main .submenu a {
+  background: transparent;
+}
+
+body .menu-main > li > a:is(:hover, :focus),
+body .menu-main .submenu a:is(:hover, :focus) {
+  background: var(--alg-rij-hover);
+}
+
+body .menu-main > li.is-selected > a,
+body .menu-main .submenu > li.is-selected > a {
+  background: var(--alg-rij-actief);
+}
+
+/* popupmenu's, keuzelijsten, dialogen */
+body .menu-popup,
+body .overlay-dialogue,
+body :is(.z-select, z-select) .list,
+body .multiselect-available {
+  background-color: var(--alg-glas-sterk);
+  border-color: var(--alg-rand-sterk);
+  -webkit-backdrop-filter: var(--alg-blur);
+  backdrop-filter: var(--alg-blur);
+}
+
+body .menu-popup .menu-popup-item:is(:hover, :focus, :active),
+body :is(.z-select, z-select) .list li.hover {
+  background-color: var(--alg-rij-hover);
+}
+
+/* ---------- Accenten: blauw wordt grijs ---------------------------------- */
+body a:not([class*="btn"]) {
+  color: var(--alg-link);
+}
+
+body a:not([class*="btn"]):hover {
+  color: var(--alg-link-hover);
+}
+
+body .ui-tabs-nav .ui-tabs-active .ui-tabs-anchor:not(.btn) {
+  border-bottom-color: var(--alg-accent-kleur);
+}
+
+body .sidebar-nav-toggle .btn-icon::before {
+  color: var(--alg-tekst);
+}
+
+body .sidebar .scrollable .scrollbar-thumb {
+  background: var(--alg-rand-hover);
+}
+
+body .sidebar .scrollable .scrollbar-track {
+  background: var(--alg-rand);
+}
+
+/* meldingen: statusrand behouden, vlak donker */
+body output:is(.msg-good, .msg-bad, .msg-warning, .msg-info) {
+  background-color: var(--alg-glas-sterk);
+}
+
+body output.msg-good {
+  border-color: var(--alg-ok-rand);
+}
+
+body output.msg-bad {
+  border-color: var(--alg-fout-rand);
+}
+
+body output.msg-warning {
+  border-color: var(--alg-waarschuwing-rand);
+}
+
+body output.msg-info {
+  border-color: var(--alg-info-rand);
+}

@@ -1,0 +1,182 @@
+/* alg-app-adguard-home.css - gegenereerd uit algemeen.css door scripts/themes/modules.py;
+   niet met de hand aanpassen. Laadt na alg-kern.css (zie themes/README.md). */
+/* ==========================================================================
+   60 ADGUARD HOME (eigen React-UI op Tabler/Bootstrap 4)
+   Herkenning: het mask-icon met kleur #67B279 in de kop (wizard, login en
+   hoofdscherm). AdGuard zet zijn variabelen op :root (licht) en op
+   body[data-theme="dark"]; wij zetten ze op body, dus beide modi worden gelijk.
+   Het logo is inline svg (.header-brand-img, .setup__logo) in geërfd zwart:
+   dat kleuren we wit (geen filter, geen afbeelding).
+   Getest met v0.107.79.
+   ========================================================================== */
+
+html:has(> head > link[rel="mask-icon"][color="#67B279" i]) > body {
+  --black: #fff;
+  --bgcolor: transparent;
+  --mcolor: var(--alg-tekst);
+  --scolor: var(--alg-gedempt);
+  --header-bgcolor: rgba(10, 10, 10, .6);
+  --border-color: var(--alg-rand);
+  --card-bgcolor: var(--alg-glas);
+  --card-border-color: var(--alg-rand);
+  --ctrl-bgcolor: var(--alg-veld);
+  --ctrl-select-bgcolor: #3d3d3d;
+  --ctrl-dropdown-color: #fff;
+  --ctrl-dropdown-bgcolor-focus: #000;
+  --ctrl-dropdown-color-focus: #fff;
+  --btn-success-bgcolor: var(--alg-ok-vlak);
+  --form-disabled-bgcolor: #2d2d2d;
+  --form-disabled-color: #a5a5a5;
+  --logs__text-color: var(--alg-tekst);
+  --logs__table-bgcolor: rgba(255, 255, 255, .03);
+  --logs__row--white-bgcolor: var(--alg-vlak);
+  --rt-nodata-bgcolor: #1c1c1c;
+  --rt-nodata-color: var(--alg-tekst);
+  --modal-overlay-bgcolor: var(--alg-overlay);
+  --detailed-info-color: var(--alg-tekst);
+  --gray300: #f3f3f3;
+  --loading-bg: rgba(20, 20, 20, .6);
+  --alert-message-color: var(--alg-tekst);
+  --alert-message-border: var(--alg-info-rand);
+  --alert-message-bg: var(--alg-info-tint);
+  --checkbox-bg: #a4a4a4;
+  --radio-bg: #a4a4a4;
+}
+
+/* de kopbalk is vast bovenaan: glas met vervaging */
+html:has(> head > link[rel="mask-icon"][color="#67B279" i]) .header {
+  -webkit-backdrop-filter: var(--alg-blur);
+  backdrop-filter: var(--alg-blur);
+}
+
+/* Tabler 0.x: gedempte tekst (#6e7687) is te donker op ons vlak */
+html:has(> head > link[rel="mask-icon"][color="#67B279" i]) :is(.footer a:not(.btn), .page-subtitle) {
+  color: var(--alg-gedempt) !important;
+}
+
+html:has(> head > link[rel="mask-icon"][color="#67B279" i]) .footer a:not(.btn):hover {
+  color: var(--alg-tekst-sterk) !important;
+}
+
+/* grijze knop (beveiliging uitschakelen) als gewone knop */
+html:has(> head > link[rel="mask-icon"][color="#67B279" i]) .btn-gray {
+  background-color: var(--alg-knop) !important;
+  border-color: var(--alg-knop) !important;
+  color: var(--alg-knop-tekst) !important;
+}
+
+/* bladerknoppen van react-table (naar AdGuard's eigen donkere modus) */
+html:has(> head > link[rel="mask-icon"][color="#67B279" i]) .ReactTable .-pagination .-btn {
+  background-color: var(--alg-knop-zacht) !important;
+  color: var(--alg-tekst) !important;
+}
+
+html:has(> head > link[rel="mask-icon"][color="#67B279" i]) .ReactTable .-pagination .-btn:disabled {
+  color: var(--alg-gedempt) !important;
+}
+
+/* ---------- Kopbalk ----------------------------------------------------- */
+/* het menublok heeft zelf de kopkleur: op desktop gestapeld op de (glazen)
+   kop gaf dat een donkerder blok; daar doorzichtig. Op mobiel is het een
+   uitschuifpaneel en houdt het de kopkleur. */
+@media (min-width: 992px) {
+  html:has(> head > link[rel="mask-icon"][color="#67B279" i]) .header .mobile-menu {
+    background-color: transparent !important;
+  }
+}
+
+/* actief menu-item: zoals AdGuard zelf een lijn onderaan, in onze accentkleur
+   (30 geeft actieve tabbladen een vlak, dat past hier niet) */
+html:has(> head > link[rel="mask-icon"][color="#67B279" i]) .header .nav-tabs .nav-link.active {
+  background-color: transparent !important;
+  border-bottom-color: var(--alg-accent-kleur) !important;
+  color: var(--alg-tekst-sterk) !important;
+}
+
+html:has(> head > link[rel="mask-icon"][color="#67B279" i]) .header .nav-tabs .nav-link:not(.active):hover {
+  border-bottom-color: var(--alg-rand-hover) !important;
+  color: var(--alg-tekst-sterk) !important;
+}
+
+/* ---------- Querylog: gekleurde rijen als zachte tint -------------------- */
+/* herschreven (blauw) is in de lichte modus een vaste lichte kleur (#ecf7ff)
+   met onze lichte tekst erop: onleesbaar */
+html:has(> head > link[rel="mask-icon"][color="#67B279" i]) .logs__row--blue {
+  background-color: var(--alg-info-tint) !important;
+}
+
+html:has(> head > link[rel="mask-icon"][color="#67B279" i]) .logs__row--red {
+  background-color: var(--alg-fout-tint) !important;
+}
+
+html:has(> head > link[rel="mask-icon"][color="#67B279" i]) .logs__row--green {
+  background-color: var(--alg-ok-tint) !important;
+}
+
+html:has(> head > link[rel="mask-icon"][color="#67B279" i]) .logs__row--yellow {
+  background-color: var(--alg-waarschuwing-tint) !important;
+}
+
+/* klantnamen in de querylog zijn blauwe links (#467fcf, 2.9:1 op donker);
+   kleine grijze tekst in een getinte rij haalt 4.5:1 niet */
+html:has(> head > link[rel="mask-icon"][color="#67B279" i]) a.detailed-info {
+  color: var(--alg-link) !important;
+}
+
+html:has(> head > link[rel="mask-icon"][color="#67B279" i]) a.detailed-info:hover {
+  color: var(--alg-link-hover) !important;
+}
+
+html:has(> head > link[rel="mask-icon"][color="#67B279" i]) :is(.logs__row--blue, .logs__row--red, .logs__row--green, .logs__row--yellow) :is(small, .small) {
+  color: #b5b5b5 !important;
+}
+
+/* ---------- Setup-wizard (install.html) --------------------------------- */
+/* kaart als glazen paneel; rand als schaduwring (geen extra breedte) */
+html:has(> head > link[rel="mask-icon"][color="#67B279" i]) .setup__container {
+  border-radius: var(--alg-radius-groot) !important;
+  box-shadow: var(--alg-schaduw), inset 0 0 0 1px var(--alg-rand-sterk) !important;
+  -webkit-backdrop-filter: var(--alg-blur);
+  backdrop-filter: var(--alg-blur);
+}
+
+/* voortgangsbalk onderaan: lichtgrijze baan (#eaeaea) wordt een zwakke lijn */
+html:has(> head > link[rel="mask-icon"][color="#67B279" i]) .setup__progress-wrap {
+  background-color: rgba(255, 255, 255, .08) !important;
+  border-radius: 0 0 var(--alg-radius-groot) var(--alg-radius-groot) !important;
+}
+
+html:has(> head > link[rel="mask-icon"][color="#67B279" i]) .setup__progress {
+  color: var(--alg-gedempt);
+}
+
+/* ---------- Logo: inline svg in zwart wordt wit ------------------------- */
+html:has(> head > link[rel="mask-icon"][color="#67B279" i]) :is(svg.header-brand-img, svg.setup__logo, .setup__logo svg) {
+  fill: var(--alg-tekst-sterk);
+  color: var(--alg-tekst-sterk);
+}
+
+/* ---------- Statistiekkaarten: titel in de kleur van de grafiek --------- */
+/* de titel is een link; onze linkkleur maakte ze allemaal grijs, terwijl
+   AdGuard ze per kaart kleurt (oranje, okergeel, paars) zoals de grafiek.
+   Iets lichter gemengd: het paars haalde maar 4,4:1 op de donkere kaart. */
+html:has(> head > link[rel="mask-icon"][color="#67B279" i]) .stats-card__title a {
+  color: color-mix(in srgb, currentColor 85%, #fff);
+}
+
+/* ---------- Hoofdknoppen grijs zoals overal ----------------------------- */
+/* AdGuard gebruikt .btn-success voor de hoofdactie (lijst toevoegen,
+   opslaan, aanmelden, volgende). Groen betekent bij ons alleen status. De
+   variabele zelf blijft (ook tabkleur en actief menu-item). */
+html:has(> head > link[rel="mask-icon"][color="#67B279" i]) .btn-success {
+  background-color: var(--alg-knop) !important;
+  border-color: var(--alg-knop) !important;
+  color: var(--alg-knop-tekst) !important;
+}
+
+html:has(> head > link[rel="mask-icon"][color="#67B279" i]) .btn-success:not(:disabled):hover {
+  background-color: var(--alg-knop-hover) !important;
+  border-color: var(--alg-knop-hover) !important;
+  box-shadow: var(--alg-gloed) !important;
+}
+

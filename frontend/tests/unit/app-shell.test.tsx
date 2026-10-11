@@ -39,13 +39,14 @@ describe("App-shell", () => {
     expect(terminalCommand()).toBe(command);
   });
 
-  it("heeft vier navigatieknoppen (Nederlands) en markeert de actieve", () => {
+  it("heeft vijf navigatieknoppen (Nederlands) en markeert de actieve", () => {
     renderApp("/themes");
     const links = navLinks();
     expect(links.map((a) => a.textContent)).toEqual([
       "📊Dashboard",
       "🎨Thema's",
       "🖌️Paletten",
+      "🌐Hosts",
       "📥Import",
     ]);
     // De emoji is decoratief: de toegankelijke naam is alleen het label.
@@ -53,6 +54,7 @@ describe("App-shell", () => {
       "/",
       "/themes",
       "/palettes",
+      "/hosts",
       "/import",
     ]);
     const active = links.filter((a) => a.getAttribute("aria-current") === "page");

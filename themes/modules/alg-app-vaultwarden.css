@@ -1,0 +1,202 @@
+/* alg-app-vaultwarden.css - gegenereerd uit algemeen.css door scripts/themes/modules.py;
+   niet met de hand aanpassen. Laadt na alg-kern.css (zie themes/README.md). */
+/* ==========================================================================
+   60 VAULTWARDEN (Bitwarden web-vault, Angular + Tailwind met --color-*)
+   Herkenning: het mask-icon met kleur #175DDC (Bitwarden). De vault zet
+   .theme_light of .theme_dark op html; wij zetten de donkere set altijd, met
+   neutrale grijzen voor de vlakken (het logo is inline svg en volgt mee).
+   Getest met vaultwarden/server:latest (web-vault 2026.7: login, kluis, item,
+   menu, instellingen).
+   Let op: Vaultwarden stuurt een CSP (style-src 'self' 'unsafe-inline',
+   script-src 'self'): zonder aanpassing in NPM laadt dit thema er niet.
+   ========================================================================== */
+
+html:has(> head > link[rel="mask-icon"][color="#175DDC" i]) {
+  color-scheme: dark;
+  /* grijsschaal neutraal (Bitwarden's grijzen zijn blauwig) */
+  --color-gray-050: #f7f7f7; --color-gray-100: #ebebeb; --color-gray-200: #dadada; --color-gray-300: #bdbdbd;
+  --color-gray-400: #999; --color-gray-400-rgb: 153, 153, 153; --color-gray-500: #777; --color-gray-600: #555;
+  --color-gray-700: #3a3a3a; --color-gray-800: #262626; --color-gray-900: #181818; --color-gray-950: #0e0e0e;
+  --color-gray-950-rgb: 14, 14, 14;
+  /* naar Bitwarden's eigen .theme_dark (GPL-3.0), vlakken neutraal grijs */
+  --color-transparent-hover: rgb(255 255 255 / 0.02); --color-shadow: 0 0 0;
+  --color-background: 24 24 24; --color-background-alt: 20 20 20; --color-background-alt2: 42 42 42;
+  --color-background-alt3: 48 48 48; --color-background-alt4: 20 20 20;
+  /* "primary" en "brand" neutraal grijs (accent zoals allow), geen blauw */
+  --color-primary-100: 42 42 42; --color-primary-300: 85 85 85; --color-primary-600: 200 200 200;
+  --color-primary-700: 230 230 230;
+  --color-brand-050: #f5f5f5; --color-brand-100: #ebebeb; --color-brand-200: #d6d6d6;
+  --color-brand-300: #bdbdbd; --color-brand-400: #c8c8c8; --color-brand-500: #8c8c8c;
+  --color-brand-600: #6e6e6e; --color-brand-700: #555; --color-brand-800: #3a3a3a;
+  --color-brand-900: #2a2a2a; --color-brand-950: #1e1e1e; --color-secondary-100: 48 57 70;
+  --color-secondary-300: 82 91 106; --color-secondary-500: 121 128 142;
+  --color-secondary-600: 143 152 166; --color-secondary-700: 158 167 181;
+  --color-success-100: 8 81 15; --color-success-600: 107 241 120; --color-success-700: 213 243 216;
+  --color-danger-100: 149 27 42; --color-danger-600: 229 139 139; --color-danger-700: 255 236 239;
+  --color-warning-100: 142 64 0; --color-warning-700: 255 244 212; --color-info-100: 13 36 123;
+  --color-info-700: 219 229 246; --color-notification-100: 117 37 83;
+  --color-notification-600: 255 143 208; --color-text-main: 243 246 249;
+  --color-text-muted: 153 153 153; --color-text-contrast: 18 26 39; --color-text-code: 255 143 208;
+  --color-hover-default: rgb(255 255 255 / .08); --color-hover-contrast: rgb(0 0 0 / 0.15);
+  --color-marketing-logo: 255 255 255; --tw-ring-offset-color: #181818;
+  --color-illustration-outline: 23 93 220; --color-illustration-bg-primary: 170 195 239;
+  --color-illustration-bg-secondary: 121 161 233; --color-illustration-bg-tertiary: 243 246 249;
+  --color-illustration-logo: 255 255 255; --color-fg-contrast: var(--color-gray-900);
+  --color-fg-contrast-strong: var(--color-gray-600); --color-fg-heading: var(--color-gray-050);
+  --color-fg-body: var(--color-gray-200); --color-fg-body-subtle: var(--color-gray-400);
+  --color-fg-inactive: #8a8a8a; /* afgewerkte stappen: gedempt maar 5:1 */ --color-fg-brand-soft: var(--color-brand-500);
+  --color-fg-brand: var(--color-brand-400); --color-fg-brand-strong: var(--color-brand-200);
+  --color-fg-success: var(--color-green-400); --color-fg-success-strong: var(--color-green-200);
+  /* rood: onze foutkleur (#e58b8b) in plaats van Bitwardens felle zalmrood;
+     knoppen "gevaar" houden hun donkere tekst (7:1). danger-600 hierboven
+     (kop en rand van de gevarenzone, foutteksten) is dezelfde kleur. */
+  --color-red-400: #e58b8b; --color-red-200: #f0b4b4;
+  --color-fg-danger: var(--color-red-400); --color-fg-danger-strong: var(--color-red-200);
+  --color-fg-warning: var(--color-orange-400); --color-fg-warning-strong: var(--color-orange-200);
+  --color-fg-sensitive: var(--color-pink-300);
+  --color-fg-accent-primary-soft: var(--color-teal-400);
+  --color-fg-accent-primary: var(--color-teal-300);
+  --color-fg-accent-primary-strong: var(--color-teal-100);
+  --color-fg-accent-secondary-soft: var(--color-coral-500);
+  --color-fg-accent-secondary-strong: var(--color-coral-100);
+  --color-fg-accent-tertiary-soft: var(--color-purple-500);
+  --color-fg-accent-tertiary: var(--color-purple-400);
+  --color-fg-accent-tertiary-strong: var(--color-purple-100);
+  --color-bg-primary: var(--color-gray-900); --color-bg-secondary: var(--color-gray-800);
+  --color-bg-tertiary: var(--color-gray-950); --color-bg-quaternary: var(--color-gray-700);
+  --color-bg-inactive: var(--color-gray-950); --color-bg-gray: var(--color-gray-500);
+  --color-bg-gray-strong: var(--color-gray-400); --color-bg-contrast-soft: var(--color-gray-200);
+  --color-bg-contrast: var(--color-gray-100); --color-bg-contrast-strong: var(--color-white);
+  --color-bg-brand-softer: var(--color-brand-950); --color-bg-brand-soft: var(--color-brand-900);
+  --color-bg-brand-medium: var(--color-brand-800); --color-bg-brand: var(--color-brand-400);
+  --color-bg-brand-strong: var(--color-brand-200);
+  --color-bg-brand-stronger: var(--color-brand-100);
+  --color-bg-success-soft: var(--color-green-950);
+  --color-bg-success-medium: var(--color-green-900); --color-bg-success: var(--color-green-400);
+  --color-bg-success-strong: var(--color-green-200); --color-bg-danger-soft: var(--color-red-950);
+  --color-bg-danger-medium: var(--color-red-900); --color-bg-danger: var(--color-red-400);
+  --color-bg-danger-strong: var(--color-red-200); --color-bg-warning-soft: var(--color-orange-950);
+  --color-bg-warning-medium: var(--color-orange-900); --color-bg-warning: var(--color-orange-400);
+  --color-bg-warning-strong: var(--color-orange-200);
+  --color-bg-accent-primary-soft: var(--color-teal-950);
+  --color-bg-accent-primary-medium: var(--color-teal-900);
+  --color-bg-accent-primary-strong: var(--color-teal-200);
+  --color-bg-accent-secondary-soft: var(--color-coral-950);
+  --color-bg-accent-secondary-medium: var(--color-coral-900);
+  --color-bg-accent-tertiary-soft: var(--color-purple-950);
+  --color-bg-accent-tertiary-medium: var(--color-purple-900);
+  --color-bg-avatar-teal-hover: var(--color-teal-600);
+  --color-bg-avatar-coral-hover: var(--color-coral-600);
+  --color-bg-avatar-brand-hover: var(--color-brand-600);
+  --color-bg-avatar-green-hover: var(--color-green-600);
+  --color-bg-avatar-purple-hover: var(--color-purple-600);
+  --color-bg-hover: rgba(var(--color-white-rgb), 0.05);
+  --color-bg-hover-contrast: rgba(var(--color-gray-950-rgb), 0.05);
+  --color-bg-overlay: rgba(var(--color-gray-950-rgb), 0.85);
+  --color-border-muted: var(--color-gray-900); --color-border-light: var(--color-gray-800);
+  --color-border-base: var(--color-gray-700); --color-border-strong: var(--color-gray-500);
+  --color-border-stronger: var(--color-gray-400); --color-border-buffer: var(--color-gray-950);
+  --color-border-brand-soft: var(--color-brand-800); --color-border-brand: var(--color-brand-400);
+  --color-border-brand-strong: var(--color-brand-200);
+  --color-border-success-soft: var(--color-green-800);
+  --color-border-success: var(--color-green-400);
+  --color-border-success-strong: var(--color-green-200);
+  --color-border-danger-soft: var(--color-red-800); --color-border-danger: var(--color-red-400);
+  --color-border-danger-strong: var(--color-red-200);
+  --color-border-warning-soft: var(--color-orange-800);
+  --color-border-warning: var(--color-orange-400);
+  --color-border-warning-strong: var(--color-orange-200);
+  --color-border-accent-primary-soft: var(--color-teal-800);
+  --color-border-accent-secondary-soft: var(--color-coral-800);
+  --color-border-accent-secondary: var(--color-coral-500);
+  --color-border-accent-tertiary-soft: var(--color-purple-800);
+  --color-border-accent-tertiary: var(--color-purple-500); --color-border-focus: var(--color-white);
+  --color-border-focus-contrast: var(--color-black); --color-nav-fg-secondary: var(--color-white);
+  --color-nav-bg-primary: var(--color-gray-800); --color-nav-bg-secondary: var(--color-gray-800);
+  --color-nav-bg-primary-strong: var(--color-gray-600);
+  --color-nav-bg-secondary-strong: var(--color-gray-600);
+  --color-nav-bg-primary-hover: rgba(var(--color-gray-400-rgb), 0.2);
+  --color-nav-bg-secondary-hover: rgba(var(--color-gray-400-rgb), 0.2);
+  --color-nav-bg-primary-hover-strong: rgba(var(--color-gray-400-rgb), 0.6);
+  --color-nav-bg-secondary-hover-strong: rgba(var(--color-gray-400-rgb), 0.6);
+  --color-nav-border-secondary: var(--color-gray-700);
+  --color-nav-border-secondary-focus: var(--color-white);
+}
+
+/* het veld zit in een bit-form-field (of het zoekvak in een
+   [bitfieldcontainer]) dat zelf rand en vlak tekent */
+html:has(> head > link[rel="mask-icon"][color="#175DDC" i]) :is(:is(input, textarea, select)[bitinput], [bitfieldcontainer] input) {
+  background-color: transparent !important;
+}
+
+/* ---------- Paginavlakken doorzichtig: verloop (en netwerk) zichtbaar ---- */
+/* body.layout_frontend zet zijn kleur zelf met !important (loginpagina's) */
+html:has(> head > link[rel="mask-icon"][color="#175DDC" i]) body.layout_frontend {
+  background-color: transparent !important;
+}
+
+html:has(> head > link[rel="mask-icon"][color="#175DDC" i]) :is(main.tw-bg-background, bit-landing-content .tw-bg-background-alt, .tw-min-h-screen.tw-bg-background-alt) {
+  background-color: transparent !important;
+}
+
+/* zijbalk: donker glas zoals de *arr-apps (geen blur: is geen overlay) */
+html:has(> head > link[rel="mask-icon"][color="#175DDC" i]) bit-side-nav nav.tw-bg-bg-nav {
+  background-color: var(--alg-glas) !important;
+  border-right: 1px solid var(--alg-rand);
+}
+
+/* elk menu-item draagt zelf ook .tw-bg-bg-nav: doorzichtig maken, anders
+   staan er grijze blokjes op het glas (hover en actief houden hun kleur) */
+html:has(> head > link[rel="mask-icon"][color="#175DDC" i]) bit-side-nav nav.tw-bg-bg-nav .tw-rounded-xl.tw-bg-bg-nav {
+  --color-nav-bg-primary: transparent;
+}
+
+/* kop (logo) en voet plakken boven schuivende items: zelfde glas erover,
+   zodat er nooit tekst door de kop heen leest */
+html:has(> head > link[rel="mask-icon"][color="#175DDC" i]) bit-side-nav nav.tw-bg-bg-nav :is(.tw-sticky.tw-top-0, [class*="tw-bottom-0"] > div).tw-bg-bg-nav {
+  background-color: var(--alg-glas) !important;
+}
+
+/* ---------- Kaarten, filterpaneel, loginvak: glas ----------------------- */
+html:has(> head > link[rel="mask-icon"][color="#175DDC" i]) :is(bit-landing-content bit-base-card, bit-landing-content .tw-rounded-xl.tw-border, app-vault-filter > div, app-vault-onboarding > div, div:has(> app-vault-items)) {
+  background-color: var(--alg-glas) !important;
+  border-color: var(--alg-rand-sterk) !important;
+  border-radius: var(--alg-radius-groot);
+}
+
+/* ---------- Dialogen: glas met ronde hoeken ----------------------------- */
+html:has(> head > link[rel="mask-icon"][color="#175DDC" i]) :is(bit-dialog, bit-simple-dialog) > :is(section, div):first-child {
+  background-color: var(--alg-glas-sterk) !important;
+  border-color: var(--alg-rand-sterk) !important;
+  border-radius: var(--alg-radius-groot) !important;
+  box-shadow: var(--alg-schaduw) !important;
+  -webkit-backdrop-filter: var(--alg-blur);
+  backdrop-filter: var(--alg-blur);
+}
+
+/* ---------- Knoppen: primair in knopgrijs met witte tekst --------------- */
+html:has(> head > link[rel="mask-icon"][color="#175DDC" i]) :is(button, a)[bitbutton][buttontype="primary"] {
+  background-color: var(--alg-knop) !important;
+  border-color: var(--alg-knop) !important;
+  color: var(--alg-knop-tekst) !important;
+  font-weight: 700;
+}
+
+html:has(> head > link[rel="mask-icon"][color="#175DDC" i]) :is(button, a)[bitbutton][buttontype="primary"]:is(:hover, [aria-expanded="true"]):not([aria-disabled="true"], :disabled) {
+  background-color: var(--alg-knop-hover) !important;
+  border-color: var(--alg-knop-hover) !important;
+  box-shadow: var(--alg-gloed);
+}
+
+/* ---------- Velden in bit-form-field: het vak tekent zelf rand en focus -- */
+html:has(> head > link[rel="mask-icon"][color="#175DDC" i]) :is(input, textarea, select)[bitinput]:focus-visible {
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+/* ---------- Aanmelden: kop en voet zonder dekkende band ----------------- */
+/* de banden (#0e0e0e) sneden verloop en netwerk af bovenaan en onderaan */
+html:has(> head > link[rel="mask-icon"][color="#175DDC" i]) :is(bit-landing-header > header, bit-landing-footer > footer) {
+  background-color: transparent !important;
+}
+

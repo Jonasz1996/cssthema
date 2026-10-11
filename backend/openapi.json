@@ -2372,6 +2372,429 @@
         }
       }
     },
+    "/api/v1/hosts": {
+      "get": {
+        "tags": [
+          "hosts"
+        ],
+        "summary": "Alle host-koppelingen (`*` eerst)",
+        "operationId": "hosts_list",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/HostBinding"
+                  },
+                  "type": "array",
+                  "title": "Response Hosts List"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Interne fout",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "hosts"
+        ],
+        "summary": "Koppeling aanmaken",
+        "operationId": "hosts_create",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/HostBindingInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HostBinding"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Interne fout",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "`host_conflict`: die hostnaam heeft al een koppeling",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/hosts/options": {
+      "get": {
+        "tags": [
+          "hosts"
+        ],
+        "summary": "Te kiezen thema's en scripts, en de sub_filter-regel voor NPM",
+        "operationId": "hosts_options",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HostOptions"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Interne fout",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/hosts/import": {
+      "post": {
+        "tags": [
+          "hosts"
+        ],
+        "summary": "Koppelingen overnemen uit een NPM-config (`# <host>` boven elke sub_filter)",
+        "operationId": "hosts_import",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/HostImportRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HostImportResult"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Interne fout",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/hosts/{binding_id}": {
+      "put": {
+        "tags": [
+          "hosts"
+        ],
+        "summary": "Koppeling aanpassen",
+        "operationId": "hosts_update",
+        "parameters": [
+          {
+            "name": "binding_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Binding Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/HostBindingInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HostBinding"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Interne fout",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Koppeling niet gevonden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "`host_conflict`: die hostnaam heeft al een koppeling",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "hosts"
+        ],
+        "summary": "Koppeling verwijderen (de host volgt dan `*`)",
+        "operationId": "hosts_delete",
+        "parameters": [
+          {
+            "name": "binding_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Binding Id"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "500": {
+            "description": "Interne fout",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Koppeling niet gevonden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/host/{hostname}.css": {
+      "get": {
+        "tags": [
+          "public"
+        ],
+        "summary": "Samengevoegde CSS voor een proxy host (koppeling van de host, anders `*`)",
+        "operationId": "public_host_css",
+        "parameters": [
+          {
+            "name": "hostname",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Hostname"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "De CSS",
+            "content": {
+              "text/css": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Interne fout",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "304": {
+            "description": "Niet gewijzigd (If-None-Match / If-Modified-Since)"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/host/{hostname}.js": {
+      "get": {
+        "tags": [
+          "public"
+        ],
+        "summary": "Samengevoegde thema-scripts voor een proxy host",
+        "operationId": "public_host_js",
+        "parameters": [
+          {
+            "name": "hostname",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Hostname"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "JS",
+            "content": {
+              "text/javascript": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Interne fout",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "304": {
+            "description": "Niet gewijzigd (If-None-Match / If-Modified-Since)"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/{ref}.css": {
       "get": {
         "tags": [
@@ -2854,6 +3277,285 @@
           "status"
         ],
         "title": "HealthStatus"
+      },
+      "HostBinding": {
+        "properties": {
+          "hostname": {
+            "type": "string",
+            "maxLength": 300,
+            "title": "Hostname",
+            "description": "Hostnaam van de proxy host, of `*` voor elke host zonder eigen koppeling.",
+            "examples": [
+              "proxmox100.jbogaert.be"
+            ]
+          },
+          "styles": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "maxItems": 20,
+            "title": "Styles",
+            "description": "Thema-slugs of namen van bestanden in css-files (zonder `.css`), in laadvolgorde. Een bestand in css-files gaat voor op een thema met dezelfde naam, zoals in nginx.",
+            "examples": [
+              [
+                "algemeen",
+                "alg-proxmox"
+              ]
+            ]
+          },
+          "scripts": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "maxItems": 10,
+            "title": "Scripts",
+            "description": "Thema-scripts (zonder `.js`), bv. leeg voor een wachtwoordkluis.",
+            "examples": [
+              [
+                "algemeen"
+              ]
+            ]
+          },
+          "enabled": {
+            "type": "boolean",
+            "title": "Enabled",
+            "description": "Uit: de host krijgt niets, ook niet `*`.",
+            "default": true
+          },
+          "note": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 500
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Note"
+          },
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "css_url": {
+            "type": "string",
+            "title": "Css Url",
+            "description": "Publieke URL van de samengevoegde CSS van deze host.",
+            "examples": [
+              "https://css.jbogaert.be/host/proxmox100.jbogaert.be.css"
+            ]
+          },
+          "js_url": {
+            "type": "string",
+            "title": "Js Url"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Updated At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "hostname",
+          "id",
+          "css_url",
+          "js_url",
+          "created_at",
+          "updated_at"
+        ],
+        "title": "HostBinding"
+      },
+      "HostBindingInput": {
+        "properties": {
+          "hostname": {
+            "type": "string",
+            "maxLength": 300,
+            "title": "Hostname",
+            "description": "Hostnaam van de proxy host, of `*` voor elke host zonder eigen koppeling.",
+            "examples": [
+              "proxmox100.jbogaert.be"
+            ]
+          },
+          "styles": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "maxItems": 20,
+            "title": "Styles",
+            "description": "Thema-slugs of namen van bestanden in css-files (zonder `.css`), in laadvolgorde. Een bestand in css-files gaat voor op een thema met dezelfde naam, zoals in nginx.",
+            "examples": [
+              [
+                "algemeen",
+                "alg-proxmox"
+              ]
+            ]
+          },
+          "scripts": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "maxItems": 10,
+            "title": "Scripts",
+            "description": "Thema-scripts (zonder `.js`), bv. leeg voor een wachtwoordkluis.",
+            "examples": [
+              [
+                "algemeen"
+              ]
+            ]
+          },
+          "enabled": {
+            "type": "boolean",
+            "title": "Enabled",
+            "description": "Uit: de host krijgt niets, ook niet `*`.",
+            "default": true
+          },
+          "note": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 500
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Note"
+          }
+        },
+        "type": "object",
+        "required": [
+          "hostname"
+        ],
+        "title": "HostBindingInput"
+      },
+      "HostImportRequest": {
+        "properties": {
+          "text": {
+            "type": "string",
+            "maxLength": 1048576,
+            "title": "Text",
+            "description": "NPM-config met `# <hostnaam>` boven elke `sub_filter`-regel, bv. de inhoud van npm-sub_filter-per-dienst.conf."
+          },
+          "replace": {
+            "type": "boolean",
+            "title": "Replace",
+            "description": "Bestaande koppelingen overschrijven (thema's en scripts); anders overslaan.",
+            "default": true
+          }
+        },
+        "type": "object",
+        "required": [
+          "text"
+        ],
+        "title": "HostImportRequest"
+      },
+      "HostImportResult": {
+        "properties": {
+          "created": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Created"
+          },
+          "updated": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Updated"
+          },
+          "unchanged": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Unchanged"
+          },
+          "skipped": {
+            "items": {
+              "$ref": "#/components/schemas/HostImportSkipped"
+            },
+            "type": "array",
+            "title": "Skipped"
+          }
+        },
+        "type": "object",
+        "required": [
+          "created",
+          "updated",
+          "unchanged",
+          "skipped"
+        ],
+        "title": "HostImportResult"
+      },
+      "HostImportSkipped": {
+        "properties": {
+          "line": {
+            "type": "integer",
+            "title": "Line"
+          },
+          "reason": {
+            "type": "string",
+            "title": "Reason"
+          }
+        },
+        "type": "object",
+        "required": [
+          "line",
+          "reason"
+        ],
+        "title": "HostImportSkipped"
+      },
+      "HostOptions": {
+        "properties": {
+          "styles": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Styles",
+            "description": "Gepubliceerde thema's en CSS-bestanden in css-files (zonder `.css`)."
+          },
+          "scripts": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Scripts",
+            "description": "Scripts in css-files (zonder `.js`)."
+          },
+          "snippet": {
+            "type": "string",
+            "title": "Snippet",
+            "description": "De `sub_filter`-regel voor elke proxy host in NPM."
+          },
+          "snippet_own_domain": {
+            "type": "string",
+            "title": "Snippet Own Domain",
+            "description": "Dezelfde regel via `/alg-thema/` op het eigen domein, voor apps met een strikte CSP (met een `location ^~ /alg-thema/` die naar cssthema doorstuurt)."
+          }
+        },
+        "type": "object",
+        "required": [
+          "styles",
+          "scripts",
+          "snippet",
+          "snippet_own_domain"
+        ],
+        "title": "HostOptions"
       },
       "ImportedTheme": {
         "properties": {
@@ -3400,6 +4102,10 @@
           "public_base_url": {
             "type": "string",
             "title": "Public Base Url"
+          },
+          "css_max_bytes": {
+            "type": "integer",
+            "title": "Css Max Bytes"
           }
         },
         "type": "object",
@@ -3407,7 +4113,8 @@
           "name",
           "version",
           "environment",
-          "public_base_url"
+          "public_base_url",
+          "css_max_bytes"
         ],
         "title": "MetaInfo"
       },

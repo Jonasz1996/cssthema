@@ -1,0 +1,132 @@
+/* alg-app-grafana.css - gegenereerd uit algemeen.css door scripts/themes/modules.py;
+   niet met de hand aanpassen. Laadt na alg-kern.css (zie themes/README.md). */
+/* ==========================================================================
+   60 GRAFANA (Grafana 13: React + emotion, standaard donker)
+   Grafana heeft geen CSS-variabelen en wisselende klassen (css-hash). Wat wel
+   vast is: body.app-grafana.theme-dark, data-testid's, id's en de labels die
+   emotion achter de hash zet (css-xxxx-panel-container). Alleen in Grafana's
+   donkere thema: het lichte thema blijft zoals Grafana het tekent.
+   Grafieken (canvas/svg) en knoppen blijven van Grafana zelf.
+   Getest: login, home, dashboard met panelen, tijdkiezer, gebruikers, profiel.
+   ========================================================================== */
+
+/* zijmenu, kopbalk en de vaste balk boven een dashboard: glas */
+body.app-grafana.theme-dark [data-testid="data-testid navigation mega-menu"],
+body.app-grafana.theme-dark #sidebar-container {
+  background-color: var(--alg-glas) !important;
+  border-color: var(--alg-rand) !important;
+}
+
+body.app-grafana.theme-dark .main-view > header,
+body.app-grafana.theme-dark [class*="-dashboard-controls-chrome"] {
+  background-color: rgba(10, 10, 10, .6) !important;
+  border-color: var(--alg-rand) !important;
+  -webkit-backdrop-filter: var(--alg-blur);
+  backdrop-filter: var(--alg-blur);
+}
+
+/* paars verloop achter de startpagina: onze achtergrond laten zien */
+body.app-grafana.theme-dark [class*="-page-wrapper-gradient"] {
+  background-image: none !important;
+}
+
+/* panelen: glas met een dunne lichte rand */
+body.app-grafana.theme-dark section[class*="-panel-container"] {
+  background-color: var(--alg-glas) !important;
+  border-color: var(--alg-rand) !important;
+}
+
+/* tabellen in panelen (react-data-grid): doorzichtig op het paneel */
+body.app-grafana.theme-dark .rdg {
+  --rdg-background-color: transparent !important;
+  --rdg-row-background-color: transparent !important;
+  --rdg-header-background-color: rgba(255, 255, 255, .04) !important;
+  --rdg-row-hover-background-color: var(--alg-rij-hover) !important;
+  --rdg-border-color: var(--alg-rand) !important;
+}
+
+/* loginvak: glas zoals in allow (zonder vervaging: geen overlay) */
+body.app-grafana.theme-dark .login-content-box {
+  background-color: var(--alg-glas) !important;
+  border: 1px solid var(--alg-rand-sterk);
+  border-radius: var(--alg-radius-groot) !important;
+  box-shadow: var(--alg-schaduw);
+}
+
+/* loginpagina: het paars-oranje verloop is een ::before met een svg als
+   achtergrond op de houder van het loginvak; weg, dan tonen ons verloop en
+   het netwerk (het vak zelf is glas) */
+body.app-grafana.theme-dark [class$="-page-wrapper"] > div:has(.login-content-box)::before {
+  background-image: none !important;
+  background-color: transparent !important;
+}
+
+/* hoofdknoppen: Grafana's knoppen hebben geen herkenbare variantklasse (alleen
+   een css-hash), dus alleen waar de rol vaststaat: de aanmeldknop en de
+   verzendknop van een formulier (Opslaan). Andere blauwe hoofdknoppen
+   ("New user", "Apply time range") blijven van Grafana. */
+body.app-grafana.theme-dark :is(button[data-testid="data-testid Login button"], form button[type="submit"][class$="-button"]):not(:disabled) {
+  background: var(--alg-knop) !important;
+  border-color: transparent !important;
+  color: var(--alg-knop-tekst) !important;
+}
+
+body.app-grafana.theme-dark :is(button[data-testid="data-testid Login button"], form button[type="submit"][class$="-button"]):not(:disabled):hover {
+  background: var(--alg-knop-hover) !important;
+  box-shadow: var(--alg-gloed) !important;
+}
+
+/* ---------- Grafana in het lichte thema --------------------------------- */
+/* Gekozen door de gebruiker (Profiel > Thema). Zonder CSS-variabelen kan
+   Grafana's licht niet donker worden; de algemene basis maakte de pagina wel
+   donker en de tekst licht, waardoor titels wit-op-wit werden. Daarom hier
+   Grafana's eigen lichte achtergrond en tekstkleur terug, en geen netwerk. */
+html:has(> body.app-grafana.theme-light) {
+  --alg-netwerk: 0;
+  background: #f4f5f5 !important;
+  color: #24292e !important;
+  color-scheme: light;
+}
+
+body.app-grafana.theme-light {
+  background: #f4f5f5 !important;
+  color: #24292e !important;
+}
+
+/* lichte tekstkleuren uit de basis (koppen, tabelkoppen, legend, small)
+   terug naar overerven; Grafana's eigen klassen winnen nog altijd */
+:where(body.app-grafana.theme-light) :where(h1, h2, h3, h4, h5, h6, th, legend, summary, small, figcaption, caption) {
+  color: inherit;
+}
+
+body.app-grafana.theme-light a:not([class]) {
+  color: #1f62e0;
+}
+
+body.app-grafana.theme-light :is(code, samp):not(pre *) {
+  background-color: rgba(0, 0, 0, .06);
+  color: inherit;
+}
+
+body.app-grafana.theme-light pre {
+  background-color: rgba(0, 0, 0, .04);
+  color: inherit;
+}
+
+/* invoervelden: de basis maakt ze donker met !important; hier weer licht */
+body.app-grafana.theme-light :is(input, textarea, select):not([type="checkbox"], [type="radio"], [type="range"], [type="color"]) {
+  background-color: #fff !important;
+  color: #24292e !important;
+  caret-color: #24292e;
+}
+
+/* link "Forgot your password?" onder de aanmeldknop: Grafana-blauw wordt
+   onze linkkleur */
+body.app-grafana.theme-dark .login-content-box a[class$="-button"] {
+  color: var(--alg-link) !important;
+}
+
+body.app-grafana.theme-dark .login-content-box a[class$="-button"]:hover {
+  color: var(--alg-link-hover) !important;
+}
+

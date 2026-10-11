@@ -1,0 +1,115 @@
+/* ==========================================================================
+   alg-filebrowser.css - File Browser (v2, Vue 3)
+   Host: filebrowser.jbogaert.be
+   Laadt NA algemeen.css.
+
+   algemeen.css heeft een volledig Filebrowser-deel, maar herkent de app aan
+   link#manifestPlaceholder in de kop. Ontbreekt die (in de vastgelegde
+   pagina staat hij niet, of een versie laat hem weg), dan blijft de app
+   wit. Dit bestand laadt alleen op deze host en zet daarom als vangnet de
+   kern zonder herkenning: de donkere variabelenset, het laadscherm, de
+   knoppen in knopkleur en een doorzichtige loginpagina.
+   Daarbovenop: het loginformulier als glazen paneel, de oranje
+   "uitgelogd"-melding, de Vue-Toastification-meldingen (fel blauw, groen,
+   rood) en het getalveld met +/- in de instellingen (wit).
+
+   Beperkingen: alleen de loginpagina is vastgelegd; meldingen en het
+   getalveld komen uit de CSS van de app en zijn niet getest. CSP:
+   alleen frame-ancestors, blokkeert css.jbogaert.be niet.
+   ========================================================================== */
+
+/* ---------- Vangnet: kern van het Filebrowser-deel uit algemeen.css ---- */
+html {
+  color-scheme: dark;
+  --blue: #aaa;
+  --dark-blue: #c4c4c4;
+  --red: var(--alg-fout-vlak);
+  --dark-red: var(--alg-fout);
+  --action: var(--alg-tekst);
+  --background: transparent;
+  --surfacePrimary: var(--alg-vlak);
+  --surfaceSecondary: #262626;
+  --textPrimary: #a6a6a6;
+  --textSecondary: var(--alg-tekst);
+  --divider: var(--alg-rand);
+  --iconPrimary: var(--alg-tekst);
+  --iconSecondary: var(--alg-tekst-sterk);
+  --iconTertiary: var(--alg-tekst);
+  --hover: var(--alg-rij-hover);
+  --borderPrimary: rgba(255, 255, 255, .06);
+  --borderSecondary: var(--alg-rand-sterk);
+  --icon-orange: var(--alg-waarschuwing-vlak);
+}
+
+html #loading {
+  background: var(--alg-achtergrond-kleur) !important;
+}
+
+html #login {
+  background: transparent !important;
+}
+
+html :is(.button:not(.button--flat, .button--red), #listing .item[aria-selected="true"], #listing #multiple-selection) {
+  background: var(--alg-knop) !important;
+  color: var(--alg-knop-tekst) !important;
+}
+html .button:not(.button--flat, .button--red):hover {
+  background: var(--alg-knop-hover) !important;
+  box-shadow: var(--alg-gloed) !important;
+}
+html :is(.input, .button:not(.button--flat)) {
+  border-radius: var(--alg-radius) !important;
+}
+
+/* ---------- Login ------------------------------------------------------- */
+/* het formulier als glazen paneel zoals allow */
+html #login form {
+  padding: 1.6em 1.2em;
+  background: var(--alg-glas);
+  border: 1px solid var(--alg-rand);
+  border-radius: var(--alg-radius-groot);
+  box-shadow: var(--alg-schaduw);
+  -webkit-backdrop-filter: var(--alg-blur);
+  backdrop-filter: var(--alg-blur);
+}
+/* monospace is breder: zo past "File Browser" op één regel in het paneel */
+html #login h1 {
+  font-size: 1.75em;
+  color: var(--alg-tekst-sterk);
+}
+html #login .logout-message {
+  color: var(--alg-donker-tekst);
+}
+
+/* ---------- Meldingen (Vue-Toastification) ------------------------------ */
+html .Vue-Toastification__toast {
+  background: var(--alg-glas-sterk);
+  color: var(--alg-tekst);
+  border: 1px solid var(--alg-rand-sterk);
+  box-shadow: var(--alg-schaduw-midden);
+  font-family: var(--alg-font);
+  -webkit-backdrop-filter: var(--alg-blur);
+  backdrop-filter: var(--alg-blur);
+}
+html .Vue-Toastification__toast--success { border-color: var(--alg-ok-rand); box-shadow: inset 4px 0 0 var(--alg-ok), var(--alg-schaduw-midden); }
+html .Vue-Toastification__toast--error { border-color: var(--alg-fout-rand); box-shadow: inset 4px 0 0 var(--alg-fout), var(--alg-schaduw-midden); }
+html .Vue-Toastification__toast--warning { border-color: var(--alg-waarschuwing-rand); box-shadow: inset 4px 0 0 var(--alg-waarschuwing), var(--alg-schaduw-midden); }
+html .Vue-Toastification__toast--info { border-color: var(--alg-info-rand); box-shadow: inset 4px 0 0 var(--alg-info), var(--alg-schaduw-midden); }
+html .Vue-Toastification__progress-bar {
+  background-color: var(--alg-rand-hover);
+}
+
+/* ---------- Getalveld met +/- (instellingen) ---------------------------- */
+html .vue-number-input__input {
+  background-color: var(--alg-veld);
+  border-color: var(--alg-rand-sterk);
+  color: var(--alg-tekst);
+}
+html .vue-number-input__button {
+  background-color: var(--alg-knop-zacht);
+  border-color: var(--alg-rand) !important;
+}
+html .vue-number-input__button::before,
+html .vue-number-input__button::after {
+  background-color: var(--alg-tekst);
+}

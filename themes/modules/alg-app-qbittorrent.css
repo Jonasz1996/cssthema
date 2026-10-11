@@ -1,0 +1,83 @@
+/* alg-app-qbittorrent.css - gegenereerd uit algemeen.css door scripts/themes/modules.py;
+   niet met de hand aanpassen. Laadt na alg-kern.css (zie themes/README.md). */
+/* ==========================================================================
+   60 QBITTORRENT (WebUI 5.x, MochaUI)
+   Herkenning: het script scripts/localpreferences.js (hoofdscherm en de
+   dialogen in iframes) of de meta-beschrijving "qBittorrent WebUI" (login).
+   qBittorrent heeft zelf een lichte en donkere set (:root en :root.dark);
+   wij zetten één donkere set in onze kleuren, ongeacht de keuze in de app.
+   Getest met qBittorrent 5 (opties, hoofdscherm).
+   ========================================================================== */
+
+:root:is(:has(> head > script[src^="scripts/localpreferences.js"]), :has(> head > meta[name="description"][content="qBittorrent WebUI"])) {
+  color-scheme: dark;
+  --color-accent-blue: #8a8a8a;
+  --color-text-blue: var(--alg-info);
+  --color-text-orange: var(--alg-waarschuwing);
+  --color-text-red: var(--alg-fout);
+  --color-text-green: var(--alg-ok);
+  --color-text-default: var(--alg-tekst);
+  --color-text-disabled: #8c8c8c;
+  /* opgelet: dit zijn ondoorzichtige vlakken (vensters, tabellen) */
+  --color-background-primary: var(--alg-achtergrond-kleur);
+  --color-background-popup: #1c1c1c;
+  --color-background-default: #262626;
+  /* geselecteerd en hover: grijs met witte tekst (7:1 en meer) */
+  --color-background-blue: #4f4f4f;
+  --color-background-hover: #3a3a3a;
+  --color-border-blue: #777;
+  --color-border-default: #3a3a3a;
+}
+
+/* trackerstatus: de kleuren uit qBittorrent's eigen donkere modus */
+:root:is(:has(> head > script[src^="scripts/localpreferences.js"]), :has(> head > meta[name="description"][content="qBittorrent WebUI"])) #torrentTrackersTableDiv tr {
+  --color-tracker-disabled: hsl(240deg 6% 83%);
+  --color-tracker-not-contacted: hsl(39deg 100% 72%);
+  --color-tracker-working: hsl(142deg 69% 58%);
+  --color-tracker-updating: hsl(210deg 88.1% 73.5%);
+  --color-tracker-not-working: hsl(0deg 100% 71%);
+}
+
+/* knoppen: qBittorrent geeft ze zijn tekstkleur, wij de knopkleur; maak de
+   tekst wit zodat het contrast klopt (wit op #6a6a6a = 5.4:1) */
+:root:is(:has(> head > script[src^="scripts/localpreferences.js"]), :has(> head > meta[name="description"][content="qBittorrent WebUI"])) :is(input[type="button"], input[type="submit"], button:not([class])) {
+  color: var(--alg-knop-tekst) !important;
+}
+
+/* ---------- Contextmenu's: glas, ronde hoeken, schaduw ------------------- */
+/* geen overflow: hidden (submenu's staan absoluut buiten het menu) */
+:root:has(> head > script[src^="scripts/localpreferences.js"]) ul.contextMenu {
+  background-color: var(--alg-glas-sterk) !important;
+  border-color: var(--alg-rand-sterk) !important;
+  border-radius: var(--alg-radius-midden);
+  box-shadow: var(--alg-schaduw-midden);
+  -webkit-backdrop-filter: var(--alg-blur);
+  backdrop-filter: var(--alg-blur);
+}
+
+/* ---------- Vensters (MochaUI): ring en schaduw zoals een glaspaneel ---- */
+:root:has(> head > script[src^="scripts/localpreferences.js"]) .mocha {
+  box-shadow: 0 0 0 1px var(--alg-rand-sterk), var(--alg-schaduw);
+}
+
+/* ---------- Loginpagina: formulier als glazen kaart --------------------- */
+:root:has(> head > meta[name="description"][content="qBittorrent WebUI"]):has(#loginform) #formplace {
+  background-color: var(--alg-glas);
+  border-radius: var(--alg-radius-groot);
+  box-shadow: 0 0 0 1px var(--alg-rand-sterk), var(--alg-schaduw);
+}
+
+:root:has(> head > meta[name="description"][content="qBittorrent WebUI"]):has(#loginform) #loginButton {
+  font-weight: 700;
+}
+
+:root:has(> head > meta[name="description"][content="qBittorrent WebUI"]):has(#loginform) #error_msg {
+  color: var(--alg-fout);
+}
+
+/* geselecteerd onder de muis: hover (#3a3a3a) won van geselecteerd
+   (#4f4f4f), waardoor de selectie leek te verdwijnen; nu nog iets lichter */
+:root:is(:has(> head > script[src^="scripts/localpreferences.js"]), :has(> head > meta[name="description"][content="qBittorrent WebUI"])) :is(.dynamicTableDiv table.dynamicTable tbody tr.selected:hover, .selectedFilter > span.link:hover, .tab-menu li.selected:hover a) {
+  background-color: #5a5a5a;
+}
+

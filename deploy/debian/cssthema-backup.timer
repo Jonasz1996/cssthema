@@ -1,0 +1,11 @@
+[Unit]
+Description=Dagelijkse back-up van cssthema
+
+[Timer]
+OnCalendar=*-*-* 03:30
+RandomizedDelaySec=15min
+# Stond de container uit op het geplande moment, dan alsnog bij de volgende start.
+Persistent=true
+
+[Install]
+WantedBy=timers.target

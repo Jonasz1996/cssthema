@@ -11,6 +11,9 @@ router = APIRouter(tags=["health"])
 
 # Een afhankelijkheid die de verbinding aanneemt maar niet antwoordt, telt als "error".
 PROBE_TIMEOUT_S = 2.0
+ENCODING_QUERY = (
+    "SELECT pg_encoding_to_char(encoding) FROM pg_database WHERE datname = current_database()"
+)
 
 
 class HealthStatus(BaseModel):
@@ -34,8 +37,10 @@ async def readyz(request: Request, response: Response) -> HealthStatus:
     try:
         async with asyncio.timeout(PROBE_TIMEOUT_S):
             async with request.app.state.engine.connect() as conn:
-                await conn.execute(text("SELECT 1"))
+                encoding = await conn.scalar(text(ENCODING_QUERY))
         checks["database"] = "ok"
+        # Een database in SQL_ASCII geeft een fout 500 bij elke é of ë (deploy/debian).
+        checks["database_encoding"] = "ok" if encoding == "UTF8" else "error"
     except Exception:  # inclusief TimeoutError
         checks["database"] = "error"
     try:

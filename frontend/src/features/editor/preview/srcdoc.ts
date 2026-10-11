@@ -1,4 +1,5 @@
 import { DEMO_BASE_CSS, escapeHtml } from "./demo-page";
+import { PreviewError } from "./errors";
 
 /**
  * Het document van de preview-iframe (`srcdoc`), docs/02 § 4.2:
@@ -52,7 +53,10 @@ export function buildPreviewDocument({
   baseCss = DEMO_BASE_CSS,
 }: PreviewDocumentInput): string {
   if (/<\/script|<!--/i.test(bridgeSource)) {
-    throw new Error("preview-bridge.js bevat </script of <!-- en kan niet inline");
+    throw new PreviewError(
+      "notInlineable",
+      "preview-bridge.js bevat </script of <!-- en kan niet inline",
+    );
   }
   if (/<\/style/i.test(baseCss)) throw new Error("demo-stijl bevat </style");
   return [

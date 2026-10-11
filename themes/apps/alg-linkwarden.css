@@ -1,0 +1,68 @@
+/* ==========================================================================
+   alg-linkwarden.css - Linkwarden (Next.js + Tailwind + DaisyUI 4)
+   Host: linkwarden.jbogaert.be
+   Laadt NA algemeen.css.
+
+   Linkwarden staat al donker (data-theme="dark", grijze base-kleuren), maar
+   kleurt knoppen, links en selecties met DaisyUI-variabelen: --a (paars,
+   de Login-knop), --p (blauw, inline op html gezet uit de gekozen
+   themakleur), --s, en de statuskleuren. Dit bestand zet die op grijs en op
+   de statustokens, en werkt de vaste Tailwind-kleuren af die daarbuiten
+   vallen (violette knoprand, sky-rand van het loginformulier).
+
+   DaisyUI 4 verwacht "L C H"-getallen (oklch zonder functie), geen kleur:
+   daar kan geen var(--alg-*) staan. De getallen hieronder zijn exact de
+   tokens omgerekend (zie commentaar per regel).
+
+   Beperkingen: alleen de loginpagina is vastgelegd; dashboard, collecties
+   en linkkaarten volgen via dezelfde variabelen maar zijn niet getest.
+   CSP: alleen frame-ancestors, blokkeert css.jbogaert.be niet.
+   ========================================================================== */
+
+/* --p staat inline op html (style="--p: var(--default)"): !important nodig */
+:root,
+:root[data-theme] {
+  --default: 0.7380 0 0 !important;   /* --alg-accent-kleur #aaa */
+  --p: 0.7380 0 0 !important;         /* --alg-accent-kleur #aaa */
+  --pc: 0.1776 0 0;                   /* --alg-donker-tekst #111 */
+  --s: 0.6830 0 0;                    /* --alg-gedempt #999 */
+  --sc: 0.1776 0 0;                   /* --alg-donker-tekst */
+  --a: 0.5243 0 0;                    /* --alg-knop #6a6a6a */
+  --ac: 1 0 0;                        /* --alg-knop-tekst #fff */
+  --in: 0.8235 0.0902 253.37;         /* --alg-info */
+  --inc: 0.1776 0 0;
+  --su: 0.8156 0.1004 153.08;         /* --alg-ok */
+  --suc: 0.1776 0 0;
+  --wa: 0.8020 0.1082 76.52;          /* --alg-waarschuwing */
+  --wac: 0.1776 0 0;
+  --er: 0.7309 0.1102 20.08;          /* --alg-fout */
+  --erc: 0.1776 0 0;
+}
+
+/* Login-knop en andere accentknoppen: grijs met gloed, geen violette rand */
+.bg-accent {
+  border-color: var(--alg-rand-sterk) !important;
+  color: var(--alg-knop-tekst);
+}
+.bg-accent:hover {
+  background-color: var(--alg-knop-hover);
+  box-shadow: var(--alg-gloed);
+}
+.border-violet-400 {
+  border-color: var(--alg-rand-sterk);
+}
+
+/* loginformulier: glas met neutrale rand i.p.v. sky */
+[data-testid="login-form"] {
+  background-color: var(--alg-glas) !important;
+  border-color: var(--alg-rand) !important;
+  box-shadow: var(--alg-schaduw-midden) !important;
+  -webkit-backdrop-filter: var(--alg-blur);
+  backdrop-filter: var(--alg-blur);
+}
+
+/* "installeer de app"-balk onderaan */
+.bg-base-300.backdrop-blur-md {
+  background-color: var(--alg-glas-sterk);
+  border-color: var(--alg-rand-sterk);
+}

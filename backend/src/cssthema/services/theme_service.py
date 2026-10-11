@@ -154,6 +154,13 @@ def check_size(ctx: ServiceContext, css: str) -> None:
         )
 
 
+async def _service_exists(ctx: ServiceContext, service_id: uuid.UUID) -> bool:
+    found = await ctx.session.scalar(
+        select(Service.id).where(Service.id == service_id, Service.deleted_at.is_(None))
+    )
+    return found is not None
+
+
 async def check_references(
     ctx: ServiceContext,
     *,
@@ -161,12 +168,8 @@ async def check_references(
     palette_id: uuid.UUID | None = None,
 ) -> None:
     errors = []
-    if service_id is not None:
-        found = await ctx.session.scalar(
-            select(Service.id).where(Service.id == service_id, Service.deleted_at.is_(None))
-        )
-        if found is None:
-            errors.append(field_error("service_id", "Deze service bestaat niet."))
+    if service_id is not None and not await _service_exists(ctx, service_id):
+        errors.append(field_error("service_id", "Deze service bestaat niet."))
     if (
         palette_id is not None
         and await palette_repo.get_active_palette(ctx.session, palette_id) is None
@@ -402,8 +405,15 @@ async def duplicate_theme(
     source = await load_theme(ctx, theme_id)
     slug = checked_slug(data.slug if data.slug else slugify(data.name))
     await ensure_slug_free(ctx, slug)
-    service_id = data.service_id if "service_id" in data.model_fields_set else source.service_id
-    await check_references(ctx, service_id=data.service_id)
+    if "service_id" in data.model_fields_set:
+        service_id = data.service_id
+        await check_references(ctx, service_id=service_id)
+    else:
+        # De kopie neemt de service van het origineel over, maar niet als die intussen
+        # verwijderd is.
+        service_id = source.service_id
+        if service_id is not None and not await _service_exists(ctx, service_id):
+            service_id = None
 
     redirect_removed = await theme_repo.delete_redirect(ctx.session, slug)
     theme = new_theme(

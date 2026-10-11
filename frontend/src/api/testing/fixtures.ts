@@ -1,6 +1,8 @@
 import type {
   Dashboard,
   Draft,
+  HostBinding,
+  HostOptions,
   LintResult,
   LocalCssFile,
   Palette,
@@ -158,6 +160,35 @@ export function makeScript(overrides: Partial<ScriptFile> = {}): ScriptFile {
     url: `https://css.example/${name}.js`,
     sha256: "a5e330f6b1a4".padEnd(64, "0"),
     world_readable: true,
+    ...overrides,
+  };
+}
+
+export function makeHost(overrides: Partial<HostBinding> = {}): HostBinding {
+  const hostname = overrides.hostname ?? "proxmox.example";
+  return {
+    id: testId(),
+    hostname,
+    styles: ["algemeen"],
+    scripts: ["algemeen"],
+    enabled: true,
+    note: null,
+    css_url: `https://css.example/host/${hostname}.css`,
+    js_url: `https://css.example/host/${hostname}.js`,
+    created_at: NOW,
+    updated_at: NOW,
+    ...overrides,
+  };
+}
+
+export function makeHostOptions(overrides: Partial<HostOptions> = {}): HostOptions {
+  return {
+    styles: ["algemeen", "alg-proxmox", "nord"],
+    scripts: ["algemeen", "extra"],
+    snippet:
+      "sub_filter '</head>' '<link rel=\"stylesheet\" href=\"https://css.example/host/$host.css\"></head>';\n",
+    snippet_own_domain:
+      "sub_filter '</head>' '<link rel=\"stylesheet\" href=\"/alg-thema/host/$host.css\"></head>';\n",
     ...overrides,
   };
 }

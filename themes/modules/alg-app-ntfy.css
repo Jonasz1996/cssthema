@@ -1,0 +1,33 @@
+/* alg-app-ntfy.css - gegenereerd uit algemeen.css door scripts/themes/modules.py;
+   niet met de hand aanpassen. Laadt na alg-kern.css (zie themes/README.md). */
+/* ==========================================================================
+   60 NTFY (web-app, MUI v7 + emotion)
+   Herkenning: de meta-tag og:site_name "ntfy web" in de kop. De klassen van
+   emotion (css-xxxx) wisselen per versie, dus alleen MUI-klassen en id's.
+   Getest: start (leeg), topic met berichten, instellingen, actiemenu,
+   dialogen "abonneren" en "publiceren".
+   ========================================================================== */
+
+/* hoofdvlak heeft een vaste lichtgrijze achtergrond: doorzichtig, zodat de
+   achtergrond en het netwerk zichtbaar zijn (berichten staan op kaarten) */
+html:has(> head > meta[property="og:site_name"][content="ntfy web"]) main#main {
+  background-color: transparent !important;
+}
+
+/* tekst die rechtstreeks op de achtergrond staat (lege start, uitleg) heeft
+   de lichte-modus-kleur rgba(0,0,0,.87) vast in emotion */
+html:has(> head > meta[property="og:site_name"][content="ntfy web"]) main#main > .MuiContainer-root :is(.MuiTypography-root, p) {
+  color: var(--alg-tekst) !important;
+}
+
+/* kopbalk: het verloop zit op de werkbalk, niet op de AppBar zelf */
+html:has(> head > meta[property="og:site_name"][content="ntfy web"]) header.MuiAppBar-root > .MuiToolbar-root {
+  background-image: none !important;
+  background-color: transparent !important;
+}
+
+/* keuzelijsten tonen hun waarde in een eigen Box met lichte-modus-grijs */
+html:has(> head > meta[property="og:site_name"][content="ntfy web"]) .MuiSelect-select .MuiBox-root {
+  color: inherit !important;
+}
+

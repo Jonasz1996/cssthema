@@ -17,6 +17,7 @@
 | 8 | [Productie-roadmap](08-productie-roadmap.md) | v0.5 → v1.0 → v2, exitcriteria |
 | 9 | [Risicoanalyse](09-risicoanalyse.md) | 21 risico's met score en mitigatie, top-5 |
 | 10 | [Theme-injectie](10-theme-injectie.md) | Injectiemethodes per app (NPM, native, Stylus, userscript, extensie) — functie 8 uit de opdracht |
+| 11 | [Review en stappenplan](11-review-en-stappenplan.md) | Doorlichting van de code (2026-10-11) en geprioriteerd plan voor verbeteringen en nieuwe features |
 
 ## Spikes (fase 0)
 

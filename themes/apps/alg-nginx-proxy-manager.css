@@ -1,0 +1,91 @@
+/* ==========================================================================
+   alg-nginx-proxy-manager.css - Nginx Proxy Manager (v2.13+, React + Tabler)
+   Hosts: nginx.jbogaert.be, nginx105.jbogaert.be
+   Laadt NA algemeen.css (alleen op NPM-hosts, dus zonder herkenningsselector).
+
+   Wat het afwerkt:
+   - algemeen.css herkent NPM aan de meta-beschrijving "Manage Nginx hosts".
+     Op nginx105 is die aangepast ("In The Office Planner"), waardoor de
+     gekleurde knoppen (azuur Sign in, limoen Add Proxy Host ...) en de
+     statusbalk daar niet grijs werden. Die regels staan hier zonder die
+     voorwaarde, zodat ze op elke NPM-host gelden.
+   - meldingen (react-toastify) als glazen paneel in plaats van wit
+   - logo met grijze tekst op het loginscherm leesbaar op donker
+
+   Beperkingen: alleen het loginscherm vastgelegd (beide hosts). De regels
+   voor het hoofdscherm (knoppen, statusbalk, meldingen) volgen NPM's eigen
+   klassen en variabelen, maar zijn hier niet getest. Het logo laadt niet in
+   de testopstelling: de logoregel is dus ook niet getest.
+   ========================================================================== */
+
+/* ---------- Meldingen (react-toastify) ---------------------------------- */
+:root {
+  --toastify-color-light: var(--alg-glas-sterk);
+  --toastify-color-dark: var(--alg-glas-sterk);
+  --toastify-toast-background: var(--alg-glas-sterk);
+  --toastify-text-color-light: var(--alg-tekst);
+  --toastify-text-color-dark: var(--alg-tekst);
+  --toastify-color-info: var(--alg-info);
+  --toastify-color-success: var(--alg-ok);
+  --toastify-color-warning: var(--alg-waarschuwing);
+  --toastify-color-error: var(--alg-fout);
+  --toastify-toast-shadow: var(--alg-schaduw-midden);
+  --toastify-font-family: var(--alg-font);
+  --toastify-toast-bd-radius: var(--alg-radius);
+}
+
+.Toastify__toast {
+  border: 1px solid var(--alg-rand-sterk);
+  -webkit-backdrop-filter: var(--alg-blur);
+  backdrop-filter: var(--alg-blur);
+}
+
+/* ---------- Gekleurde actieknoppen als grijze knop ---------------------- */
+/* zelfde regel als in algemeen.css, maar zonder de meta-voorwaarde.
+   Rood in dialogen (verwijderen bevestigen) blijft rood. */
+.btn:is(.btn-lime, .btn-yellow, .btn-blue, .btn-teal, .btn-cyan, .btn-pink,
+    .btn-orange, .btn-azure, .btn-green, .btn-purple, .btn-indigo),
+.btn.btn-red:not(.modal *) {
+  --tblr-btn-bg: var(--alg-knop) !important;
+  --tblr-btn-color: var(--alg-knop-tekst) !important;
+  --tblr-btn-border-color: transparent !important;
+  --tblr-btn-hover-bg: var(--alg-knop-hover) !important;
+  --tblr-btn-hover-color: var(--alg-knop-tekst-hover) !important;
+  --tblr-btn-hover-border-color: transparent !important;
+  --tblr-btn-active-bg: var(--alg-knop-hover) !important;
+  --tblr-btn-active-color: var(--alg-knop-tekst-hover) !important;
+  --tblr-btn-disabled-bg: var(--alg-knop) !important;
+  --tblr-btn-disabled-color: var(--alg-knop-tekst) !important;
+  font-weight: 700;
+}
+
+.btn:is(.btn-lime, .btn-yellow, .btn-blue, .btn-teal, .btn-cyan, .btn-pink,
+    .btn-orange, .btn-azure, .btn-green, .btn-purple, .btn-indigo):hover,
+.btn.btn-red:not(.modal *):hover {
+  box-shadow: var(--alg-gloed) !important;
+}
+
+/* statusbalk boven de kaarten: per onderdeel gekleurd, hier grijs */
+.card-status-top {
+  background-color: var(--alg-rand-hover) !important;
+}
+
+/* hamburger op een smal scherm: Tabler tekent hem al licht */
+.navbar-toggler-icon {
+  filter: none;
+}
+
+/* ---------- Loginkaart -------------------------------------------------- */
+.page-center .card.card-md {
+  border-color: var(--alg-rand-sterk);
+  border-radius: var(--alg-radius-groot);
+  box-shadow: var(--alg-schaduw);
+  -webkit-backdrop-filter: var(--alg-blur);
+  backdrop-filter: var(--alg-blur);
+}
+
+/* logo met grijze tekst (logo-text-horizontal-grey.png): licht maken met
+   behoud van de kleuren van het zeshoekje (niet getest, zie kop) */
+img[src*="logo-text-horizontal"] {
+  filter: invert(1) hue-rotate(180deg);
+}
