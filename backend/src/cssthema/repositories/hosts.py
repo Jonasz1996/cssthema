@@ -52,3 +52,15 @@ async def hostnames_using(
         return []
     result = await session.scalars(select(HostBinding.hostname).where(or_(*conditions)))
     return list(result)
+
+
+async def rename_style(session: AsyncSession, old: str, new: str) -> list[str]:
+    """Vervangt thema `old` door `new` in elke koppeling; geeft de hostnamen terug."""
+    bindings = await session.scalars(
+        select(HostBinding).where(HostBinding.styles.has_any(array([old], type_=String)))
+    )
+    changed = []
+    for binding in bindings:
+        binding.styles = list(dict.fromkeys(new if s == old else s for s in binding.styles))
+        changed.append(binding.hostname)
+    return changed

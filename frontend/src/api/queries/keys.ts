@@ -18,6 +18,7 @@ import type { DiffRef, ThemeListFilters } from "../types";
  * ["scripts", "list"]                          thema-scripts (`.js` in css-files)
  * ["scripts", "content", name]                 inhoud van één script
  * ["hosts", "list"] / ["hosts", "options"]     host-koppelingen en de keuzes ervoor
+ * ["hosts", "health"]                          laatst geladen en laatste controle per host
  * ["dashboard"]
  * ```
  *
@@ -65,6 +66,7 @@ export const hostKeys = {
   all: ["hosts"] as const,
   list: () => [...hostKeys.all, "list"] as const,
   options: () => [...hostKeys.all, "options"] as const,
+  health: () => [...hostKeys.all, "health"] as const,
 };
 
 export const dashboardKeys = {

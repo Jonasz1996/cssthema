@@ -1,6 +1,6 @@
 # 11 — Projectreview en stappenplan
 
-> Status: **in uitvoering** · Versie 0.2 · 2026-10-11 (zie *Voortgang* onderaan)
+> Status: **in uitvoering** · Versie 0.3 · 2026-10-11 (zie *Voortgang* onderaan)
 >
 > Getoetst: de volledige repo op de PR #8-branch (commit b6c40b2: backend, frontend, nginx, installer, CI, docs, capture-script) en de thema's in de projectmap (`algemeen.css`, `algemeen.js`, 58 × `alg-<app>.css`), naast de ontwerpdocumenten 01–10 en hoe cssthema echt draait (Debian-LXC achter NPM + Authentik, thema's cross-origin vanaf `https://css.jbogaert.be`).
 
@@ -159,3 +159,6 @@ Kies je liever iets anders eerst, zeg dan de nummers.
 | C1 | Klaar (PR #9): `/host/<hostnaam>.css|.js`, pagina *Hosts* met importeren van bestaande `sub_filter`-regels. |
 | C2 | Klaar (PR #9): `themes/modules/` (33 modules, `scripts/themes/modules.py`), `themes/hosts-modules.conf` met per host een lichte stapel (mediaan 52 KB in plaats van 464 KB). Gecontroleerd op de vastgelegde pagina's van 62 hosts: pixel-identiek met `algemeen.css`; pagina's na het inloggen niet getest. |
 | A6.2 | Klaar: `themes/` staat in git (met `--check` in CI). |
+| Tweede controle | Klaar (PR #9): terugzetten van de oudste back-up wiste die eerst (bewaartermijn), een mislukte back-up hield de update niet tegen, hosts die `*` volgen kregen een wijziging pas na een minuut (nu een redirect naar één gedeelde bundel, ook tegen het volspammen van de cache), host-refresh op de achtergrond en alleen `.css` of `.js`, hernoemen van een thema past de host-koppelingen aan, één fout script houdt de andere niet meer tegen, opruimen van halve back-ups, `# 1.5 MB` is geen hostnaam meer. |
+| C3 | Klaar (PR #9): per host *laatst geladen*, ontbrekende onderdelen en een controle van de pagina (regel aanwezig, CSP), dagelijks om 06:15 en met een knop. Schermafbeeldingen per host (D5) nog niet. |
+| C4 | Klaar (PR #9): `themes/varianten/` met Nord, Dracula, Catppuccin, Gruvbox en Oceaan (`scripts/themes/varianten.py`, contrast gecontroleerd). Kiezen per host of via `*` op de Hosts-pagina. |

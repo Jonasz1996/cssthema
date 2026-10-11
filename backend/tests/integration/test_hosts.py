@@ -3,6 +3,8 @@
 import uuid
 from typing import Any
 
+from cssthema.domain import host_health as host_health_domain
+from cssthema.services import host_health
 from tests.integration.api_helpers import Api
 
 HOSTS = "/api/v1/hosts"
@@ -50,13 +52,13 @@ async def test_bundle_combines_files_and_published_themes(api: Api) -> None:
 
 async def test_default_binding_and_unknown_host(api: Api) -> None:
     unknown = hostname()
-    response = await api.client.get(f"/host/{unknown}.css")
+    response = await api.client.get(f"/host/{unknown}.css", follow_redirects=True)
     assert response.status_code == 200
     assert "geen koppeling" in response.text
 
     (api.css_dir / "standaard.css").write_text("html{}\n")
     await create(api, hostname="*", styles=["standaard"])
-    response = await api.client.get(f"/host/{unknown}.css")
+    response = await api.client.get(f"/host/{unknown}.css", follow_redirects=True)
     assert "html{}" in response.text
     assert "(koppeling *)" in response.text
 
@@ -148,3 +150,112 @@ async def test_options_list_themes_files_and_snippet(api: Api) -> None:
     assert options["scripts"] == ["netwerk"]
     assert "https://css.example.be/host/$host.css" in options["snippet"]
     assert "/alg-thema/host/$host.css" in options["snippet_own_domain"]
+
+
+# --- gezondheid (C3) --------------------------------------------------------------------------
+
+
+async def health(api: Api) -> dict[str, Any]:
+    response = await api.client.get(f"{HOSTS}/health")
+    assert response.status_code == 200, response.text
+    result: dict[str, Any] = response.json()
+    return result
+
+
+def entry(overview: dict[str, Any], name: str) -> dict[str, Any]:
+    return next(h for h in overview["hosts"] if h["hostname"] == name)
+
+
+async def test_health_lists_seen_hosts_and_missing_parts(api: Api) -> None:
+    (api.css_dir / "algemeen.css").write_text("body{}\n")
+    bound = await create(api, styles=["algemeen", "weg"], scripts=["geen-script"])
+    unbound = hostname()
+    await api.client.get(f"/host/{bound['hostname']}.css")
+    await api.client.get(f"/host/{unbound}.css")
+    # De nginx-refresh van cssthema zelf telt niet als geladen; .js ook niet.
+    refreshed = hostname()
+    await api.client.get(f"/host/{refreshed}.css", headers={"X-Cssthema-Refresh": "1"})
+    await api.client.get(f"/host/{refreshed}.js")
+
+    overview = await health(api)
+    item = entry(overview, bound["hostname"])
+    assert item["bound"] is True
+    assert item["last_seen"] is not None
+    assert item["missing_styles"] == ["weg"]
+    assert item["missing_scripts"] == ["geen-script"]
+    assert item["level"] == "warn"
+    assert entry(overview, unbound)["bound"] is False
+    assert all(h["hostname"] != refreshed for h in overview["hosts"])
+
+    response = await api.client.delete(f"{HOSTS}/seen/{unbound}")
+    assert response.status_code == 204
+    assert all(h["hostname"] != unbound for h in (await health(api))["hosts"])
+
+
+async def test_check_stores_results_per_bound_host(api: Api) -> None:
+    good = await create(api, styles=["a"])
+    bad = await create(api, styles=["a"])
+    off = await create(api, styles=["a"], enabled=False)
+    pages = {
+        good["hostname"]: f'<link href="https://css.example.be/host/{good["hostname"]}.css">',
+        bad["hostname"]: "<html><head></head></html>",
+    }
+
+    async def fetch(name: str) -> dict[str, Any]:
+        verdict = host_health_domain.classify(
+            name,
+            "https://css.example.be",
+            status=200,
+            content_type="text/html",
+            csp=None,
+            html=pages.get(name, ""),
+        )
+        return host_health._result(verdict, 200)
+
+    state = api.app.state
+    checked = await host_health.run_check(
+        state.sessionmaker, state.redis, state.settings, fetch=fetch
+    )
+    assert checked >= 2
+
+    overview = await health(api)
+    assert overview["check_running"] is False
+    assert overview["check_finished_at"] is not None
+    assert entry(overview, good["hostname"])["check"]["code"] == "rule_active"
+    assert entry(overview, good["hostname"])["level"] in ("ok", "warn")
+    assert entry(overview, bad["hostname"])["level"] == "error"
+    assert entry(overview, off["hostname"])["check"] is None
+
+
+async def test_check_endpoint_refuses_a_second_run(api: Api) -> None:
+    await api.app.state.redis.set(host_health.CHECK_LOCK_KEY, "1")
+    response = await api.client.post(f"{HOSTS}/check")
+    assert response.status_code == 202
+    assert response.json() == {"started": False}
+    assert (await health(api))["check_running"] is True
+
+
+async def test_unbound_hosts_share_the_default_bundle(api: Api) -> None:
+    follower = hostname()
+    response = await api.client.get(f"/host/{follower}.css")
+    assert response.status_code == 302
+    assert response.headers["Location"] == "*.css"
+    js = await api.client.get(f"/host/{follower}.js")
+    assert js.headers["Location"] == "*.js"
+    # Ook de redirect telt als geladen.
+    assert any(h["hostname"] == follower for h in (await health(api))["hosts"])
+
+
+async def test_renaming_a_theme_updates_host_bindings(api: Api) -> None:
+    theme = await api.published_theme(css="a { color: red; }")
+    host = await create(api, styles=[theme["slug"], "andere"])
+    new_slug = f"{theme['slug']}-nieuw"
+    response = await api.client.patch(
+        f"/api/v1/themes/{theme['id']}",
+        json={"slug": new_slug},
+        headers={"If-Match": f'"lv-{theme["lock_version"]}"'},
+    )
+    assert response.status_code == 200, response.text
+    hosts = (await api.client.get(HOSTS)).json()
+    assert next(h for h in hosts if h["id"] == host["id"])["styles"] == [new_slug, "andere"]
+    assert f"/host/{host['hostname']}.css" in await api.refreshed()

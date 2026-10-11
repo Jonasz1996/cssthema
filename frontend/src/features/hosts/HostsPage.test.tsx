@@ -1,8 +1,15 @@
 import { fireEvent, screen, waitFor, within } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import { json, noContent, problem } from "@/api/testing/fetch-mock";
-import { makeHost, makeHostOptions, testId } from "@/api/testing/fixtures";
-import type { HostBinding } from "@/api/types";
+import {
+  makeHost,
+  makeHostCheck,
+  makeHostHealth,
+  makeHostHealthOverview,
+  makeHostOptions,
+  testId,
+} from "@/api/testing/fixtures";
+import type { HostBinding, HostHealthOverview } from "@/api/types";
 import { createServer, renderPage, toastTexts } from "@/features/themes/testing";
 import { HostsPage } from "./HostsPage";
 
@@ -27,10 +34,19 @@ const vault = makeHost({
   enabled: false,
 });
 
-function server(hosts: HostBinding[] = [fallback, proxmox, vault]) {
+function server(
+  hosts: HostBinding[] = [fallback, proxmox, vault],
+  health: HostHealthOverview = makeHostHealthOverview(),
+) {
   return createServer()
     .on("GET", "/api/v1/hosts", () => json(hosts))
-    .on("GET", "/api/v1/hosts/options", () => json(makeHostOptions()));
+    .on("GET", "/api/v1/hosts/options", () => json(makeHostOptions()))
+    .on("GET", "/api/v1/hosts/health", () => json(health));
+}
+
+/** ISO-tijd zoveel minuten geleden. */
+function minutesAgo(minutes: number): string {
+  return new Date(Date.now() - minutes * 60_000).toISOString();
 }
 
 function rows() {
@@ -201,5 +217,134 @@ describe("HostsPage", () => {
     expect(result.getByText("nas.example")).toBeInTheDocument();
     // Na een import wordt de lijst opnieuw opgehaald.
     await waitFor(() => expect(api.callsTo("GET", "/api/v1/hosts").length).toBeGreaterThan(1));
+  });
+
+  describe("gezondheid", () => {
+    const health = makeHostHealthOverview({
+      check_finished_at: minutesAgo(10),
+      hosts: [
+        makeHostHealth({ hostname: "*", level: "ok", last_seen: minutesAgo(5) }),
+        makeHostHealth({
+          hostname: "proxmox.example",
+          level: "error",
+          missing_styles: ["alg-proxmox"],
+          missing_scripts: ["extra"],
+          check: makeHostCheck({
+            level: "error",
+            code: "csp_blocked",
+            detail: "De CSP van de app laat css.example niet toe.",
+            checked_at: minutesAgo(10),
+          }),
+        }),
+        makeHostHealth({
+          hostname: "vault.example",
+          enabled: false,
+          level: "ok",
+          check: makeHostCheck(),
+        }),
+      ],
+    });
+
+    it("toont per koppeling een status met uitleg, ontbrekende delen en laatst geladen", async () => {
+      renderPage(<HostsPage />, { path: "/hosts", server: server(undefined, health) });
+      await screen.findByRole("table", { name: "Host-koppelingen" });
+      const [first, second, third] = rows();
+
+      await waitFor(() => expect(within(first!).getByText("In orde")).toBeInTheDocument());
+      expect(first!.querySelector("[data-level]")).toHaveAttribute("data-level", "ok");
+      expect(within(first!).getByText(/^Laatst geladen: 5 min/)).toBeInTheDocument();
+
+      expect(within(second!).getByText("CSP blokkeert")).toBeInTheDocument();
+      expect(second!.querySelector("[data-level]")).toHaveAttribute("data-level", "error");
+      expect(
+        within(second!).getByText("De CSP van de app laat css.example niet toe."),
+      ).toBeInTheDocument();
+      expect(within(second!).getByText("Ontbreekt: alg-proxmox, extra.js")).toBeInTheDocument();
+      expect(within(second!).getByText("Nog niet geladen")).toBeInTheDocument();
+
+      // Uitgeschakelde koppeling: "Uit", grijs.
+      expect(within(third!).getByText("Uit")).toBeInTheDocument();
+      expect(third!.querySelector("[data-level]")).toHaveAttribute("data-level", "off");
+
+      expect(screen.getByText(/^Laatste controle: 10 min/)).toBeInTheDocument();
+      expect(
+        screen.queryByRole("heading", { name: "Geladen zonder eigen koppeling" }),
+      ).not.toBeInTheDocument();
+    });
+
+    it("start een controle en pollt tot ze klaar is", { timeout: 10_000 }, async () => {
+      let phase: "idle" | "running" | "done" = "idle";
+      const api = server()
+        .on("GET", "/api/v1/hosts/health", () => {
+          if (phase === "idle") return json(makeHostHealthOverview());
+          if (phase === "running") {
+            phase = "done"; // de volgende poll is klaar
+            return json(makeHostHealthOverview({ check_running: true }));
+          }
+          return json(makeHostHealthOverview({ check_finished_at: minutesAgo(0) }));
+        })
+        .on("POST", "/api/v1/hosts/check", () => {
+          phase = "running";
+          return json({ started: true }, { status: 202 });
+        });
+      renderPage(<HostsPage />, { path: "/hosts", server: api });
+      expect(await screen.findByText("Nog niet gecontroleerd")).toBeInTheDocument();
+
+      fireEvent.click(screen.getByRole("button", { name: "Alles controleren" }));
+      const busy = await screen.findByRole("button", { name: "Controleren…" });
+      expect(busy).toBeDisabled();
+      expect(api.callsTo("POST", "/api/v1/hosts/check")).toHaveLength(1);
+      await waitFor(() =>
+        expect(toastTexts()).toContainEqual({ tone: "ok", text: "Controle gestart." }),
+      );
+
+      expect(
+        await screen.findByRole("button", { name: "Alles controleren" }, { timeout: 5000 }),
+      ).toBeEnabled();
+      expect(screen.getByText(/^Laatste controle:/)).toBeInTheDocument();
+    });
+
+    it("toont hosts zonder eigen koppeling, met koppelen en vergeten", async () => {
+      const seen = makeHostHealthOverview({
+        hosts: [
+          makeHostHealth({ hostname: "*", level: "ok" }),
+          makeHostHealth({ hostname: "git.example", bound: false, last_seen: minutesAgo(3) }),
+        ],
+      });
+      let forgotten = false;
+      const api = server(undefined, seen)
+        .on("GET", "/api/v1/hosts/health", () =>
+          json(forgotten ? { ...seen, hosts: seen.hosts.slice(0, 1) } : seen),
+        )
+        .on("DELETE", "/api/v1/hosts/seen/:hostname", () => {
+          forgotten = true;
+          return noContent();
+        });
+      renderPage(<HostsPage />, { path: "/hosts", server: api });
+
+      const section = within(
+        (await screen.findByRole("heading", { name: "Geladen zonder eigen koppeling" }))
+          .parentElement!,
+      );
+      expect(section.getByText("git.example")).toBeInTheDocument();
+      expect(section.getByText(/^Laatst geladen: 3 min/)).toBeInTheDocument();
+
+      // Koppeling maken: de dialoog met de hostnaam en wat * nu geeft.
+      fireEvent.click(section.getByRole("button", { name: "Koppeling maken voor git.example" }));
+      const dialog = within(await screen.findByRole("dialog", { name: "Nieuwe host" }));
+      expect(dialog.getByLabelText("Hostnaam")).toHaveValue("git.example");
+      fireEvent.click(dialog.getByRole("button", { name: "Annuleren" }));
+      await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
+
+      fireEvent.click(section.getByRole("button", { name: "git.example vergeten" }));
+      await waitFor(() => expect(api.callsTo("DELETE")).toHaveLength(1));
+      expect(api.callsTo("DELETE")[0]?.path).toBe("/api/v1/hosts/seen/git.example");
+      await waitFor(() =>
+        expect(
+          screen.queryByRole("heading", { name: "Geladen zonder eigen koppeling" }),
+        ).not.toBeInTheDocument(),
+      );
+      expect(toastTexts()).toContainEqual({ tone: "ok", text: "git.example vergeten." });
+    });
   });
 });

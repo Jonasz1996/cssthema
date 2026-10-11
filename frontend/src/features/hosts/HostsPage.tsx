@@ -1,6 +1,12 @@
 import { useId, useState } from "react";
-import { DEFAULT_HOST, useDeleteHost, useHosts, useUpdateHost } from "@/api/queries/hosts";
-import type { HostBinding } from "@/api/types";
+import {
+  DEFAULT_HOST,
+  useDeleteHost,
+  useHostHealth,
+  useHosts,
+  useUpdateHost,
+} from "@/api/queries/hosts";
+import type { HostBinding, HostHealth } from "@/api/types";
 import {
   Button,
   Callout,
@@ -18,19 +24,25 @@ import { errorText } from "@/features/themes/lib/errors";
 import { listOf } from "@/features/themes/lib/list";
 import { useI18n } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
+import { HostCheckBar } from "./components/HostCheckBar";
 import { HostDialog, type HostDialogTarget } from "./components/HostDialog";
+import { HostStatus } from "./components/HostStatus";
 import { ImportHostsDialog } from "./components/ImportHostsDialog";
 import { NpmSnippet } from "./components/NpmSnippet";
+import { UnboundHosts } from "./components/UnboundHosts";
 import { filterHosts, HOST_ERROR_KEYS, isDefaultHost, toInput } from "./lib/hosts";
 
 /**
  * Hosts (`/hosts`): elke proxy host in NPM krijgt dezelfde `sub_filter`-regel met `$host`; hier
  * stel je per host in welke thema's en scripts hij krijgt. Hosts zonder eigen rij volgen `*`.
+ * Per koppeling een status (laatste controle, laatst geladen); hosts die de regel laadden zonder
+ * eigen rij staan apart onderaan.
  */
 export function HostsPage() {
   const i18n = useI18n();
   const { t, tc } = i18n;
   const hosts = useHosts();
+  const health = useHostHealth();
   const { mutate: updateHost } = useUpdateHost();
   const remove = useDeleteHost();
   const listTitleId = useId();
@@ -47,6 +59,10 @@ export function HostsPage() {
   const list = listOf(hosts.data);
   const visible = filterHosts(list, query, defaultLabel);
   const hasDefault = list.some((host) => isDefaultHost(host.hostname));
+  const healthByHost = new Map<string, HostHealth>(
+    (health.data?.hosts ?? []).map((item) => [item.hostname, item]),
+  );
+  const defaultHost = list.find((host) => isDefaultHost(host.hostname));
 
   const setBusy = (id: string, on: boolean) =>
     setToggling((previous) => {
@@ -89,6 +105,17 @@ export function HostsPage() {
   const openDefault = () =>
     setDialog({ mode: "new", initial: { hostname: DEFAULT_HOST, styles: [], scripts: [] } });
 
+  /** Koppeling voor een host die nu `*` volgt: begint met wat hij nu al krijgt. */
+  const openBind = (hostname: string) =>
+    setDialog({
+      mode: "new",
+      initial: {
+        hostname,
+        styles: [...(defaultHost?.styles ?? [])],
+        scripts: [...(defaultHost?.scripts ?? [])],
+      },
+    });
+
   const columns: TableColumn<HostBinding>[] = [
     {
       key: "host",
@@ -98,6 +125,17 @@ export function HostsPage() {
           <b className="break-words text-heading">{nameOf(host)}</b>
           {host.note && <span className="mt-0.5 block text-[11.5px] text-dim">{host.note}</span>}
         </span>
+      ),
+    },
+    {
+      key: "status",
+      header: t("hosts.colStatus"),
+      cell: (host) => (
+        <HostStatus
+          health={healthByHost.get(host.hostname)}
+          enabled={host.enabled}
+          name={nameOf(host)}
+        />
       ),
     },
     {
@@ -206,6 +244,8 @@ export function HostsPage() {
         </Callout>
       )}
 
+      <HostCheckBar />
+
       <section aria-labelledby={listTitleId} aria-busy={hosts.isFetching || undefined}>
         <div className="mb-2 flex flex-wrap items-center justify-between gap-x-4 gap-y-2.5">
           <h2 id={listTitleId} className="m-0 text-[13px] font-bold text-heading">
@@ -279,6 +319,8 @@ export function HostsPage() {
           />
         )}
       </section>
+
+      <UnboundHosts onBind={openBind} />
 
       <HostDialog
         target={dialog}

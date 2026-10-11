@@ -2,6 +2,7 @@
 
 import uuid
 from datetime import datetime
+from typing import Literal
 
 from pydantic import BaseModel, Field, field_validator
 
@@ -97,3 +98,41 @@ class HostOptions(BaseModel):
             "CSP (met een `location ^~ /alg-thema/` die naar cssthema doorstuurt)."
         )
     )
+
+
+HealthLevel = Literal["ok", "warn", "error", "unknown"]
+
+
+class HostCheck(BaseModel):
+    level: HealthLevel
+    code: str = Field(
+        description="rule_active, old_rule, no_rule, csp_blocked, login, not_html, http_error, "
+        "unreachable"
+    )
+    detail: str
+    http_status: int | None
+    checked_at: datetime
+
+
+class HostHealth(BaseModel):
+    hostname: str
+    bound: bool = Field(description="Heeft een eigen koppeling (anders volgt de host `*`).")
+    enabled: bool
+    level: HealthLevel = Field(description="Samenvatting van ontbrekende onderdelen en controle.")
+    last_seen: datetime | None = Field(
+        description="Wanneer een browser `/host/<host>.css` laatst ophaalde (± 1 minuut)."
+    )
+    missing_styles: list[str]
+    missing_scripts: list[str]
+    check: HostCheck | None
+
+
+class HostHealthOverview(BaseModel):
+    hosts: list[HostHealth] = Field(description="`*` eerst, dan eigen koppelingen, dan de rest.")
+    check_running: bool
+    check_started_at: datetime | None
+    check_finished_at: datetime | None
+
+
+class HostCheckStarted(BaseModel):
+    started: bool = Field(description="False als er al een controle loopt.")

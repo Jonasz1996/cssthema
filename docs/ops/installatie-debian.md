@@ -166,6 +166,14 @@ Daarna verander je een thema of de bestanden van een host alleen nog in het dash
 
 De regel moet in elke proxy host staan: een globale `server_proxy.conf` in NPM werkt niet betrouwbaar, omdat een `proxy_set_header` in een host die van de server-config opheft.
 
+Een host zonder eigen koppeling krijgt een redirect naar `/host/*.css` (en `.js`): al die hosts delen zo één gecachte bundel, en een wijziging aan `*` is meteen overal zichtbaar.
+
+**Gezondheid.** De pagina Hosts toont per host:
+
+- *laatst geladen*: wanneer een browser `/host/<host>.css` ophaalde (op ± 1 minuut). Hosts die de regel gebruiken maar geen eigen koppeling hebben, staan apart onder *Geladen zonder eigen koppeling*;
+- ontbrekende thema's of scripts in een koppeling;
+- het resultaat van de controle: cssthema opent `https://<host>/` en kijkt of de regel in de pagina staat en of de Content-Security-Policy van de app het CSS-domein toelaat. Dat gebeurt elke dag om 06:15 (worker) en met de knop *Alles controleren*. Hosts achter Authentik tonen *achter login*: daar zegt *laatst geladen* meer. De container moet de hostnamen van je apps kunnen opzoeken en bereiken (meestal via NPM).
+
 ### Wie mag schrijven
 
 Tot fase 3 heeft cssthema geen eigen login: Authentik in NPM is de enige bescherming. Wie poort 80 van deze container rechtstreeks bereikt (een ander toestel op het LAN, een container op hetzelfde Docker-netwerk), komt niet langs Authentik. Daarom aanvaardt nginx van cssthema wijzigingen via de api (opslaan, publiceren, importeren, scripts uploaden of verwijderen) alleen van de adressen in `TRUSTED_PROXIES` en van de container zelf. Van elders geeft dat `403` (*Schrijven kan alleen via de reverse proxy*); lezen blijft mogen, dus `http://<ip>/` toont het dashboard wel, maar zonder dat je iets kan wijzigen. Een verzonnen `X-Forwarded-For` helpt niet: nginx kijkt naar het adres van de verbinding zelf.
@@ -182,7 +190,7 @@ Tot fase 3 heeft cssthema geen eigen login: Authentik in NPM is de enige bescher
 git -C /opt/cssthema pull && bash /opt/cssthema/deploy/debian/install.sh
 ```
 
-Configuratie, wachtwoorden, database en CSS-bestanden blijven staan; databasemigraties draaien vanzelf. Vlak daarvoor maakt het script een back-up (`…-voor-update`, zie § 6). Mislukt het bouwen van het dashboard, dan blijft het vorige dashboard draaien.
+Configuratie, wachtwoorden, database en CSS-bestanden blijven staan; databasemigraties draaien vanzelf. Vlak daarvoor maakt het script een back-up (`…-voor-update`, zie § 6). Mislukt het bouwen van het dashboard, dan blijft het vorige dashboard draaien. Mislukt de back-up, dan stopt de update vóór de migraties; los de fout op, of sla de back-up bewust over met `SKIP_BACKUP=1` vóór `bash`.
 
 Installeerde je cssthema vóór oktober 2026, dan volgt `/opt/cssthema` nog de oude branch `claude/css-theme-builder-design-adj6mk`. Nieuwe versies verschijnen op `main`; het script waarschuwt daarvoor. Eén keer overschakelen:
 

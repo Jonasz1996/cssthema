@@ -1,0 +1,53 @@
+/* alg-var-gruvbox.css: kleurvariant Gruvbox dark (github.com/morhetz/gruvbox) van het algemene thema.
+ * Gemaakt met scripts/themes/varianten.py; pas dat script aan, niet dit bestand.
+ * Laad als laatste, na algemeen.css (of alg-kern + modules) en alg-<app>.css.
+ * Contrast (WCAG): tekst/vlak-2 8.5:1, knop 4.9:1, knop-hover 4.5:1, ok-vlak 4.8:1, fout-vlak 4.5:1, waarschuwing-vlak 11.1:1, info-vlak 7.0:1
+ */
+:root {
+  --alg-achtergrond: radial-gradient(circle, #3c3836, #32302f, #282828, #1d2021) center / cover no-repeat fixed;
+  --alg-achtergrond-kleur: #282828;
+  --alg-glas: rgba(50, 48, 47, 0.8);
+  --alg-glas-sterk: rgba(50, 48, 47, 0.95);
+  --alg-vlak: #32302f;
+  --alg-vlak-2: #3c3836;
+  --alg-paneel: rgba(251, 241, 199, 0.04);
+  --alg-rij: rgba(251, 241, 199, 0.05);
+  --alg-rij-hover: rgba(251, 241, 199, 0.09);
+  --alg-rij-actief: rgba(254, 128, 25, 0.18);
+  --alg-zebra: rgba(251, 241, 199, 0.025);
+  --alg-veld: rgba(29, 32, 33, 0.85);
+  --alg-autofill: #282828;
+  --alg-rand: rgba(235, 219, 178, 0.1);
+  --alg-rand-sterk: rgba(235, 219, 178, 0.17);
+  --alg-rand-hover: rgba(254, 128, 25, 0.45);
+  --alg-tekst: #ebdbb2;
+  --alg-tekst-sterk: #fbf1c7;
+  --alg-gedempt: #bdae93;
+  --alg-zwak: #908673;
+  --alg-placeholder: #bdae93;
+  --alg-link: #8aaa9e;
+  --alg-link-hover: #fbf1c7;
+  --alg-code: #8aaa9e;
+  --alg-knop: #7c6f64;
+  --alg-knop-hover: #7f756a;
+  --alg-gloed: 0 0 22px rgba(254, 128, 25, 0.3);
+  --alg-accent: 254, 128, 25;
+  --alg-focus-rand: #fe8019;
+  --alg-ok: #b8bb26;
+  --alg-fout: #fb8273;
+  --alg-waarschuwing: #fabd2f;
+  --alg-info: #8aaa9e;
+  --alg-ok-vlak: #747618;
+  --alg-fout-vlak: #d73f2d;
+  --alg-waarschuwing-vlak: #fabd2f;
+  --alg-info-vlak: #83a598;
+  --alg-ok-tint: rgba(184, 187, 38, 0.12);
+  --alg-fout-tint: rgba(251, 73, 52, 0.12);
+  --alg-waarschuwing-tint: rgba(250, 189, 47, 0.12);
+  --alg-info-tint: rgba(131, 165, 152, 0.12);
+  --alg-ok-rand: rgba(184, 187, 38, 0.35);
+  --alg-fout-rand: rgba(251, 73, 52, 0.35);
+  --alg-waarschuwing-rand: rgba(250, 189, 47, 0.35);
+  --alg-info-rand: rgba(131, 165, 152, 0.35);
+  --alg-scrollbar: #686155;
+}

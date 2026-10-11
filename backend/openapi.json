@@ -2497,6 +2497,113 @@
         }
       }
     },
+    "/api/v1/hosts/health": {
+      "get": {
+        "tags": [
+          "hosts"
+        ],
+        "summary": "Gezondheid per host: laatst geladen, ontbrekende onderdelen, laatste controle",
+        "operationId": "hosts_health",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HostHealthOverview"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Interne fout",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/hosts/check": {
+      "post": {
+        "tags": [
+          "hosts"
+        ],
+        "summary": "Elke host met een eigen koppeling controleren (op de achtergrond)",
+        "operationId": "hosts_check",
+        "responses": {
+          "202": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HostCheckStarted"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Interne fout",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/hosts/seen/{hostname}": {
+      "delete": {
+        "tags": [
+          "hosts"
+        ],
+        "summary": "Een host uit 'laatst geladen' halen",
+        "operationId": "hosts_forget_seen",
+        "parameters": [
+          {
+            "name": "hostname",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Hostname"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "500": {
+            "description": "Interne fout",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/hosts/import": {
       "post": {
         "tags": [
@@ -3439,6 +3546,193 @@
           "hostname"
         ],
         "title": "HostBindingInput"
+      },
+      "HostCheck": {
+        "properties": {
+          "level": {
+            "type": "string",
+            "enum": [
+              "ok",
+              "warn",
+              "error",
+              "unknown"
+            ],
+            "title": "Level"
+          },
+          "code": {
+            "type": "string",
+            "title": "Code",
+            "description": "rule_active, old_rule, no_rule, csp_blocked, login, not_html, http_error, unreachable"
+          },
+          "detail": {
+            "type": "string",
+            "title": "Detail"
+          },
+          "http_status": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Http Status"
+          },
+          "checked_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Checked At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "level",
+          "code",
+          "detail",
+          "http_status",
+          "checked_at"
+        ],
+        "title": "HostCheck"
+      },
+      "HostCheckStarted": {
+        "properties": {
+          "started": {
+            "type": "boolean",
+            "title": "Started",
+            "description": "False als er al een controle loopt."
+          }
+        },
+        "type": "object",
+        "required": [
+          "started"
+        ],
+        "title": "HostCheckStarted"
+      },
+      "HostHealth": {
+        "properties": {
+          "hostname": {
+            "type": "string",
+            "title": "Hostname"
+          },
+          "bound": {
+            "type": "boolean",
+            "title": "Bound",
+            "description": "Heeft een eigen koppeling (anders volgt de host `*`)."
+          },
+          "enabled": {
+            "type": "boolean",
+            "title": "Enabled"
+          },
+          "level": {
+            "type": "string",
+            "enum": [
+              "ok",
+              "warn",
+              "error",
+              "unknown"
+            ],
+            "title": "Level",
+            "description": "Samenvatting van ontbrekende onderdelen en controle."
+          },
+          "last_seen": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Seen",
+            "description": "Wanneer een browser `/host/<host>.css` laatst ophaalde (± 1 minuut)."
+          },
+          "missing_styles": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Missing Styles"
+          },
+          "missing_scripts": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Missing Scripts"
+          },
+          "check": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/HostCheck"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "type": "object",
+        "required": [
+          "hostname",
+          "bound",
+          "enabled",
+          "level",
+          "last_seen",
+          "missing_styles",
+          "missing_scripts",
+          "check"
+        ],
+        "title": "HostHealth"
+      },
+      "HostHealthOverview": {
+        "properties": {
+          "hosts": {
+            "items": {
+              "$ref": "#/components/schemas/HostHealth"
+            },
+            "type": "array",
+            "title": "Hosts",
+            "description": "`*` eerst, dan eigen koppelingen, dan de rest."
+          },
+          "check_running": {
+            "type": "boolean",
+            "title": "Check Running"
+          },
+          "check_started_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Check Started At"
+          },
+          "check_finished_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Check Finished At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "hosts",
+          "check_running",
+          "check_started_at",
+          "check_finished_at"
+        ],
+        "title": "HostHealthOverview"
       },
       "HostImportRequest": {
         "properties": {

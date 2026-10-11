@@ -459,6 +459,57 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/hosts/health": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Gezondheid per host: laatst geladen, ontbrekende onderdelen, laatste controle */
+        get: operations["hosts_health"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/hosts/check": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Elke host met een eigen koppeling controleren (op de achtergrond) */
+        post: operations["hosts_check"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/hosts/seen/{hostname}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Een host uit 'laatst geladen' halen */
+        delete: operations["hosts_forget_seen"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/hosts/import": {
         parameters: {
             query?: never;
@@ -802,6 +853,78 @@ export interface components {
             enabled: boolean;
             /** Note */
             note?: string | null;
+        };
+        /** HostCheck */
+        HostCheck: {
+            /**
+             * Level
+             * @enum {string}
+             */
+            level: "ok" | "warn" | "error" | "unknown";
+            /**
+             * Code
+             * @description rule_active, old_rule, no_rule, csp_blocked, login, not_html, http_error, unreachable
+             */
+            code: string;
+            /** Detail */
+            detail: string;
+            /** Http Status */
+            http_status: number | null;
+            /**
+             * Checked At
+             * Format: date-time
+             */
+            checked_at: string;
+        };
+        /** HostCheckStarted */
+        HostCheckStarted: {
+            /**
+             * Started
+             * @description False als er al een controle loopt.
+             */
+            started: boolean;
+        };
+        /** HostHealth */
+        HostHealth: {
+            /** Hostname */
+            hostname: string;
+            /**
+             * Bound
+             * @description Heeft een eigen koppeling (anders volgt de host `*`).
+             */
+            bound: boolean;
+            /** Enabled */
+            enabled: boolean;
+            /**
+             * Level
+             * @description Samenvatting van ontbrekende onderdelen en controle.
+             * @enum {string}
+             */
+            level: "ok" | "warn" | "error" | "unknown";
+            /**
+             * Last Seen
+             * @description Wanneer een browser `/host/<host>.css` laatst ophaalde (± 1 minuut).
+             */
+            last_seen: string | null;
+            /** Missing Styles */
+            missing_styles: string[];
+            /** Missing Scripts */
+            missing_scripts: string[];
+            check: components["schemas"]["HostCheck"] | null;
+        };
+        /** HostHealthOverview */
+        HostHealthOverview: {
+            /**
+             * Hosts
+             * @description `*` eerst, dan eigen koppelingen, dan de rest.
+             */
+            hosts: components["schemas"]["HostHealth"][];
+            /** Check Running */
+            check_running: boolean;
+            /** Check Started At */
+            check_started_at: string | null;
+            /** Check Finished At */
+            check_finished_at: string | null;
         };
         /** HostImportRequest */
         HostImportRequest: {
@@ -3252,6 +3375,102 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["HostOptions"];
+                };
+            };
+            /** @description Interne fout */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    hosts_health: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HostHealthOverview"];
+                };
+            };
+            /** @description Interne fout */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    hosts_check: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HostCheckStarted"];
+                };
+            };
+            /** @description Interne fout */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    hosts_forget_seen: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                hostname: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
             /** @description Interne fout */

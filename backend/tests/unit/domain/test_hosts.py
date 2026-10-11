@@ -69,8 +69,8 @@ def test_build_js_separates_scripts() -> None:
     js = build_js(
         "x.be", "*", [Part("a", "f()", "bestand"), Part("b", "g()", "bestand")], enabled=True
     )
-    assert "\n;f()\n" in js
-    assert "\n;g()\n" in js
+    assert "try {\nf()\n}" in js
+    assert js.index("f()") < js.index("g()")
 
 
 CONFIG = """# Per proxy host in NPM -> Advanced: vervang je huidige sub_filter-regel.
@@ -124,3 +124,20 @@ def test_snippet() -> None:
     assert 'src="https://css.jbogaert.be/host/$host.js" defer' in text
     assert 'proxy_set_header Accept-Encoding "";' in text
     assert 'href="/alg-thema/host/$host.css"' in hosts.snippet("x", via_own_domain=True)
+
+
+def test_comments_with_version_numbers_are_not_hostnames() -> None:
+    text = (
+        "# app.jbogaert.be\n"
+        "# 1.5 MB limiet, v2.0 notities\n"
+        "sub_filter '</head>' '<link rel=\"stylesheet\" href=\"https://css.x.be/alg-app.css\"></head>';\n"
+    )
+    hosts, skipped = parse_npm_config(text)
+    assert [h.hostname for h in hosts] == ["app.jbogaert.be"]
+    assert skipped == []
+
+
+def test_scripts_are_isolated_from_each_other() -> None:
+    js = build_js("a.be", "a.be", [Part("een", "throw 1"), Part("twee", "ok()")], enabled=True)
+    assert js.count("try {") == 2
+    assert 'console.error("cssthema: script een", e)' in js

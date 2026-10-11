@@ -21,6 +21,7 @@ from cssthema.db.models.enums import ThemeStatus
 from cssthema.domain.css.diff import unified_diff
 from cssthema.domain.css.linter import LintResult, lint
 from cssthema.domain.css.slugs import InvalidSlug, slugify, validate_slug
+from cssthema.repositories import hosts as host_repo
 from cssthema.repositories import palettes as palette_repo
 from cssthema.repositories import themes as theme_repo
 from cssthema.repositories.themes import ThemeFilters, ThemeSort
@@ -494,6 +495,12 @@ async def update_theme(
         await theme_repo.delete_redirect(ctx.session, new_slug)
         await theme_repo.upsert_redirect(ctx.session, old_slug, theme.id)
         fixed = await fixed_versions_of(ctx, theme.id, old_slug)
+        # Host-koppelingen volgen de nieuwe naam (de redirect verloopt na 90 dagen), tenzij
+        # een CSS-bestand met de oude naam bestaat: dat ging al voor het thema.
+        if not (ctx.settings.css_files_dir / f"{old_slug}.css").is_file():
+            renamed_hosts = await host_repo.rename_style(ctx.session, old_slug, new_slug)
+            if renamed_hosts:
+                changes["hosts"] = renamed_hosts
     for attribute, value in updates.items():
         setattr(theme, attribute, value)
     audit.record(ctx, "theme.update", entity_id=theme.id, changes=changes)

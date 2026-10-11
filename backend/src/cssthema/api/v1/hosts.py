@@ -7,18 +7,21 @@ regel je hier (zie `services/host_service.py`).
 import uuid
 from typing import Any
 
-from fastapi import APIRouter, Response, status
+from fastapi import APIRouter, Request, Response, status
 
 from cssthema.api.deps import Ctx
 from cssthema.api.errors import Problem
+from cssthema.domain.hosts import HOSTNAME_RE
 from cssthema.schemas.hosts import (
     HostBinding,
     HostBindingInput,
+    HostCheckStarted,
+    HostHealthOverview,
     HostImportRequest,
     HostImportResult,
     HostOptions,
 )
-from cssthema.services import host_service
+from cssthema.services import host_health, host_service
 
 router = APIRouter(prefix="/hosts", tags=["hosts"])
 
@@ -48,6 +51,46 @@ async def list_hosts(ctx: Ctx) -> list[HostBinding]:
 )
 async def host_options(ctx: Ctx) -> HostOptions:
     return await host_service.options(ctx)
+
+
+@router.get(
+    "/health",
+    response_model=HostHealthOverview,
+    operation_id="hosts_health",
+    summary="Gezondheid per host: laatst geladen, ontbrekende onderdelen, laatste controle",
+)
+async def host_health_overview(ctx: Ctx) -> HostHealthOverview:
+    return await host_service.health(ctx)
+
+
+@router.post(
+    "/check",
+    response_model=HostCheckStarted,
+    status_code=status.HTTP_202_ACCEPTED,
+    operation_id="hosts_check",
+    summary="Elke host met een eigen koppeling controleren (op de achtergrond)",
+)
+async def check_hosts(request: Request, ctx: Ctx) -> HostCheckStarted:
+    started = await host_health.start_check(
+        request.app.state.sessionmaker,
+        ctx.delivery.redis,
+        ctx.settings,
+        request.app.state.background_tasks,
+    )
+    return HostCheckStarted(started=started)
+
+
+@router.delete(
+    "/seen/{hostname}",
+    status_code=status.HTTP_204_NO_CONTENT,
+    response_class=Response,
+    operation_id="hosts_forget_seen",
+    summary="Een host uit 'laatst geladen' halen",
+)
+async def forget_seen(hostname: str, ctx: Ctx) -> Response:
+    if HOSTNAME_RE.fullmatch(hostname):
+        await host_service.forget_unbound(ctx, [hostname])
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 
 @router.post(

@@ -31,14 +31,19 @@ case $BACKUP_KEEP in '' | *[!0-9]*) die "BACKUP_KEEP moet een getal zijn" ;; esa
 
 psql_admin() { runuser -u postgres -- psql -X -q -v ON_ERROR_STOP=1 "$@"; }
 
+tmp=  # globaal: de EXIT-trap draait na het einde van maak(), waar een `local` al weg is
+opruimen() { if [ -n "$tmp" ]; then rm -rf -- "$tmp"; fi; }
+trap opruimen EXIT
+
 maak() {
-    local label=${1:-handmatig}
+    local label=${1:-handmatig} prune=${2:-ja}
     case $label in *[!a-z0-9-]*) die "label mag alleen kleine letters, cijfers en - bevatten" ;; esac
-    local name tmp
+    local name
     name=$(date +%Y%m%d-%H%M%S)-$label
     install -d -m 0700 "$BACKUP_DIR"
+    # Halve back-ups van een vorige, afgebroken run (bevatten ook cssthema.env).
+    find "$BACKUP_DIR" -mindepth 1 -maxdepth 1 -type d -name '.bezig-*' -mmin +60 -exec rm -rf -- {} +
     tmp=$(mktemp -d "$BACKUP_DIR/.bezig-XXXXXX")
-    trap 'rm -rf "$tmp"' EXIT
 
     runuser -u postgres -- pg_dump -Fc "$POSTGRES_DB" >"$tmp/database.dump"
     tar -C "$DATA_DIR" -czf "$tmp/css-files.tar.gz" css-files
@@ -56,9 +61,10 @@ maak() {
     fi
     chmod -R go-rwx "$tmp"
     mv "$tmp" "$BACKUP_DIR/$name"
-    trap - EXIT
+    tmp=
     echo "$BACKUP_DIR/$name"
 
+    [ "$prune" = ja ] || return 0
     # Bewaartermijn: alleen mappen die dit script maakte (beginnen met een datum).
     local old
     old=$(find "$BACKUP_DIR" -mindepth 1 -maxdepth 1 -type d -name '2*' | sort | head -n "-$BACKUP_KEEP")
@@ -90,7 +96,9 @@ terugzetten() {
         [ "$answer" = ja ] || die "afgebroken"
     fi
 
-    maak voor-terugzetten >/dev/null
+    # Zonder bewaartermijn: die zou de back-up die je terugzet (de oudste) kunnen wissen.
+    maak voor-terugzetten nee >/dev/null
+    [ -f "$src/database.dump" ] || die "$src verdween tijdens het terugzetten; er is niets gewijzigd"
     systemctl stop cssthema-api cssthema-worker
 
     psql_admin -c "SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE datname = '$POSTGRES_DB' AND pid <> pg_backend_pid()" >/dev/null

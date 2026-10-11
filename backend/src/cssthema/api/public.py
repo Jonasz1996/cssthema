@@ -19,7 +19,7 @@ from fastapi import APIRouter, Request, Response
 from cssthema.domain.css.compiler import etag_for
 from cssthema.domain.css.slugs import SLUG_PATTERN
 from cssthema.domain.hosts import DEFAULT_HOST, HOSTNAME_RE
-from cssthema.services import host_service
+from cssthema.services import host_health, host_service
 from cssthema.services.css_delivery import CachedCss, CssDelivery
 
 router = APIRouter(tags=["public"])
@@ -119,8 +119,17 @@ async def _serve_host(request: Request, hostname: str, *, kind: str) -> Response
         body = b"/* cssthema: ongeldige hostnaam */\n"
         headers = {**_COMMON_HEADERS, "Cache-Control": NOT_FOUND_CACHE_CONTROL}
         return Response(body, status_code=404, media_type=media_type, headers=headers)
+    if kind == "css" and host_health.REFRESH_HEADER not in request.headers:
+        await host_health.record_seen(_delivery(request).redis, name)
+    delivery = _delivery(request)
+    binding = await delivery.host_binding(name)
+    if name != DEFAULT_HOST and (binding is None or binding.hostname == DEFAULT_HOST):
+        # Hosts zonder eigen koppeling delen één (gecachte) bundel: `*`. Relatief, zodat de
+        # variant via /alg-thema/ op het eigen domein van de app blijft.
+        headers = {**_COMMON_HEADERS, "Cache-Control": LATEST_CACHE_CONTROL}
+        return Response(status_code=302, headers={**headers, "Location": f"*.{kind}"})
     text = await host_service.render(
-        _delivery(request), request.app.state.settings, name, kind=kind
+        delivery, request.app.state.settings, name, kind=kind, binding=binding
     )
     body = text.encode("utf-8")
     etag = f'"sha256-{hashlib.sha256(body).hexdigest()[:16]}"'

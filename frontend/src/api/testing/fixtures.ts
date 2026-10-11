@@ -2,6 +2,9 @@ import type {
   Dashboard,
   Draft,
   HostBinding,
+  HostCheck,
+  HostHealth,
+  HostHealthOverview,
   HostOptions,
   LintResult,
   LocalCssFile,
@@ -189,6 +192,43 @@ export function makeHostOptions(overrides: Partial<HostOptions> = {}): HostOptio
       "sub_filter '</head>' '<link rel=\"stylesheet\" href=\"https://css.example/host/$host.css\"></head>';\n",
     snippet_own_domain:
       "sub_filter '</head>' '<link rel=\"stylesheet\" href=\"/alg-thema/host/$host.css\"></head>';\n",
+    ...overrides,
+  };
+}
+
+export function makeHostCheck(overrides: Partial<HostCheck> = {}): HostCheck {
+  return {
+    level: "ok",
+    code: "rule_active",
+    detail: "De regel staat in de pagina en de CSP laat het CSS-domein toe.",
+    http_status: 200,
+    checked_at: NOW,
+    ...overrides,
+  };
+}
+
+export function makeHostHealth(overrides: Partial<HostHealth> = {}): HostHealth {
+  return {
+    hostname: "proxmox.example",
+    bound: true,
+    enabled: true,
+    level: "unknown",
+    last_seen: null,
+    missing_styles: [],
+    missing_scripts: [],
+    check: null,
+    ...overrides,
+  };
+}
+
+export function makeHostHealthOverview(
+  overrides: Partial<HostHealthOverview> = {},
+): HostHealthOverview {
+  return {
+    hosts: [],
+    check_running: false,
+    check_started_at: null,
+    check_finished_at: null,
     ...overrides,
   };
 }

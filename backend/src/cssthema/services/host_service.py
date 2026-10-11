@@ -10,6 +10,7 @@ import re
 import stat
 import uuid
 from pathlib import Path
+from typing import Any
 
 from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
@@ -22,9 +23,9 @@ from cssthema.domain.css.slugs import SLUG_PATTERN
 from cssthema.logging import get_logger
 from cssthema.repositories import hosts as host_repo
 from cssthema.schemas import hosts as schemas
-from cssthema.services import audit
+from cssthema.services import audit, host_health
 from cssthema.services.context import ServiceContext
-from cssthema.services.css_delivery import CssDelivery
+from cssthema.services.css_delivery import CssDelivery, HostBindingView
 from cssthema.services.errors import NotFoundError, ServiceError
 
 log = get_logger(__name__)
@@ -240,9 +241,20 @@ def _list_files(directory: Path) -> tuple[list[str], list[str]]:
 # --- samenstellen (publiek) -------------------------------------------------------------------
 
 
-async def render(delivery: CssDelivery, settings: Settings, hostname: str, *, kind: str) -> str:
+_UNSET: Any = object()
+
+
+async def render(
+    delivery: CssDelivery,
+    settings: Settings,
+    hostname: str,
+    *,
+    kind: str,
+    binding: HostBindingView | None = _UNSET,
+) -> str:
     """De samengevoegde CSS (`kind="css"`) of JS van een host; nooit een fout."""
-    binding = await delivery.host_binding(hostname)
+    if binding is _UNSET:
+        binding = await delivery.host_binding(hostname)
     build = domain.build_css if kind == "css" else domain.build_js
     if binding is None:
         return build(hostname, None, [], enabled=True)
@@ -294,3 +306,98 @@ def _read_file(path: Path) -> str | None:
         return None
     finally:
         os.close(fd)
+
+
+# --- gezondheid (C3) --------------------------------------------------------------------------
+
+_LEVEL_ORDER = {"unknown": 0, "ok": 1, "warn": 2, "error": 3}
+
+
+async def health(ctx: ServiceContext) -> schemas.HostHealthOverview:
+    redis = ctx.delivery.redis
+    bindings = await host_repo.list_bindings(ctx.session)
+    seen_at = await host_health.seen(redis)
+    checks, meta = await host_health.check_results(redis)
+    directory = ctx.settings.css_files_dir
+    hosts: list[schemas.HostHealth] = []
+    for binding in bindings:
+        missing_styles = [
+            name
+            for name in binding.styles
+            if not await _style_exists(ctx.delivery, directory, str(name))
+        ]
+        missing_scripts = [
+            str(name)
+            for name in binding.scripts
+            if not await run_in_threadpool(_is_file, directory / f"{name}.js")
+        ]
+        check = _check_view(checks.get(binding.hostname)) if binding.enabled else None
+        level = check.level if check else "unknown"
+        if (missing_styles or missing_scripts) and _LEVEL_ORDER[level] < _LEVEL_ORDER["warn"]:
+            level = "warn"
+        if not binding.enabled:
+            level = "unknown"
+        hosts.append(
+            schemas.HostHealth(
+                hostname=binding.hostname,
+                bound=True,
+                enabled=binding.enabled,
+                level=level,
+                last_seen=seen_at.get(binding.hostname),
+                missing_styles=[str(n) for n in missing_styles],
+                missing_scripts=missing_scripts,
+                check=check,
+            )
+        )
+    bound = {b.hostname for b in bindings}
+    for name in sorted(seen_at.keys() - bound, key=lambda n: seen_at[n], reverse=True):
+        hosts.append(
+            schemas.HostHealth(
+                hostname=name,
+                bound=False,
+                enabled=True,
+                level="unknown",
+                last_seen=seen_at[name],
+                missing_styles=[],
+                missing_scripts=[],
+                check=None,
+            )
+        )
+    return schemas.HostHealthOverview(
+        hosts=hosts,
+        check_running=bool(meta.get("running")),
+        check_started_at=meta.get("started_at"),
+        check_finished_at=meta.get("finished_at"),
+    )
+
+
+def _check_view(raw: dict[str, Any] | None) -> schemas.HostCheck | None:
+    if raw is None:
+        return None
+    try:
+        return schemas.HostCheck.model_validate(raw)
+    except ValueError:
+        return None
+
+
+async def _style_exists(delivery: CssDelivery, directory: Path, name: str) -> bool:
+    if await run_in_threadpool(_is_file, directory / f"{name}.css"):
+        return True
+    if not _SLUG_RE.fullmatch(name):
+        return False
+    if await delivery.latest(name) is not None:
+        return True
+    target = await delivery.redirect_target(name)
+    return target is not None and await delivery.latest(target) is not None
+
+
+def _is_file(path: Path) -> bool:
+    try:
+        return stat.S_ISREG(os.lstat(path).st_mode)
+    except OSError:
+        return False
+
+
+async def forget_unbound(ctx: ServiceContext, hostnames: list[str]) -> None:
+    """Haalt hosts uit 'laatst geladen' (bv. een oude naam die niet meer bestaat)."""
+    await host_health.forget_seen(ctx.delivery.redis, hostnames)

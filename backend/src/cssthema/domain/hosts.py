@@ -27,6 +27,8 @@ SCRIPT_NAME_RE = re.compile(r"^[a-z0-9][a-z0-9-]{0,62}[a-z0-9]$")
 
 _URL_ATTR_RE = re.compile(r"""(?:href|src)\s*=\s*["']([^"'\s>]+)["']""", re.IGNORECASE)
 _HOST_LIST_SPLIT = re.compile(r"[\s,;]+")
+# Een echte domeinnaam eindigt op letters (`.be`, `.local`), niet op `1.5` of `v2.0`.
+_TLD_RE = re.compile(r"[a-z][a-z-]*[a-z]")
 
 
 def normalize_hostname(raw: str) -> str:
@@ -105,9 +107,12 @@ def build_js(hostname: str, matched: str | None, parts: Sequence[Part], *, enabl
         if part.content is None:
             lines.append(f'/* cssthema: script "{part.name}" niet gevonden */\n')
             continue
-        # De `;` beschermt tegen een script dat zonder puntkomma eindigt.
-        lines.append(f"/* --- {part.name} --- */\n;")
+        # Elk script in een eigen try: een fout in het ene houdt de volgende niet tegen (zoals
+        # bij losse <script>-tags). Gevolg: `let`/`const`/`class` bovenaan zijn niet meer
+        # globaal voor de andere scripts; `var` en functies wel.
+        lines.append(f"/* --- {part.name} --- */\ntry {{\n")
         lines.append(part.content if part.content.endswith("\n") else part.content + "\n")
+        lines.append(f'}} catch (e) {{ console.error("cssthema: script {part.name}", e); }}\n')
     return "".join(lines)
 
 
@@ -178,7 +183,12 @@ def _hostnames_in_comment(comment: str) -> list[str]:
             name = normalize_hostname(token)
         except ValueError:
             break
-        if "." not in name or name.endswith((".css", ".js")) or token.startswith("http"):
+        if (
+            "." not in name
+            or name.endswith((".css", ".js"))
+            or token.startswith("http")
+            or not _TLD_RE.fullmatch(name.rsplit(".", 1)[1])
+        ):
             break
         names.append(name)
     return names

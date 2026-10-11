@@ -1,7 +1,8 @@
 import { fieldErrorsOf, isApiError } from "@/api/client";
 import { DEFAULT_HOST } from "@/api/queries/hosts";
-import type { HostBinding, HostBindingInput } from "@/api/types";
+import type { HostBinding, HostBindingInput, HostHealth, HostHealthLevel } from "@/api/types";
 import type { ErrorKeys } from "@/features/themes/lib/errors";
+import type { MessageKey } from "@/lib/i18n";
 
 /** Engelse teksten voor de foutcodes van dit scherm (in het Nederlands: de servertekst). */
 export const HOST_ERROR_KEYS: ErrorKeys = {
@@ -67,4 +68,53 @@ export function hostFormErrors(error: unknown, text: string): HostFormErrors {
     else result.general ??= message;
   }
   return Object.keys(result).length ? result : { general: text };
+}
+
+// --- gezondheid -----------------------------------------------------------------------------
+
+/** Kleur van het bolletje per niveau (zelfde statuskleuren als de rest van de app). */
+export const LEVEL_DOT: Record<HostHealthLevel, string> = {
+  ok: "text-ok",
+  warn: "text-mid",
+  error: "text-err",
+  unknown: "text-dim",
+};
+
+const LEVEL_KEYS: Record<HostHealthLevel, MessageKey> = {
+  ok: "hosts.levelOk",
+  warn: "hosts.levelWarn",
+  error: "hosts.levelError",
+  unknown: "hosts.levelUnknown",
+};
+
+/** Korte label per code van de controle (`HostCheck.code`). */
+export const CHECK_CODE_KEYS: Readonly<Partial<Record<string, MessageKey>>> = {
+  rule_active: "hosts.checkRuleActive",
+  old_rule: "hosts.checkOldRule",
+  no_rule: "hosts.checkNoRule",
+  csp_blocked: "hosts.checkCspBlocked",
+  login: "hosts.checkLogin",
+  not_html: "hosts.checkNotHtml",
+  http_error: "hosts.checkHttpError",
+  unreachable: "hosts.checkUnreachable",
+};
+
+/**
+ * Sleutel van de korte statustekst: de code van de controle als die er is (en bekend is),
+ * anders het niveau. Zonder controle maar met ontbrekende onderdelen: "Onderdeel ontbreekt".
+ */
+export function healthLabelKey(health: HostHealth): MessageKey {
+  if (health.check) return CHECK_CODE_KEYS[health.check.code] ?? LEVEL_KEYS[health.check.level];
+  if (health.missing_styles.length || health.missing_scripts.length) return "hosts.levelMissing";
+  return LEVEL_KEYS[health.level];
+}
+
+/** Ontbrekende thema's en scripts in één lijst; scripts met `.js` erachter. */
+export function missingParts(health: HostHealth): string[] {
+  return [...health.missing_styles, ...health.missing_scripts.map((name) => `${name}.js`)];
+}
+
+/** Hosts die de regel laadden maar geen eigen koppeling hebben (zonder `*`). */
+export function unboundHosts(hosts: readonly HostHealth[] | undefined): HostHealth[] {
+  return (hosts ?? []).filter((host) => !host.bound && !isDefaultHost(host.hostname));
 }

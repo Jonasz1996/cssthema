@@ -11,6 +11,7 @@ from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession, async_sessionmaker
 from cssthema.config import Settings
 from cssthema.db.session import create_engine
 from cssthema.main import create_app
+from cssthema.services import host_health
 from tests.integration.api_helpers import Api
 
 if not os.environ.get("DATABASE_URL"):
@@ -51,6 +52,13 @@ async def session(engine: AsyncEngine) -> AsyncIterator[AsyncSession]:
 
 # --- API-tests ------------------------------------------------------------------------------
 
+HOST_HEALTH_KEYS = (
+    host_health.SEEN_KEY,
+    host_health.CHECK_KEY,
+    host_health.CHECK_META_KEY,
+    host_health.CHECK_LOCK_KEY,
+)
+
 
 @pytest.fixture
 async def api(settings: Settings, engine: AsyncEngine, tmp_path: Path) -> AsyncIterator[Api]:
@@ -77,7 +85,10 @@ async def api(settings: Settings, engine: AsyncEngine, tmp_path: Path) -> AsyncI
         ):
             state.client = client
             state.app = app
-            yield state
+            try:
+                yield state
+            finally:
+                await app.state.redis.delete(*HOST_HEALTH_KEYS)
     finally:
         await cleanup_test_themes(engine)
 

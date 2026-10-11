@@ -224,7 +224,14 @@ install -m 0644 "$APP_DIR/deploy/debian/cssthema-backup.service" "$APP_DIR/deplo
 # Vóór de migraties (die draaien bij het herstarten van de api) een back-up van de huidige
 # toestand, behalve bij de eerste installatie.
 if [ "$(psql_admin -d "$POSTGRES_DB" -tAc "SELECT to_regclass('public.alembic_version') IS NOT NULL")" = t ]; then
-    echo "back-up vóór de update: $(/usr/local/sbin/cssthema-backup maak voor-update)"
+    # Apart toewijzen: in een argument breekt een mislukte $(...) `set -e` niet af.
+    if ! backup_dir=$(/usr/local/sbin/cssthema-backup maak voor-update); then
+        echo "De back-up vóór de update is mislukt; de update stopt (er is nog niets gemigreerd)." >&2
+        echo "Los de fout hierboven op, of sla de back-up bewust over met SKIP_BACKUP=1." >&2
+        [ "${SKIP_BACKUP:-0}" = 1 ] || exit 1
+    else
+        echo "back-up vóór de update: $backup_dir"
+    fi
 fi
 
 step "Services (systemd)"

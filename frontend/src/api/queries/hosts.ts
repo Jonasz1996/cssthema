@@ -9,6 +9,8 @@ import { api, send, shouldRetry, type ApiError } from "../client";
 import type {
   HostBinding,
   HostBindingInput,
+  HostCheckStarted,
+  HostHealthOverview,
   HostImportRequest,
   HostImportResult,
   HostOptions,
@@ -23,6 +25,9 @@ import type { QueryHookOptions } from "./options";
  */
 
 export const DEFAULT_HOST = "*";
+
+/** Zo vaak `GET /hosts/health` opnieuw zolang een controle loopt. */
+export const HOST_CHECK_POLL_MS = 2000;
 
 // --- fetchers -------------------------------------------------------------------------------
 
@@ -62,6 +67,20 @@ export async function importHosts(body: HostImportRequest): Promise<HostImportRe
   return data;
 }
 
+export async function fetchHostHealth(signal?: AbortSignal): Promise<HostHealthOverview> {
+  const { data } = await send(api.GET("/api/v1/hosts/health", { signal }));
+  return data;
+}
+
+export async function startHostCheck(): Promise<HostCheckStarted> {
+  const { data } = await send(api.POST("/api/v1/hosts/check"));
+  return data;
+}
+
+export async function forgetSeenHost(hostname: string): Promise<void> {
+  await send(api.DELETE("/api/v1/hosts/seen/{hostname}", { params: { path: { hostname } } }));
+}
+
 // --- query-opties ---------------------------------------------------------------------------
 
 export const hostQueries = {
@@ -76,6 +95,14 @@ export const hostQueries = {
       queryKey: hostKeys.options(),
       queryFn: ({ signal }) => fetchHostOptions(signal),
       retry: shouldRetry,
+    }),
+  /** Ververst om de {@link HOST_CHECK_POLL_MS} zolang `check_running`. */
+  health: () =>
+    queryOptions<HostHealthOverview, ApiError>({
+      queryKey: hostKeys.health(),
+      queryFn: ({ signal }) => fetchHostHealth(signal),
+      retry: shouldRetry,
+      refetchInterval: (query) => (query.state.data?.check_running ? HOST_CHECK_POLL_MS : false),
     }),
 };
 
@@ -95,8 +122,14 @@ function putHost(queryClient: QueryClient, host: HostBinding): void {
   );
 }
 
+/** Lijst én gezondheid: een nieuwe of gewiste koppeling verandert ook `bound` en de status. */
 function refreshHosts(queryClient: QueryClient): void {
   void queryClient.invalidateQueries({ queryKey: hostKeys.list() });
+  refreshHealth(queryClient);
+}
+
+function refreshHealth(queryClient: QueryClient): void {
+  void queryClient.invalidateQueries({ queryKey: hostKeys.health() });
 }
 
 // --- hooks ----------------------------------------------------------------------------------
@@ -109,6 +142,48 @@ export function useHosts(options: QueryHookOptions = {}) {
 /** Te kiezen thema's en scripts, en de `sub_filter`-regel voor NPM. */
 export function useHostOptions(options: QueryHookOptions = {}) {
   return useQuery({ ...hostQueries.options(), ...options });
+}
+
+/** Per host: laatst geladen, ontbrekende onderdelen en de laatste controle. */
+export function useHostHealth(options: QueryHookOptions = {}) {
+  return useQuery({ ...hostQueries.health(), ...options });
+}
+
+/**
+ * `POST /hosts/check` (202): de controle loopt op de achtergrond. `started: false` betekent dat
+ * er al een liep; in beide gevallen gaat de cache op `check_running`, zodat het pollen start.
+ */
+export function useStartHostCheck() {
+  const queryClient = useQueryClient();
+  return useMutation<HostCheckStarted, ApiError, void>({
+    mutationFn: startHostCheck,
+    onSuccess: () => {
+      queryClient.setQueryData<HostHealthOverview>(hostKeys.health(), (old) =>
+        old ? { ...old, check_running: true } : old,
+      );
+      refreshHealth(queryClient);
+    },
+  });
+}
+
+/** `DELETE /hosts/seen/{hostname}`: de host verdwijnt uit "laatst geladen". */
+export function useForgetSeenHost() {
+  const queryClient = useQueryClient();
+  return useMutation<void, ApiError, string>({
+    mutationFn: forgetSeenHost,
+    onSuccess: (_data, hostname) => {
+      queryClient.setQueryData<HostHealthOverview>(hostKeys.health(), (old) =>
+        old
+          ? {
+              ...old,
+              hosts: old.hosts.filter((host) => host.bound || host.hostname !== hostname),
+            }
+          : old,
+      );
+      refreshHealth(queryClient);
+    },
+    onError: () => refreshHealth(queryClient),
+  });
 }
 
 /** `POST /hosts`. Fouten: 409 `host_conflict`, 422 `validation_error` (veldfouten). */

@@ -33,6 +33,7 @@ from cssthema.logging import get_logger
 from cssthema.repositories import hosts as host_repo
 from cssthema.repositories import themes as theme_repo
 from cssthema.repositories.themes import PublicCssRow
+from cssthema.services.host_health import REFRESH_HEADER
 
 log = get_logger(__name__)
 
@@ -144,6 +145,10 @@ class CssDelivery:
         self._set_if_generation = redis.register_script(_SET_IF_GENERATION)
         self._background: set[asyncio.Task[None]] = set()
 
+    @property
+    def redis(self) -> Redis:
+        return self._redis
+
     # --- lezen ------------------------------------------------------------------------
 
     async def latest(self, slug: str) -> CachedCss | None:
@@ -230,25 +235,32 @@ class CssDelivery:
     async def refresh_hosts_using(
         self, *, styles: Iterable[str] = (), scripts: Iterable[str] = ()
     ) -> None:
-        """Ververst `/host/<h>.css|.js` van elke host die een van deze namen gebruikt."""
-        if not self._refresh_url or self._http is None:
+        """Ververst `/host/<h>.css` (bij thema's) of `.js` (bij scripts) van elke host die een
+        van deze namen gebruikt, op de achtergrond: met tientallen hosts duurt dat langer
+        dan het verzoek mag wachten (de refresh-server laat 10 per seconde toe).
+
+        Hosts zonder eigen koppeling krijgen een redirect naar `/host/*.css|.js`: die volgen
+        mee met de refresh van `*`.
+        """
+        style_names, script_names = list(styles), list(scripts)
+        if not self._refresh_url or self._http is None or not (style_names or script_names):
             return
         try:
             async with self._sessionmaker() as session:
-                hostnames = await host_repo.hostnames_using(
-                    session, styles=list(styles), scripts=list(scripts)
-                )
+                for_styles = await host_repo.hostnames_using(session, styles=style_names)
+                for_scripts = await host_repo.hostnames_using(session, scripts=script_names)
         except Exception as exc:
             log.warning("host_refresh_lookup_failed", error=repr(exc))
             return
-        await self.refresh_hosts(hostnames)
+        paths = [f"/host/{name}.css" for name in for_styles]
+        paths += [f"/host/{name}.js" for name in for_scripts]
+        if paths:
+            task = asyncio.create_task(self._refresh_many(self._http, paths))
+            self._background.add(task)
+            task.add_done_callback(self._background.discard)
 
     async def refresh_hosts(self, hostnames: Iterable[str]) -> None:
-        """Ververst de nginx-cache van deze hosts (na een gewijzigde koppeling).
-
-        Hosts zonder eigen koppeling (die `*` volgen) kent cssthema niet: die krijgen een
-        wijziging pas als hun cache-entry verloopt (60 s).
-        """
+        """Ververst `/host/<h>.css|.js` van deze hosts (na een gewijzigde koppeling)."""
         http = self._http
         if not self._refresh_url or http is None:
             return
@@ -319,7 +331,9 @@ class CssDelivery:
         url = self._refresh_url + path
         for attempt in range(1, REFRESH_ATTEMPTS + 1):
             try:
-                response = await http.get(url, timeout=REFRESH_TIMEOUT_S)
+                response = await http.get(
+                    url, timeout=REFRESH_TIMEOUT_S, headers={REFRESH_HEADER: "1"}
+                )
                 await response.aclose()
             except httpx.HTTPError as exc:
                 log.warning("css_refresh_failed", url=url, error=repr(exc))
