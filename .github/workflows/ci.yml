@@ -258,6 +258,20 @@ jobs:
             # CSRF: een upload vanaf een andere pagina weigert de api zelf (Sec-Fetch-Site/Origin).
             curl -s -H "Origin: https://evil.example" -H "Sec-Fetch-Site: cross-site" -F "file=@/root/ci-script.js" http://127.0.0.1/api/v1/scripts | grep -qF "\"code\":\"csrf_failed\""
             test ! -e /var/lib/cssthema/css-files/ci-script.js
+            # Database altijd UTF8; CORS op bestanden uit css-files; andere .js nooit de SPA.
+            test "$(runuser -u postgres -- psql -tAc "SELECT pg_encoding_to_char(encoding) FROM pg_database WHERE datname = '"'"'cssthema'"'"'")" = UTF8
+            curl -fsS http://127.0.0.1/readyz | grep -qF "\"database_encoding\":\"ok\""
+            curl -fsS -D - -o /dev/null http://127.0.0.1/proxmox.css | grep -qi "^access-control-allow-origin: \*"
+            test "$(curl -s -o /dev/null -w "%{http_code}" http://127.0.0.1/Foo.js)" = 404
+            # Back-ups: één vóór de tweede run, de timer staat aan, en terugzetten werkt.
+            ls /var/backups/cssthema | grep -q -- "-voor-update$"
+            systemctl is-enabled cssthema-backup.timer
+            dir=$(cssthema-backup maak ci)
+            rm /var/lib/cssthema/css-files/proxmox.css
+            cssthema-backup terugzetten "$dir" -y
+            test -f /var/lib/cssthema/css-files/proxmox.css
+            for i in $(seq 1 30); do curl -fsS http://127.0.0.1/readyz >/dev/null 2>&1 && break; sleep 2; done
+            curl -fsS http://127.0.0.1/readyz
             systemctl is-active cssthema-api cssthema-worker nginx
           '
       - name: Logs bij falen
