@@ -3400,6 +3400,10 @@
           "public_base_url": {
             "type": "string",
             "title": "Public Base Url"
+          },
+          "css_max_bytes": {
+            "type": "integer",
+            "title": "Css Max Bytes"
           }
         },
         "type": "object",
@@ -3407,7 +3411,8 @@
           "name",
           "version",
           "environment",
-          "public_base_url"
+          "public_base_url",
+          "css_max_bytes"
         ],
         "title": "MetaInfo"
       },

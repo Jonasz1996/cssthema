@@ -827,6 +827,8 @@ export interface components {
             environment: string;
             /** Public Base Url */
             public_base_url: string;
+            /** Css Max Bytes */
+            css_max_bytes: number;
         };
         /** Palette */
         Palette: {

@@ -19,7 +19,7 @@ Op `:root` in `src/styles/globals.css` als `--ui-*`, in Tailwind beschikbaar als
 | ------------------------------------ | ---------------------------------- | --------------------------- |
 | `text-fg`                            | `#ddd`                             | gewone tekst                |
 | `text-heading`                       | `#fff`                             | koppen, nadruk              |
-| `text-muted` / `text-dim`            | `#999` / `#777`                    | hints, labels / meta        |
+| `text-muted` / `text-dim`            | `#999` / `#8c8c8c`                 | hints, labels / meta        |
 | `bg-btn` / `bg-btn-hover`            | `#7a7a7a` / `#9b9b9b`              | primaire knop               |
 | `text-ok` / `text-err` / `text-mid`  | `#8fd6a4` / `#e58b8b` / `#e6b56b`  | status (alleen voor status) |
 | `text-code` / `text-term`            | `#d6e6ff` / `#9cffb0`              | code / terminal             |

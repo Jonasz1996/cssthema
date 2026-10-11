@@ -1,8 +1,14 @@
 import { describe, expect, it, vi } from "vitest";
 import { messageKeys } from "@/lib/i18n";
 import { fetchBridge } from "../preview/bridge";
-import { parseBridgeMessage, PreviewChannel } from "../preview/channel";
+import {
+  LARGE_CSS_INTERVAL_MS,
+  LARGE_CSS_LENGTH,
+  parseBridgeMessage,
+  PreviewChannel,
+} from "../preview/channel";
 import { demoBodyHtml, escapeHtml } from "../preview/demo-page";
+import { PreviewError, previewErrorText } from "../preview/errors";
 import { DEMO_TEXT_FIELDS, demoTextKey, demoTexts } from "../preview/demo-texts";
 import { previewFrameHeight, previewScale } from "../preview/scale";
 import { sha256Base64, sha256Bytes } from "../preview/sha256";
@@ -101,9 +107,25 @@ describe("preview-bridge.js", () => {
     send({ type: "script", css: "alert(1)" });
     send("css");
     send(null);
-    send({ type: "css", css: "x".repeat(2 * 1024 * 1024 + 1) });
     expect(doc.getElementById("ct-live")).toBeNull();
     expect(parent.postMessage).not.toHaveBeenCalled();
+  });
+
+  it("refuses CSS over the size cap and says so instead of staying silent", () => {
+    const { doc, parent, send } = runBridge();
+    parent.postMessage.mockClear();
+    const max = 2 * 1024 * 1024;
+    send({ type: "css", css: "x".repeat(max + 1), seq: 1 });
+    send({ type: "palette", css: "x".repeat(max + 1) });
+    expect(doc.getElementById("ct-live")).toBeNull();
+    expect(doc.getElementById("ct-palette")).toBeNull();
+    expect(parent.postMessage.mock.calls).toEqual([
+      [{ type: "cssthema:too-large", kind: "css", max }, "*"],
+      [{ type: "cssthema:too-large", kind: "palette", max }, "*"],
+    ]);
+    // Precies op de limiet mag nog.
+    send({ type: "css", css: "x".repeat(max), seq: 2 });
+    expect(doc.getElementById("ct-live")?.textContent).toHaveLength(max);
   });
 
   it("treats CSS strictly as text (no HTML injection)", () => {
@@ -243,8 +265,90 @@ describe("PreviewChannel", () => {
       action: "publish",
     });
     expect(parseBridgeMessage({ type: "cssthema:shortcut", action: "delete" })).toBeNull();
+    expect(parseBridgeMessage({ type: "cssthema:too-large", kind: "css", max: 9 })).toEqual({
+      type: "cssthema:too-large",
+      kind: "css",
+      max: 9,
+    });
+    expect(parseBridgeMessage({ type: "cssthema:too-large", kind: "html" })).toBeNull();
     expect(parseBridgeMessage({ type: "other" })).toBeNull();
     expect(parseBridgeMessage("cssthema:ready")).toBeNull();
+  });
+
+  it("throttles large stylesheets to one update per interval, always delivering the last", () => {
+    let now = 1000;
+    const timers: { at: number; callback: () => void }[] = [];
+    const frames: (() => void)[] = [];
+    const target = { postMessage: vi.fn() } as unknown as Window & {
+      postMessage: ReturnType<typeof vi.fn>;
+    };
+    const channel = new PreviewChannel({
+      getTarget: () => target,
+      requestFrame: (callback) => frames.push(callback),
+      cancelFrame: () => {},
+      now: () => now,
+      setTimer: (callback, ms) => {
+        timers.push({ at: now + ms, callback });
+        return timers.length as unknown as ReturnType<typeof setTimeout>;
+      },
+      clearTimer: () => {},
+    });
+    const runFrames = () => frames.splice(0).forEach((frame) => frame());
+    const advance = (ms: number) => {
+      now += ms;
+      timers
+        .splice(0)
+        .filter((timer) => (timer.at <= now ? (timer.callback(), false) : true))
+        .forEach((timer) => timers.push(timer));
+    };
+    const sentCss = () =>
+      target.postMessage.mock.calls
+        .map(([message]) => message as { type: string; css: string })
+        .filter((message) => message.type === "css")
+        .map((message) => message.css.slice(-1));
+    channel.handleMessage({
+      source: target,
+      data: { type: "cssthema:ready" },
+    } as unknown as MessageEvent);
+    target.postMessage.mockClear();
+    const big = (end: string) => "x".repeat(LARGE_CSS_LENGTH) + end;
+
+    // Eerste grote update na een rustige periode: meteen (volgende frame).
+    channel.setCss(big("1"));
+    runFrames();
+    expect(sentCss()).toEqual(["1"]);
+    // Binnen het interval: geen frame, wel een timer; tussenliggende toestanden vallen weg.
+    advance(50);
+    channel.setCss(big("2"));
+    channel.setCss(big("3"));
+    runFrames();
+    expect(frames).toHaveLength(0);
+    expect(sentCss()).toEqual(["1"]);
+    advance(LARGE_CSS_INTERVAL_MS - 60);
+    runFrames();
+    expect(sentCss()).toEqual(["1"]);
+    advance(10);
+    runFrames();
+    expect(sentCss()).toEqual(["1", "3"]);
+
+    // Klein: gewoon per frame, zonder wachten.
+    channel.setCss("a{}");
+    runFrames();
+    channel.setCss("b{}");
+    runFrames();
+    expect(sentCss()).toEqual(["1", "3", "}", "}"]);
+    expect(timers).toHaveLength(0);
+  });
+
+  it("reports a stylesheet the bridge refused as too large", () => {
+    const onTooLarge = vi.fn();
+    const target = { postMessage: vi.fn() } as unknown as Window;
+    const channel = new PreviewChannel({ getTarget: () => target, onTooLarge });
+    const data = { type: "cssthema:too-large", kind: "css", max: 10 };
+    channel.handleMessage({ source: {}, data } as MessageEvent);
+    expect(onTooLarge).not.toHaveBeenCalled();
+    channel.handleMessage({ source: target, data } as MessageEvent);
+    expect(onTooLarge).toHaveBeenCalledWith("css", 10);
   });
 
   it("passes shortcuts from its own frame to the editor, not from other windows", () => {
@@ -324,6 +428,12 @@ describe("preview document (srcdoc + CSP)", () => {
     await expect(fetchBridge(html as unknown as typeof fetch)).rejects.toThrow(
       /onverwachte inhoud/,
     );
+    const error = await fetchBridge(html as unknown as typeof fetch).catch((e: unknown) => e);
+    expect(error).toBeInstanceOf(PreviewError);
+    expect(previewErrorText(error, (key, params) => `${key} ${JSON.stringify(params)}`)).toBe(
+      'editor.previewError_unexpected {"path":"/preview-bridge.js"}',
+    );
+    expect(previewErrorText(new Error("kapot"), (key) => key)).toBe("kapot");
     const missing = vi.fn(async () => new Response("", { status: 404 }));
     await expect(fetchBridge(missing as unknown as typeof fetch)).rejects.toThrow(/404/);
   });

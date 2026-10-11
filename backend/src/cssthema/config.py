@@ -38,7 +38,7 @@ class Settings(BaseSettings):
     # CSS-levering en -validatie (fase 1). De standaardwaarden werken zonder extra
     # configuratie voor de installatie zonder Docker (deploy/debian); docker compose
     # zet CSS_REFRESH_URL op de nginx-container.
-    css_max_bytes: int = Field(default=512 * 1024, gt=0)
+    css_max_bytes: int = Field(default=1024 * 1024, gt=0)
     # Hosts die url()/@import in thema's mogen gebruiken (security-lint). Via de
     # omgeving komma-gescheiden: CSS_URL_ALLOWLIST=fonts.googleapis.com,fonts.gstatic.com
     # De host van PUBLIC_BASE_URL is altijd toegestaan (zie css_allowed_hosts).

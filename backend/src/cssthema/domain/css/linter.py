@@ -10,8 +10,10 @@ Fouten (`severity="error"`) blokkeren publiceren:
   substitutie (`var()`, `env()`, `if()`, custom properties, `@property`, `@function`) in
   `image-set()` of `src()` kunnen belanden, moeten ook relatief of toegestaan zijn;
 - `script-vector`: `expression(`, `behavior`, `-moz-binding`, `javascript:`/`vbscript:`;
-- `html-in-css`: een `<` ergens in de bron (ook in commentaar en strings, ook ge-escapet
-  als `\\3c`), zodat de CSS nooit uit een `<style>`-blok kan breken;
+- `html-in-css`: de reeks `</` buiten strings, `url()` en commentaar (geen geldige CSS en
+  een poging om uit een `<style>`-blok te breken). Binnen strings en `url()` mag `<` wel,
+  bv. voor inline SVG's; de compiler escapet `</` daar als `\\3c /`. Een losse `<`, zoals
+  in `@media (width < 600px)`, is toegestaan;
 - `too-large`: groter dan de limiet (dan wordt verder niets gecontroleerd).
 
 Waarschuwingen: `unknown-property`, `empty-rule`, `duplicate-selector`, `misplaced-import`
@@ -88,7 +90,6 @@ _C0_AND_SPACE = "".join(chr(code) for code in range(0x21))
 _SCRIPT_URL_RE = re.compile(r"[\s\x00-\x1f]*(?:java|vb)[\t\n\r]*script[\t\n\r]*:", re.IGNORECASE)
 _SELECTOR_WS = re.compile(r"\s+")
 _SELECTOR_COMBINATOR = re.compile(r"\s*([>+~,])\s*")
-_HEX = frozenset("0123456789abcdefABCDEF")
 _CLOSERS = {"{": "}", "(": ")", "[": "]"}
 _OPENERS = {closer: opener for opener, closer in _CLOSERS.items()}
 
@@ -264,35 +265,14 @@ def _is_name_char(char: str) -> bool:
     return char.isalnum() or char in "-_" or ord(char) >= 0x80
 
 
-def _escape_is_less_than(source: str, offset: int) -> bool:
-    """Is de escape die op `offset` (een backslash) begint een ge-escapete `<`?"""
-    digits = ""
-    index = offset + 1
-    while index < len(source) and len(digits) < 6 and source[index] in _HEX:
-        digits += source[index]
-        index += 1
-    return bool(digits) and int(digits, 16) == 0x3C
-
-
 def _scan_source(source: str, lines: _LineIndex, collector: _Collector) -> None:
-    """Structuur (blokken, strings, commentaar, `url(`) en elke `<` in de bron."""
+    """Structuur (blokken, strings, commentaar, `url(`) en `</` buiten strings en `url(`."""
 
     def report(offset: int, message: str) -> None:
         collector.parse_error(*lines.position(offset), message)
 
     def html(offset: int, message: str) -> None:
         collector.error(*lines.position(offset), "html-in-css", message)
-
-    for match in re.finditer("<", source):
-        html(
-            match.start(),
-            "Het teken '<' is niet toegestaan (ook niet in commentaar of strings). "
-            "Gebruik in media queries min-width/max-width in plaats van '<'.",
-        )
-
-    def check_escape(offset: int) -> None:
-        if _escape_is_less_than(source, offset):
-            html(offset, "Een ge-escapete '<' (\\3c) is niet toegestaan.")
 
     length = len(source)
     stack: list[tuple[str, int]] = []
@@ -307,10 +287,13 @@ def _scan_source(source: str, lines: _LineIndex, collector: _Collector) -> None:
             index = end + 2
             continue
         if char in "\"'":
-            index = _scan_string(source, index, report, check_escape)
+            index = _scan_string(source, index, report)
             continue
         if char == "\\":
-            check_escape(index)
+            index += 2
+            continue
+        if char == "<" and source.startswith("/", index + 1):
+            html(index, "De reeks '</' is niet toegestaan buiten strings en url().")
             index += 2
             continue
         if (
@@ -325,7 +308,6 @@ def _scan_source(source: str, lines: _LineIndex, collector: _Collector) -> None:
                 end = content
                 while end < length and source[end] != ")":
                     if source[end] == "\\":
-                        check_escape(end)
                         end += 2
                         continue
                     end += 1
@@ -368,7 +350,6 @@ def _scan_string(
     source: str,
     start: int,
     report: Callable[[int, str], None],
-    check_escape: Callable[[int], None],
 ) -> int:
     """Slaat een string over en geeft de positie erna terug."""
     quote = source[start]
@@ -376,7 +357,6 @@ def _scan_string(
     while index < len(source):
         char = source[index]
         if char == "\\":
-            check_escape(index)
             index += 2
             continue
         if char == quote:

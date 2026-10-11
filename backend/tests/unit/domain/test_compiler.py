@@ -86,15 +86,28 @@ def test_local_time_is_converted_to_utc() -> None:
     assert "· 2026-10-05T12:04Z ·" in result.css
 
 
-def test_less_than_is_escaped_defensively() -> None:
+def test_end_tag_is_escaped_defensively() -> None:
     result = compile_css(
-        "a::after { content: '<' }",
+        "a::after { content: '</style>' }"
+        ' b { background: url("data:image/svg+xml,<svg></svg>") }',
         slug="x1",
         version_number=1,
         published_at=PUBLISHED,
         palette_tokens=None,
     )
-    assert "<" not in result.css
+    assert "</" not in result.css
+    assert "\\3c /style>" in result.css
+
+
+def test_media_range_keeps_its_less_than() -> None:
+    result = compile_css(
+        "@media (width < 600px) { a { color: red } }",
+        slug="x1",
+        version_number=1,
+        published_at=PUBLISHED,
+        palette_tokens=None,
+    )
+    assert "(width<600px)" in result.css.replace(" ", "")
 
 
 def test_same_input_gives_the_same_hash() -> None:

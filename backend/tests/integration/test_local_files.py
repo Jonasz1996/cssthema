@@ -18,7 +18,7 @@ async def test_list_local_files(api: Api) -> None:
     (api.css_dir / f"{taken['slug']}.css").write_text("a{}")
     (api.css_dir / "Niet Geldig.css").write_text("a{}")
     (api.css_dir / "api.css").write_text("a{}")
-    (api.css_dir / "groot.css").write_text("a" * (512 * 1024 + 1))
+    (api.css_dir / "groot.css").write_text("a" * (1024 * 1024 + 1))
     (api.css_dir / "leesmij.txt").write_text("geen css")
     (api.css_dir / ".verborgen.css").write_text("a{}")
     (api.css_dir / "map.css").mkdir()

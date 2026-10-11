@@ -1,6 +1,6 @@
 """Publieke CSS: Redis-cache vóór de database, en verversen van de nginx-cache.
 
-Leespad (docs/02 § 3.3): `css:<slug>` (TTL 1 u) of `css:<slug>@<n>` (TTL 24 u) in Redis,
+Leespad (docs/02 § 3.3): `css:<slug>` (TTL 5 min) of `css:<slug>@<n>` (TTL 24 u) in Redis,
 anders de database. Een Redis-fout is nooit een 500: dan lezen we gewoon de database.
 
 Race tussen lezen en invalideren: een lezer die net vóór een publicatie de oude versie
@@ -35,9 +35,12 @@ from cssthema.repositories.themes import PublicCssRow
 
 log = get_logger(__name__)
 
-LATEST_TTL_S = 3600
+# Kort, zodat een gemiste invalidatie (Redis even weg) hooguit 5 minuten oude CSS geeft.
+LATEST_TTL_S = 300
 FIXED_TTL_S = 24 * 3600
 GENERATION_TTL_S = 7 * 24 * 3600
+INVALIDATE_ATTEMPTS = 3
+INVALIDATE_RETRY_S = 0.2
 REDIS_TIMEOUT_S = 0.5
 REFRESH_TIMEOUT_S = 1.0
 # De refresh-server van nginx laat 10 r/s toe (burst 20) en antwoordt daarboven 429:
@@ -211,17 +214,26 @@ class CssDelivery:
         await self._refresh_nginx(unique, fixed)
 
     async def _clear_redis(self, slugs: list[str], fixed: Mapping[str, list[int]]) -> None:
-        try:
-            async with asyncio.timeout(REDIS_TIMEOUT_S * 2):
-                pipe = self._redis.pipeline(transaction=True)
-                for slug in slugs:
-                    pipe.incr(generation_key(slug))
-                    pipe.expire(generation_key(slug), GENERATION_TTL_S)
-                    keys = [latest_key(slug), *(fixed_key(slug, n) for n in fixed.get(slug, []))]
-                    pipe.delete(*keys)
-                await pipe.execute()
-        except Exception as exc:
-            log.warning("css_cache_invalidate_failed", slugs=slugs, error=repr(exc))
+        for attempt in range(1, INVALIDATE_ATTEMPTS + 1):
+            try:
+                async with asyncio.timeout(REDIS_TIMEOUT_S * 2):
+                    pipe = self._redis.pipeline(transaction=True)
+                    for slug in slugs:
+                        pipe.incr(generation_key(slug))
+                        pipe.expire(generation_key(slug), GENERATION_TTL_S)
+                        keys = [
+                            latest_key(slug),
+                            *(fixed_key(slug, n) for n in fixed.get(slug, [])),
+                        ]
+                        pipe.delete(*keys)
+                    await pipe.execute()
+                return
+            except Exception as exc:
+                log.warning(
+                    "css_cache_invalidate_failed", slugs=slugs, attempt=attempt, error=repr(exc)
+                )
+                if attempt < INVALIDATE_ATTEMPTS:
+                    await asyncio.sleep(INVALIDATE_RETRY_S * attempt)
 
     async def _refresh_nginx(self, slugs: list[str], fixed: Mapping[str, list[int]]) -> None:
         http = self._http

@@ -5,15 +5,23 @@
  *
  * Updates zijn `requestAnimationFrame`-gedreven: hoe snel er ook getypt wordt, per frame gaat
  * hoogstens één bericht met de nieuwste CSS (< 100 ms tot zichtbaar, meestal één frame).
+ * Grote stylesheets (> `LARGE_CSS_LENGTH` tekens) gaan hoogstens om de `LARGE_CSS_INTERVAL_MS`:
+ * elke update kopieert en herparseert de hele tekst in de iframe. De laatste toestand komt er
+ * altijd (trailing edge).
  */
 
 import type { EditorShortcut } from "../lib/shortcuts";
+
+export const LARGE_CSS_LENGTH = 200 * 1024;
+export const LARGE_CSS_INTERVAL_MS = 300;
 
 export type BridgeInbound =
   | { type: "cssthema:ready" }
   | { type: "cssthema:applied"; seq: number | null }
   /** Sneltoets terwijl de preview de focus had (de bridge hield de browseractie tegen). */
-  | { type: "cssthema:shortcut"; action: EditorShortcut };
+  | { type: "cssthema:shortcut"; action: EditorShortcut }
+  /** De bridge weigerde een stylesheet boven haar limiet (`max` tekens). */
+  | { type: "cssthema:too-large"; kind: "css" | "palette"; max: number | null };
 
 export type BridgeOutbound =
   { type: "css"; css: string; seq: number } | { type: "palette"; css: string };
@@ -32,6 +40,16 @@ export function parseBridgeMessage(data: unknown): BridgeInbound | null {
   ) {
     return { type: "cssthema:shortcut", action: message.action };
   }
+  if (
+    message.type === "cssthema:too-large" &&
+    (message.kind === "css" || message.kind === "palette")
+  ) {
+    return {
+      type: "cssthema:too-large",
+      kind: message.kind,
+      max: typeof message.max === "number" ? message.max : null,
+    };
+  }
   return null;
 }
 
@@ -40,11 +58,17 @@ export interface PreviewChannelOptions {
   getTarget: () => Window | null;
   requestFrame?: (callback: () => void) => number;
   cancelFrame?: (handle: number) => void;
+  /** Klok en timer voor het afremmen van grote stylesheets (tests). */
+  now?: () => number;
+  setTimer?: (callback: () => void, ms: number) => ReturnType<typeof setTimeout>;
+  clearTimer?: (handle: ReturnType<typeof setTimeout>) => void;
   /** Na elke toegepaste CSS-update (voor de "klaar"-toestand en metingen). */
   onApplied?: (seq: number | null) => void;
   onReady?: () => void;
   /** Ctrl/⌘+S of Ctrl+\ in de preview. */
   onShortcut?: (action: EditorShortcut) => void;
+  /** De bridge weigerde de stylesheet (te groot). */
+  onTooLarge?: (kind: "css" | "palette", max: number | null) => void;
 }
 
 export class PreviewChannel {
@@ -54,14 +78,23 @@ export class PreviewChannel {
   private sentPalette: string | null = null;
   private ready = false;
   private frame: number | null = null;
+  private timer: ReturnType<typeof setTimeout> | null = null;
+  /** Wanneer de CSS laatst verstuurd werd (voor het afremmen van grote stylesheets). */
+  private sentCssAt = -Infinity;
   private seq = 0;
   private readonly requestFrame: (callback: () => void) => number;
   private readonly cancelFrame: (handle: number) => void;
+  private readonly now: () => number;
+  private readonly setTimer: NonNullable<PreviewChannelOptions["setTimer"]>;
+  private readonly clearTimer: NonNullable<PreviewChannelOptions["clearTimer"]>;
 
   constructor(private readonly options: PreviewChannelOptions) {
     this.requestFrame =
       options.requestFrame ?? ((callback) => globalThis.requestAnimationFrame(callback));
     this.cancelFrame = options.cancelFrame ?? ((handle) => globalThis.cancelAnimationFrame(handle));
+    this.now = options.now ?? (() => performance.now());
+    this.setTimer = options.setTimer ?? ((callback, ms) => setTimeout(callback, ms));
+    this.clearTimer = options.clearTimer ?? ((handle) => clearTimeout(handle));
   }
 
   get isReady(): boolean {
@@ -99,6 +132,8 @@ export class PreviewChannel {
       this.options.onReady?.();
     } else if (message.type === "cssthema:shortcut") {
       this.options.onShortcut?.(message.action);
+    } else if (message.type === "cssthema:too-large") {
+      this.options.onTooLarge?.(message.kind, message.max);
     } else {
       this.options.onApplied?.(message.seq);
     }
@@ -116,6 +151,8 @@ export class PreviewChannel {
   /** Stuurt wat veranderd is meteen (normaal via `requestAnimationFrame`). */
   flush(): void {
     this.frame = null;
+    if (this.timer !== null) this.clearTimer(this.timer);
+    this.timer = null;
     const target = this.options.getTarget();
     if (!this.ready || !target) return;
     if (this.palette !== this.sentPalette) {
@@ -126,6 +163,8 @@ export class PreviewChannel {
       this.seq += 1;
       this.post(target, { type: "css", css: this.css, seq: this.seq });
       this.sentCss = this.css;
+      // Alleen een groot bericht telt mee voor het interval (een klein kost niets).
+      this.sentCssAt = this.css.length > LARGE_CSS_LENGTH ? this.now() : -Infinity;
     }
   }
 
@@ -139,12 +178,24 @@ export class PreviewChannel {
   }
 
   private schedule(): void {
-    if (!this.ready || this.frame !== null) return;
+    if (!this.ready || this.frame !== null || this.timer !== null) return;
+    const wait =
+      this.css.length > LARGE_CSS_LENGTH ? this.sentCssAt + LARGE_CSS_INTERVAL_MS - this.now() : 0;
+    if (wait > 0) {
+      // Groot en net nog verstuurd: wachten, daarna gewoon via het volgende frame.
+      this.timer = this.setTimer(() => {
+        this.timer = null;
+        this.schedule();
+      }, wait);
+      return;
+    }
     this.frame = this.requestFrame(() => this.flush());
   }
 
   private cancel(): void {
     if (this.frame !== null) this.cancelFrame(this.frame);
+    if (this.timer !== null) this.clearTimer(this.timer);
     this.frame = null;
+    this.timer = null;
   }
 }

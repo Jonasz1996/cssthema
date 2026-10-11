@@ -42,7 +42,7 @@ def test_css_defaults_work_without_extra_environment(monkeypatch: pytest.MonkeyP
     for name in ("CSS_MAX_BYTES", "CSS_URL_ALLOWLIST", "CSS_REFRESH_URL", "CSS_FILES_DIR"):
         monkeypatch.delenv(name, raising=False)
     settings = Settings(_env_file=None)
-    assert settings.css_max_bytes == 512 * 1024
+    assert settings.css_max_bytes == 1024 * 1024
     assert settings.css_url_allowlist == ["fonts.googleapis.com", "fonts.gstatic.com"]
     assert settings.css_refresh_url == "http://127.0.0.1:8081"
     assert str(settings.css_files_dir) == "/var/lib/cssthema/css-files"

@@ -12,6 +12,7 @@ class MetaInfo(BaseModel):
     version: str
     environment: str
     public_base_url: str
+    css_max_bytes: int
 
 
 @router.get("/meta", response_model=MetaInfo, operation_id="meta_get")
@@ -22,4 +23,5 @@ async def get_meta(request: Request) -> MetaInfo:
         version=__version__,
         environment=settings.environment,
         public_base_url=settings.public_base_url,
+        css_max_bytes=settings.css_max_bytes,
     )
