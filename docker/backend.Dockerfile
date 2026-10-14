@@ -2,7 +2,7 @@
 # Eén backend-codebase, twee targets: `api` (slank) en `worker`.
 # Vanaf fase 2 krijgt `worker` Playwright/Chromium (zie docs/02 § 1.1).
 
-FROM python:3.12-slim AS base
+FROM python:3.14-slim AS base
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
     UV_COMPILE_BYTECODE=1 \
