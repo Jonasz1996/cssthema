@@ -55,13 +55,12 @@ def classify(
     content_type: str,
     csp: str | None,
     html: str,
-    content_encoding: str | None = None,
 ) -> Verdict:
     """Oordeel over een antwoord dat geen redirect is.
 
-    De controle vraagt zoals een browser (`Accept-Encoding: gzip, deflate`). Gecomprimeerd én
-    geen regel: dan comprimeerde de app de HTML zelf en kon sub_filter niets vinden (NPM
-    comprimeert pas ná sub_filter, dus mét regel is gzip gewoon in orde).
+    Geen thema in de pagina geeft altijd de gewone NO_RULE-tekst. Of de app haar HTML zelf
+    comprimeert (`no_rule_compressed`), ziet de service pas aan een tweede vraag zonder
+    compressie: NPM comprimeert met `gzip on` ook zelf, dus Content-Encoding alleen zegt niets.
     """
     if status == 401:
         return Verdict(Level.UNKNOWN, Code.LOGIN, "De app vraagt eerst een login (401).")
@@ -72,7 +71,7 @@ def classify(
 
     lowered = html.lower()
     own_domain = f"/alg-thema/host/{hostname}.css" in lowered
-    if f"/host/{hostname}.css" in lowered:
+    if _has_host_rule(lowered, hostname):
         verdict = Verdict(Level.OK, Code.RULE_ACTIVE, "De regel voor alle hosts is actief.")
     elif _has_old_rule(lowered, public_base_url):
         verdict = Verdict(
@@ -83,15 +82,6 @@ def classify(
         )
     elif status >= 500:
         return Verdict(Level.ERROR, Code.HTTP_ERROR, f"De app antwoordt met {status}.")
-    elif _is_compressed(content_encoding):
-        return Verdict(
-            Level.ERROR,
-            Code.NO_RULE,
-            f"Geen thema in de pagina, en de app comprimeert haar HTML ({content_encoding}): "
-            "dan vindt sub_filter geen </head>. Staat de regel er al, dan is het nog de oude "
-            "vorm (proxy_set_header Accept-Encoding werkt niet bij Advanced). Vervang hem door "
-            "de regel van de Hosts-pagina, met more_set_input_headers.",
-        )
     else:
         return Verdict(
             Level.ERROR,
@@ -110,11 +100,37 @@ def classify(
     return verdict
 
 
-def _is_compressed(content_encoding: str | None) -> bool:
+def no_rule_compressed(content_encoding: str) -> Verdict:
+    """Geen thema zoals een browser vraagt (gecomprimeerd), wél met `Accept-Encoding: identity`.
+
+    Dan kreeg de app Accept-Encoding nog mee, comprimeerde ze haar HTML en vond sub_filter geen
+    `</head>`: de regel is (nog) de oude vorm, of haalt Accept-Encoding niet weg.
+    """
+    return Verdict(
+        Level.ERROR,
+        Code.NO_RULE,
+        f"Geen thema in de pagina: de app comprimeert haar HTML ({content_encoding}), en dan "
+        "vindt sub_filter geen </head>. Zonder compressie staat het thema er wel, dus de regel "
+        "is nog de oude vorm (proxy_set_header Accept-Encoding werkt niet bij Advanced). "
+        "Vervang hem door de regel van de Hosts-pagina, met more_set_input_headers.",
+    )
+
+
+def is_compressed(content_encoding: str | None) -> bool:
     return content_encoding is not None and content_encoding.strip().lower() not in (
         "",
         "identity",
     )
+
+
+def has_theme(hostname: str, public_base_url: str, html: str) -> bool:
+    """Staat er een thema in de pagina: de regel voor alle hosts of een oude sub_filter?"""
+    lowered = html.lower()
+    return _has_host_rule(lowered, hostname) or _has_old_rule(lowered, public_base_url)
+
+
+def _has_host_rule(lowered_html: str, hostname: str) -> bool:
+    return f"/host/{hostname}.css" in lowered_html
 
 
 def _has_old_rule(lowered_html: str, public_base_url: str) -> bool:

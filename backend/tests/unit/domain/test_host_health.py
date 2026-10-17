@@ -2,7 +2,16 @@
 
 import pytest
 
-from cssthema.domain.host_health import Code, Level, classify, csp_allows_style, is_login_redirect
+from cssthema.domain.host_health import (
+    Code,
+    Level,
+    classify,
+    csp_allows_style,
+    has_theme,
+    is_compressed,
+    is_login_redirect,
+    no_rule_compressed,
+)
 
 BASE = "https://css.jbogaert.be"
 HOST = "sonarr.jbogaert.be"
@@ -78,29 +87,25 @@ def test_login_redirects() -> None:
     assert not is_login_redirect(HOST, f"https://{HOST}/login")
 
 
-def test_compressed_page_without_theme_points_to_the_new_rule() -> None:
-    verdict = classify(
-        HOST,
-        BASE,
-        status=200,
-        content_type="text/html",
-        csp=None,
-        html="<html>",
-        content_encoding="gzip",
-    )
-    assert verdict.code is Code.NO_RULE
+def test_compressed_verdict_points_to_the_new_rule() -> None:
+    verdict = no_rule_compressed("gzip")
+    assert (verdict.level, verdict.code) == (Level.ERROR, Code.NO_RULE)
     assert "comprimeert" in verdict.detail
+    assert "(gzip)" in verdict.detail
     assert "more_set_input_headers" in verdict.detail
+    # classify zelf noemt nooit compressie: gzip kan ook van NPM komen (zie check_host).
     plain = judge("<html>")
     assert "comprimeert" not in plain.detail
     assert "more_set_input_headers" in plain.detail
-    identity = classify(
-        HOST,
-        BASE,
-        status=200,
-        content_type="text/html",
-        csp=None,
-        html="",
-        content_encoding="identity",
-    )
-    assert identity.detail == plain.detail
+
+
+def test_has_theme_and_is_compressed() -> None:
+    assert has_theme(HOST, BASE, f'<link href="{BASE}/host/{HOST}.css">')
+    assert has_theme(HOST, BASE, f'<link href="/alg-thema/host/{HOST}.css">')
+    assert has_theme(HOST, BASE, f'<link href="{BASE}/nord.css">')  # oude sub_filter
+    assert not has_theme(HOST, BASE, "<html><head></head></html>")
+    assert is_compressed("gzip")
+    assert is_compressed(" Deflate ")
+    assert not is_compressed(None)
+    assert not is_compressed("identity")
+    assert not is_compressed("")

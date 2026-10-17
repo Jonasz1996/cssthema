@@ -161,7 +161,7 @@
   "staleLine": "Al 14 dagen niet (of nooit) geladen: staat het blok in deze proxy host?",
   "statusExcluded": "Nooit (uitgesloten)",
   "excludedLine": "Krijgt nooit iets: dashboard, CSS-domein of EXCLUDED_HOSTS.",
-  "encodingLine": "Antwoord gecomprimeerd ({encoding})",
+  "encodingLine": "De app stuurt haar HTML gecomprimeerd ({encoding})",
   "serviceTag": "dienst",
   "forgetAll": "Niet-gekoppelde vergeten",
   "forgetAllDone": "Hosts zonder eigen koppeling vergeten.",

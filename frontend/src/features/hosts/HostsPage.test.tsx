@@ -438,7 +438,9 @@ describe("HostsPage", () => {
       expect(within(third!).getByText("Nooit (uitgesloten)")).toBeInTheDocument();
       expect(third!.querySelector("[data-level]")).toHaveAttribute("data-level", "excluded");
       expect(within(third!).getByText(/^Krijgt nooit iets/)).toBeInTheDocument();
-      expect(within(third!).getByText("Antwoord gecomprimeerd (gzip)")).toBeInTheDocument();
+      expect(
+        within(third!).getByText("De app stuurt haar HTML gecomprimeerd (gzip)"),
+      ).toBeInTheDocument();
 
       expect(document.querySelector("[data-health-summary]")).toHaveTextContent(
         "0 in orde · 0 achter login · 1 met een waarschuwing · 0 met een fout",

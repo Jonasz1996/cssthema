@@ -161,7 +161,7 @@
   "staleLine": "Not loaded for 14 days (or never): is the block in this proxy host?",
   "statusExcluded": "Never (excluded)",
   "excludedLine": "Never gets anything: dashboard, CSS domain or EXCLUDED_HOSTS.",
-  "encodingLine": "Response compressed ({encoding})",
+  "encodingLine": "The app sends its HTML compressed ({encoding})",
   "serviceTag": "service",
   "forgetAll": "Forget unbound",
   "forgetAllDone": "Hosts without own binding forgotten.",

@@ -134,8 +134,8 @@ class HostCheck(BaseModel):
     checked_at: datetime
     content_encoding: str | None = Field(
         default=None,
-        description="Content-Encoding van het antwoord (bv. `gzip`), of null als het niet "
-        "gecomprimeerd was.",
+        description="Alleen bij `no_rule` doordat de app haar HTML comprimeert (zonder compressie "
+        "staat het thema er wel): de Content-Encoding van dat antwoord (bv. `gzip`); anders null.",
     )
 
 

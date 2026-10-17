@@ -56,6 +56,8 @@ CHECK_HEADERS = {
     "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
     "Accept-Encoding": "gzip, deflate",
 }
+# Tweede vraag bij een gecomprimeerde pagina zonder thema: zonder compressie (zie check_host).
+IDENTITY_HEADERS = {"Accept-Encoding": "identity"}
 REDIS_TIMEOUT_S = 0.5
 # Een header die alleen de nginx-refresh van cssthema zelf meestuurt: die telt niet als geladen.
 REFRESH_HEADER = "X-Cssthema-Refresh"
@@ -289,16 +291,25 @@ async def check_host(
                     continue
                 body = await _read_limited(response)  # httpx pakt gzip/deflate al uit
                 encoding = response.headers.get("content-encoding")
+                status = response.status_code
                 verdict = domain.classify(
                     hostname,
                     public_base_url,
-                    status=response.status_code,
+                    status=status,
                     content_type=response.headers.get("content-type", ""),
                     csp=response.headers.get("content-security-policy"),
                     html=body,
-                    content_encoding=encoding,
                 )
-                return _result(verdict, response.status_code, content_encoding=encoding)
+            # NPM comprimeert met `gzip on` ook zelf, dus gzip zegt niet wie comprimeerde. Staat
+            # het thema er zonder compressie wél, dan was het de app (en de oude regel).
+            if (
+                verdict.code is domain.Code.NO_RULE
+                and domain.is_compressed(encoding)
+                and await _theme_without_compression(http, url, hostname, public_base_url)
+            ):
+                verdict = domain.no_rule_compressed(str(encoding))
+                return _result(verdict, status, content_encoding=encoding)
+            return _result(verdict, status)
         verdict = domain.Verdict(domain.Level.ERROR, domain.Code.HTTP_ERROR, "Te veel redirects.")
         return _result(verdict, None)
     except httpx.HTTPError as exc:
@@ -308,6 +319,19 @@ async def check_host(
             f"Niet bereikbaar vanaf cssthema ({type(exc).__name__}).",
         )
         return _result(verdict, None)
+
+
+async def _theme_without_compression(
+    http: httpx.AsyncClient, url: str, hostname: str, public_base_url: str
+) -> bool:
+    try:
+        async with http.stream("GET", url, headers=IDENTITY_HEADERS) as response:
+            content_type = response.headers.get("content-type", "").lower()
+            if response.is_redirect or "html" not in content_type:
+                return False
+            return domain.has_theme(hostname, public_base_url, await _read_limited(response))
+    except httpx.HTTPError:
+        return False
 
 
 async def _read_limited(response: httpx.Response) -> str:
