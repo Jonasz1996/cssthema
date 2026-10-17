@@ -3134,6 +3134,131 @@
         }
       }
     },
+    "/api/v1/preview/stack": {
+      "get": {
+        "tags": [
+          "preview"
+        ],
+        "summary": "De stapel van een host (eigen koppeling, anders `*`) vóór en na een thema",
+        "operationId": "preview_stack",
+        "parameters": [
+          {
+            "name": "hostname",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 253,
+              "description": "Hostnaam van de snapshot.",
+              "title": "Hostname"
+            },
+            "description": "Hostnaam van de snapshot."
+          },
+          {
+            "name": "theme",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 127,
+              "description": "Slug van het bewerkte thema.",
+              "title": "Theme"
+            },
+            "description": "Slug van het bewerkte thema."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PreviewStack"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Interne fout",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/preview/usage": {
+      "get": {
+        "tags": [
+          "preview"
+        ],
+        "summary": "Welke hosts een thema krijgen (eigen koppelingen en `*`)",
+        "operationId": "preview_usage",
+        "parameters": [
+          {
+            "name": "theme",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 127,
+              "description": "Slug van het bewerkte thema.",
+              "title": "Theme"
+            },
+            "description": "Slug van het bewerkte thema."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ThemeUsage"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Interne fout",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/host/{hostname}.css": {
       "get": {
         "tags": [
@@ -5158,6 +5283,62 @@
         ],
         "title": "PreconditionFailedProblem"
       },
+      "PreviewStack": {
+        "properties": {
+          "hostname": {
+            "type": "string",
+            "title": "Hostname"
+          },
+          "binding": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Binding",
+            "description": "De koppeling die voor de host geldt: de host zelf, `*`, of null (geen)."
+          },
+          "enabled": {
+            "type": "boolean",
+            "title": "Enabled",
+            "description": "false: de koppeling staat uit, de host krijgt niets."
+          },
+          "contains_theme": {
+            "type": "boolean",
+            "title": "Contains Theme",
+            "description": "Het bewerkte thema staat in de stapel. Zo niet, dan hoort de draft na `before` (`after` is dan leeg)."
+          },
+          "before": {
+            "items": {
+              "$ref": "#/components/schemas/StackPart"
+            },
+            "type": "array",
+            "title": "Before",
+            "description": "Onderdelen vóór het bewerkte thema."
+          },
+          "after": {
+            "items": {
+              "$ref": "#/components/schemas/StackPart"
+            },
+            "type": "array",
+            "title": "After",
+            "description": "Onderdelen na het bewerkte thema (bv. framework-modules, een variant)."
+          }
+        },
+        "type": "object",
+        "required": [
+          "hostname",
+          "binding",
+          "enabled",
+          "contains_theme",
+          "before",
+          "after"
+        ],
+        "title": "PreviewStack"
+      },
       "Problem": {
         "properties": {
           "type": {
@@ -5604,6 +5785,38 @@
         ],
         "title": "SnapshotSummary"
       },
+      "StackPart": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "source": {
+            "type": "string",
+            "title": "Source",
+            "description": "`bestand`, `thema v<n>`, of leeg als het onderdeel niet gevonden is."
+          },
+          "css": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Css",
+            "description": "De CSS zoals de bundel `/host/<host>.css` hem levert; null = niet gevonden."
+          }
+        },
+        "type": "object",
+        "required": [
+          "name",
+          "source",
+          "css"
+        ],
+        "title": "StackPart"
+      },
       "Theme": {
         "properties": {
           "id": {
@@ -6036,6 +6249,43 @@
         "type": "object",
         "title": "ThemeUpdate",
         "description": "Alleen de meegestuurde velden veranderen; `null` maakt een optioneel veld leeg."
+      },
+      "ThemeUsage": {
+        "properties": {
+          "theme": {
+            "type": "string",
+            "title": "Theme"
+          },
+          "hostnames": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Hostnames",
+            "description": "Hosts met een eigen koppeling (aan) die het thema bevat, op naam."
+          },
+          "default": {
+            "type": "boolean",
+            "title": "Default",
+            "description": "De koppeling `*` (aan) bevat het thema: elke host zonder eigen koppeling."
+          },
+          "bound": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Bound",
+            "description": "Alle hosts met een eigen koppeling; die vallen nooit terug op `*`."
+          }
+        },
+        "type": "object",
+        "required": [
+          "theme",
+          "hostnames",
+          "default",
+          "bound"
+        ],
+        "title": "ThemeUsage"
       },
       "UploadedTheme": {
         "properties": {

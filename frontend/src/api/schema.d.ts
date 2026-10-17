@@ -664,6 +664,40 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/preview/stack": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** De stapel van een host (eigen koppeling, anders `*`) vóór en na een thema */
+        get: operations["preview_stack"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/preview/usage": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Welke hosts een thema krijgen (eigen koppelingen en `*`) */
+        get: operations["preview_usage"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/host/{hostname}.css": {
         parameters: {
             query?: never;
@@ -1518,6 +1552,36 @@ export interface components {
             }[] | null;
             current: components["schemas"]["EtagState"];
         };
+        /** PreviewStack */
+        PreviewStack: {
+            /** Hostname */
+            hostname: string;
+            /**
+             * Binding
+             * @description De koppeling die voor de host geldt: de host zelf, `*`, of null (geen).
+             */
+            binding: string | null;
+            /**
+             * Enabled
+             * @description false: de koppeling staat uit, de host krijgt niets.
+             */
+            enabled: boolean;
+            /**
+             * Contains Theme
+             * @description Het bewerkte thema staat in de stapel. Zo niet, dan hoort de draft na `before` (`after` is dan leeg).
+             */
+            contains_theme: boolean;
+            /**
+             * Before
+             * @description Onderdelen vóór het bewerkte thema.
+             */
+            before: components["schemas"]["StackPart"][];
+            /**
+             * After
+             * @description Onderdelen na het bewerkte thema (bv. framework-modules, een variant).
+             */
+            after: components["schemas"]["StackPart"][];
+        };
         /** Problem */
         Problem: {
             /** Type */
@@ -1714,6 +1778,21 @@ export interface components {
              */
             imported_at: string;
         };
+        /** StackPart */
+        StackPart: {
+            /** Name */
+            name: string;
+            /**
+             * Source
+             * @description `bestand`, `thema v<n>`, of leeg als het onderdeel niet gevonden is.
+             */
+            source: string;
+            /**
+             * Css
+             * @description De CSS zoals de bundel `/host/<host>.css` hem levert; null = niet gevonden.
+             */
+            css: string | null;
+        };
         /** Theme */
         Theme: {
             /**
@@ -1848,6 +1927,26 @@ export interface components {
             palette_id?: string | null;
             /** Tags */
             tags?: string[] | null;
+        };
+        /** ThemeUsage */
+        ThemeUsage: {
+            /** Theme */
+            theme: string;
+            /**
+             * Hostnames
+             * @description Hosts met een eigen koppeling (aan) die het thema bevat, op naam.
+             */
+            hostnames: string[];
+            /**
+             * Default
+             * @description De koppeling `*` (aan) bevat het thema: elke host zonder eigen koppeling.
+             */
+            default: boolean;
+            /**
+             * Bound
+             * @description Alle hosts met een eigen koppeling; die vallen nooit terug op `*`.
+             */
+            bound: string[];
         };
         /** UploadedTheme */
         UploadedTheme: {
@@ -4344,6 +4443,90 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+            /** @description Interne fout */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    preview_stack: {
+        parameters: {
+            query: {
+                /** @description Hostnaam van de snapshot. */
+                hostname: string;
+                /** @description Slug van het bewerkte thema. */
+                theme: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PreviewStack"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+            /** @description Interne fout */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    preview_usage: {
+        parameters: {
+            query: {
+                /** @description Slug van het bewerkte thema. */
+                theme: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ThemeUsage"];
                 };
             };
             /** @description Validation Error */
