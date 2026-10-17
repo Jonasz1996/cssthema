@@ -1,6 +1,6 @@
 import { create } from "zustand";
 import { createJSONStorage, persist, type StateStorage } from "zustand/middleware";
-import type { ServiceSummary, Theme } from "@/api/types";
+import type { ServiceSummary, Theme, ThemeUsage } from "@/api/types";
 import { readStorage, writeStorage } from "@/lib/storage";
 
 /**
@@ -22,6 +22,8 @@ export interface SnapshotOption {
   page: string;
   title: string | null;
   capturedAt: string | null;
+  /** Uit vastleggen.py: `ok`, `inlogpagina`, `http-502`, … (`null` = onbekend). */
+  status: string | null;
 }
 
 /** Eén dienst met de snapshots waartegen je kunt previewen (nieuwste eerst). */
@@ -46,6 +48,7 @@ export function snapshotGroups(services: readonly ServiceSummary[]): SnapshotGro
           page: snapshot.page,
           title: snapshot.title,
           capturedAt: snapshot.captured_at,
+          status: snapshot.status,
         })),
     }))
     .filter((group) => group.snapshots.length > 0)
@@ -64,27 +67,60 @@ export function findSnapshot(
   return null;
 }
 
+/** Welke hosts het thema krijgen (`/preview/usage`): eigen koppelingen, `*`, en wie een eigen heeft. */
+export type ThemeHosts = Pick<ThemeUsage, "hostnames" | "default" | "bound">;
+
+/** De eerste dienst die bij de naam van het thema past (zie `defaultPreviewSource`). */
+function byName(
+  theme: PreviewSourceTheme,
+  groups: readonly SnapshotGroup[],
+): SnapshotGroup | undefined {
+  const name = theme.slug.toLowerCase().replace(/^alg-/, "");
+  if (!name) return undefined;
+  return (
+    groups.find((group) => group.hostname.toLowerCase().startsWith(`${name}.`)) ??
+    groups.find((group) => group.slug.toLowerCase().startsWith(name))
+  );
+}
+
+/** Diensten waarvan de nieuwste snapshot de app zelf toont eerst (niet een 502 of een login). */
+function capturedFirst(groups: readonly SnapshotGroup[]): SnapshotGroup[] {
+  const captured = (group: SnapshotGroup) => (group.snapshots[0]!.status ?? "ok") === "ok";
+  return [...groups.filter(captured), ...groups.filter((group) => !captured(group))];
+}
+
 /**
  * Standaardbron voor een thema zonder bewaarde keuze:
  * 1. het thema hangt aan een dienst → de nieuwste snapshot van die dienst;
- * 2. de slug `alg-<x>` of `<x>` past bij een dienst waarvan de hostnaam met `<x>.` begint
+ * 2. een host met een eigen koppeling die het thema bevat (`usage`), bij voorkeur een die ook
+ *    bij de naam past: daar toont de preview de hele stapel (bv. `alg-kern` + modules);
+ * 3. de slug `alg-<x>` of `<x>` past bij een dienst waarvan de hostnaam met `<x>.` begint
  *    (bv. `grafana` → `grafana.lan`), of waarvan de slug met `<x>` begint;
- * 3. anders de demo-pagina.
+ * 4. het thema zit in `*`: een host zonder eigen koppeling;
+ * 5. anders de demo-pagina.
+ * Bij 2 en 4 eerst een host waarvan de snapshot de app zelf toont (status `ok`).
  */
 export function defaultPreviewSource(
   theme: PreviewSourceTheme,
   groups: readonly SnapshotGroup[],
+  usage: ThemeHosts | null = null,
 ): string {
   const linked = theme.service_id
     ? groups.find((group) => group.serviceId === theme.service_id)
     : undefined;
   if (linked) return linked.snapshots[0]!.id;
-  const name = theme.slug.toLowerCase().replace(/^alg-/, "");
-  if (name) {
-    const match =
-      groups.find((group) => group.hostname.toLowerCase().startsWith(`${name}.`)) ??
-      groups.find((group) => group.slug.toLowerCase().startsWith(name));
-    if (match) return match.snapshots[0]!.id;
+  const named = byName(theme, groups);
+  if (usage) {
+    const own = new Set(usage.hostnames);
+    const inStack = groups.filter((group) => own.has(group.hostname));
+    const stacked = inStack.find((group) => group === named) ?? capturedFirst(inStack)[0];
+    if (stacked) return stacked.snapshots[0]!.id;
+  }
+  if (named) return named.snapshots[0]!.id;
+  if (usage?.default) {
+    const bound = new Set(usage.bound);
+    const fallback = capturedFirst(groups).find((group) => !bound.has(group.hostname));
+    if (fallback) return fallback.snapshots[0]!.id;
   }
   return DEMO_SOURCE;
 }
@@ -93,12 +129,14 @@ export function defaultPreviewSource(
  * De bron die de preview nu toont: de bewaarde keuze als die nog bestaat, anders de
  * standaard. `null` zolang dat nog niet vaststaat (geen keuze en de diensten laden nog).
  * `groups` is `undefined` zolang de diensten niet geladen zijn; lukt dat niet, dan de demo.
+ * `usage` is `"loading"` zolang hij laadt en `null` als hij niet te krijgen is (dan zonder).
  */
 export function resolvePreviewSource(
   stored: string | undefined,
   theme: PreviewSourceTheme,
   groups: readonly SnapshotGroup[] | undefined,
   servicesFailed: boolean,
+  usage: ThemeHosts | null | "loading" = null,
 ): string | null {
   if (stored === DEMO_SOURCE) return DEMO_SOURCE;
   if (stored) {
@@ -106,7 +144,9 @@ export function resolvePreviewSource(
     if (!groups || findSnapshot(groups, stored)) return stored;
   }
   if (!groups) return servicesFailed ? DEMO_SOURCE : null;
-  return defaultPreviewSource(theme, groups);
+  // Even wachten op de koppelingen: anders springt de preview van snapshot zodra ze binnen zijn.
+  if (usage === "loading") return groups.length ? null : DEMO_SOURCE;
+  return defaultPreviewSource(theme, groups, usage);
 }
 
 // --- bewaarde keuzes ----------------------------------------------------------------------------

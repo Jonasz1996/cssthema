@@ -1,5 +1,7 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { isApiError } from "@/api/client";
+import { usePreviewStack } from "@/api/queries/editor";
+import type { PreviewStack } from "@/api/types";
 import { Button, Callout, Input, Loading, Select } from "@/components/ui";
 import { errorText } from "@/features/themes/lib/errors";
 import { type I18n, useI18n } from "@/lib/i18n";
@@ -21,7 +23,7 @@ import { formatBytes } from "../lib/format";
 import { demoBodyHtml } from "./demo-page";
 import { demoTexts } from "./demo-texts";
 import { PreviewError, previewErrorText } from "./errors";
-import { buildSnapshotDocument } from "./snapshot-document";
+import { buildSnapshotDocument, type SnapshotStack } from "./snapshot-document";
 import { DEMO_SOURCE, type PreviewSourceTheme, type SnapshotOption } from "./source";
 import { buildPreviewDocument } from "./srcdoc";
 import { useBridge } from "./use-bridge";
@@ -48,6 +50,13 @@ function snapshotLabel(snapshot: SnapshotOption): string {
   return snapshot.title && snapshot.title !== snapshot.page
     ? `${snapshot.page} · ${snapshot.title}`
     : snapshot.page;
+}
+
+/** De stapel zoals de srcdoc hem nodig heeft (onderdelen die niet gevonden zijn, vallen weg). */
+function snapshotStack(stack: PreviewStack): SnapshotStack {
+  const found = (parts: PreviewStack["before"]) =>
+    parts.flatMap((part) => (part.css === null ? [] : [{ name: part.name, css: part.css }]));
+  return { before: found(stack.before), after: found(stack.after) };
 }
 
 /** Foutmelding bij het laden van een snapshot-document. */
@@ -87,6 +96,15 @@ export function PreviewPane({
     source.snapshotId && source.document.data?.id === source.snapshotId
       ? source.document.data
       : null;
+  // De rest van wat de host krijgt (bv. alg-kern en de modules), vóór en na de live draft. Laadt
+  // samen met het document; lukt het niet, dan de snapshot zonder stapel (met een melding).
+  const stackHost = source.snapshotId
+    ? (source.selected?.group.hostname ?? snapshotDocument?.hostname ?? null)
+    : null;
+  const stackQuery = usePreviewStack(stackHost, theme?.slug);
+  const stack = stackHost && stackQuery.data ? stackQuery.data : null;
+  const stackPending = stackHost !== null && Boolean(theme) && stackQuery.isPending;
+  const docStack = useMemo(() => (stack ? snapshotStack(stack) : null), [stack]);
   const frameTitle = snapshotDocument
     ? t("editor.previewFrameTitleSnapshot", {
         name: source.selected
@@ -99,7 +117,7 @@ export function PreviewPane({
     if (bridgeState.status !== "ready" || source.value === null) return null;
     try {
       if (source.snapshotId) {
-        if (!snapshotDocument) return null;
+        if (!snapshotDocument || stackPending) return null;
         return {
           doc: buildSnapshotDocument({
             bridgeSource: bridgeState.bridge.source,
@@ -108,6 +126,7 @@ export function PreviewPane({
             title: snapshotDocument.title ?? snapshotDocument.hostname,
             html: snapshotDocument.html,
             stylesheets: snapshotDocument.stylesheets,
+            stack: docStack,
           }),
         };
       }
@@ -123,7 +142,16 @@ export function PreviewPane({
     } catch (error) {
       return { error };
     }
-  }, [bridgeState, locale, t, source.value, source.snapshotId, snapshotDocument]);
+  }, [
+    bridgeState,
+    locale,
+    t,
+    source.value,
+    source.snapshotId,
+    snapshotDocument,
+    stackPending,
+    docStack,
+  ]);
   const srcdoc = built && "doc" in built ? built.doc : null;
   const buildError = built && "error" in built ? built.error : null;
   const failure =
@@ -140,7 +168,9 @@ export function PreviewPane({
   const documentError = source.snapshotId && source.document.isError ? source.document.error : null;
   const sourceLoading =
     bridgeState.status !== "loading" &&
-    (source.value === null || (source.snapshotId !== null && source.document.isPending));
+    (source.value === null ||
+      (source.snapshotId !== null && (source.document.isPending || stackPending)));
+  const stackError = source.snapshotId && stackHost && stackQuery.isError ? stackQuery.error : null;
 
   // Welk document de iframe toont; "klaar" geldt per document (verbergt de ongestijlde flits).
   const documentKey = `${frameKey}:${locale}:${bridgeState.status}:${source.value ?? ""}`;
@@ -231,6 +261,7 @@ export function PreviewPane({
           {t("editor.previewTitle")}
         </span>
         {theme && <SourcePicker source={source} />}
+        {source.snapshotId && stack && <StackInfo stack={stack} />}
         <div role="group" aria-label={t("editor.viewportLabel")} className="flex flex-wrap gap-1">
           {PRESETS.map((preset) => (
             <Button
@@ -348,6 +379,20 @@ export function PreviewPane({
             {snapshotErrorText(documentError, i18n)}
           </Callout>
         )}
+        {stackError !== null && srcdoc && (
+          <Callout
+            tone="mid"
+            className="mb-2"
+            title={t("editor.previewStackFailed")}
+            actions={
+              <Button variant="alt" size="sm" onClick={() => void stackQuery.refetch()}>
+                {t("editor.retry")}
+              </Button>
+            }
+          >
+            {errorText(stackError, i18n)}
+          </Callout>
+        )}
         {srcdoc && tooLargeMax && (
           <Callout tone="mid" role="status" title={t("editor.previewTooLarge")}>
             {t("editor.previewTooLargeBody", {
@@ -422,6 +467,43 @@ function SourcePicker({ source }: { source: PreviewSource }) {
         </option>
       )}
     </Select>
+  );
+}
+
+/**
+ * Welke stapel de snapshot krijgt: "+ 4 onderdelen van de host", met de volgorde in de tooltip
+ * (het bewerkte thema op zijn plek). Ook als de koppeling uit staat of het thema er niet in zit.
+ */
+function StackInfo({ stack }: { stack: PreviewStack }) {
+  const { t, tc } = useI18n();
+  const parts = [...stack.before, ...stack.after];
+  const names = [
+    ...stack.before.map((part) => part.name),
+    `▸ ${t("editor.previewStackThis")}`,
+    ...stack.after.map((part) => part.name),
+  ];
+  const binding = stack.binding ?? t("editor.previewStackNoBinding");
+  const title = !stack.enabled
+    ? t("editor.previewStackOff", { binding })
+    : [
+        t("editor.previewStackBinding", { binding }),
+        names.join(" → "),
+        stack.contains_theme ? null : t("editor.previewStackNotIn"),
+      ]
+        .filter(Boolean)
+        .join("\n");
+  return (
+    <span
+      data-preview-stack=""
+      className={cn("text-[11.5px] text-dim", !stack.contains_theme && "text-mid")}
+      title={title}
+    >
+      {!stack.enabled
+        ? t("editor.previewStackOffShort")
+        : parts.length
+          ? tc("editor.previewStackParts", parts.length)
+          : t("editor.previewStackEmpty")}
+    </span>
   );
 }
 

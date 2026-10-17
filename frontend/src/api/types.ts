@@ -74,3 +74,9 @@ export interface Locked<T> {
 export type HostBulkRequest = Schemas["HostBulkRequest"];
 export type HostBulkAction = HostBulkRequest["action"];
 export type HostBulkResult = Schemas["HostBulkResult"];
+
+/** Preview in de editor: de stapel van een host rond het bewerkte thema (`/preview/stack`). */
+export type PreviewStack = Schemas["PreviewStack"];
+export type StackPart = Schemas["StackPart"];
+/** Welke hosts een thema krijgen (`/preview/usage`). */
+export type ThemeUsage = Schemas["ThemeUsage"];

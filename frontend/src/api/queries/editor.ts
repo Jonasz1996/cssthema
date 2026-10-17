@@ -14,12 +14,14 @@ import type {
   Draft,
   LintResult,
   Locked,
+  PreviewStack,
+  ThemeUsage,
   Version,
   VersionDiff,
   VersionPage,
 } from "../types";
 import { invalidateCollections, invalidateThemeState, patchDraft, patchTheme } from "./cache";
-import { themeKeys } from "./keys";
+import { hostKeys, themeKeys } from "./keys";
 import type { QueryHookOptions } from "./options";
 import { fetchTheme } from "./themes";
 
@@ -188,6 +190,39 @@ export function resetDraft({
   );
 }
 
+/**
+ * De stapel van een host rond het bewerkte thema (eigen koppeling, anders `*`), voor de preview
+ * tegen een snapshot: `before` vóór de live draft, `after` erna.
+ */
+export async function fetchPreviewStack(
+  hostname: string,
+  theme: string,
+  signal?: AbortSignal,
+): Promise<PreviewStack> {
+  const { data } = await send(
+    api.GET("/api/v1/preview/stack", { params: { query: { hostname, theme } }, signal }),
+  );
+  return data;
+}
+
+/** Welke hosts een thema krijgen: eigen koppelingen, en of `*` het bevat. */
+export async function fetchThemeUsage(theme: string, signal?: AbortSignal): Promise<ThemeUsage> {
+  const { data } = await send(
+    api.GET("/api/v1/preview/usage", { params: { query: { theme } }, signal }),
+  );
+  return data;
+}
+
+/**
+ * Query-keys van de preview. Onder `["hosts"]`: ze hangen af van de koppelingen, net als de
+ * rest van die groep.
+ */
+export const previewKeys = {
+  stack: (hostname: string, theme: string) =>
+    [...hostKeys.all, "preview-stack", hostname, theme] as const,
+  usage: (theme: string) => [...hostKeys.all, "usage", theme] as const,
+};
+
 // --- query-opties ---------------------------------------------------------------------------------
 
 export const editorQueries = {
@@ -243,6 +278,31 @@ export function useLint(
     staleTime: css === null ? 0 : Infinity,
     gcTime: 30_000,
     placeholderData: keepPreviousData,
+    retry: shouldRetry,
+    ...options,
+  });
+}
+
+/** De stapel van `hostname` rond `theme` (zie `fetchPreviewStack`); `null` = niet laden. */
+export function usePreviewStack(
+  hostname: string | null | undefined,
+  theme: string | null | undefined,
+  options: QueryHookOptions = {},
+) {
+  return useQuery<PreviewStack, ApiError>({
+    queryKey: previewKeys.stack(hostname ?? "", theme ?? ""),
+    queryFn:
+      hostname && theme ? ({ signal }) => fetchPreviewStack(hostname, theme, signal) : skipToken,
+    retry: shouldRetry,
+    ...options,
+  });
+}
+
+/** Welke hosts `theme` krijgen (standaardbron van de preview, publiceerdialoog). */
+export function useThemeUsage(theme: string | null | undefined, options: QueryHookOptions = {}) {
+  return useQuery<ThemeUsage, ApiError>({
+    queryKey: previewKeys.usage(theme ?? ""),
+    queryFn: theme ? ({ signal }) => fetchThemeUsage(theme, signal) : skipToken,
     retry: shouldRetry,
     ...options,
   });

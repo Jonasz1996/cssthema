@@ -244,5 +244,16 @@
   "demoDialogCancel": "Cancel",
   "demoProgressLabel": "Progress",
   "demoCodeTitle": "Code and progress",
-  "demoFooter": "© Northwind · Privacy · Contact"
+  "demoFooter": "© Northwind · Privacy · Contact",
+
+  "previewStackParts_one": "+ {count} part from the host",
+  "previewStackParts_other": "+ {count} parts from the host",
+  "previewStackEmpty": "this theme only",
+  "previewStackOffShort": "binding is off",
+  "previewStackOff": "The binding {binding} is off: that host gets nothing. The preview shows this theme only.",
+  "previewStackBinding": "As {binding} gets it (Hosts):",
+  "previewStackThis": "this theme (live draft)",
+  "previewStackNoBinding": "no binding",
+  "previewStackNotIn": "This theme is not in that binding: the draft comes last.",
+  "previewStackFailed": "Could not load the host stack"
 }

@@ -1,4 +1,5 @@
 import { useCallback, useMemo } from "react";
+import { useThemeUsage } from "@/api/queries/editor";
 import { useServices, useSnapshotDocument } from "@/api/queries/services";
 import {
   DEMO_SOURCE,
@@ -35,13 +36,21 @@ export interface PreviewSource {
  */
 export function usePreviewSource(theme: PreviewSourceTheme | null | undefined): PreviewSource {
   const services = useServices({ enabled: Boolean(theme) });
+  // Voor de standaardbron (zonder bewaarde keuze); de publiceerdialoog deelt de cache.
+  const usage = useThemeUsage(theme?.slug);
   const themeId = theme?.id;
   const stored = usePreviewSourceStore((state) => (themeId ? state.choices[themeId] : undefined));
   const choose = usePreviewSourceStore((state) => state.choose);
   const groups = useMemo(() => snapshotGroups(services.data ?? []), [services.data]);
 
   const value = theme
-    ? resolvePreviewSource(stored, theme, services.data ? groups : undefined, services.isError)
+    ? resolvePreviewSource(
+        stored,
+        theme,
+        services.data ? groups : undefined,
+        services.isError,
+        usage.data ?? (usage.isError ? null : "loading"),
+      )
     : DEMO_SOURCE;
   const snapshotId = value !== null && value !== DEMO_SOURCE ? value : null;
   const document = useSnapshotDocument(snapshotId);

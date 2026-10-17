@@ -75,6 +75,83 @@ describe("default preview source", () => {
   });
 });
 
+describe("default preview source with host bindings", () => {
+  const extra = makeServiceSummary({
+    hostname: "proxmox2.lan",
+    slug: "proxmox2-lan",
+    snapshots: [makeSnapshotSummary()],
+  });
+  const all = snapshotGroups([proxmox, grafana, sonarr, extra]);
+  const usage = (hostnames: string[], isDefault = false, bound: string[] = hostnames) => ({
+    hostnames,
+    default: isDefault,
+    bound,
+  });
+
+  it("prefers a host whose own binding contains the theme", () => {
+    // alg-kern past bij geen naam, maar zit in de koppeling van tv.lan.
+    expect(defaultPreviewSource(theme("alg-kern"), all, usage(["tv.lan"]))).toBe(sonarrSnapshot.id);
+    // Ook boven de naam: alg-grafana zit alleen in de stapel van proxmox.lan.
+    expect(defaultPreviewSource(theme("alg-grafana"), all, usage(["proxmox.lan"]))).toBe(newest.id);
+    // Hosts zonder snapshot tellen niet: dan de naam.
+    expect(defaultPreviewSource(theme("alg-grafana"), all, usage(["nergens.lan"]))).toBe(
+      grafanaSnapshot.id,
+    );
+  });
+
+  it("picks the host that also matches the name among several", () => {
+    const hosts = usage(["grafana.example.org", "proxmox2.lan", "proxmox.lan"]);
+    expect(defaultPreviewSource(theme("alg-proxmox"), all, hosts)).toBe(newest.id);
+    expect(defaultPreviewSource(theme("alg-kern"), all, hosts)).toBe(grafanaSnapshot.id);
+  });
+
+  it("uses a host without own binding when only * contains the theme", () => {
+    const hosts = usage([], true, ["grafana.example.org", "proxmox.lan"]);
+    expect(defaultPreviewSource(theme("algemeen"), all, hosts)).toBe(extra.snapshots[0]!.id);
+    // Alles heeft een eigen koppeling: de demo.
+    const bound = usage(
+      [],
+      true,
+      all.map((group) => group.hostname),
+    );
+    expect(defaultPreviewSource(theme("algemeen"), all, bound)).toBe(DEMO_SOURCE);
+  });
+
+  it("skips hosts whose snapshot is an error or login page", () => {
+    const broken = makeServiceSummary({
+      hostname: "aaa.lan",
+      slug: "aaa-lan",
+      snapshots: [makeSnapshotSummary({ status: "http-502", title: "502 Bad Gateway" })],
+    });
+    const login = makeServiceSummary({
+      hostname: "abc.lan",
+      slug: "abc-lan",
+      snapshots: [makeSnapshotSummary({ status: "inlogpagina" })],
+    });
+    const withBroken = snapshotGroups([broken, login, proxmox, extra]);
+    const viaDefault = usage([], true, ["proxmox.lan"]);
+    expect(defaultPreviewSource(theme("algemeen"), withBroken, viaDefault)).toBe(
+      extra.snapshots[0]!.id,
+    );
+    const own = usage(["aaa.lan", "abc.lan", "proxmox.lan"]);
+    expect(defaultPreviewSource(theme("alg-kern"), withBroken, own)).toBe(newest.id);
+    // Alleen kapotte: dan toch die (de stapel is er wel).
+    expect(defaultPreviewSource(theme("alg-kern"), withBroken, usage(["aaa.lan"]))).toBe(
+      broken.snapshots[0]!.id,
+    );
+  });
+
+  it("waits for the bindings unless they failed or there is nothing to choose", () => {
+    expect(resolvePreviewSource(undefined, theme("alg-kern"), all, false, "loading")).toBeNull();
+    expect(resolvePreviewSource(undefined, theme("alg-kern"), all, false, null)).toBe(DEMO_SOURCE);
+    expect(resolvePreviewSource(undefined, theme("alg-kern"), [], false, "loading")).toBe(
+      DEMO_SOURCE,
+    );
+    // Een bewaarde keuze hoeft er niet op te wachten.
+    expect(resolvePreviewSource(older.id, theme("alg-kern"), all, false, "loading")).toBe(older.id);
+  });
+});
+
 describe("resolvePreviewSource", () => {
   const nord = theme("nord");
   it("prefers a stored choice that still exists", () => {

@@ -280,3 +280,66 @@ describe("PreviewPane: bron van de preview", () => {
     expect(usePreviewSourceStore.getState().choices[theme.id]).toBe("demo");
   });
 });
+
+describe("PreviewPane: stapel van de host", () => {
+  const stack = {
+    hostname: "proxmox.lan",
+    binding: "proxmox.lan",
+    enabled: true,
+    contains_theme: true,
+    before: [{ name: "alg-kern", source: "thema v3", css: ":root{--alg-tekst:#ddd}" }],
+    after: [
+      { name: "alg-fw-extjs", source: "bestand", css: ".x-window{background:#111}" },
+      { name: "ontbreekt", source: "", css: null },
+    ],
+  };
+
+  function serveStack(reply: Response | (() => Response) = json(stack)) {
+    serve();
+    server
+      .on(
+        "GET",
+        "/api/v1/preview/usage",
+        json({ theme: "alg-proxmox", hostnames: ["proxmox.lan"], default: false, bound: [] }),
+      )
+      .on("GET", "/api/v1/preview/stack", reply);
+  }
+
+  it("starts on a host whose binding has the theme and wraps the draft in its stack", async () => {
+    serveStack();
+    // Past bij geen naam: de koppeling van proxmox.lan bepaalt de bron.
+    const theme = makeTheme({ slug: "alg-pve", service_id: null });
+    const { container } = renderPane(
+      <PreviewPane session={undefined} paletteTokens={null} theme={theme} />,
+    );
+    await waitFor(() => expect(picker()).toHaveValue(proxmoxSnapshot.id));
+    const doc = await frameDoc(container);
+    const kern = doc.indexOf('data-ct-part="alg-kern"');
+    const live = doc.indexOf('id="ct-live"');
+    const module = doc.indexOf('data-ct-part="alg-fw-extjs"');
+    expect(kern).toBeGreaterThan(doc.indexOf(".app-body{margin:0}"));
+    expect(kern).toBeLessThan(live);
+    expect(module).toBeGreaterThan(live);
+    expect(doc).not.toContain("ontbreekt");
+    const [call] = server.callsTo("GET", "/api/v1/preview/stack");
+    expect(call?.url.searchParams.get("hostname")).toBe("proxmox.lan");
+    expect(call?.url.searchParams.get("theme")).toBe("alg-pve");
+    const info = screen.getByText("+ 3 onderdelen van de host");
+    expect(info).toHaveAttribute(
+      "title",
+      expect.stringContaining("alg-kern → ▸ dit thema (live draft) → alg-fw-extjs → ontbreekt"),
+    );
+  });
+
+  it("shows the snapshot without the stack when it cannot be loaded", async () => {
+    serveStack(problem(500, "internal_error", { title: "Stuk" }));
+    const theme = makeTheme({ slug: "alg-pve", service_id: null });
+    const { container } = renderPane(
+      <PreviewPane session={undefined} paletteTokens={null} theme={theme} />,
+    );
+    expect(await screen.findByText("Stapel van de host niet geladen")).toBeInTheDocument();
+    const doc = await frameDoc(container);
+    expect(doc).toContain(`Snapshot ${proxmoxSnapshot.id}`);
+    expect(doc).not.toContain("data-ct-stack");
+  });
+});

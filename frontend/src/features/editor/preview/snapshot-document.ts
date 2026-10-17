@@ -11,8 +11,10 @@ import { assertInlineableBridge, previewHeadEnd, previewHeadStart } from "./srcd
  * <head>
  *   <meta http-equiv="Content-Security-Policy" content="…">   ← dezelfde CSP, eerste element
  *   <style data-ct-app="1">…</style> …                         ← CSS van de app, paginavolgorde
+ *   <style data-ct-stack="before" data-ct-part="alg-kern">…    ← stapel van de host vóór het thema
  *   <style id="ct-palette"></style>                            ← daarna: het thema wint
  *   <style id="ct-live"></style>
+ *   <style data-ct-stack="after" data-ct-part="…">…            ← stapel ná het thema (modules, variant)
  *   <script>…preview-bridge.js…</script>
  * </head>
  * <body class="…">…de pagina, zonder scripts…</body>
@@ -23,6 +25,10 @@ import { assertInlineableBridge, previewHeadEnd, previewHeadStart } from "./srcd
  * `<base>`, `<meta http-equiv>` of `<link>`, geen `on*`-, `srcdoc`- of `autofocus`-attributen
  * en geen `javascript:`-URL's. Declaratieve shadow roots (`<template shadowrootmode>`) blijven
  * staan (hun inhoud wordt ook opgeschoond), zodat de iframe ze opnieuw opbouwt.
+ *
+ * De stapel (`stack`) is wat de host via `/host/<host>.css` nog meer krijgt, zoals de bundel het
+ * levert: zonder `alg-kern` en de framework-modules zouden de `var(--alg-*)` van een
+ * `alg-<app>`-thema nergens naar wijzen. Het bewerkte thema zelf zit er niet in; dat is `#ct-live`.
  */
 
 /** Grootste snapshot (HTML + CSS, in tekens) waarvoor de preview nog een document bouwt. */
@@ -129,6 +135,26 @@ function copiedAttributes(element: Element | null): string {
   return out;
 }
 
+/** Eén onderdeel van de stapel van een host (naam en CSS). */
+export interface StackStyle {
+  name: string;
+  css: string;
+}
+
+/** De stapel rond het bewerkte thema: vóór en na `#ct-live`. */
+export interface SnapshotStack {
+  before: readonly StackStyle[];
+  after: readonly StackStyle[];
+}
+
+function stackStyles(position: "before" | "after", parts: readonly StackStyle[]): string[] {
+  return parts.map(
+    ({ name, css }) =>
+      `<style data-ct-stack="${position}" data-ct-part="${escapeHtml(name)}">` +
+      `${neutraliseStyleText(css)}</style>`,
+  );
+}
+
 export interface SnapshotDocumentInput {
   bridgeSource: string;
   bridgeHash: string;
@@ -138,6 +164,8 @@ export interface SnapshotDocumentInput {
   html: string;
   /** De CSS van de app, in de volgorde van de pagina. */
   stylesheets: readonly string[];
+  /** De rest van de stapel van de host, als die bekend is. */
+  stack?: SnapshotStack | null;
 }
 
 /**
@@ -150,9 +178,14 @@ export function buildSnapshotDocument({
   title,
   html,
   stylesheets,
+  stack = null,
 }: SnapshotDocumentInput): string {
   assertInlineableBridge(bridgeSource);
-  const size = stylesheets.reduce((total, css) => total + css.length, html.length);
+  const stackParts = stack ? [...stack.before, ...stack.after] : [];
+  const size = [...stylesheets, ...stackParts.map((part) => part.css)].reduce(
+    (total, css) => total + css.length,
+    html.length,
+  );
   if (size > MAX_SNAPSHOT_CHARS) {
     throw new PreviewError("snapshotTooLarge", `snapshot te groot (${size} tekens)`, {
       size: Math.ceil(size / MB),
@@ -185,7 +218,8 @@ export function buildSnapshotDocument({
     "<head>",
     ...previewHeadStart(bridgeHash, title),
     ...appStyles,
-    ...previewHeadEnd(bridgeSource),
+    ...stackStyles("before", stack?.before ?? []),
+    ...previewHeadEnd(bridgeSource, stackStyles("after", stack?.after ?? [])),
     "</head>",
     `<body${copiedAttributes(body)}>${body?.innerHTML ?? ""}</body>`,
     "</html>",

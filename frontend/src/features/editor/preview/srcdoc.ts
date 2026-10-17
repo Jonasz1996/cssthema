@@ -64,11 +64,16 @@ export function previewHeadStart(bridgeHash: string, title: string): string[] {
   ];
 }
 
-/** Einde van `<head>`: palet en live CSS (na alle andere stijl, zodat het thema wint) en de bridge. */
-export function previewHeadEnd(bridgeSource: string): string[] {
+/**
+ * Einde van `<head>`: palet en live CSS (na alle andere stijl, zodat het thema wint) en de bridge.
+ * `afterLive`: kant-en-klare `<style>`-blokken die ná de live CSS horen (de rest van de stapel
+ * van een host, zie `snapshot-document.ts`).
+ */
+export function previewHeadEnd(bridgeSource: string, afterLive: readonly string[] = []): string[] {
   return [
     '<style id="ct-palette"></style>',
     '<style id="ct-live"></style>',
+    ...afterLive,
     `<script>${bridgeSource}</script>`,
   ];
 }

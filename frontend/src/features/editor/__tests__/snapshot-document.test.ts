@@ -50,6 +50,65 @@ describe("snapshot document (srcdoc)", () => {
     expect(doc.body.innerHTML.trim()).toBe("<p>hi</p>");
   });
 
+  it("wraps the live CSS in the rest of the host stack", () => {
+    const doc = parse(
+      buildSnapshotDocument({
+        bridgeSource: BRIDGE,
+        bridgeHash: "h4sh=",
+        title: "app",
+        html: "<html><head></head><body></body></html>",
+        stylesheets: [".app{}"],
+        stack: {
+          before: [
+            { name: "alg-kern", css: ":root{--alg-tekst:#ddd}" },
+            { name: 'x"y', css: "a{content:'</style><script>x()</script>'}" },
+          ],
+          after: [{ name: "alg-fw-bootstrap", css: ".btn{}" }],
+        },
+      }),
+    );
+    const order = Array.from(doc.head.querySelectorAll("style, script")).map(
+      (element) =>
+        element.id ||
+        element.getAttribute("data-ct-part") ||
+        element.getAttribute("data-ct-app") ||
+        element.localName,
+    );
+    // App, stapel vóór het thema, palet, live draft, stapel erna, bridge.
+    expect(order).toEqual([
+      "1",
+      "alg-kern",
+      'x"y',
+      "ct-palette",
+      "ct-live",
+      "alg-fw-bootstrap",
+      "script",
+    ]);
+    expect(doc.querySelector('[data-ct-part="alg-kern"]')?.getAttribute("data-ct-stack")).toBe(
+      "before",
+    );
+    expect(doc.querySelectorAll("script")).toHaveLength(1);
+    expect(doc.querySelector('[data-ct-part="x\\"y"]')?.textContent).toContain("<\\/style>");
+    expect(
+      doc.querySelector('[data-ct-part="alg-fw-bootstrap"]')?.getAttribute("data-ct-stack"),
+    ).toBe("after");
+  });
+
+  it("counts the stack in the size limit", () => {
+    const half = "a".repeat(MAX_SNAPSHOT_CHARS / 2);
+    const input = {
+      bridgeSource: BRIDGE,
+      bridgeHash: "h",
+      title: "t",
+      html: "<p></p>",
+      stylesheets: [half],
+    };
+    expect(() => buildSnapshotDocument(input)).not.toThrow();
+    expect(() =>
+      buildSnapshotDocument({ ...input, stack: { before: [{ name: "k", css: half }], after: [] } }),
+    ).toThrow(PreviewError);
+  });
+
   it("puts inline head styles after the linked CSS, keeping their media", () => {
     const doc = parse(
       build(
