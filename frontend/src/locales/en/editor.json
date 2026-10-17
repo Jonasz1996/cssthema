@@ -267,5 +267,14 @@
   "algemeenModulesText_other": "{count} hosts have a module stack (alg-kern, alg-fw-*, alg-app-*) and get nothing of what you change in algemeen here: those modules are separate themes, made with scripts/themes/modules.py from themes/algemeen.css. Only hosts with algemeen in their binding (usually *) follow.",
 
   "saveSessionExpired": "Session expired, reload the page",
-  "saveSessionExpiredHint": "Your login has expired. Reload: your text is kept safe in this browser and comes back after logging in."
+  "saveSessionExpiredHint": "Your login has expired. Reload: your text is kept safe in this browser and comes back after logging in.",
+
+  "settings": "Settings",
+  "settingsHint": "Change name, slug, description and palette",
+  "settingsTitle": "Settings of {name}",
+  "settingsDescription": "The CSS stays as it is. A different palette only goes live when you publish.",
+  "settingsSlugChange": "The file is then called {slug}.css. {old}.css keeps redirecting for 90 days, and host bindings with {old} get the new name.",
+  "settingsSave": "Save",
+  "settingsSaving": "Saving…",
+  "settingsSaved": "Settings saved."
 }

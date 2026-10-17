@@ -30,6 +30,7 @@ import { ProblemsPanel } from "./components/ProblemsPanel";
 import { PublishDialog } from "./components/PublishDialog";
 import { Splitter } from "./components/Splitter";
 import { StatusBar } from "./components/StatusBar";
+import { ThemeSettingsDialog } from "./components/ThemeSettingsDialog";
 import { useFillHeight, useMediaQuery } from "./lib/layout-hooks";
 import { type EditorShortcut, editorShortcut, LINT_DEBOUNCE_MS } from "./lib/shortcuts";
 import { collectSnapshotSymbols } from "./lib/snapshot-symbols";
@@ -118,6 +119,7 @@ export function EditorPage() {
   const [cursor, setCursor] = useState<CursorPosition | null>(null);
   const [dragging, setDragging] = useState(false);
   const [publishOpen, setPublishOpen] = useState(false);
+  const [settingsOpen, setSettingsOpen] = useState(false);
   // De conflictdialoog staat open zolang de sessie in conflict is, tot je hem voor díé
   // conflictmelding sluit; een nieuw conflict (of een klik op de statusbalk) opent hem weer.
   const conflict = useSessionValue(session, selectConflict, null);
@@ -364,6 +366,15 @@ export function EditorPage() {
           <ButtonLink to={`/editor/${theme.id}/versions`} variant="alt" size="sm">
             {t("editor.versions")}
           </ButtonLink>
+          <Button
+            variant="alt"
+            size="sm"
+            onClick={() => setSettingsOpen(true)}
+            disabled={!session || readOnly}
+            title={t("editor.settingsHint")}
+          >
+            {t("editor.settings")}
+          </Button>
           <MenuButton
             label={<span aria-hidden>⤓</span>}
             ariaLabel={t("editor.downloadMenu")}
@@ -589,6 +600,12 @@ export function EditorPage() {
           <PublishDialog
             open={publishOpen}
             onClose={() => setPublishOpen(false)}
+            theme={theme}
+            session={session}
+          />
+          <ThemeSettingsDialog
+            open={settingsOpen}
+            onClose={() => setSettingsOpen(false)}
             theme={theme}
             session={session}
           />

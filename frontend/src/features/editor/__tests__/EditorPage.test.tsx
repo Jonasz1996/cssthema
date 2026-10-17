@@ -16,7 +16,7 @@ import {
   makeVersionSummary,
 } from "@/api/testing/fixtures";
 import { createTestQueryClient } from "@/api/testing/query";
-import type { LintIssue } from "@/api/types";
+import type { LintIssue, Theme, ThemeUpdate } from "@/api/types";
 import { useToastStore } from "@/components/ui/toast";
 import { fx } from "@/lib/fx";
 import { createMemoryBuffer, draftBuffer } from "../autosave/buffer";
@@ -813,5 +813,194 @@ describe("EditorPage", () => {
     expect(server.callsTo("POST", "/api/v1/themes/:id/lint")).toHaveLength(1);
     await waitFor(() => expect(server.callsTo("POST", "/api/v1/themes/:id/lint")).toHaveLength(2));
     expect(server.callsTo("POST", "/api/v1/themes/:id/lint")[1]!.body).toEqual({ css: "a{bcd}" });
+  });
+});
+
+describe("EditorPage: instellingen", () => {
+  const dracula = makePalette({ name: "Dracula", tokens: { bg: "#282a36" } });
+
+  // Een vorige test kan getypte tekst in de offline-buffer laten: die zou eerst opgeslagen worden.
+  beforeEach(() => draftBuffer().delete(ID));
+
+  /** Server met één lock voor draft en metadata, zoals de backend: een verkeerde If-Match is 412. */
+  function settingsSetup(patchResponse?: (body: ThemeUpdate) => Response | null) {
+    let current: Theme = { ...theme };
+    let lock = 3;
+    const stale = () =>
+      problem(412, "precondition_failed", {
+        current: { etag: `"lv-${lock}"`, lock_version: lock, updated_by: null, updated_at: null },
+      });
+    return setup((mock) =>
+      mock
+        .on("GET", "/api/v1/themes/:id", () =>
+          json({ ...current, lock_version: lock }, { headers: etag(lock) }),
+        )
+        .on("GET", "/api/v1/palettes", json([palette, dracula]))
+        .on("PUT", "/api/v1/themes/:id/draft", ({ body, headers }) => {
+          if (headers.get("If-Match") !== `"lv-${lock}"`) return stale();
+          lock += 1;
+          const { css } = body as { css: string };
+          return json(makeDraft({ css, lock_version: lock }), { headers: etag(lock) });
+        })
+        .on("PATCH", "/api/v1/themes/:id", ({ body, headers }) => {
+          const fixed = patchResponse?.(body as ThemeUpdate);
+          if (fixed) return fixed;
+          if (headers.get("If-Match") !== `"lv-${lock}"`) return stale();
+          lock += 1;
+          current = { ...current, ...(body as Partial<Theme>) };
+          return json({ ...current, lock_version: lock }, { headers: etag(lock) });
+        }),
+    );
+  }
+
+  async function openSettings() {
+    fireEvent.click(screen.getByRole("button", { name: "Instellingen" }));
+    return within(await screen.findByRole("dialog", { name: "Instellingen van Grafana Nord" }));
+  }
+
+  it("renames the theme and changes palette and description, in place", async () => {
+    const { server } = settingsSetup();
+    const textarea = await editorTextarea();
+    const dialog = await openSettings();
+    fireEvent.change(dialog.getByLabelText("Naam"), { target: { value: "Grafana Licht" } });
+    fireEvent.change(dialog.getByLabelText("Slug (URL)"), { target: { value: "grafana-licht" } });
+    expect(dialog.getByText(/^Het bestand heet dan grafana-licht\.css\./)).toHaveTextContent(
+      "grafana-nord.css stuurt nog 90 dagen door, en host-koppelingen met grafana-nord krijgen de nieuwe naam.",
+    );
+    await dialog.findByRole("option", { name: "Dracula" });
+    fireEvent.change(dialog.getByLabelText("Palet"), { target: { value: dracula.id } });
+    fireEvent.change(dialog.getByLabelText("Beschrijving (optioneel)"), {
+      target: { value: "  Lichte variant " },
+    });
+    fireEvent.click(dialog.getByRole("button", { name: "Opslaan" }));
+    await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
+
+    const [patch, ...more] = server.callsTo("PATCH", "/api/v1/themes/:id");
+    expect(more).toHaveLength(0);
+    expect(patch!.headers.get("If-Match")).toBe('"lv-3"');
+    expect(patch!.body).toEqual({
+      name: "Grafana Licht",
+      slug: "grafana-licht",
+      description: "Lichte variant",
+      palette_id: dracula.id,
+    });
+    expect(screen.getByRole("heading", { name: "Grafana Licht" })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: /grafana-licht\.css/ })).toHaveAttribute(
+      "aria-current",
+      "page",
+    );
+    expect(useEditorStore.getState().tabs).toEqual([
+      { id: ID, name: "Grafana Licht", slug: "grafana-licht" },
+    ]);
+    expect(useToastStore.getState().toasts.map((item) => item.message)).toContain(
+      "Instellingen opgeslagen.",
+    );
+    expect(peekSession(ID)?.getSnapshot().lockVersion).toBe(4);
+
+    // De volgende autosave gebruikt de lock van na de PATCH: geen 412, geen conflict.
+    fireEvent.change(textarea, { target: { value: "a{color:red}" } });
+    await waitFor(() => expect(server.callsTo("PUT", "/api/v1/themes/:id/draft")).toHaveLength(1), {
+      timeout: 2500,
+    });
+    expect(server.callsTo("PUT", "/api/v1/themes/:id/draft")[0]!.headers.get("If-Match")).toBe(
+      '"lv-4"',
+    );
+    await waitFor(() => expect(within(statusBar()).getByText(/Opgeslagen/)).toBeInTheDocument());
+    expect(within(statusBar()).queryByRole("button", { name: /Conflict/ })).toBeNull();
+  });
+
+  it("saves pending text first, so draft and settings do not cross with one lock", async () => {
+    const { server } = settingsSetup();
+    const textarea = await editorTextarea();
+    fireEvent.change(textarea, { target: { value: "a{color:blue}" } });
+    const dialog = await openSettings();
+    fireEvent.change(dialog.getByLabelText("Naam"), { target: { value: "Grafana Blauw" } });
+    fireEvent.click(dialog.getByRole("button", { name: "Opslaan" }));
+    await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
+    const calls = server.calls
+      .filter((call) => call.method === "PUT" || call.method === "PATCH")
+      .map((call) => `${call.method} ${call.headers.get("If-Match")}`);
+    expect(calls).toEqual(['PUT "lv-3"', 'PATCH "lv-4"']);
+    expect(server.callsTo("PATCH", "/api/v1/themes/:id")[0]!.body).toEqual({
+      name: "Grafana Blauw",
+    });
+    expect(peekSession(ID)?.getSnapshot()).toMatchObject({ lockVersion: 5, dirty: false });
+  });
+
+  it("a taken slug shows under the field and keeps the dialog open; no change sends nothing", async () => {
+    const { server } = settingsSetup((body) =>
+      body.slug === "proxmox"
+        ? problem(409, "slug_conflict", { detail: "Slug 'proxmox' is al in gebruik." })
+        : null,
+    );
+    await editorTextarea();
+    let dialog = await openSettings();
+    fireEvent.change(dialog.getByLabelText("Slug (URL)"), { target: { value: "proxmox" } });
+    fireEvent.click(dialog.getByRole("button", { name: "Opslaan" }));
+    expect(await dialog.findByText("Slug 'proxmox' is al in gebruik.")).toBeInTheDocument();
+    expect(screen.getByRole("dialog")).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Grafana Nord" })).toBeInTheDocument();
+    // Een ongeldige slug gaat niet eens naar de server.
+    fireEvent.change(dialog.getByLabelText("Slug (URL)"), { target: { value: "api" } });
+    fireEvent.click(dialog.getByRole("button", { name: "Opslaan" }));
+    expect(server.callsTo("PATCH", "/api/v1/themes/:id")).toHaveLength(1);
+    fireEvent.click(dialog.getByRole("button", { name: "Annuleren" }));
+
+    dialog = await openSettings();
+    fireEvent.click(dialog.getByRole("button", { name: "Opslaan" }));
+    await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
+    expect(server.callsTo("PATCH", "/api/v1/themes/:id")).toHaveLength(1);
+  });
+
+  it("a lock that only moved elsewhere is retried once; a changed draft is an error", async () => {
+    const moved = (lockVersion: number) =>
+      problem(412, "precondition_failed", {
+        detail: "Het thema is intussen gewijzigd.",
+        current: {
+          etag: `"lv-${lockVersion}"`,
+          lock_version: lockVersion,
+          updated_by: null,
+          updated_at: null,
+        },
+      });
+    const { server } = settingsSetup();
+    await editorTextarea();
+    // Ergens anders gepubliceerd: de lock staat op 7, de draft is dezelfde.
+    server
+      .on("GET", "/api/v1/themes/:id/draft", json(makeDraft({ css: "a{}", lock_version: 7 })))
+      .on("PATCH", "/api/v1/themes/:id", ({ body, headers }) =>
+        headers.get("If-Match") === '"lv-7"'
+          ? json({ ...theme, ...(body as Partial<Theme>), lock_version: 8 }, { headers: etag(8) })
+          : moved(7),
+      );
+    let dialog = await openSettings();
+    fireEvent.change(dialog.getByLabelText("Naam"), { target: { value: "Grafana Nacht" } });
+    fireEvent.click(dialog.getByRole("button", { name: "Opslaan" }));
+    await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
+    expect(
+      server.callsTo("PATCH", "/api/v1/themes/:id").map((call) => call.headers.get("If-Match")),
+    ).toEqual(['"lv-3"', '"lv-7"']);
+    expect(peekSession(ID)?.getSnapshot().lockVersion).toBe(8);
+
+    // Nu veranderde ook de draft (een ander tabblad): geen stille overname, een melding.
+    server
+      .on("GET", "/api/v1/themes/:id/draft", json(makeDraft({ css: "b{}", lock_version: 9 })))
+      .on("PATCH", "/api/v1/themes/:id", () => moved(9));
+    fireEvent.click(screen.getByRole("button", { name: "Instellingen" }));
+    dialog = within(await screen.findByRole("dialog", { name: "Instellingen van Grafana Nacht" }));
+    fireEvent.change(dialog.getByLabelText("Naam"), { target: { value: "Grafana Dag" } });
+    fireEvent.click(dialog.getByRole("button", { name: "Opslaan" }));
+    expect(await dialog.findByRole("alert")).toHaveTextContent("Het thema is intussen gewijzigd.");
+    // Geen tweede poging: de draft op de server is niet meer die van ons.
+    expect(server.callsTo("PATCH", "/api/v1/themes/:id")).toHaveLength(3);
+    expect(peekSession(ID)?.getSnapshot()).toMatchObject({ lockVersion: 8, css: "a{}" });
+  });
+
+  it("is not offered for a deleted theme", async () => {
+    setup((mock) =>
+      mock.on("GET", "/api/v1/themes/:id", json({ ...theme, deleted_at: "2026-10-05T09:00:00Z" })),
+    );
+    await editorTextarea();
+    expect(screen.getByRole("button", { name: "Instellingen" })).toBeDisabled();
   });
 });

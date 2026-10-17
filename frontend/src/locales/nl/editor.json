@@ -267,5 +267,14 @@
   "algemeenModulesText_other": "{count} hosts hebben een modulestapel (alg-kern, alg-fw-*, alg-app-*) en krijgen niets van wat je hier aan algemeen wijzigt: die modules zijn losse thema's, gemaakt met scripts/themes/modules.py uit themes/algemeen.css. Alleen hosts met algemeen in hun koppeling (meestal *) volgen.",
 
   "saveSessionExpired": "Sessie verlopen, laad de pagina opnieuw",
-  "saveSessionExpiredHint": "Je login is verlopen. Herladen: je tekst staat veilig in deze browser en komt terug na het inloggen."
+  "saveSessionExpiredHint": "Je login is verlopen. Herladen: je tekst staat veilig in deze browser en komt terug na het inloggen.",
+
+  "settings": "Instellingen",
+  "settingsHint": "Naam, slug, beschrijving en palet wijzigen",
+  "settingsTitle": "Instellingen van {name}",
+  "settingsDescription": "De CSS blijft zoals hij is. Een ander palet gaat pas live als je publiceert.",
+  "settingsSlugChange": "Het bestand heet dan {slug}.css. {old}.css stuurt nog 90 dagen door, en host-koppelingen met {old} krijgen de nieuwe naam.",
+  "settingsSave": "Opslaan",
+  "settingsSaving": "Opslaan…",
+  "settingsSaved": "Instellingen opgeslagen."
 }
