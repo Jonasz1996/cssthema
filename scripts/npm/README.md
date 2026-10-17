@@ -1,8 +1,18 @@
 # De regel in alle proxy hosts zetten
 
-`regel.py` zet de regel van cssthema in de *Advanced*-tab van je proxy hosts in Nginx Proxy Manager, via de NPM-api. Zo hoef je ze niet ± 100 keer te plakken. Per host haalt het de oude thema-regels weg en zet het de regel in de plaats. Al de rest van *Advanced* blijft staan: Authentik, je eigen `location`-blokken, commentaar.
+`regel.py` zet de regel van cssthema in de *Advanced*-tab van je proxy hosts in Nginx Proxy Manager, via de NPM-api. Zo hoef je hem niet ± 100 keer te plakken. Per host haalt het de oude thema-regels weg en zet het de regel in de plaats. Al de rest van *Advanced* blijft staan: Authentik, je eigen `location`-blokken, commentaar.
 
 Nodig: Python 3.9 of nieuwer, verder niets. Draai het op een machine die de beheerpagina van NPM bereikt, bv. de LXC: `python3 /opt/cssthema/scripts/npm/regel.py ...`.
+
+## Voor je begint
+
+`css.jbogaert.be` wijst al naar cssthema en de koppeling `*` bestaat (stap 4 en 5 van [docs/ops/uitrol.md](../../docs/ops/uitrol.md)):
+
+```bash
+curl -sI 'https://css.jbogaert.be/host/*.css'   # 200, content-type: text/css
+```
+
+Komt de CSS nog van de oude server, dan laadt elke app na de regel een bestand dat daar niet bestaat: alle thema's weg, terwijl NPM de hosts gewoon *Online* meldt. Het script kijkt dit ook zelf na. Klopt het niet, dan zegt de proefrun dat, en vraagt `--toepassen` of je toch wilt doorgaan.
 
 ## Zo ga je te werk
 
@@ -17,11 +27,13 @@ Nodig: Python 3.9 of nieuwer, verder niets. Draai het op een machine die de behe
 
    Het script vraagt je NPM-e-mailadres en -wachtwoord, en de code uit je authenticator-app als je tweestapsverificatie aan hebt. Niets daarvan wordt bewaard. Daarna toont het per host wat er verandert (een diff) en een samenvatting: *gewijzigd*, *al goed* en *overgeslagen*, met de reden.
 
-2. **Oude links importeren.** `oude-links.conf` bevat per host de thema's en scripts die de oude regel laadde. Plak het in cssthema bij **Hosts → Importeren**: zo houdt elke host zijn eigen thema.
+   `--hosts-conf` schrijft in `oude-links.conf` welke thema's en scripts de oude regel per host laadde. Gebruik het alleen in deze stap: bestaat het bestand al, dan stopt het script, zodat dit overzicht van vóór de wijziging blijft.
 
-3. **Eén host.** Zet dezelfde opties plus `--host proxmox100.jbogaert.be --toepassen`, en kijk of de app er goed uitziet.
+2. **Oude links bewaren.** Bij de uitrol plakte je in stap 4 al `themes/hosts-modules.conf` bij **Hosts → Importeren**; de andere hosts volgen `*`. `oude-links.conf` is dan alleen naslag: wat elke host vroeger laadde. Plak het dus niet in zijn geheel bij *Importeren*. Dan vervangen de oude links (bv. `proxmox.css`, zonder script) de modules uit `hosts-modules.conf`, want *Bestaande overschrijven* staat standaard aan, en krijgt elke host die nu `*` volgt weer zijn oude thema. Wil je dat voor een paar hosts toch, plak dan alleen hun regels, met *Bestaande overschrijven* uit.
 
-4. **De rest.** Dezelfde opties plus `--toepassen` (zonder `--host`). Hosts die al goed staan, blijven ongemoeid.
+3. **Eén host.** Gebruik dezelfde opties zonder `--hosts-conf`, plus `--host proxmox100.jbogaert.be --toepassen`, en kijk of de app er goed uitziet.
+
+4. **De rest.** Dezelfde opties zonder `--hosts-conf`, plus `--toepassen` (zonder `--host`). Hosts die al goed staan, blijven ongemoeid.
 
 Bij `--toepassen` bewaart het script eerst de huidige *Advanced*-tekst van elke host die verandert in `npm-advanced-backup-<datum>-<tijd>.json`. Alleen jij kan dat bestand lezen; deel het niet, want *Advanced* kan wachtwoorden of tokens bevatten. Na elke host kijkt het of NPM de host nog *Online* meldt. Keurt nginx de nieuwe config af, dan zet het de oude meteen terug en stopt het.
 
@@ -66,7 +78,7 @@ Erbij: de regel uit cssthema (pagina **Hosts**), op de plaats van de eerste oude
 | `--uitsluiten a,b` | hosts waarvan de naam dat bevat niet aanraken; zet daar dezelfde hosts in als in `EXCLUDED_HOSTS` |
 | `--oud-domein a,b` | extra domeinen waarvan links als oude thema-links tellen |
 | `--host NAAM` | alleen deze host |
-| `--hosts-conf BESTAND` | de oude links per host, voor *Hosts → Importeren* |
+| `--hosts-conf BESTAND` | de oude links per host, als naslag (altijd een nieuw bestand) |
 | `--met-script` | ook het script voor apps via het eigen domein |
 | `--toepassen` | echt veranderen (anders alleen tonen) |
 | `--backup BESTAND` | eigen naam voor de back-up |
