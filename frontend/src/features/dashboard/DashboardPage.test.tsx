@@ -1,7 +1,15 @@
 import { fireEvent, screen, waitFor, within } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import { json, problem } from "@/api/testing/fetch-mock";
-import { makeDashboard, makeTheme, makeVersionSummary, testId } from "@/api/testing/fixtures";
+import {
+  makeDashboard,
+  makeHostCheck,
+  makeHostHealth,
+  makeHostHealthOverview,
+  makeTheme,
+  makeVersionSummary,
+  testId,
+} from "@/api/testing/fixtures";
 import { createServer, currentUrl, renderPage } from "@/features/themes/testing";
 import { setLocale } from "@/lib/i18n";
 import { DashboardPage } from "./DashboardPage";
@@ -61,7 +69,29 @@ describe("DashboardPage", () => {
 
   it("toont '—' zolang de cijfers er niet zijn", () => {
     renderPage(<DashboardPage />);
-    expect(screen.getAllByText("—")).toHaveLength(4);
+    expect(screen.getAllByText("—")).toHaveLength(5);
+  });
+
+  it("toont hoeveel hosts een fout hebben, met een link naar Hosts", async () => {
+    const error = makeHostCheck({ level: "error", code: "csp_blocked" });
+    const server = createServer().on("GET", "/api/v1/hosts/health", () =>
+      json(
+        makeHostHealthOverview({
+          hosts: [
+            makeHostHealth({ hostname: "*", level: "error", check: error }),
+            makeHostHealth({ hostname: "a.example", level: "error", check: error }),
+            makeHostHealth({ hostname: "b.example", level: "ok", check: makeHostCheck() }),
+            makeHostHealth({ hostname: "c.example", level: "error", enabled: false }),
+          ],
+        }),
+      ),
+    );
+    renderPage(<DashboardPage />, { server });
+    await waitFor(() => expect(kpi("Hosts met fout").getByText("1")).toBeInTheDocument());
+    expect(kpi("Hosts met fout").getByRole("link", { name: /Naar Hosts/ })).toHaveAttribute(
+      "href",
+      "/hosts",
+    );
   });
 
   it("toont recent gewijzigde thema's met status en een link naar de editor", async () => {

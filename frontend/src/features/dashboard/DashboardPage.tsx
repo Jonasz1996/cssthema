@@ -2,6 +2,7 @@ import { Link } from "react-router";
 import { HealthError } from "@/api/client";
 import { useDashboard } from "@/api/queries/dashboard";
 import { useHealth } from "@/api/queries/health";
+import { useHostHealth } from "@/api/queries/hosts";
 import type { Theme } from "@/api/types";
 import {
   Button,
@@ -17,6 +18,7 @@ import {
   PageHeader,
   Tag,
 } from "@/components/ui";
+import { healthSummary } from "@/features/hosts/lib/hosts";
 import { ThemeStatusTags } from "@/features/themes/components/ThemeStatusTags";
 import { editorPath } from "@/features/themes/lib/actions";
 import { errorText } from "@/features/themes/lib/errors";
@@ -78,6 +80,28 @@ function HealthRow({
     >
       {state === "error" ? healthErrorText(error, i18n) : t(hint)}
     </ItemRow>
+  );
+}
+
+/** KPI "Hosts met fout": uit de laatste controle van de Hosts-pagina (`GET /hosts/health`). */
+function HostErrorsKpi() {
+  const { t, locale } = useI18n();
+  const health = useHostHealth();
+  const summary = health.isSuccess ? healthSummary(health.data.hosts) : null;
+  const errors = summary?.error ?? null;
+  return (
+    <Kpi
+      label={t("hosts.kpiErrors")}
+      value={kpiValue(errors, intlLocale(locale))}
+      tone={errors ? "bad" : "default"}
+      sub={
+        summary ? (
+          <Link to="/hosts" className="text-muted hover:text-white">
+            {t("hosts.kpiErrorsSub")} →
+          </Link>
+        ) : undefined
+      }
+    />
   );
 }
 
@@ -241,6 +265,7 @@ export function DashboardPage() {
             ) : undefined
           }
         />
+        <HostErrorsKpi />
       </KpiGrid>
 
       <Category
