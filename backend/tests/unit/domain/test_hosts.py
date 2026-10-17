@@ -110,6 +110,21 @@ def test_comment_starting_with_a_file_name_is_not_a_hostname() -> None:
     assert len(skipped) == 1
 
 
+def test_parse_npm_config_default_host() -> None:
+    imported, skipped = parse_npm_config(
+        "# *\nsub_filter '</head>' '<link href=\"https://c.be/alg-kern.css\">"
+        "<script src=\"https://c.be/algemeen.js\"></script></head>';\n"
+        "# hem met de hand, zie *\n"
+        "# a.be\nsub_filter '</head>' '<link href=\"https://c.be/alg-a.css\"></head>';"
+    )
+    by_host = {host.hostname: host for host in imported}
+    assert list(by_host) == ["*", "a.be"]
+    assert by_host["*"].styles == ["alg-kern"]
+    assert by_host["*"].scripts == ["algemeen"]
+    assert by_host["a.be"].styles == ["alg-a"]
+    assert skipped == []
+
+
 def test_parse_npm_config_without_hostname() -> None:
     imported, skipped = parse_npm_config(
         "sub_filter '</head>' '<link href=\"https://c.be/a.css\"></head>';"

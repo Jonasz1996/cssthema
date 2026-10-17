@@ -101,7 +101,8 @@ lege bundel (*staat uit*), ook als de regel er per ongeluk staat.
 ### De koppeling `*`
 
 `*` geldt voor elke host zonder eigen koppeling (bij jbogaert.be zo'n 35 hosts, o.a. photoprism,
-guacamole, stirlingpdf en sftpgo). Zet hem op deze stapel, in deze volgorde, met script `algemeen`:
+guacamole, stirlingpdf en sftpgo). `hosts-modules.conf` zet hem bij het importeren (de eerste
+koppeling in het bestand) op deze stapel, in deze volgorde, met script `algemeen`:
 
 `alg-kern`, `alg-fw-bootstrap`, `alg-fw-tabler`, `alg-fw-adminlte`, `alg-fw-material`, `alg-fw-vue`,
 `alg-fw-overig`
@@ -110,7 +111,7 @@ Dat is `algemeen.css` zonder de app-blokken, zonder Bulma (dat zonder herkenning
 en `.button`-klassen zou raken) en zonder ExtJS (alleen Proxmox, en die hosts hebben een eigen
 regel). Ongeveer 210 KB in plaats van 470 KB, en geen `:has()` over het hele document. Zet `*` niet
 op `algemeen`: dan worden alle apps zonder eigen koppeling traag. Een Bulma-app geef je een eigen
-koppeling met `alg-fw-bulma` erbij; `hosts-modules.conf` kan `*` niet importeren.
+koppeling met `alg-fw-bulma` erbij.
 
 `hosts-modules.conf` importeer je op de pagina *Hosts* (*Importeren*). De stapels zijn gecontroleerd
 door de vastgelegde pagina's (`vastleggen.py`) met de modules en met het volledige `algemeen.css` te

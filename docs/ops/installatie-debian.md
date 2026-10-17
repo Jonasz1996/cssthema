@@ -280,8 +280,8 @@ cssthema zelf injecteert daar ook niets: voor `DASHBOARD_HOST`, de host van `PUB
 
 **Uitrollen:**
 
-1. Open **Hosts**, maak de koppeling `*` (bv. thema `algemeen`, script `algemeen`).
-2. Heb je al regels per host (zoals `npm-sub_filter-per-dienst.conf`, of `themes/hosts-modules.conf` uit de repo), plak ze bij **Importeren**: elke `# hostnaam` met de `sub_filter` eronder wordt een koppeling.
+1. Open **Hosts** en plak bij **Importeren** je regels per host (zoals `themes/hosts-modules.conf` uit de repo, of je oude `npm-sub_filter-per-dienst.conf`): elke `# hostnaam` met de `sub_filter` eronder wordt een koppeling, en `# *` de koppeling voor alle hosts zonder eigen regel. `themes/hosts-modules.conf` zet `*` op de lichte stapel modules met script `algemeen` ([themes/README.md](../../themes/README.md#de-koppeling-)).
+2. Zonder zo'n bestand maak je `*` met de hand: thema's `alg-kern`, `alg-fw-bootstrap`, `alg-fw-tabler`, `alg-fw-adminlte`, `alg-fw-material`, `alg-fw-vue`, `alg-fw-overig` en script `algemeen`. Niet het thema `algemeen`: dat maakt grote apps traag.
 3. Zet de regel in de proxy hosts:
    - met [`scripts/npm/regel.py`](../../scripts/npm/README.md): eerst een droge run (toont per host wat er verandert), dan één host, dan de rest. Het script bewaart vooraf de Advanced-config van elke host en kan die terugzetten;
    - of met de hand: vervang in één proxy host de oude `sub_filter`, `sub_filter_once` en `proxy_set_header Accept-Encoding ""` door de regel, kijk of de app er goed uitziet, en doe dan de rest. Staat er nog een eigen `location / { … }` (het oude snippet uit *Import* → *Scripts*), haal dat hele blok weg: dan komt de `location /` van NPM terug, met de Access List van die host.

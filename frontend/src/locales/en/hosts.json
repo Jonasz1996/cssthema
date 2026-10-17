@@ -85,7 +85,7 @@
   "errorHostConflict": "That hostname already has a binding.",
   "errorNotFound": "That binding no longer exists.",
   "importTitle": "Import from NPM config",
-  "importDescription": "Paste the contents of npm-sub_filter-per-dienst.conf: a # hostname line above each sub_filter line.",
+  "importDescription": "Paste the contents of themes/hosts-modules.conf or npm-sub_filter-per-dienst.conf: a # hostname line above each sub_filter line, or # * for every host without its own binding.",
   "fieldImportText": "NPM config",
   "importReplace": "Overwrite existing",
   "importSubmit": "Import",

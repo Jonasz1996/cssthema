@@ -85,7 +85,7 @@
   "errorHostConflict": "Die hostnaam heeft al een koppeling.",
   "errorNotFound": "Die koppeling bestaat niet (meer).",
   "importTitle": "Importeren uit NPM-config",
-  "importDescription": "Plak de inhoud van npm-sub_filter-per-dienst.conf: een regel # hostnaam boven elke sub_filter-regel.",
+  "importDescription": "Plak de inhoud van themes/hosts-modules.conf of npm-sub_filter-per-dienst.conf: een regel # hostnaam boven elke sub_filter-regel, of # * voor alle hosts zonder eigen koppeling.",
   "fieldImportText": "NPM-config",
   "importReplace": "Bestaande overschrijven",
   "importSubmit": "Importeren",

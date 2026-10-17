@@ -272,10 +272,13 @@ def parse_npm_config(text: str) -> tuple[list[ImportedHost], list[SkippedLine]]:
 
 
 def _hostnames_in_comment(comment: str) -> list[str]:
-    """Hostnamen vooraan in een commentaar (`# a.be, b.be  (CSP: ...)`); anders leeg."""
+    """Hostnamen vooraan in een commentaar (`# a.be, b.be  (CSP: ...)`, of `# *`); anders leeg."""
     names = []
     for token in _HOST_LIST_SPLIT.split(comment.strip()):
         if not token:
+            continue
+        if token == DEFAULT_HOST and not names:
+            names.append(DEFAULT_HOST)  # `# *`: de koppeling voor hosts zonder eigen regel
             continue
         try:
             name = normalize_hostname(token)

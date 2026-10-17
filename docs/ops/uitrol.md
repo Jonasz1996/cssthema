@@ -127,7 +127,7 @@ chmod -R u=rwX,go=rX /var/lib/cssthema/css-files/*
    done
    ```
 
-3. *Hosts*: maak de koppeling `*` (thema `algemeen`, script `algemeen`), en plak `themes/hosts-modules.conf` bij *Importeren*.
+3. *Hosts* → *Importeren*: plak `themes/hosts-modules.conf`. Dat maakt de koppelingen per host én `*` (de lichte stapel modules met script `algemeen`, zie [themes/README.md](../../themes/README.md#de-koppeling-)). Bestond `*` al (bv. op `algemeen`), vink dan *Bestaande overschrijven* aan. Zet `*` niet op het thema `algemeen`: dat maakt grote apps traag.
 
 - **Controle:**
 
