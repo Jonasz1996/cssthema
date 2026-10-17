@@ -6,7 +6,7 @@ from datetime import datetime
 from typing import Any
 from urllib.parse import urlsplit
 
-from sqlalchemy import select
+from sqlalchemy import delete, select
 from starlette.concurrency import run_in_threadpool
 
 from cssthema.db.models import Asset, DomSnapshot, Service
@@ -80,10 +80,18 @@ async def list_services(ctx: ServiceContext) -> list[schemas.ServiceSummary]:
 
 
 async def delete_service(ctx: ServiceContext, service_id: uuid.UUID) -> None:
+    """Dienst weg uit de lijst, zijn snapshots echt weg, en daarmee hun assets in storage.
+
+    De dienst zelf blijft als verwijderde rij (audit, thema's die ernaar verwezen); een nieuwe
+    import van dezelfde host maakt een nieuwe dienst.
+    """
     service = await ctx.session.get(Service, service_id)
     if service is None or service.deleted_at is not None:
         raise NotFoundError("Dienst niet gevonden")
+    await storage.lock(ctx.session)
     service.deleted_at = utcnow()
+    await ctx.session.execute(delete(DomSnapshot).where(DomSnapshot.service_id == service.id))
+    removed = await storage.delete_unreferenced(ctx.session)
     audit.record(
         ctx,
         "service.delete",
@@ -92,6 +100,7 @@ async def delete_service(ctx: ServiceContext, service_id: uuid.UUID) -> None:
         changes={"base_url": service.base_url},
     )
     await ctx.session.commit()
+    await storage.remove_files(ctx.session, ctx.settings.storage_dir, removed)
 
 
 async def snapshot_document(
@@ -99,7 +108,12 @@ async def snapshot_document(
 ) -> schemas.SnapshotDocument:
     snapshot = await ctx.session.get(DomSnapshot, snapshot_id)
     service = await ctx.session.get(Service, snapshot.service_id) if snapshot else None
-    if snapshot is None or service is None or snapshot.document_asset_id is None:
+    if (
+        snapshot is None
+        or service is None
+        or service.deleted_at is not None
+        or snapshot.document_asset_id is None
+    ):
         raise NotFoundError("Snapshot niet gevonden")
     ids = [snapshot.document_asset_id] + [
         uuid.UUID(str(sheet["asset_id"])) for sheet in snapshot.stylesheets if "asset_id" in sheet

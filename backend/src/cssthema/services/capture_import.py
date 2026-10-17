@@ -21,7 +21,7 @@ import zipfile
 import zlib
 from dataclasses import dataclass, field
 from datetime import UTC, datetime, tzinfo
-from pathlib import PurePosixPath
+from pathlib import Path, PurePosixPath
 from typing import Any
 from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
@@ -246,9 +246,17 @@ async def import_zip(
                 "van vastleggen.py?"
             )
         # Twee imports tegelijk (tweede tabblad, een retry) wachten op elkaar in plaats van
-        # te botsen op de unieke sha256/slug.
+        # te botsen op de unieke sha256/slug; de opruiming wacht er ook op.
         await storage.lock(ctx.session)
-        result = await _import_pages(ctx, archive, pages, css_files, filename)
+        created: list[Path] = []
+        try:
+            result = await _import_pages(ctx, archive, pages, css_files, filename, created)
+            removed = await storage.delete_unreferenced(ctx.session)
+        except BaseException:
+            # Een beschadigd bestand halverwege: de rollback haalt de rijen weg, wij de
+            # bestanden die al geschreven waren (de lock geldt tot de rollback).
+            storage.discard(created)
+            raise
     await ctx.session.commit()
     log.info(
         "capture_imported",
@@ -256,6 +264,7 @@ async def import_zip(
         snapshots=result.snapshots,
         kept_previous=len(result.kept_previous),
     )
+    await storage.remove_files(ctx.session, ctx.settings.storage_dir, removed)
     return result
 
 
@@ -265,6 +274,7 @@ async def _import_pages(
     pages: list[_Page],
     css_files: dict[str, zipfile.ZipInfo],
     filename: str,
+    created: list[Path],
 ) -> schemas.CaptureImportResult:
     storage_dir = ctx.settings.storage_dir
     cache: dict[bytes, Asset] = {}
@@ -281,7 +291,7 @@ async def _import_pages(
     imported_at = datetime.now(UTC)
 
     async def put(data: bytes, content_type: str) -> Asset:
-        return await storage.put(ctx.session, storage_dir, data, content_type, cache)
+        return await storage.put(ctx.session, storage_dir, data, content_type, cache, created)
 
     async def css_asset(page: _Page, name: str) -> Asset | None:
         key = str(page.css_dir / name)

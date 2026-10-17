@@ -6,11 +6,13 @@ import json
 import uuid
 import zipfile
 from datetime import datetime
+from pathlib import Path
 from typing import Any
 
 import pytest
-from sqlalchemy import text
+from sqlalchemy import select, text
 
+from cssthema.db.models import Asset, Service
 from tests.integration.api_helpers import Api
 
 CSS_A = "0123456789abcdef.css"
@@ -264,6 +266,22 @@ async def test_delete_service_and_unknown_snapshot(api: Api) -> None:
 # --- beschadigde zips en rare JSON ----------------------------------------------------------
 
 
+def storage_files(api: Api) -> set[str]:
+    root: Path = api.app.state.settings.storage_dir
+    return (
+        {str(p.relative_to(root)) for p in (root / "assets").glob("*/*")}
+        if root.exists()
+        else set()
+    )
+
+
+async def orphan_files(api: Api) -> set[str]:
+    """Bestanden in storage zonder asset-rij."""
+    async with api.app.state.sessionmaker() as session:
+        keys = set(await session.scalars(select(Asset.storage_key)))
+    return storage_files(api) - keys
+
+
 def patched(data: bytes, member: str, *, central: dict[int, int], local: dict[int, int]) -> bytes:
     """Zet bytes in de central-directory- en local-header van `member` (vlaggen, methode)."""
     out = bytearray(data)
@@ -319,7 +337,9 @@ def two_hosts_with_broken_second(broken: str) -> tuple[bytes, str, list[str]]:
         ("method", "compressiemethode"),
     ],
 )
-async def test_damaged_member_gives_422(api: Api, broken: str, message: str) -> None:
+async def test_damaged_member_gives_422_and_leaves_no_files(
+    api: Api, broken: str, message: str
+) -> None:
     data, member, hostnames = two_hosts_with_broken_second(broken)
     response = await upload(api, data)
     assert response.status_code == 422, response.text
@@ -327,7 +347,8 @@ async def test_damaged_member_gives_422(api: Api, broken: str, message: str) -> 
     assert problem["code"] == "validation_error"
     assert member in problem["detail"]
     assert message in problem["detail"]
-    # Niets van de zip blijft hangen, ook de goede eerste pagina niet.
+    # De eerste (goede) pagina schreef al bestanden; die zijn weer weg, net als de rijen.
+    assert await orphan_files(api) == set()
     services = (await api.client.get("/api/v1/services")).json()
     assert not [s for s in services if s["hostname"] in hostnames]
 
@@ -377,3 +398,62 @@ async def test_two_imports_at_the_same_time_both_succeed(api: Api) -> None:
     results = [first.json(), second.json()]
     assert sorted(len(r["services_created"]) for r in results) == [0, 1]
     assert len((await service_of(api, name))["snapshots"]) == 1
+
+
+# --- opruimen van assets --------------------------------------------------------------------
+
+
+async def test_reimport_and_delete_remove_unreferenced_assets(api: Api) -> None:
+    name, other = host(), host()
+    await upload(api, capture_zip(name))
+    await upload(api, capture_zip(other))
+    old = (await service_of(api, name))["snapshots"][0]
+    old_shot = old["screenshots"]["origineel"]
+    files_before = storage_files(api)
+
+    # Nieuwe opname met andere screenshots en HTML: de oude zijn nergens meer nodig.
+    await upload(api, capture_zip(name, html_body="Nieuw"))
+    new = (await service_of(api, name))["snapshots"][0]
+    assert (await api.client.get(old_shot)).status_code == 404
+    # Alleen de oude screenshot verdwijnt: de oude HTML is dezelfde als die van `other`.
+    files_after = storage_files(api)
+    assert len(files_before - files_after) == 1
+    assert len(files_after - files_before) == 2
+    assert await orphan_files(api) == set()
+
+    # Dienst verwijderen: snapshot, document en screenshots weg (ook via hun id), de CSS
+    # die de andere dienst ook gebruikt blijft.
+    service_id = (await service_of(api, name))["id"]
+    assert (await api.client.delete(f"/api/v1/services/{service_id}")).status_code == 204
+    assert (await api.client.get(f"/api/v1/snapshots/{new['id']}/document")).status_code == 404
+    assert (await api.client.get(new["screenshots"]["origineel"])).status_code == 404
+    assert await orphan_files(api) == set()
+    kept = (await service_of(api, other))["snapshots"][0]
+    document = (await api.client.get(f"/api/v1/snapshots/{kept['id']}/document")).json()
+    assert document["stylesheets"] == [".card{color:red}", ".x{color:blue}"]
+    assert (await api.client.get(kept["screenshots"]["origineel"])).status_code == 200
+
+
+async def test_cleanup_keeps_favicons(api: Api) -> None:
+    name, gone = host(), host()
+    await upload(api, capture_zip(name))
+    await upload(api, capture_zip(gone))
+    async with api.app.state.sessionmaker() as session:
+        favicon = Asset(
+            storage_key=f"assets/ff/{uuid.uuid4().hex}",
+            content_type="image/png",
+            size_bytes=1,
+            sha256=uuid.uuid4().bytes * 2,
+        )
+        session.add(favicon)
+        await session.flush()
+        service = await session.scalar(
+            select(Service).where(Service.base_url == f"https://{name}/")
+        )
+        assert service is not None
+        service.favicon_asset_id = favicon.id
+        await session.commit()
+    gone_id = (await service_of(api, gone))["id"]
+    assert (await api.client.delete(f"/api/v1/services/{gone_id}")).status_code == 204
+    async with api.app.state.sessionmaker() as session:
+        assert await session.get(Asset, favicon.id) is not None
