@@ -525,6 +525,11 @@ class Plan:
         return self.namen[0] + (f" (+{len(self.namen) - 1})" if len(self.namen) > 1 else "")
 
 
+def aantal_hosts(n: int, soort: str = "host") -> str:
+    """`1 host`, `2 hosts`."""
+    return f"{n} {soort}" + ("" if n == 1 else "s")
+
+
 def lijst(tekst: str | None) -> list[str]:
     """`a.be, b.be c.be` → ['a.be', 'b.be', 'c.be'] (komma's of spaties, zoals DASHBOARD_HOST)."""
     return [d.strip().lower() for d in re.split(r"[\s,;]+", tekst or "") if d.strip()]
@@ -632,7 +637,8 @@ def hosts_conf_schrijven(pad: Path, plannen: list[Plan]) -> int:
         )
         regels.append(f"\n# {' '.join(namen)}\nsub_filter '</head>' '{tags}</head>';\n")
         aantal += 1
-    pad.write_text("".join(regels), encoding="utf-8")
+    with pad.open("x", encoding="utf-8") as f:  # nooit een eerder overzicht overschrijven
+        f.write("".join(regels))
     return aantal
 
 
@@ -665,13 +671,44 @@ def zetten_en_controleren(npm: Npm, host_id: int, advanced: str) -> str:
     return next((r for r in regels if _NGINX_FOUT_RE.search(r)), regels[-1])[:300]
 
 
+def basis_controleren(basis: str) -> str:
+    """Kijkt of `basis` al cssthema is en de koppeling `*` heeft; geeft "" of wat er mis is.
+
+    Wijst het CSS-domein nog naar de oude server, dan laadt elke app na de regel een
+    /host/...css die daar niet bestaat: alle thema's weg, terwijl NPM de hosts Online meldt.
+    """
+    url = f"{basis}/host/*.css"
+    try:
+        req = urllib.request.Request(url, headers={"Accept": "text/css"})  # noqa: S310
+        with urllib.request.urlopen(req, timeout=15) as resp:  # noqa: S310
+            soort = resp.headers.get_content_type()
+            begin = resp.read(300).decode("utf-8", "replace")
+    except urllib.error.HTTPError as e:
+        return f"{url} geeft HTTP {e.code}"
+    except (urllib.error.URLError, OSError, ValueError) as e:
+        return f"{url} niet bereikbaar ({getattr(e, 'reason', e)})"
+    if soort != "text/css" or not begin.startswith("/* cssthema:"):
+        return f"{url} komt niet van cssthema"
+    if begin.startswith("/* cssthema: geen koppeling"):
+        return "cssthema heeft nog geen koppeling * (pagina Hosts)"
+    return ""
+
+
+def bevestigd(vraag: str) -> bool:
+    try:
+        return input(vraag).strip().lower() in ("j", "ja")
+    except EOFError:
+        return False
+
+
 def toepassen(npm: Npm, plannen: list[Plan], backup: Path) -> int:
     gewijzigd = [p for p in plannen if p.status == "gewijzigd"]
     if not gewijzigd:
         print("\nNiets te veranderen.")
         return 0
     backup_schrijven(backup, npm.base, gewijzigd)
-    print(f"\nBack-up van {len(gewijzigd)} hosts: {backup} (bewaar dit bestand; deel het niet)")
+    print(f"\nBack-up van {aantal_hosts(len(gewijzigd))}: {backup}")
+    print("  Bewaar dit bestand en deel het niet: Advanced kan geheimen bevatten.")
     for p in gewijzigd:
         print(f"  {p.naam} ...", end=" ", flush=True)
         try:
@@ -692,7 +729,7 @@ def toepassen(npm: Npm, plannen: list[Plan], backup: Path) -> int:
             print("  Oude Advanced-config teruggezet; de host is weer online.")
         print("Gestopt: de volgende hosts zijn niet aangeraakt. Los dit op of sluit de host uit.")
         return 1
-    print(f"Klaar: {len(gewijzigd)} hosts gewijzigd. Terugzetten: --terugzetten {backup}")
+    print(f"Klaar: {aantal_hosts(len(gewijzigd))} gewijzigd. Terugzetten: --terugzetten {backup}")
     return 0
 
 
@@ -781,6 +818,8 @@ def main() -> None:
         args.basis = args.basis.rstrip("/")
         if args.backup and args.backup.exists():
             p.error(f"{args.backup} bestaat al")
+        if args.hosts_conf and args.hosts_conf.exists():
+            p.error(f"{args.hosts_conf} bestaat al: kies een andere naam of laat --hosts-conf weg")
     npm = Npm(base, npm_login(base, args.npm_gebruiker))
     if args.terugzetten:
         sys.exit(terugzetten(npm, args.terugzetten, (args.host or "").strip().lower()))
@@ -791,18 +830,27 @@ def main() -> None:
     plannen = plan_maken(hosts, args)
     if args.host and not plannen:
         sys.exit(f"Geen proxy host met domeinnaam {args.host}.")
-    print(f"NPM {base}: {len(hosts)} proxy hosts, {len(plannen)} bekeken")
+    print(f"NPM {base}: {aantal_hosts(len(hosts), 'proxy host')}, {len(plannen)} bekeken")
     if args.met_script:
         print("Let op: --met-script geeft ook apps via het eigen domein cssthema-JavaScript.")
     if args.hosts_conf:
         aantal = hosts_conf_schrijven(args.hosts_conf, plannen)
-        print(
-            f"Oude links van {aantal} hosts in {args.hosts_conf} (Hosts > Importeren in cssthema)"
-        )
+        print(f"Oude links van {aantal_hosts(aantal)} in {args.hosts_conf} (naslag, zie de README)")
     plan_tonen(plannen)
+    probleem = ""
+    if any(pl.status == "gewijzigd" for pl in plannen):
+        probleem = basis_controleren(args.basis)
+        if probleem:
+            print(f"\nLet op: {probleem}.")
+            print(
+                f"Zet de regel pas als {args.basis} cssthema is (zie de README), "
+                "anders verliezen de apps hun thema."
+            )
     if not args.toepassen:
         print("\nProefrun: er is niets veranderd. Met --toepassen voer je dit uit.")
         return
+    if probleem and not bevestigd("Toch doorgaan? Typ ja: "):
+        sys.exit("Gestopt: er is niets veranderd.")
     backup = args.backup or Path(f"npm-advanced-backup-{datetime.now():%Y%m%d-%H%M%S}.json")
     sys.exit(toepassen(npm, plannen, backup))
 

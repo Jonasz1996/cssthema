@@ -7,7 +7,9 @@ import json
 import stat
 import sys
 import urllib.error
+import urllib.request
 from argparse import Namespace
+from email.message import Message
 from pathlib import Path
 from typing import Any
 
@@ -97,6 +99,14 @@ proxy_set_header Accept-Encoding "";
 
 def nieuw(oud: str, **kw: Any) -> regel.Resultaat:
     return regel.nieuwe_config(oud, BASIS, OUDE_HOSTS, **kw)
+
+
+@pytest.fixture(autouse=True)
+def geen_netwerk(monkeypatch: pytest.MonkeyPatch) -> None:
+    def urlopen(*args: Any, **kw: Any) -> Any:
+        pytest.fail("geen netwerk in de tests")
+
+    monkeypatch.setattr(urllib.request, "urlopen", urlopen)
 
 
 # --- het blok -----------------------------------------------------------------------------
@@ -416,6 +426,8 @@ def test_plan_een_host_en_meerdere_dashboards() -> None:
 def test_hosts_conf_leest_cssthema_in(tmp_path: Path) -> None:
     pad = tmp_path / "oude-links.conf"
     assert regel.hosts_conf_schrijven(pad, regel.plan_maken(HOSTS, opties())) == 5
+    with pytest.raises(FileExistsError):  # een tweede run maakt het overzicht niet kleiner
+        regel.hosts_conf_schrijven(pad, regel.plan_maken(HOSTS, opties(host="oud.jbogaert.be")))
     hosts = pytest.importorskip("cssthema.domain.hosts")
     geimporteerd, overgeslagen = hosts.parse_npm_config(pad.read_text(encoding="utf-8"))
     assert not overgeslagen
@@ -526,6 +538,61 @@ def test_terugzetten_slaat_andere_host_met_zelfde_id_over(tmp_path: Path) -> Non
     assert not npm.puts
 
 
+class Antwoord:
+    def __init__(self, soort: str, tekst: str) -> None:
+        self.headers = Message()
+        self.headers["Content-Type"] = soort
+        self.tekst = tekst
+
+    def __enter__(self) -> Antwoord:
+        return self
+
+    def __exit__(self, *args: Any) -> None:
+        pass
+
+    def read(self, n: int = -1) -> bytes:
+        return self.tekst.encode()[:n]
+
+
+@pytest.mark.parametrize(
+    ("antwoord", "probleem"),
+    [
+        (Antwoord("text/css; charset=utf-8", "/* cssthema: * (koppeling *) */\n"), ""),
+        (Antwoord("text/css", "/* cssthema: * staat uit (koppeling *) */\n"), ""),
+        (
+            Antwoord("text/css", "/* cssthema: geen koppeling voor * en geen standaard (*) */\n"),
+            "cssthema heeft nog geen koppeling * (pagina Hosts)",
+        ),
+        (
+            Antwoord("text/css", "body{}"),
+            "https://css.jbogaert.be/host/*.css komt niet van cssthema",
+        ),
+        (Antwoord("text/html", "/* cssthema: */"), "komt niet van cssthema"),
+        (urllib.error.HTTPError("x", 404, "Not Found", Message(), None), "geeft HTTP 404"),
+        (urllib.error.URLError("Name or service not known"), "niet bereikbaar (Name or service"),
+    ],
+)
+def test_basis_controleren(monkeypatch: pytest.MonkeyPatch, antwoord: Any, probleem: str) -> None:
+    gevraagd: list[str] = []
+
+    def urlopen(req: Any, timeout: float) -> Any:
+        gevraagd.append(req.full_url)
+        if isinstance(antwoord, Exception):
+            raise antwoord
+        return antwoord
+
+    monkeypatch.setattr(urllib.request, "urlopen", urlopen)
+    uit = regel.basis_controleren(BASIS)
+    assert (probleem in uit) if probleem else uit == ""
+    assert gevraagd == ["https://css.jbogaert.be/host/*.css"]
+
+
+def test_aantal_hosts() -> None:
+    assert regel.aantal_hosts(1) == "1 host"
+    assert regel.aantal_hosts(0) == "0 hosts"
+    assert regel.aantal_hosts(2, "proxy host") == "2 proxy hosts"
+
+
 # --- login en de hele run -----------------------------------------------------------------
 
 
@@ -574,6 +641,7 @@ def test_proefrun_verandert_niets_en_toont_geen_geheimen(
     npm = FakeNpm(hosts)
     monkeypatch.setattr(regel, "npm_login", lambda base, gebruiker: "t")
     monkeypatch.setattr(regel, "Npm", lambda base, token: npm)
+    monkeypatch.setattr(regel, "basis_controleren", lambda basis: "")
     conf = tmp_path / "oud.conf"
     argv = ["regel.py", "--npm", "http://npm:81/", "--basis", BASIS + "/"]
     argv += ["--dashboard", "cssthema.jbogaert.be", "--hosts-conf", str(conf)]
@@ -584,7 +652,32 @@ def test_proefrun_verandert_niets_en_toont_geen_geheimen(
     assert "niet-tonen-123" not in uit
     assert "-proxy_set_header Accept-Encoding" in uit and "+# cssthema" in uit
     assert "database.jbogaert.be  handmatig nakijken: eigen sub_filter zonder thema-links" in uit
-    assert "Proefrun" in uit and conf.exists()
+    assert "Proefrun" in uit and "Let op" not in uit and conf.exists()
+
+
+@pytest.mark.parametrize(("antwoord", "puts"), [("nee", 0), ("", 0), ("ja", 2)])
+def test_toepassen_vraagt_eerst_als_het_css_domein_niet_klopt(
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+    tmp_path: Path,
+    antwoord: str,
+    puts: int,
+) -> None:
+    npm = FakeNpm([host(1, "proxmox100.jbogaert.be", OUD), host(2, "adguard.jbogaert.be", OUD)])
+    monkeypatch.setattr(regel, "npm_login", lambda base, gebruiker: "t")
+    monkeypatch.setattr(regel, "Npm", lambda base, token: npm)
+    monkeypatch.setattr(regel, "basis_controleren", lambda basis: "x geeft HTTP 404")
+    monkeypatch.setattr("builtins.input", lambda vraag: antwoord)
+    argv = ["regel.py", "--npm", "http://npm:81", "--basis", BASIS, "--dashboard", "c.be"]
+    argv += ["--toepassen", "--backup", str(tmp_path / "b.json")]
+    monkeypatch.setattr(sys, "argv", argv)
+    with pytest.raises(SystemExit) as e:
+        regel.main()
+    uit = capsys.readouterr().out
+    assert "Let op: x geeft HTTP 404." in uit
+    assert len(npm.puts) == puts
+    assert e.value.code == (0 if puts else "Gestopt: er is niets veranderd.")
+    assert ("Klaar: 2 hosts gewijzigd" in uit) == bool(puts)
 
 
 @pytest.mark.parametrize(
@@ -600,3 +693,17 @@ def test_ongeldige_opties(monkeypatch: pytest.MonkeyPatch, extra: list[str]) -> 
     with pytest.raises(SystemExit) as e:
         regel.main()
     assert e.value.code == 2
+
+
+def test_bestaand_hosts_conf_niet_overschrijven(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    conf = tmp_path / "oude-links.conf"
+    conf.write_text("# uit stap 1\n", encoding="utf-8")
+    argv = ["regel.py", "--npm", "http://npm:81", "--basis", BASIS, "--dashboard", "c.be"]
+    monkeypatch.setattr(sys, "argv", [*argv, "--hosts-conf", str(conf)])
+    monkeypatch.setattr(regel, "npm_login", lambda base, gebruiker: pytest.fail("geen login"))
+    with pytest.raises(SystemExit) as e:
+        regel.main()
+    assert e.value.code == 2
+    assert conf.read_text(encoding="utf-8") == "# uit stap 1\n"
