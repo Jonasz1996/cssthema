@@ -280,7 +280,8 @@ def nieuwe_config(
     eindes = [c for c in commentaar if c.diepte == 0 and c.tekst.strip() == MARKER_EINDE]
     if len(begins) != len(eindes):
         return Resultaat(None, f"handmatig nakijken: '{MARKER_BEGIN}' zonder '{MARKER_EINDE}'")
-    for begin, eind in zip(begins, eindes):
+    for i, begin in enumerate(begins):
+        eind = eindes[i]
         if eind.begin < begin.begin or (blokken and begin.begin < blokken[-1][1]):
             return Resultaat(None, f"handmatig nakijken: '{MARKER_BEGIN}' zonder '{MARKER_EINDE}'")
         blokken.append((begin.begin, eind.einde))
