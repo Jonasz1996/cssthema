@@ -356,24 +356,26 @@ async def test_damaged_member_gives_422_and_leaves_no_files(
 async def test_nul_characters_and_wrong_json_types_are_cleaned(api: Api) -> None:
     name = host()
     info = {
-        "titel": "Ap\u0000p",
+        "titel": "Ap\u0000p\ud800",
         "dienst": name,
         "start_url": f"https://{name}/\u0000",
         "http_status": 2**40,
         "status": "o\u0000k",
         "frameworks": 5,
-        "variabelen": {"--a\u0000": "x\u0000y"},
+        "variabelen": {"--a\u0000": "x\u0000y", "--b\udfff": "z"},
         "thema": {"links": "geen lijst", "csp_fouten": 3},
     }
+    # NaN, Infinity en 1e999 kent jsonb niet; ze worden null.
+    colors = json.dumps({"bg\u0000": ["#fff\u0000"], "n": [float("nan"), float("-inf")]})
     extra = {
-        f"vastgelegd/{name.replace('.', '-')}/start/kleuren.json": json.dumps(
-            {"bg\u0000": ["#fff\u0000"]}
+        f"vastgelegd/{name.replace('.', '-')}/start/kleuren.json": colors.replace(
+            "}", ', "groot": 1e999, "half": 0.5}'
         ).encode()
     }
     response = await upload(api, capture_zip(name, info=info, extra=extra), name="deel\u0000.zip")
     assert response.status_code == 200, response.text
     snapshot = (await service_of(api, name))["snapshots"][0]
-    assert snapshot["title"] == "App"
+    assert snapshot["title"] == "App?"
     assert snapshot["status"] == "ok"
     assert snapshot["frameworks"] == []
     assert snapshot["theme_links"] == []
@@ -386,8 +388,8 @@ async def test_nul_characters_and_wrong_json_types_are_cleaned(api: Api) -> None
             )
         ).one()
     assert row.http_status is None
-    assert row.css_variables == {"--a": "xy"}
-    assert row.colors == {"bg": ["#fff"]}
+    assert row.css_variables == {"--a": "xy", "--b?": "z"}
+    assert row.colors == {"bg": ["#fff"], "n": [None, None], "groot": None, "half": 0.5}
 
 
 async def test_two_imports_at_the_same_time_both_succeed(api: Api) -> None:

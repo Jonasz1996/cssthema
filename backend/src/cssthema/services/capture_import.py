@@ -16,6 +16,7 @@ import hashlib
 import io
 import json
 import lzma
+import math
 import re
 import zipfile
 import zlib
@@ -128,19 +129,35 @@ def _read(archive: zipfile.ZipFile, info: zipfile.ZipInfo) -> bytes:
     return data
 
 
+def _finite(text: str) -> float | None:
+    number = float(text)
+    return number if math.isfinite(number) else None
+
+
 def _json(archive: zipfile.ZipFile, info: zipfile.ZipInfo | None) -> Any:
     if info is None:
         return None
     try:
-        return json.loads(_read(archive, info).decode("utf-8", errors="replace"))
+        # NaN, Infinity en 1e999 worden null: jsonb kent ze niet.
+        return json.loads(
+            _read(archive, info).decode("utf-8", errors="replace"),
+            parse_constant=lambda _: None,
+            parse_float=_finite,
+        )
     except (ValueError, RecursionError):
         return None
 
 
+def _text(value: str) -> str:
+    """Tekst die PostgreSQL aanneemt: zonder NUL-tekens (`\\x00`, `\\u0000` in jsonb) en
+    zonder losse surrogaten (`\\ud800` in JSON), die asyncpg niet kan versturen."""
+    return value.encode("utf-8", errors="replace").decode("utf-8").replace("\x00", "")
+
+
 def _clean(value: Any) -> Any:
-    """JSON zonder NUL-tekens: PostgreSQL weigert `\\x00` in tekst en `\\u0000` in jsonb."""
+    """JSON die in jsonb past (zie `_text`)."""
     if isinstance(value, str):
-        return value.replace("\x00", "")
+        return _text(value)
     if isinstance(value, dict):
         return {_clean(str(k)): _clean(v) for k, v in value.items()}
     if isinstance(value, list):
@@ -198,7 +215,7 @@ def _captured_at(info: dict[str, Any]) -> str | None:
 def _str(value: Any, limit: int) -> str | None:
     if not isinstance(value, str):
         return None
-    return value.replace("\x00", "")[:limit] or None
+    return _text(value)[:limit] or None
 
 
 def _http_status(value: Any) -> int | None:
@@ -237,7 +254,7 @@ async def import_zip(
         archive = zipfile.ZipFile(io.BytesIO(data))
     except zipfile.BadZipFile as exc:
         raise _invalid("Dit is geen zip-bestand.") from exc
-    filename = filename.replace("\x00", "")[:200]
+    filename = _text(filename)[:200]
     with archive:
         pages, css_files = _scan(archive)
         if not pages:
