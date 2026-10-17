@@ -84,6 +84,8 @@ Hieronder staat alles in vier blokken. Elk punt heeft een nummer en een grootte 
 
 ## Blok B — Wat aan jouw kant nog openstaat
 
+> Sinds ronde 4 vervangen door de uitrolchecklist [docs/ops/uitrol.md](ops/uitrol.md) (E7): stap voor stap, met per stap een controle en een weg terug. Hieronder de oorspronkelijke lijst.
+
 Dit kan ik niet voor je doen, maar het blokkeert wel een deel van het bovenstaande:
 
 1. PR #8 nakijken en mergen naar `main`, en in GitHub `main` als standaardbranch zetten. Daarna kunnen dependabot-PR's #1 t/m #7 dicht (ze wijzen naar de oude branch).
@@ -165,6 +167,20 @@ Kies je liever iets anders eerst, zeg dan de nummers.
 | D1 | Klaar (PR #9): capture-zips van `vastleggen.py` uploaden op **Services** (diensten, snapshots, CSS en screenshots in storage); getest met `vastgelegd-deel1.zip`: 104 diensten, 88 snapshots. |
 | D2 | Klaar (PR #9, deels): preview in de editor op de snapshot van een app, met autocomplete van classes, id's en variabelen. Nog niet: waarschuwing "selector matcht niets" (2.11), mobiele weergave. |
 | D5 | Deels: de screenshots zonder en met thema staan per dienst op **Services** (uit de zip, niet automatisch ververst). |
+| E1 | Klaar (PR #9): nginx serveert SPA, `/assets/`, `/preview-bridge.js` en `/api/` alleen op `DASHBOARD_HOST`, en `/api/` (ook lezen) alleen via `TRUSTED_PROXIES` of de machine zelf; Origin-controle bij schrijven; `/alg-thema/` alleen GET, zonder cookies. |
+| E2 | Klaar (PR #9): regel met `more_set_input_headers`, alleen voor HTML-verzoeken (getest op NPM 2.16 met een gzip-app); de gezondheidscheck vraagt zoals een browser en meldt "app comprimeert" apart. |
+| E3 | Klaar (PR #9): twee-domeinenopstelling (dashboard en CSS-domein apart) zonder regex; de regex in de docs neemt `/host/*.css` mee. |
+| E4 | Klaar (PR #9): dashboard, CSS-domein en `EXCLUDED_HOSTS` krijgen altijd een lege bundel (ook in de preview); eigen-domeinregel standaard zonder script. |
+| E5 | Klaar (PR #9): back-up eerst, databaseversie en commit in elke back-up, `install.sh` stopt bij een onbekende databaseversie, `BACKUP_DIR` wordt aangemaakt, CI test een upgrade vanaf ab3b5b9 op een SQL_ASCII-database. |
+| E6 | Klaar (PR #9): `scripts/npm/regel.py` met proefrun (diff), back-up, terugzetten, `--host`, `--met-script`, `--uitsluiten`; slaat dashboard, CSS-domein en de beheerpagina van NPM (poort 81) over. Getest op NPM 2.16. |
+| E7 | Klaar: [docs/ops/uitrol.md](ops/uitrol.md), stap 0 t/m 8. |
+| F1 | Klaar (PR #9): de preview toont de hele stapel van de gekozen host; publiceren meldt op hoeveel hosts het live gaat. |
+| F2 | Klaar (PR #9): `:has()` over het hele document uit de modules (CI weigert het nu), nieuwe `alg-fw-bulma`, AdminLTE-regel herschreven; `algemeen.js` pauzeert in een verborgen tab en respecteert *reduced motion*. `hosts-modules.conf` zet ook `*` op de lichte stapel. |
+| F3 | Klaar (PR #9): lint met debounce, wachtrij en cache, preview bij grote thema's afgeremd; bundels met `Cache-Control: no-cache` en ETag, dus een wijziging bij de volgende paginalaad. |
+| F4 | Klaar (PR #9): uploaden standaard "nieuwe versie" + publiceren, een ongewijzigd bestand maakt geen versie, syntaxcontrole van scripts, melding over `algemeen` in de editor, thema-instellingen in de editor. |
+| F5 | Klaar (PR #9): gezondheid ook voor hosts op `*` en voor diensten van **Services**, waarschuwing "nooit (recent) geladen", bulkwijzigingen op **Hosts**. |
+| F6 | Klaar (PR #9): een mislukte nieuwe vastlegging houdt de vorige snapshot, opruimen van ongebruikte bestanden, nette fout bij een kapotte zip, imports na elkaar. |
+| G (deel) | Dependabot: één PR per ecosysteem per maand, gegroepeerd. |
 
 ---
 
