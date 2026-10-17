@@ -56,11 +56,19 @@ async def list_services(ctx: ServiceContext) -> list[schemas.ServiceSummary]:
             select(Service).where(Service.deleted_at.is_(None)).order_by(Service.base_url)
         )
     ).all()
+    # Nieuwste eerst. Pagina's uit dezelfde import hebben dezelfde `created_at`: dan de
+    # laatst vastgelegde, dan `start`, dan het id, zodat de volgorde (en de standaardpreview
+    # in de editor) vast ligt.
     snapshots = (
         await ctx.session.scalars(
             select(DomSnapshot)
             .where(DomSnapshot.service_id.in_([s.id for s in services]))
-            .order_by(DomSnapshot.created_at.desc())
+            .order_by(
+                DomSnapshot.created_at.desc(),
+                DomSnapshot.capture_info["vastgelegd"].astext.desc().nulls_last(),
+                (DomSnapshot.capture_info["pagina"].astext == "start").desc().nulls_last(),
+                DomSnapshot.id,
+            )
         )
     ).all()
     by_service: dict[uuid.UUID, list[schemas.SnapshotSummary]] = {}

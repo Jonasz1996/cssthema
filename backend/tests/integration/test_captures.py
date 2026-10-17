@@ -457,3 +457,19 @@ async def test_cleanup_keeps_favicons(api: Api) -> None:
     assert (await api.client.delete(f"/api/v1/services/{gone_id}")).status_code == 204
     async with api.app.state.sessionmaker() as session:
         assert await session.get(Asset, favicon.id) is not None
+
+
+# --- preview-document -----------------------------------------------------------------------
+
+
+async def test_pages_of_one_import_are_listed_in_a_fixed_order(api: Api) -> None:
+    name = host()
+    folder = name.replace(".", "-")
+    extra = {}
+    for page, moment in (("menu", "2026-10-06 13:40:00"), ("aaa", "2026-10-06 13:38:07")):
+        info = {"dienst": name, "status": "ok", "vastgelegd": moment}
+        extra[f"vastgelegd/{folder}/{page}/info.json"] = json.dumps(info).encode()
+    await upload(api, capture_zip(name, extra=extra))
+    pages = [s["page"] for s in (await service_of(api, name))["snapshots"]]
+    # Zelfde import: laatst vastgelegd eerst, bij gelijke tijd `start` voor de rest.
+    assert pages == ["menu", "start", "aaa"]
