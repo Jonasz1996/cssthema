@@ -7,7 +7,7 @@ Statische paden (`/import`, `/local-files`) staan vóór `/{theme_id}`.
 import uuid
 from typing import Annotated, Any
 
-from fastapi import APIRouter, File, Form, Path, Query, Response, UploadFile, status
+from fastapi import APIRouter, File, Form, Path, Query, Request, Response, UploadFile, status
 
 from cssthema.api.deps import Ctx, IfMatch, OptionalIfMatch
 from cssthema.api.errors import Problem
@@ -54,6 +54,8 @@ router = APIRouter(prefix="/themes", tags=["themes"])
 API_PREFIX = "/api/v1/themes"
 VERSIONS_SORT = "versions"
 DIFF_REF_PATTERN = r"^(draft|[1-9][0-9]{0,8})$"
+# Zoals nginx: de client sloot de verbinding voordat er een antwoord was.
+CLIENT_CLOSED_REQUEST = 499
 
 Responses = dict[int | str, dict[str, Any]]
 
@@ -339,8 +341,16 @@ async def reset_draft(
     operation_id="themes_lint",
     responses=_NOT_FOUND,
 )
-async def lint_theme(theme_id: uuid.UUID, ctx: Ctx, data: LintRequest | None = None) -> LintResult:
-    return await theme_service.lint_theme(ctx, theme_id, data.css if data else None)
+async def lint_theme(
+    theme_id: uuid.UUID, ctx: Ctx, request: Request, data: LintRequest | None = None
+) -> LintResult | Response:
+    try:
+        return await theme_service.lint_theme(
+            ctx, theme_id, data.css if data else None, skip_if=request.is_disconnected
+        )
+    except theme_service.LintSkippedError:
+        # De editor brak de request af (er kwam al nieuwere tekst): niemand wacht op dit antwoord.
+        return Response(status_code=CLIENT_CLOSED_REQUEST)
 
 
 # --- publiceren, versies, diff en rollback --------------------------------------------------

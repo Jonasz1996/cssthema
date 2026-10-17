@@ -6,8 +6,12 @@ stuurt `If-Match: "lv-<n>"`; een afwijking (vooraf of tijdens de flush) wordt 41
 huidige toestand.
 """
 
+import asyncio
+import hashlib
 import uuid
-from collections.abc import Sequence
+import weakref
+from collections import OrderedDict
+from collections.abc import Awaitable, Callable, Sequence
 from typing import Any, NoReturn
 
 from sqlalchemy import select
@@ -44,6 +48,15 @@ from cssthema.services.views import draft_view, etag_state, theme_views, version
 
 SLUG_INDEX = "uq_themes_slug_active"
 VERSION_INDEX = "uq_theme_versions_theme_version"
+
+# Lint is CPU-werk (0,3-0,6 s voor algemeen.css): één tegelijk, zodat een reeks lints de ene
+# api-worker niet bezet houdt (GIL), en dezelfde tekst niet opnieuw (sleutel: sha256).
+LINT_CACHE_SIZE = 32
+_lint_cache: OrderedDict[tuple[bytes, frozenset[str], int], LintResult] = OrderedDict()
+# Per event loop (tests draaien elk in een eigen loop; een Semaphore hoort bij één loop).
+_lint_slots: weakref.WeakKeyDictionary[asyncio.AbstractEventLoop, asyncio.Semaphore] = (
+    weakref.WeakKeyDictionary()
+)
 
 
 # --- gedeelde hulpfuncties (ook gebruikt door publish_service en import_export) --------
@@ -180,14 +193,52 @@ async def check_references(
         raise InvalidInputError("Ongeldige invoer", errors=errors)
 
 
-async def run_lint(ctx: ServiceContext, css: str) -> LintResult:
-    """Lint in een thread: tinycss2 is CPU-werk en mag de event loop niet blokkeren."""
-    return await run_in_threadpool(
-        lint,
-        css,
-        allowed_hosts=ctx.settings.css_allowed_hosts,
-        max_bytes=ctx.settings.css_max_bytes,
-    )
+class LintSkippedError(Exception):
+    """De client wachtte niet meer op de lint (`skip_if`); er is niets gelint."""
+
+
+def _lint_slot() -> asyncio.Semaphore:
+    loop = asyncio.get_running_loop()
+    slot = _lint_slots.get(loop)
+    if slot is None:
+        slot = _lint_slots[loop] = asyncio.Semaphore(1)
+    return slot
+
+
+def _cached_lint(key: tuple[bytes, frozenset[str], int]) -> LintResult | None:
+    result = _lint_cache.get(key)
+    if result is not None:
+        _lint_cache.move_to_end(key)
+    return result
+
+
+async def run_lint(
+    ctx: ServiceContext, css: str, *, skip_if: Callable[[], Awaitable[bool]] | None = None
+) -> LintResult:
+    """Lint in een thread: tinycss2 is CPU-werk en mag de event loop niet blokkeren.
+
+    Eén lint tegelijk, met een kleine cache op de inhoud. `skip_if` (bv. "de client is weg")
+    wordt gevraagd vlak voor het werk; is het waar, dan volgt `LintSkippedError`.
+    """
+    allowed_hosts = ctx.settings.css_allowed_hosts
+    max_bytes = ctx.settings.css_max_bytes
+    digest = hashlib.sha256(css.encode("utf-8", "surrogatepass")).digest()
+    key = (digest, allowed_hosts, max_bytes)
+    if (cached := _cached_lint(key)) is not None:
+        return cached
+    async with _lint_slot():
+        # Intussen kan een andere request dezelfde tekst gelint hebben.
+        if (cached := _cached_lint(key)) is not None:
+            return cached
+        if skip_if is not None and await skip_if():
+            raise LintSkippedError
+        result = await run_in_threadpool(
+            lint, css, allowed_hosts=allowed_hosts, max_bytes=max_bytes
+        )
+        _lint_cache[key] = result
+        while len(_lint_cache) > LINT_CACHE_SIZE:
+            _lint_cache.popitem(last=False)
+    return result
 
 
 def clean_description(description: str | None) -> str | None:
@@ -268,10 +319,14 @@ async def get_draft(ctx: ServiceContext, theme_id: uuid.UUID) -> schemas.Draft:
 
 
 async def lint_theme(
-    ctx: ServiceContext, theme_id: uuid.UUID, css: str | None
+    ctx: ServiceContext,
+    theme_id: uuid.UUID,
+    css: str | None,
+    *,
+    skip_if: Callable[[], Awaitable[bool]] | None = None,
 ) -> schemas.LintResult:
     theme = await load_theme(ctx, theme_id)
-    result = await run_lint(ctx, theme.draft_css if css is None else css)
+    result = await run_lint(ctx, theme.draft_css if css is None else css, skip_if=skip_if)
     return lint_result_view(result)
 
 
