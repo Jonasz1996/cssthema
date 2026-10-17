@@ -68,6 +68,7 @@ async def test_stack_of_a_disabled_or_unbound_host_is_empty(api: Api) -> None:
         "hostname": host,
         "binding": host,
         "enabled": False,
+        "excluded": False,
         "contains_theme": False,
         "before": [],
         "after": [],
@@ -113,3 +114,22 @@ async def test_usage_lists_active_bindings_and_the_default(api: Api) -> None:
     await bind(api, "*", [slug])
     usage = (await api.client.get(f"{PREVIEW}/usage", params={"theme": slug})).json()
     assert usage["default"] is True
+
+
+async def test_never_injected_host_has_an_empty_stack(api: Api) -> None:
+    (api.css_dir / "it-kern.css").write_text(":root{}\n")
+    excluded = hostname()
+    await bind(api, excluded, ["it-kern", "it-uit"])
+    settings = api.app.state.settings
+    api.app.state.settings = settings.model_copy(update={"excluded_hosts": [excluded]})
+
+    stack = await get_stack(api, excluded, "it-uit")
+    assert stack["excluded"] is True
+    assert stack["enabled"] is False
+    assert stack["before"] == stack["after"] == []
+    assert (await get_stack(api, "css.example.be", "it-uit"))["excluded"] is True
+
+    usage = (await api.client.get(f"{PREVIEW}/usage", params={"theme": "it-uit"})).json()
+    assert excluded not in usage["hostnames"]
+    # Ook niet als terugval voor `*` in de preview.
+    assert {excluded, "css.example.be"} <= set(usage["bound"])

@@ -21,7 +21,7 @@ Komt de CSS nog van de oude server, dan laadt elke app na de regel een bestand d
    ```bash
    python3 regel.py --npm http://IP-VAN-NPM:81 \
      --basis https://css.jbogaert.be --dashboard cssthema.jbogaert.be \
-     --uitsluiten authentik.jbogaert.be,nginx.jbogaert.be,allow.jbogaert.be,aiverslag.jbogaert.be,vaultwarden \
+     --uitsluiten authentik.jbogaert.be,nginx.jbogaert.be,nginx105.jbogaert.be,allow.jbogaert.be,aiverslag.jbogaert.be,vaultwarden \
      --hosts-conf oude-links.conf
    ```
 
@@ -60,7 +60,7 @@ Erbij: de regel uit cssthema (pagina **Hosts**), op de plaats van de eerste oude
 
 | reden | wat je doet |
 |---|---|
-| `nooit: domein van --basis`, `nooit: dashboard` | niets: die krijgen de regel nooit |
+| `nooit: domein van --basis`, `nooit: dashboard`, `nooit: beheer van NPM (poort 81)` | niets: die krijgen de regel nooit. Een proxy host naar poort 81 is de beheerpagina van NPM zelf |
 | `uitgesloten (--uitsluiten)` | niets. `--uitsluiten vault` slaat elke host over waarvan de naam `vault` bevat |
 | `uitgeschakeld in NPM`, `offline in NPM` | eerst de host in NPM in orde brengen, dan opnieuw |
 | `handmatig nakijken: sub_filter binnen een eigen location /` of `… location / met Authentik` | haal in die `location / { … }` de thema-regels weg (`sub_filter`, `sub_filter_once`, `proxy_set_header Accept-Encoding ""`) en draai het script opnieuw. Alleen als het het oude snippet uit *Import → Scripts* is (zonder Authentik), mag het hele blok weg: dan komt de `location /` van NPM terug, met de Access List |

@@ -483,26 +483,30 @@ function StackInfo({ stack }: { stack: PreviewStack }) {
     ...stack.after.map((part) => part.name),
   ];
   const binding = stack.binding ?? t("editor.previewStackNoBinding");
-  const title = !stack.enabled
-    ? t("editor.previewStackOff", { binding })
-    : [
-        t("editor.previewStackBinding", { binding }),
-        names.join(" → "),
-        stack.contains_theme ? null : t("editor.previewStackNotIn"),
-      ]
-        .filter(Boolean)
-        .join("\n");
+  const title = stack.excluded
+    ? t("editor.previewStackExcluded")
+    : !stack.enabled
+      ? t("editor.previewStackOff", { binding })
+      : [
+          t("editor.previewStackBinding", { binding }),
+          names.join(" → "),
+          stack.contains_theme ? null : t("editor.previewStackNotIn"),
+        ]
+          .filter(Boolean)
+          .join("\n");
   return (
     <span
       data-preview-stack=""
       className={cn("text-[11.5px] text-dim", !stack.contains_theme && "text-mid")}
       title={title}
     >
-      {!stack.enabled
-        ? t("editor.previewStackOffShort")
-        : parts.length
-          ? tc("editor.previewStackParts", parts.length)
-          : t("editor.previewStackEmpty")}
+      {stack.excluded
+        ? t("editor.previewStackExcludedShort")
+        : !stack.enabled
+          ? t("editor.previewStackOffShort")
+          : parts.length
+            ? tc("editor.previewStackParts", parts.length)
+            : t("editor.previewStackEmpty")}
     </span>
   );
 }

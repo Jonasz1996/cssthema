@@ -273,7 +273,7 @@ def parse_npm_config(text: str) -> tuple[list[ImportedHost], list[SkippedLine]]:
 
 def _hostnames_in_comment(comment: str) -> list[str]:
     """Hostnamen vooraan in een commentaar (`# a.be, b.be  (CSP: ...)`, of `# *`); anders leeg."""
-    names = []
+    names: list[str] = []
     for token in _HOST_LIST_SPLIT.split(comment.strip()):
         if not token:
             continue

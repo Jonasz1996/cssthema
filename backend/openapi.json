@@ -5306,6 +5306,12 @@
             "title": "Enabled",
             "description": "false: de koppeling staat uit, de host krijgt niets."
           },
+          "excluded": {
+            "type": "boolean",
+            "title": "Excluded",
+            "description": "De host krijgt nooit iets: het dashboard, de host van PUBLIC_BASE_URL of EXCLUDED_HOSTS (dan ook `enabled` false).",
+            "default": false
+          },
           "contains_theme": {
             "type": "boolean",
             "title": "Contains Theme",
@@ -6275,7 +6281,7 @@
             },
             "type": "array",
             "title": "Bound",
-            "description": "Alle hosts met een eigen koppeling; die vallen nooit terug op `*`."
+            "description": "Alle hosts met een eigen koppeling, en de hosts die nooit iets krijgen (dashboard, CSS-domein, EXCLUDED_HOSTS); die vallen nooit terug op `*`."
           }
         },
         "type": "object",

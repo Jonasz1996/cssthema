@@ -48,7 +48,9 @@ jobs:
       - run: uv python install
       - run: uv sync --frozen
       - name: Lint
-        run: uv run ruff check . && uv run ruff format --check .
+        run: |
+          uv run ruff check . ../scripts/npm ../scripts/themes
+          uv run ruff format --check . ../scripts/npm ../scripts/themes
       - name: Typecheck
         run: uv run mypy
       - name: Migraties up → down → up, en geen ontbrekende migraties
@@ -59,6 +61,8 @@ jobs:
           uv run alembic check
       - name: Tests
         run: uv run pytest
+      - name: Tests van scripts/npm (regel.py)
+        run: uv run pytest ../scripts/npm -q
       - name: OpenAPI is up-to-date
         run: |
           uv run python -m cssthema.openapi openapi.json

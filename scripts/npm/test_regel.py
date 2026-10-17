@@ -372,11 +372,18 @@ def opties(**kw: Any) -> Namespace:
 
 
 def host(
-    host_id: int, naam: str, advanced: str, *, enabled: bool = True, online: bool = True
+    host_id: int,
+    naam: str,
+    advanced: str,
+    *,
+    enabled: bool = True,
+    online: bool = True,
+    poort: int = 8080,
 ) -> dict[str, Any]:
     return {
         "id": host_id,
         "domain_names": [naam],
+        "forward_port": poort,
         "enabled": enabled,
         "advanced_config": advanced,
         "meta": {"nginx_online": online, "nginx_err": None},
@@ -393,6 +400,7 @@ HOSTS = [
     host(7, "oud.jbogaert.be", OUD, enabled=False),
     host(8, "kapot.jbogaert.be", OUD, online=False),
     host(9, "klaar.jbogaert.be", HOOFDREGEL),
+    host(10, "nginx105.jbogaert.be", "", poort=81),
 ]
 
 
@@ -404,6 +412,7 @@ def test_plan() -> None:
         "cssthema.jbogaert.be": ("overgeslagen", "nooit: dashboard (--dashboard)"),
         "kapot.jbogaert.be": ("overgeslagen", "offline in NPM: eerst die fout oplossen"),
         "klaar.jbogaert.be": ("al goed", ""),
+        "nginx105.jbogaert.be": ("overgeslagen", "nooit: beheer van NPM (poort 81)"),
         "oud.jbogaert.be": ("overgeslagen", "uitgeschakeld in NPM"),
         "portainer.jbogaert.be": (
             "gewijzigd",

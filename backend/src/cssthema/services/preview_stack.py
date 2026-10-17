@@ -18,6 +18,16 @@ from cssthema.services.host_service import _style_part
 
 async def stack(ctx: ServiceContext, hostname: str, theme: str) -> PreviewStack:
     """Wat `hostname` krijgt (eigen koppeling, anders `*`), vóór en na het thema `theme`."""
+    if hostname in ctx.settings.never_inject_hosts:  # zoals /host/<host>.css: staat uit
+        return PreviewStack(
+            hostname=hostname,
+            binding=None,
+            enabled=False,
+            excluded=True,
+            contains_theme=False,
+            before=[],
+            after=[],
+        )
     binding = await host_repo.resolve(ctx.session, hostname)
     if binding is None or not binding.enabled:
         return PreviewStack(
@@ -55,10 +65,11 @@ def _uses(binding: HostBinding, theme: str) -> bool:
 async def usage(ctx: ServiceContext, theme: str) -> ThemeUsage:
     """Welke hosts het thema krijgen: eigen koppelingen, en of `*` het bevat."""
     bindings = await host_repo.list_bindings(ctx.session)
+    excluded = ctx.settings.never_inject_hosts
     own = [b for b in bindings if b.hostname != DEFAULT_HOST]
     return ThemeUsage(
         theme=theme,
-        hostnames=[b.hostname for b in own if _uses(b, theme)],
+        hostnames=[b.hostname for b in own if _uses(b, theme) and b.hostname not in excluded],
         default=any(b.hostname == DEFAULT_HOST and _uses(b, theme) for b in bindings),
-        bound=[b.hostname for b in own],
+        bound=sorted({*(b.hostname for b in own), *excluded}),
     )

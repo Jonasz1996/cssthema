@@ -47,7 +47,8 @@ export function snapshotGroups(services: readonly ServiceSummary[]): SnapshotGro
           id: snapshot.id,
           page: snapshot.page,
           title: snapshot.title,
-          capturedAt: snapshot.captured_at,
+          // Een behouden snapshot (de nieuwe vastlegging mislukte): de tijd van het document.
+          capturedAt: snapshot.document_captured_at ?? snapshot.captured_at,
           status: snapshot.status,
         })),
     }))

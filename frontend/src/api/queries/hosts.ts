@@ -133,10 +133,12 @@ function putHost(queryClient: QueryClient, host: HostBinding): void {
   );
 }
 
-/** Lijst én gezondheid: een nieuwe of gewiste koppeling verandert ook `bound` en de status. */
+/**
+ * Alles onder `["hosts"]`: een nieuwe of gewiste koppeling verandert ook `bound`, de status en
+ * de preview-stapels en het gebruik van een thema in de editor.
+ */
 function refreshHosts(queryClient: QueryClient): void {
-  void queryClient.invalidateQueries({ queryKey: hostKeys.list() });
-  refreshHealth(queryClient);
+  void queryClient.invalidateQueries({ queryKey: hostKeys.all });
 }
 
 function refreshHealth(queryClient: QueryClient): void {

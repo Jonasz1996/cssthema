@@ -554,6 +554,9 @@ def plan_maken(hosts: list[dict[str, Any]], args: argparse.Namespace) -> list[Pl
             p.reden = "nooit: dashboard (--dashboard)"
         elif any(u in n for u in uitsluiten for n in namen):
             p.reden = "uitgesloten (--uitsluiten)"
+        elif str(h.get("forward_port")) == "81":
+            # Poort 81 is de beheerpagina van NPM zelf (bij jbogaert.be nginx en nginx105).
+            p.reden = "nooit: beheer van NPM (poort 81)"
         else:
             p.links = oude_links(oud, oude_hosts)
             if not h.get("enabled", True):

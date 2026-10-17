@@ -48,7 +48,7 @@
   "uploadIntro": "Upload een .css-bestand (wordt een thema, de draft is de inhoud), een .cssthema.zip-bundel (thema met alle versies, geëxporteerd uit cssthema) of een .js-script (meteen live op /<naam>.js, zie Scripts). Een gewone .zip met .css- en .js-bestanden wordt eerst uitgepakt.",
   "dropHint": "Sleep .css-, .js- of .zip-bestanden hierheen",
   "chooseFiles": "Bestanden kiezen…",
-  "dropLimits": ".css tot de limiet van de server (standaard 512 KB) · .zip tot 25 MB · .js tot 512 KB",
+  "dropLimits": ".css tot de limiet van de server (standaard 1 MB) · .zip tot 25 MB · .js tot 512 KB",
   "selectedFiles": "Gekozen bestanden",
   "kindBundle": "bundel",
   "removeFile": "{name} uit de lijst halen",

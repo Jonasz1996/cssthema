@@ -249,6 +249,8 @@
   "previewStackParts_one": "+ {count} onderdeel van de host",
   "previewStackParts_other": "+ {count} onderdelen van de host",
   "previewStackEmpty": "alleen dit thema",
+  "previewStackExcludedShort": "krijgt nooit iets",
+  "previewStackExcluded": "Deze host krijgt nooit iets van cssthema: het is het dashboard, het CSS-domein of een host uit EXCLUDED_HOSTS. De preview toont alleen dit thema.",
   "previewStackOffShort": "koppeling staat uit",
   "previewStackOff": "De koppeling {binding} staat uit: die host krijgt niets. De preview toont alleen dit thema.",
   "previewStackBinding": "Zoals {binding} het krijgt (Hosts):",

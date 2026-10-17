@@ -48,7 +48,7 @@
   "uploadIntro": "Upload a .css file (becomes a theme, the draft is its content), a .cssthema.zip bundle (theme with all versions, exported from cssthema) or a .js script (live right away at /<name>.js, see Scripts). A plain .zip with .css and .js files is unpacked first.",
   "dropHint": "Drop .css, .js or .zip files here",
   "chooseFiles": "Choose files…",
-  "dropLimits": ".css up to the server limit (512 KB by default) · .zip up to 25 MB · .js up to 512 KB",
+  "dropLimits": ".css up to the server limit (1 MB by default) · .zip up to 25 MB · .js up to 512 KB",
   "selectedFiles": "Selected files",
   "kindBundle": "bundle",
   "removeFile": "Remove {name} from the list",

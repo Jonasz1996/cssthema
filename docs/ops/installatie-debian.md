@@ -80,7 +80,7 @@ In je apps komt een script via de regel voor alle hosts (§ 4): koppel het op **
 
 ### Diensten en snapshots (vastleggen.py)
 
-Het capture-script `vastleggen.py` (op je pc, zie zijn README) legt per app de pagina vast zonder scripts, met de CSS van de app en screenshots zonder en met thema, en maakt daar zips van (delen van hoogstens 24 MB). Upload die zips in het dashboard op **Services**: elke app wordt een dienst met zijn snapshot. Een nieuwe zip van dezelfde app vervangt de vorige snapshot van die pagina.
+Het capture-script `vastleggen.py` (op je pc, zie zijn README) legt per app de pagina vast zonder scripts, met de CSS van de app en screenshots zonder en met thema, en maakt daar zips van (delen van hoogstens 24 MB). Upload die zips in het dashboard op **Services**: elke app wordt een dienst met zijn snapshot. Een nieuwe zip van dezelfde app werkt de snapshot van die pagina bij. Was de app toen stuk of onbereikbaar (fout, geen HTML, Authentik-login of HTTP 5xx), dan blijft de vorige, goede snapshot staan; de kaart toont dan de nieuwe status en tijd, en "snapshot van <datum>". Screenshots en CSS waar niets meer naar verwijst, ruimt cssthema zelf op na elke import en bij het verwijderen van een dienst.
 
 - In de editor kies je in de preview een snapshot in plaats van de demopagina: je ziet je thema dan op de vastgelegde pagina van de app, en de editor vult classes, id's en CSS-variabelen van die app aan.
 - De snapshots, CSS en screenshots staan in `/var/lib/cssthema/storage/` (en dus in de back-ups). Ze bevatten de tekst van de vastgelegde pagina's, geen wachtwoorden; leg je met `--anoniem` vast, dan ook geen paginatekst.

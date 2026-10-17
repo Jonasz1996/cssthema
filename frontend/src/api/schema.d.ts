@@ -1567,6 +1567,12 @@ export interface components {
              */
             enabled: boolean;
             /**
+             * Excluded
+             * @description De host krijgt nooit iets: het dashboard, de host van PUBLIC_BASE_URL of EXCLUDED_HOSTS (dan ook `enabled` false).
+             * @default false
+             */
+            excluded: boolean;
+            /**
              * Contains Theme
              * @description Het bewerkte thema staat in de stapel. Zo niet, dan hoort de draft na `before` (`after` is dan leeg).
              */
@@ -1944,7 +1950,7 @@ export interface components {
             default: boolean;
             /**
              * Bound
-             * @description Alle hosts met een eigen koppeling; die vallen nooit terug op `*`.
+             * @description Alle hosts met een eigen koppeling, en de hosts die nooit iets krijgen (dashboard, CSS-domein, EXCLUDED_HOSTS); die vallen nooit terug op `*`.
              */
             bound: string[];
         };

@@ -1,4 +1,6 @@
 # ruff: noqa: E501
+from pathlib import Path
+
 import pytest
 
 from cssthema.domain import hosts
@@ -113,7 +115,7 @@ def test_comment_starting_with_a_file_name_is_not_a_hostname() -> None:
 def test_parse_npm_config_default_host() -> None:
     imported, skipped = parse_npm_config(
         "# *\nsub_filter '</head>' '<link href=\"https://c.be/alg-kern.css\">"
-        "<script src=\"https://c.be/algemeen.js\"></script></head>';\n"
+        '<script src="https://c.be/algemeen.js"></script></head>\';\n'
         "# hem met de hand, zie *\n"
         "# a.be\nsub_filter '</head>' '<link href=\"https://c.be/alg-a.css\"></head>';"
     )
@@ -304,3 +306,18 @@ def test_excluded_bundle_says_it_is_off() -> None:
     assert hosts.build_excluded("cssthema.jbogaert.be").startswith(
         "/* cssthema: cssthema.jbogaert.be staat uit"
     )
+
+
+def test_docs_show_the_exact_rule() -> None:
+    """Wie de regel uit de docs plakt, krijgt dezelfde als de pagina Hosts en regel.py."""
+    root = Path(__file__).parents[4]
+    install = (root / "docs/ops/installatie-debian.md").read_text()
+    for rule in (
+        hosts.snippet("https://css.jouwdomein.be"),
+        hosts.snippet_own_domain("https://css.jouwdomein.be"),
+        hosts.snippet_own_domain("https://css.jouwdomein.be", script=True),
+    ):
+        assert rule in install
+    themes = (root / "themes/README.md").read_text()
+    assert hosts.snippet("https://css.jbogaert.be") in themes
+    assert hosts.snippet_own_domain("https://css.jbogaert.be") in themes
