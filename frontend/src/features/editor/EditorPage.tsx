@@ -47,6 +47,9 @@ const MODULE_CORE = "alg-kern";
 const selectConflict = (snapshot: SessionSnapshot): SaveState | null =>
   snapshot.state.kind === "conflict" ? snapshot.state : null;
 
+/** Een tab met wijzigingen die nog niet op de server staan (conflict, offline, nog niet bewaard). */
+const hasUnsavedWork = (themeId: string) => peekSession(themeId)?.getSnapshot().dirty ?? false;
+
 /** Gesloten tab opruimen: Monaco-model weg, wachtende wijzigingen opslaan, sessie weg. */
 function releaseTab(themeId: string): void {
   disposeThemeModel(themeId);
@@ -125,11 +128,15 @@ export function EditorPage() {
   useShellCommand(theme?.slug ? `cssthema edit ${theme.slug}` : null);
   useDocumentTitle(theme?.name ? `${theme.name} · ${t("editor.title")}` : t("editor.title"));
 
-  // Tab openen of bijwerken (naam/slug) zodra het thema geladen is.
+  // Tab openen of bijwerken (naam/slug) zodra het thema geladen is. Tabs die boven het
+  // maximum wegvallen, ruimen we op zoals bij sluiten; een tab met onbewaarde wijzigingen blijft
+  // (review FE-9).
   const tabName = theme?.name;
   const tabSlug = theme?.slug;
   useEffect(() => {
-    if (tabName && tabSlug) openTab({ id: themeId, name: tabName, slug: tabSlug });
+    if (!tabName || !tabSlug) return;
+    const dropped = openTab({ id: themeId, name: tabName, slug: tabSlug }, themeId, hasUnsavedWork);
+    for (const id of dropped) releaseTab(id);
   }, [openTab, themeId, tabName, tabSlug]);
 
   // Wisselen van thema of de pagina verlaten: wachtende wijzigingen meteen opslaan.

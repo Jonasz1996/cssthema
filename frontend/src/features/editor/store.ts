@@ -32,7 +32,10 @@ export const VIEWPORT_LIMITS = { min: 240, max: 3840 } as const;
 export const EXPLORER_WIDTH = { min: 160, max: 420, default: 230 } as const;
 /** Aandeel van de preview in de ruimte naast/onder de editor. */
 export const PREVIEW_SIZE = { min: 0.2, max: 0.8, default: 0.42 } as const;
-/** Maximum aantal open tabs; de oudste (niet-actieve) valt weg. */
+/**
+ * Maximum aantal open tabs; de oudste (niet-actieve) valt weg, behalve een tab met wijzigingen
+ * die nog niet op de server staan (`keep` bij `openTab`).
+ */
 export const MAX_TABS = 12;
 
 export interface EditorLayout {
@@ -60,8 +63,12 @@ export const DEFAULT_LAYOUT: EditorLayout = {
 interface EditorState {
   tabs: EditorTab[];
   layout: EditorLayout;
-  /** Tab toevoegen of bijwerken (naam/slug gewijzigd); de volgorde blijft. */
-  openTab: (tab: EditorTab, activeId?: string) => void;
+  /**
+   * Tab toevoegen of bijwerken (naam/slug gewijzigd); de volgorde blijft. Geeft de ids van de
+   * tabs die wegvielen (boven `MAX_TABS`): die moet de editor opruimen (sessie, Monaco-model).
+   * Tabs waarvoor `keep` waar is, vallen niet weg (dan kunnen er even meer open staan).
+   */
+  openTab: (tab: EditorTab, activeId?: string, keep?: (id: string) => boolean) => string[];
   /** Tab sluiten; geeft het id van de buur die actief moet worden (of `null`). */
   closeTab: (id: string) => string | null;
   setLayout: (patch: Partial<EditorLayout>) => void;
@@ -119,23 +126,28 @@ export const useEditorStore = create<EditorState>()(
     (set, get) => ({
       tabs: [],
       layout: DEFAULT_LAYOUT,
-      openTab: (tab, activeId = tab.id) =>
-        set((state) => {
-          const index = state.tabs.findIndex((item) => item.id === tab.id);
-          if (index >= 0) {
-            const current = state.tabs[index]!;
-            if (current.name === tab.name && current.slug === tab.slug) return state;
-            const tabs = [...state.tabs];
-            tabs[index] = { ...tab };
-            return { tabs };
-          }
-          let tabs = [...state.tabs, { ...tab }];
-          while (tabs.length > MAX_TABS) {
-            const drop = tabs.findIndex((item) => item.id !== activeId);
-            tabs = tabs.filter((_, i) => i !== drop);
-          }
-          return { tabs };
-        }),
+      openTab: (tab, activeId = tab.id, keep = () => false) => {
+        const state = get();
+        const index = state.tabs.findIndex((item) => item.id === tab.id);
+        if (index >= 0) {
+          const current = state.tabs[index]!;
+          if (current.name === tab.name && current.slug === tab.slug) return [];
+          const tabs = [...state.tabs];
+          tabs[index] = { ...tab };
+          set({ tabs });
+          return [];
+        }
+        let tabs = [...state.tabs, { ...tab }];
+        const dropped: string[] = [];
+        while (tabs.length > MAX_TABS) {
+          const drop = tabs.find((item) => item.id !== activeId && !keep(item.id));
+          if (!drop) break;
+          dropped.push(drop.id);
+          tabs = tabs.filter((item) => item !== drop);
+        }
+        set({ tabs });
+        return dropped;
+      },
       closeTab: (id) => {
         const tabs = get().tabs;
         const index = tabs.findIndex((item) => item.id === id);

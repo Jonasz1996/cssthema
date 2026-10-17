@@ -18,13 +18,13 @@ import { createTestQueryClient } from "@/api/testing/query";
 import type { LintIssue } from "@/api/types";
 import { useToastStore } from "@/components/ui/toast";
 import { fx } from "@/lib/fx";
-import { draftBuffer } from "../autosave/buffer";
-import { hasUnsavedChanges, peekSession, resetSessions } from "../autosave/sessions";
+import { createMemoryBuffer, draftBuffer } from "../autosave/buffer";
+import { ensureSession, hasUnsavedChanges, peekSession, resetSessions } from "../autosave/sessions";
 import { EditorPage } from "../EditorPage";
 import { revealCalls } from "./mocks/reveal-calls";
 import { resetBridgeCache } from "../preview/bridge";
 import { usePreviewSourceStore } from "../preview/source";
-import { DEFAULT_LAYOUT, useEditorStore } from "../store";
+import { DEFAULT_LAYOUT, MAX_TABS, useEditorStore } from "../store";
 import BRIDGE from "../../../../public/preview-bridge.js?raw";
 
 vi.mock("../components/CodeEditor", () => import("./mocks/code-editor"));
@@ -417,6 +417,29 @@ describe("EditorPage", () => {
     fireEvent.click(screen.getByRole("button", { name: "Grafana Nord sluiten" }));
     await waitFor(() => expect(router.state.location.pathname).toBe("/editor/other"));
     expect(useEditorStore.getState().tabs.map((tab) => tab.id)).toEqual(["other"]);
+  });
+
+  it("a tab dropped past the maximum is cleaned up, one with unsaved work stays", async () => {
+    const draft = { css: "a{}", lock_version: 1, updated_at: "2026-10-05T10:00:00Z" };
+    const pending = () => new Promise<never>(() => {});
+    const others = Array.from({ length: MAX_TABS }, (_, n) => ({
+      id: `tab-${n}`,
+      name: `Thema ${n}`,
+      slug: `thema-${n}`,
+    }));
+    useEditorStore.setState({ tabs: others });
+    const unsaved = ensureSession("tab-0", { draft, save: pending, buffer: createMemoryBuffer() });
+    unsaved.edit("a{niet bewaard}");
+    ensureSession("tab-1", { draft, save: pending, buffer: createMemoryBuffer() });
+    setup();
+    await editorTextarea();
+    const ids = useEditorStore.getState().tabs.map((item) => item.id);
+    expect(ids).toHaveLength(MAX_TABS);
+    expect(ids).toContain("tab-0");
+    expect(ids).not.toContain("tab-1");
+    // Opgeruimd zoals bij sluiten: de sessie is weg, die met wijzigingen niet.
+    await waitFor(() => expect(peekSession("tab-1")).toBeUndefined());
+    expect(peekSession("tab-0")).toBe(unsaved);
   });
 
   it("closing the active tab while a save is pending: one PUT, no session left, no conflict", async () => {
