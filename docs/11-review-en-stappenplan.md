@@ -1,6 +1,6 @@
 # 11 — Projectreview en stappenplan
 
-> Status: **in uitvoering** · Versie 0.4 · 2026-10-11 (zie *Voortgang* onderaan)
+> Status: **in uitvoering** · Versie 0.5 · 2026-10-17 (ronde 4 onderaan, met blok E, F en G; zie ook *Voortgang*)
 >
 > Getoetst: de volledige repo op de PR #8-branch (commit b6c40b2: backend, frontend, nginx, installer, CI, docs, capture-script) en de thema's in de projectmap (`algemeen.css`, `algemeen.js`, 58 × `alg-<app>.css`), naast de ontwerpdocumenten 01–10 en hoe cssthema echt draait (Debian-LXC achter NPM + Authentik, thema's cross-origin vanaf `https://css.jbogaert.be`).
 
@@ -165,3 +165,50 @@ Kies je liever iets anders eerst, zeg dan de nummers.
 | D1 | Klaar (PR #9): capture-zips van `vastleggen.py` uploaden op **Services** (diensten, snapshots, CSS en screenshots in storage); getest met `vastgelegd-deel1.zip`: 104 diensten, 88 snapshots. |
 | D2 | Klaar (PR #9, deels): preview in de editor op de snapshot van een app, met autocomplete van classes, id's en variabelen. Nog niet: waarschuwing "selector matcht niets" (2.11), mobiele weergave. |
 | D5 | Deels: de screenshots zonder en met thema staan per dienst op **Services** (uit de zip, niet automatisch ververst). |
+
+---
+
+## Ronde 4 — controle van 2026-10-17
+
+Getoetst: de volledige PR #9-branch (commit 4b7610f), vanuit negen invalshoeken (backend, beveiliging, frontend, installatie en updates, thema's in de apps, tests en CI, uitrol en documentatie, snelheid, ontbrekende features). Elke bevinding is daarna door een tweede reviewer nagespeeld; de kritieke en hoge nog eens apart, meestal met een echte nginx of browser. De NPM-regel is getest op een echte Nginx Proxy Manager 2.16.
+
+Resultaat: 91 bevindingen, waarvan 2 kritiek en 12 hoog. De rest is middel of klein. Alle tests zijn groen; het probleem zit in hoe de onderdelen samen in jouw opstelling uitpakken.
+
+De drie belangrijkste:
+
+1. **Schrijfrechten hangen alleen af van het IP van NPM.** Elke proxy host die naar de LXC wijst zonder Authentik (zoals css.jbogaert.be na de geplande omschakeling) laat iedereen op internet scripts uploaden die in al je ~100 apps draaien, ook op hun loginpagina's. Volgens de vastlegging van 6 oktober had ook cssthema.jbogaert.be geen Authentik in de Advanced-config (een Access List zie ik daar niet, dus dat moet je even controleren).
+2. **De regel voor alle hosts werkt niet bij apps die hun HTML comprimeren.** In NPM wint de `location /` van NPM zelf van `proxy_set_header Accept-Encoding ""` in Advanced, dus de app stuurt gzip en `sub_filter` vindt niets. De gezondheidscheck vraagt zonder compressie en meldt dan toch groen.
+3. **Hosts die `*` volgen krijgen achter de NPM-config uit de handleiding de Authentik-login in plaats van CSS**, omdat `/host/*.css` niet door de publieke regex komt.
+
+### Eerst jij (2 minuten)
+
+- Open op je gsm via 4G (niet via wifi) `https://cssthema.jbogaert.be/api/v1/meta`. Zie je JSON, dan staat je dashboard open voor iedereen: zet in NPM Authentik (of een Access List) op die proxy host. Zie je de Authentik-login of een 403, dan is het in orde.
+- Wijs css.jbogaert.be nog niet naar de LXC voordat E1 op je server staat.
+
+### Blok E — Veilig en werkend uitrollen (nu)
+
+| # | Wat | Grootte |
+|---|---|---|
+| E1 | Dashboard en API alleen op het dashboarddomein (`DASHBOARD_HOST`). css.jbogaert.be en het IP van de LXC tonen alleen nog publieke CSS, JS en lettertypes; ook lezen van de API kan alleen via NPM. Strengere Origin-controle; de `/alg-thema/`-location alleen GET en zonder cookies. | M |
+| E2 | Nieuwe NPM-regel die ook werkt bij apps die comprimeren (getest op NPM 2.16), en een gezondheidscheck die vraagt zoals een browser. | S |
+| E3 | Hosts die `*` volgen krijgen hun CSS ook achter de publieke NPM-regex. | S |
+| E4 | Nooit injecteren in het dashboard, het CSS-domein en een lijst uitgesloten hosts (Authentik). De eigen-domeinregel voor strenge CSP-apps standaard zonder script, zodat bijvoorbeeld Vaultwarden geen JavaScript van cssthema krijgt. | S |
+| E5 | Update en terugrollen: back-up vóór er iets verandert, de databaseversie in elke back-up, `install.sh` stopt als de database nieuwer is dan de code, `BACKUP_DIR` op een Proxmox-bind-mount werkt, en CI test een echte upgrade vanaf jouw commit ab3b5b9. | M |
+| E6 | Script `scripts/npm/regel.py`: zet de regel in alle proxy hosts via de NPM-API (met je MFA-code). Eerst een droge run met een diff per host, dan een back-up van elke Advanced-config, en terugzetten met één commando. Vervangt ± 100 keer plakken. | M |
+| E7 | Eén geordende uitrolchecklist met per stap een controle en een weg terug (vervangt Blok B). | S |
+
+### Blok F — Dagelijks gebruik (nu, na E)
+
+| # | Wat | Grootte |
+|---|---|---|
+| F1 | Preview in de editor met de volledige stapel van die host. Nu zie je `alg-<app>` zonder `alg-kern` en de modules eronder, dus bijna ongestyled. | M |
+| F2 | Snelheid in de apps: de `html:has(...)`-bewakers in de modules en één AdminLTE-regel laten elke DOM-wijziging 55–190 ms kosten (Grafana, Dozzle en Uptime Kuma haperen). Weghalen en per vastgelegde host pixel-vergelijken. | M |
+| F3 | Editor: geen lint-aanvraag meer per toetsaanslag bij het openen van een groot thema; na publiceren zie je het resultaat meteen bij F5 (nu tot een minuut oud). | S |
+| F4 | Thema's uploaden publiceert meteen en maakt geen dubbele versies van ongewijzigde bestanden; melding in de editor dat de modules `algemeen` niet volgen. | S |
+| F5 | Gezondheidscheck ook voor hosts die `*` volgen, een waarschuwing voor gekoppelde hosts die nooit geladen worden, en wijzigingen in bulk op de Hosts-pagina (bijvoorbeeld alles naar Nord). | M |
+| F6 | Kleinere dingen: opnieuw vastleggen overschrijft een goede snapshot niet meer met een lege, oude bestanden in de opslag worden opgeruimd, een beschadigde zip geeft een nette fout, een script met een syntaxfout legt de andere niet stil. | S |
+
+### Blok G — Later, als je dat wilt
+
+Rollen en auditpagina via Authentik (D3), waarschuwing "selector matcht niets" (2.11), meldingen via ntfy of Uptime Kuma als een host breekt, een kleinere dashboardbundel, AI-voorstellen (D6), Shadow-DOM-apps zoals Home Assistant (D7), en dependabot groeperen tot één PR per week.
+
