@@ -9,10 +9,10 @@
  * Laden: via dezelfde sub_filter als de CSS, na de stylesheet-link, met defer.
  * Uitzetten per app (zonder NPM aan te passen): in CSS  :root { --alg-netwerk: 0; }
  * Bij prefers-reduced-motion: één stilstaand beeld, geen muiseffect.
- * Draait niet in iframes en niet naast een eigen canvas van de app over de hele pagina
- * (allow, aiverslag, de Selkies-bureaubladen). Staat stil als het tabblad verborgen is of
- * de app het netwerk helemaal bedekt (weer). De snelheid hangt af van de tijd, niet van de
- * verversingsfrequentie: op 120/144 Hz hetzelfde tempo, hoogstens ~60 beelden per seconde.
+ * Draait niet in iframes. Staat stil en leeg zolang de app een eigen vaste canvas over het
+ * hele venster heeft (allow, aiverslag), en stil als het tabblad verborgen is of de app het
+ * netwerk helemaal bedekt (weer). De snelheid hangt af van de tijd, niet van de
+ * verversingsfrequentie; boven ~110 Hz tekent het om het andere beeld.
  */
 (function () {
   "use strict";
@@ -43,26 +43,31 @@
     [0.15, 0.85],
     [0.85, 0.85],
   ];
-  var MEDIA = /^(IMG|VIDEO|CANVAS|IFRAME|OBJECT|EMBED)$/;
+  var MEDIA = /^(IMG|VIDEO|IFRAME|OBJECT|EMBED)$/;
 
   function uit() {
     var v = getComputedStyle(root).getPropertyValue("--alg-netwerk").trim();
     return v === "0" || v === "uit" || v === "none";
   }
 
-  // Een canvas van de app zelf over (bijna) de hele pagina: allow en aiverslag tekenen hetzelfde
-  // netwerk, een Selkies-bureaublad (gimp, kdenlive ...) zijn beeld. Dan geen tweede erbij.
+  // Een vaste canvas van de app zelf over (bijna) het hele venster: allow en aiverslag tekenen
+  // hetzelfde netwerk, dan geen tweede erbij. Alleen position: fixed telt: een grote canvas in
+  // de pagina (pdf.js, een grafiek, een kaart) scrolt mee en valt hoogstens onder bedekt().
   function eigenCanvas(mijn) {
     var lijst = document.getElementsByTagName("canvas");
     for (var i = 0; i < lijst.length; i++) {
-      if (lijst[i] === mijn) continue;
+      var stijl = getComputedStyle(lijst[i]);
+      if (lijst[i] === mijn || stijl.position !== "fixed" || stijl.visibility === "hidden") continue;
       var r = lijst[i].getBoundingClientRect();
-      if (r.width >= window.innerWidth * 0.9 && r.height >= window.innerHeight * 0.9) return true;
+      var w = Math.min(r.right, window.innerWidth) - Math.max(r.left, 0);
+      var h = Math.min(r.bottom, window.innerHeight) - Math.max(r.top, 0);
+      if (w >= window.innerWidth * 0.9 && h >= window.innerHeight * 0.9) return true;
     }
     return false;
   }
 
-  // Ondoorzichtig: beeld of video, of een achtergrondkleur zonder transparantie.
+  // Ondoorzichtig: beeld of video, of een achtergrondkleur zonder transparantie. Een canvas
+  // alleen met een eigen achtergrond: een grafiek is doorzichtig, pdf.js ligt op een wit vlak.
   function dicht(el) {
     if (MEDIA.test(el.tagName)) return true;
     var m = /^rgba?\(([^)]*)\)$/.exec(getComputedStyle(el).backgroundColor);
@@ -89,7 +94,7 @@
   }
 
   function start() {
-    if (uit() || document.getElementById("alg-netwerk") || eigenCanvas(null)) return;
+    if (uit() || document.getElementById("alg-netwerk")) return;
 
     var canvas = document.createElement("canvas");
     canvas.id = "alg-netwerk";
@@ -219,8 +224,9 @@
 
     function lus(ts) {
       frame = window.requestAnimationFrame(lus);
-      // op 120/144 Hz niet elk beeld: zo kost het daar niet meer dan op 60 Hz
-      if (vorige && ts - vorige < FRAME_MS - 2) return;
+      // boven ~110 Hz om het andere beeld (120 Hz: 60, 144 Hz: 72 per seconde), zodat het daar
+      // niet veel meer kost dan op 60 Hz; van 60 tot 100 Hz elk beeld
+      if (vorige && ts - vorige < FRAME_MS * 0.55) return;
       var dt = vorige ? Math.min((ts - vorige) / FRAME_MS, 3) : 1;
       vorige = ts;
       stap(dt);
@@ -240,18 +246,22 @@
       else if (!document.hidden) frame = window.requestAnimationFrame(lus);
     }
 
-    // Nog gewenst (--alg-netwerk, geen eigen canvas van de app) en zichtbaar (niet weg via
-    // CSS, niet bedekt)? Elke KIJK_MS, zolang het tabblad zichtbaar is.
+    // Nog gewenst (--alg-netwerk) en zichtbaar (geen eigen vaste canvas van de app, niet weg
+    // via CSS, niet bedekt)? Elke KIJK_MS, zolang het tabblad zichtbaar is. Alleen
+    // --alg-netwerk haalt het netwerk weg; de rest legt het stil tot het weer kan.
     function kijk() {
       if (!actief || document.hidden) return;
-      if (uit() || eigenCanvas(canvas)) {
+      if (uit()) {
         actief = false;
         stop();
         clearInterval(kijker);
         root.removeChild(canvas);
         return;
       }
-      var nu = getComputedStyle(canvas).display === "none" || bedekt();
+      var naast = eigenCanvas(canvas);
+      // naast het netwerk van de app ook geen stilstaand beeld van het onze
+      if (naast) ctx.clearRect(0, 0, W, H);
+      var nu = naast || getComputedStyle(canvas).display === "none" || bedekt();
       if (nu !== verborgen) {
         verborgen = nu;
         draai();
@@ -299,7 +309,7 @@
     }
 
     maat();
-    verborgen = bedekt();
+    verborgen = eigenCanvas(canvas) || bedekt();
     draai();
     kijker = setInterval(kijk, KIJK_MS);
   }
