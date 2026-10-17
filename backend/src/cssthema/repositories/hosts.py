@@ -7,8 +7,8 @@ from sqlalchemy import String, case, or_, select
 from sqlalchemy.dialects.postgresql import array
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from cssthema.db.models import HostBinding
-from cssthema.domain.hosts import DEFAULT_HOST
+from cssthema.db.models import HostBinding, Service
+from cssthema.domain.hosts import DEFAULT_HOST, normalize_hostname
 
 
 async def list_bindings(session: AsyncSession) -> list[HostBinding]:
@@ -52,6 +52,19 @@ async def hostnames_using(
         return []
     result = await session.scalars(select(HostBinding.hostname).where(or_(*conditions)))
     return list(result)
+
+
+async def service_hostnames(session: AsyncSession) -> list[str]:
+    """De hostnamen van de (niet-verwijderde) diensten, uit hun `base_url`, gesorteerd."""
+    urls = await session.scalars(select(Service.base_url).where(Service.deleted_at.is_(None)))
+    names = set()
+    for url in urls:
+        try:
+            names.add(normalize_hostname(url if "://" in url else f"https://{url}"))
+        except ValueError:
+            continue
+    names.discard(DEFAULT_HOST)
+    return sorted(names)
 
 
 async def rename_style(session: AsyncSession, old: str, new: str) -> list[str]:

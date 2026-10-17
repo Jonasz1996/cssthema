@@ -112,6 +112,11 @@ class HostCheck(BaseModel):
     detail: str
     http_status: int | None
     checked_at: datetime
+    content_encoding: str | None = Field(
+        default=None,
+        description="Content-Encoding van het antwoord (bv. `gzip`), of null als het niet "
+        "gecomprimeerd was.",
+    )
 
 
 class HostHealth(BaseModel):
@@ -125,6 +130,20 @@ class HostHealth(BaseModel):
     missing_styles: list[str]
     missing_scripts: list[str]
     check: HostCheck | None
+    stale: bool = Field(
+        default_factory=bool,
+        description="Eigen, ingeschakelde koppeling, maar nooit of al 14 dagen niet geladen "
+        "(niveau minstens `warn`).",
+    )
+    service: bool = Field(
+        default_factory=bool,
+        description="Hostnaam van een geïmporteerde dienst: zonder eigen koppeling volgt hij `*` "
+        "en wordt hij ook gecontroleerd.",
+    )
+    excluded: bool = Field(
+        default_factory=bool,
+        description="Krijgt nooit iets (DASHBOARD_HOST, het CSS-domein of EXCLUDED_HOSTS).",
+    )
 
 
 class HostHealthOverview(BaseModel):

@@ -76,3 +76,31 @@ def test_login_redirects() -> None:
     assert is_login_redirect(HOST, "https://auth.jbogaert.be/flows/x")
     assert is_login_redirect(HOST, f"https://{HOST}/outpost.goauthentik.io/start?rd=/")
     assert not is_login_redirect(HOST, f"https://{HOST}/login")
+
+
+def test_compressed_page_without_theme_points_to_the_new_rule() -> None:
+    verdict = classify(
+        HOST,
+        BASE,
+        status=200,
+        content_type="text/html",
+        csp=None,
+        html="<html>",
+        content_encoding="gzip",
+    )
+    assert verdict.code is Code.NO_RULE
+    assert "comprimeert" in verdict.detail
+    assert "more_set_input_headers" in verdict.detail
+    plain = judge("<html>")
+    assert "comprimeert" not in plain.detail
+    assert "more_set_input_headers" in plain.detail
+    identity = classify(
+        HOST,
+        BASE,
+        status=200,
+        content_type="text/html",
+        csp=None,
+        html="",
+        content_encoding="identity",
+    )
+    assert identity.detail == plain.detail

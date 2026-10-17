@@ -20,7 +20,7 @@ class Level(StrEnum):
 class Code(StrEnum):
     RULE_ACTIVE = "rule_active"  # de regel met /host/<host>.css staat in de pagina
     OLD_RULE = "old_rule"  # een eigen sub_filter met losse bestanden (werkt, maar niet via Hosts)
-    NO_RULE = "no_rule"  # geen thema in de pagina: geen sub_filter, of Accept-Encoding ontbreekt
+    NO_RULE = "no_rule"  # geen thema in de pagina: geen regel, of de app comprimeert de HTML
     CSP_BLOCKED = "csp_blocked"  # de CSP van de app laat het CSS-domein niet toe
     LOGIN = "login"  # doorgestuurd naar een login (Authentik): niet te controleren
     NOT_HTML = "not_html"
@@ -55,8 +55,14 @@ def classify(
     content_type: str,
     csp: str | None,
     html: str,
+    content_encoding: str | None = None,
 ) -> Verdict:
-    """Oordeel over een antwoord dat geen redirect is."""
+    """Oordeel over een antwoord dat geen redirect is.
+
+    De controle vraagt zoals een browser (`Accept-Encoding: gzip, deflate`). Gecomprimeerd én
+    geen regel: dan comprimeerde de app de HTML zelf en kon sub_filter niets vinden (NPM
+    comprimeert pas ná sub_filter, dus mét regel is gzip gewoon in orde).
+    """
     if status == 401:
         return Verdict(Level.UNKNOWN, Code.LOGIN, "De app vraagt eerst een login (401).")
     if "html" not in content_type.lower():
@@ -77,12 +83,21 @@ def classify(
         )
     elif status >= 500:
         return Verdict(Level.ERROR, Code.HTTP_ERROR, f"De app antwoordt met {status}.")
+    elif _is_compressed(content_encoding):
+        return Verdict(
+            Level.ERROR,
+            Code.NO_RULE,
+            f"Geen thema in de pagina, en de app comprimeert haar HTML ({content_encoding}): "
+            "dan vindt sub_filter geen </head>. Staat de regel er al, dan is het nog de oude "
+            "vorm (proxy_set_header Accept-Encoding werkt niet bij Advanced). Vervang hem door "
+            "de regel van de Hosts-pagina, met more_set_input_headers.",
+        )
     else:
         return Verdict(
             Level.ERROR,
             Code.NO_RULE,
-            "Geen thema in de pagina. Staat de sub_filter-regel in deze proxy host, met "
-            'proxy_set_header Accept-Encoding ""?',
+            "Geen thema in de pagina. Staat de regel van de Hosts-pagina (met "
+            "more_set_input_headers) bij Advanced van deze proxy host?",
         )
 
     if not own_domain and csp and not csp_allows_style(csp, public_base_url):
@@ -93,6 +108,13 @@ def classify(
             "Gebruik voor deze host de variant via /alg-thema/ op het eigen domein.",
         )
     return verdict
+
+
+def _is_compressed(content_encoding: str | None) -> bool:
+    return content_encoding is not None and content_encoding.strip().lower() not in (
+        "",
+        "identity",
+    )
 
 
 def _has_old_rule(lowered_html: str, public_base_url: str) -> bool:

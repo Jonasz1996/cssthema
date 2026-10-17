@@ -9,6 +9,7 @@ import os
 import re
 import stat
 import uuid
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from typing import Any
 
@@ -23,6 +24,7 @@ from cssthema.domain.css.slugs import SLUG_PATTERN
 from cssthema.logging import get_logger
 from cssthema.repositories import hosts as host_repo
 from cssthema.schemas import hosts as schemas
+from cssthema.schemas.hosts import HealthLevel
 from cssthema.services import audit, host_health
 from cssthema.services.context import ServiceContext
 from cssthema.services.css_delivery import CssDelivery, HostBindingView
@@ -310,15 +312,25 @@ def _read_file(path: Path) -> str | None:
 
 # --- gezondheid (C3) --------------------------------------------------------------------------
 
-_LEVEL_ORDER = {"unknown": 0, "ok": 1, "warn": 2, "error": 3}
+_LEVEL_ORDER: dict[HealthLevel, int] = {"unknown": 0, "ok": 1, "warn": 2, "error": 3}
+# Een eigen koppeling die zo lang niet geladen is: staat de regel wel in die proxy host? Ook
+# voor hosts achter Authentik, waar de controle zelf alleen "achter login" ziet.
+STALE_AFTER = timedelta(days=14)
+
+
+def _at_least(level: HealthLevel, minimum: HealthLevel) -> HealthLevel:
+    return level if _LEVEL_ORDER[level] >= _LEVEL_ORDER[minimum] else minimum
 
 
 async def health(ctx: ServiceContext) -> schemas.HostHealthOverview:
     redis = ctx.delivery.redis
     bindings = await host_repo.list_bindings(ctx.session)
+    services = set(await host_repo.service_hostnames(ctx.session))
     seen_at = await host_health.seen(redis)
     checks, meta = await host_health.check_results(redis)
     directory = ctx.settings.css_files_dir
+    excluded = ctx.settings.never_inject_hosts
+    stale_before = datetime.now(UTC) - STALE_AFTER
     hosts: list[schemas.HostHealth] = []
     for binding in bindings:
         missing_styles = [
@@ -331,11 +343,21 @@ async def health(ctx: ServiceContext) -> schemas.HostHealthOverview:
             for name in binding.scripts
             if not await run_in_threadpool(_is_file, directory / f"{name}.js")
         ]
-        check = _check_view(checks.get(binding.hostname)) if binding.enabled else None
-        level = check.level if check else "unknown"
-        if (missing_styles or missing_scripts) and _LEVEL_ORDER[level] < _LEVEL_ORDER["warn"]:
-            level = "warn"
-        if not binding.enabled:
+        is_excluded = binding.hostname in excluded
+        active = binding.enabled and not is_excluded
+        check = _check_view(checks.get(binding.hostname)) if active else None
+        level: HealthLevel = check.level if check else "unknown"
+        if missing_styles or missing_scripts:
+            level = _at_least(level, "warn")
+        last_seen = seen_at.get(binding.hostname)
+        stale = (
+            active
+            and binding.hostname != domain.DEFAULT_HOST
+            and (last_seen is None or last_seen < stale_before)
+        )
+        if stale:
+            level = _at_least(level, "warn")
+        if not active:
             level = "unknown"
         hosts.append(
             schemas.HostHealth(
@@ -343,24 +365,34 @@ async def health(ctx: ServiceContext) -> schemas.HostHealthOverview:
                 bound=True,
                 enabled=binding.enabled,
                 level=level,
-                last_seen=seen_at.get(binding.hostname),
+                last_seen=last_seen,
                 missing_styles=[str(n) for n in missing_styles],
                 missing_scripts=missing_scripts,
                 check=check,
+                stale=stale,
+                service=binding.hostname in services,
+                excluded=is_excluded,
             )
         )
-    bound = {b.hostname for b in bindings}
-    for name in sorted(seen_at.keys() - bound, key=lambda n: seen_at[n], reverse=True):
+    # Zonder eigen koppeling: wat de regel laadde, en de diensten die `*` volgen (die worden
+    # ook gecontroleerd, zie host_health.check_hostnames).
+    bound = {b.hostname: b for b in bindings}
+    default = bound.get(domain.DEFAULT_HOST)
+    followers = services if default is not None and default.enabled else set()
+    unbound = (seen_at.keys() | followers) - bound.keys() - excluded
+    for name in sorted(unbound, key=lambda n: (n not in seen_at, -_timestamp(seen_at.get(n)), n)):
+        check = _check_view(checks.get(name)) if name in followers else None
         hosts.append(
             schemas.HostHealth(
                 hostname=name,
                 bound=False,
                 enabled=True,
-                level="unknown",
-                last_seen=seen_at[name],
+                level=check.level if check else "unknown",
+                last_seen=seen_at.get(name),
                 missing_styles=[],
                 missing_scripts=[],
-                check=None,
+                check=check,
+                service=name in services,
             )
         )
     return schemas.HostHealthOverview(
@@ -369,6 +401,10 @@ async def health(ctx: ServiceContext) -> schemas.HostHealthOverview:
         check_started_at=meta.get("started_at"),
         check_finished_at=meta.get("finished_at"),
     )
+
+
+def _timestamp(moment: datetime | None) -> float:
+    return moment.timestamp() if moment else 0.0
 
 
 def _check_view(raw: dict[str, Any] | None) -> schemas.HostCheck | None:
@@ -398,6 +434,11 @@ def _is_file(path: Path) -> bool:
         return False
 
 
-async def forget_unbound(ctx: ServiceContext, hostnames: list[str]) -> None:
-    """Haalt hosts uit 'laatst geladen' (bv. een oude naam die niet meer bestaat)."""
-    await host_health.forget_seen(ctx.delivery.redis, hostnames)
+async def forget_unbound(ctx: ServiceContext, hostnames: list[str] | None = None) -> None:
+    """Haalt hosts uit 'laatst geladen' (bv. een oude naam die niet meer bestaat); None: elke
+    host zonder eigen koppeling (ook verzonnen namen van buitenaf)."""
+    redis = ctx.delivery.redis
+    if hostnames is None:
+        bound = {b.hostname for b in await host_repo.list_bindings(ctx.session)}
+        hostnames = sorted((await host_health.seen(redis)).keys() - bound)
+    await host_health.forget_seen(redis, hostnames)

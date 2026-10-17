@@ -106,3 +106,7 @@ async def cleanup_test_themes(engine: AsyncEngine) -> None:
             text("DELETE FROM host_bindings WHERE hostname LIKE 'it-%' OR hostname = '*'")
         )
         await conn.execute(text("DELETE FROM services WHERE base_url LIKE 'https://it-%'"))
+
+
+# Ook de begrensde lijst van namen zonder eigen koppeling (host_health.record_seen).
+HOST_HEALTH_KEYS = (*HOST_HEALTH_KEYS, host_health.SEEN_UNKNOWN_KEY)
