@@ -299,6 +299,52 @@ describe("ServicesPage", () => {
     expect(screen.getByRole("button", { name: "1 zip uploaden" })).toBeEnabled();
   });
 
+  it("toont welke pagina's hun vorige snapshot hielden", async () => {
+    const api = server().on("POST", "/api/v1/captures", () =>
+      json(
+        makeCaptureImportResult({
+          services_updated: ["proxmox.example", "vault.example"],
+          snapshots: 1,
+          kept_previous: ["vault.example", "proxmox.example/opslag"],
+        }),
+      ),
+    );
+    renderPage(<ServicesPage />, { path: "/services", server: api });
+    await screen.findByRole("article", { name: "Proxmox" });
+
+    pick(screen.getByTestId("capture-input"), [zipFile("vastgelegd-deel1.zip")]);
+    fireEvent.click(screen.getByRole("button", { name: "1 zip uploaden" }));
+    await waitFor(() =>
+      expect(uploadRow("vastgelegd-deel1.zip")).toHaveAttribute("data-state", "done"),
+    );
+
+    const row = uploadRow("vastgelegd-deel1.zip");
+    expect(row.querySelector("[data-capture-counts]")).toHaveTextContent(
+      "0 nieuwe services · 2 bijgewerkt · 1 snapshot · 0 zonder snapshot · 2 vorige snapshots behouden · 0 bestanden overgeslagen",
+    );
+    const kept = row.querySelector<HTMLElement>('[data-group="kept"]');
+    expect(kept).not.toBeNull();
+    expect(within(kept!).getByText("vault.example")).toBeInTheDocument();
+    expect(within(kept!).getByText("proxmox.example/opslag")).toBeInTheDocument();
+    expect(kept).toHaveTextContent("De vorige, goede snapshot blijft staan");
+  });
+
+  it("toont geen teller voor behouden snapshots als er geen zijn", async () => {
+    const api = server().on("POST", "/api/v1/captures", () =>
+      json(makeCaptureImportResult({ snapshots: 2 })),
+    );
+    renderPage(<ServicesPage />, { path: "/services", server: api });
+    await screen.findByRole("article", { name: "Proxmox" });
+    pick(screen.getByTestId("capture-input"), [zipFile("vastgelegd-deel1.zip")]);
+    fireEvent.click(screen.getByRole("button", { name: "1 zip uploaden" }));
+    await waitFor(() =>
+      expect(uploadRow("vastgelegd-deel1.zip")).toHaveAttribute("data-state", "done"),
+    );
+    const row = uploadRow("vastgelegd-deel1.zip");
+    expect(row.querySelector("[data-capture-counts]")).not.toHaveTextContent("behouden");
+    expect(row.querySelector('[data-group="kept"]')).toBeNull();
+  });
+
   it("verwijdert een service na bevestiging", async () => {
     let services = [proxmox, vault, grafana];
     const api = createServer()

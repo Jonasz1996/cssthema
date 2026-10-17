@@ -64,7 +64,8 @@ let nextItemId = 1;
  * Kaart "Zips van vastleggen.py uploaden": één of meer zip-delen kiezen of slepen, dan één
  * voor één naar `POST /captures`. Per bestand de status (wacht, bezig, klaar, mislukt) en na
  * afloop wat de import deed: nieuwe en bijgewerkte services, snapshots, services zonder
- * snapshot en overgeslagen bestanden. Een fout (422) staat bij het bestand zelf.
+ * snapshot, behouden vorige snapshots en overgeslagen bestanden. Een fout (422) staat bij het
+ * bestand zelf.
  */
 export function CaptureUpload({ showHelp }: { showHelp: boolean }) {
   const i18n = useI18n();
@@ -329,6 +330,7 @@ function UploadRow({ item, running, onRemove, onRetry }: UploadRowProps) {
 /** Wat één zip deed: tellers op één regel, daaronder de hostnamen per groep en de overgeslagen bestanden. */
 function CaptureSummary({ result }: { result: CaptureImportResult }) {
   const { t, tc } = useI18n();
+  const kept = result.kept_previous ?? [];
   const groups = [
     {
       key: "created",
@@ -345,12 +347,20 @@ function CaptureSummary({ result }: { result: CaptureImportResult }) {
       names: result.without_snapshot,
       text: tc("services.resultWithout", result.without_snapshot.length),
     },
+    {
+      key: "kept",
+      names: kept,
+      text: tc("services.resultKept", kept.length),
+      hint: t("services.resultKeptHint"),
+    },
   ];
   const counts = [
     groups[0]!.text,
     groups[1]!.text,
     tc("services.snapshotCount", result.snapshots),
     groups[2]!.text,
+    // Alleen als het gebeurde: een app die stuk was toen vastleggen.py langskwam.
+    ...(kept.length ? [groups[3]!.text] : []),
     tc("services.resultSkipped", result.skipped.length),
   ];
   return (
@@ -369,6 +379,7 @@ function CaptureSummary({ result }: { result: CaptureImportResult }) {
                 <Code>{name}</Code>
               </span>
             ))}
+            {group.hint && <span className="block text-dim">{group.hint}</span>}
           </p>
         ))}
       {result.skipped.length > 0 && (

@@ -5,6 +5,7 @@ import io
 import json
 import uuid
 import zipfile
+from datetime import datetime
 from typing import Any
 
 import pytest
@@ -117,10 +118,105 @@ async def test_import_creates_service_snapshot_and_preview_document(api: Api) ->
 async def test_reimport_replaces_the_snapshot_of_that_page(api: Api) -> None:
     name = host()
     await upload(api, capture_zip(name))
-    response = await upload(api, capture_zip(name, title="Nieuw"))
+    before = (await service_of(api, name))["snapshots"][0]
+    response = await upload(api, capture_zip(name, title="Nieuw", html_body="Nieuwe inhoud"))
     assert response.json()["services_updated"] == [name]
+    assert response.json()["kept_previous"] == []
     service = await service_of(api, name)
     assert len(service["snapshots"]) == 1
+    # Zelfde rij (id blijft, dus ook een gekozen preview), nieuwe inhoud en importtijd.
+    snapshot = service["snapshots"][0]
+    assert snapshot["id"] == before["id"]
+    assert snapshot["title"] == "Nieuw"
+    assert snapshot["screenshots"]["origineel"] != before["screenshots"]["origineel"]
+    assert datetime.fromisoformat(snapshot["imported_at"]) > datetime.fromisoformat(
+        before["imported_at"]
+    )
+    document = (await api.client.get(f"/api/v1/snapshots/{snapshot['id']}/document")).json()
+    assert "Nieuwe inhoud" in document["html"]
+
+
+# Opnames waarbij de app stuk of onbereikbaar was, zoals vastleggen.py ze schrijft.
+FAILED_CAPTURES = {
+    # NPM's foutpagina: vastleggen.py legt die gewoon vast, met screenshots.
+    "http-502": (
+        {"dienst": "{host}", "http_status": 502, "status": "http-502", "titel": "502 Bad Gateway"},
+        ("snapshot.html", "origineel.jpg", "met-thema.jpg"),
+    ),
+    "fout": ({"dienst": "{host}", "status": "fout", "fout": "TimeoutError: 45000 ms"}, ()),
+    "authentik-login": (
+        {"dienst": "{host}", "http_status": 200, "status": "authentik-login"},
+        ("origineel.jpg",),
+    ),
+    "geen-html": ({"dienst": "{host}", "http_status": 200, "status": "geen-html"}, ()),
+}
+
+
+@pytest.mark.parametrize("status", sorted(FAILED_CAPTURES))
+async def test_failed_recapture_keeps_the_previous_snapshot(api: Api, status: str) -> None:
+    name = host()
+    await upload(api, capture_zip(name))
+    before = (await service_of(api, name))["snapshots"][0]
+
+    raw_info, files = FAILED_CAPTURES[status]
+    info = {k: v.replace("{host}", name) if isinstance(v, str) else v for k, v in raw_info.items()}
+    if status == "http-502":
+        info["vastgelegd"] = "2026-10-20 09:00:00"
+    failed = capture_zip(name, info=info, pages=files, html_body="502 Bad Gateway")
+    response = await upload(api, failed)
+    assert response.status_code == 200, response.text
+    result = response.json()
+    assert result["kept_previous"] == [name]
+    assert result["snapshots"] == 0
+    assert result["without_snapshot"] == []
+
+    snapshot = (await service_of(api, name))["snapshots"][0]
+    assert snapshot["id"] == before["id"]
+    assert snapshot["status"] == status
+    assert snapshot["has_document"] is True
+    assert snapshot["screenshots"] == before["screenshots"]
+    assert snapshot["title"] == "App"
+    if status == "http-502":
+        assert snapshot["captured_at"] == "2026-10-20T07:00:00Z"
+    else:
+        assert snapshot["captured_at"] == before["captured_at"]
+    document = (await api.client.get(f"/api/v1/snapshots/{snapshot['id']}/document")).json()
+    assert "Hoi" in document["html"]
+    assert (await api.client.get(snapshot["screenshots"]["origineel"])).status_code == 200
+
+    # Nog eens mislukt: de goede snapshot blijft (de status van het document telt, niet de
+    # laatste status). Een goede opname vervangt hem weer.
+    again = (await upload(api, failed)).json()
+    assert again["kept_previous"] == [name]
+    good = (await upload(api, capture_zip(name, html_body="Weer goed"))).json()
+    assert good["kept_previous"] == []
+    assert good["snapshots"] == 1
+    snapshot = (await service_of(api, name))["snapshots"][0]
+    assert snapshot["id"] == before["id"]
+    assert snapshot["status"] == "inlogpagina"
+    document = (await api.client.get(f"/api/v1/snapshots/{snapshot['id']}/document")).json()
+    assert "Weer goed" in document["html"]
+
+
+async def test_failed_first_capture_is_stored_as_is(api: Api) -> None:
+    name = host()
+    raw_info, files = FAILED_CAPTURES["http-502"]
+    info = {**raw_info, "dienst": name}
+    response = await upload(api, capture_zip(name, info=info, pages=files))
+    assert response.json()["kept_previous"] == []
+    assert response.json()["snapshots"] == 1
+    snapshot = (await service_of(api, name))["snapshots"][0]
+    assert snapshot["status"] == "http-502"
+    assert snapshot["has_document"] is True
+
+    # Was de vorige zelf al een foutpagina, dan is er niets te bewaren.
+    response = await upload(
+        api, capture_zip(name, info={"dienst": name, "status": "fout"}, pages=())
+    )
+    assert response.json()["kept_previous"] == []
+    snapshot = (await service_of(api, name))["snapshots"][0]
+    assert snapshot["status"] == "fout"
+    assert snapshot["has_document"] is False
 
 
 async def test_capture_time_without_zone_is_belgian_time(api: Api) -> None:

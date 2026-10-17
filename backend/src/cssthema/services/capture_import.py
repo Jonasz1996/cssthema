@@ -4,7 +4,9 @@ Een zip (of een deel ervan) bevat `vastgelegd/_css/<sha16>.css` en per dienst
 `vastgelegd/<host-met-streepjes>/<pagina>/` met `info.json`, `snapshot.html`, `css.json`,
 `kleuren.json` en de screenshots `origineel.jpg`, `met-thema.jpg`, `mobiel.jpg`.
 
-Per pagina komt er één snapshot; een nieuwe import van dezelfde pagina vervangt de vorige.
+Per pagina komt er één snapshot; een nieuwe import van dezelfde pagina werkt die bij (zelfde
+id). Mislukte de nieuwe opname (de app was stuk of onbereikbaar) en was de vorige goed, dan
+blijft de vorige staan en krijgt ze alleen de nieuwe status en tijd (`kept_previous`).
 HTML, stylesheets en screenshots gaan naar storage (services/storage.py), de rest in de
 database. De zip wordt nooit uitgepakt op schijf: alles wordt in het geheugen gelezen, met
 limieten per bestand en in totaal. Imports lopen na elkaar (advisory lock in storage).
@@ -46,7 +48,12 @@ _CSS_LINK_RE = re.compile(r"""href=["'](?:\.\./)*_css/([0-9a-f]{16}\.css)["']"""
 _CLASS_ATTR_RE = re.compile(r"""\sclass=["']([^"']*)["']""")
 _ID_ATTR_RE = re.compile(r"""\sid=["']([^"']+)["']""")
 _SLUG_CLEAN_RE = re.compile(r"[^a-z0-9-]+")
+_HTTP_5XX_RE = re.compile(r"^http-5\d\d$")
 
+# Opnames waarbij de app niet (goed) antwoordde; een goede vorige snapshot blijft dan staan.
+FAILED_STATUSES = frozenset({"fout", "geen-html", "authentik-login"})
+# Een vorige snapshot die het bewaren waard is: een echte pagina (ook een inlogscherm).
+USABLE_STATUSES = frozenset({"ok", "inlogpagina"})
 # vastleggen.py schrijft de lokale tijd zonder zone; Jonas legt vast in België.
 CAPTURE_TIMEZONE = "Europe/Brussels"
 
@@ -201,6 +208,26 @@ def _http_status(value: Any) -> int | None:
     return None
 
 
+def _failed(status: str | None, http_status: int | None) -> bool:
+    if status in FAILED_STATUSES or (http_status is not None and http_status >= 500):
+        return True
+    return status is not None and _HTTP_5XX_RE.fullmatch(status) is not None
+
+
+def _document_status(snapshot: DomSnapshot) -> str | None:
+    """Status van de opname waar het document van komt (ook na een behouden import)."""
+    info: dict[str, Any] = snapshot.capture_info or {}
+    kept = info.get("behouden")
+    if isinstance(kept, dict) and isinstance(kept.get("status"), str):
+        return str(kept["status"])
+    status = info.get("status")
+    return status if isinstance(status, str) else None
+
+
+def _page_label(hostname: str, page_name: str) -> str:
+    return hostname if page_name == "start" else f"{hostname}/{page_name}"
+
+
 async def import_zip(
     ctx: ServiceContext, filename: str, data: bytes
 ) -> schemas.CaptureImportResult:
@@ -221,7 +248,15 @@ async def import_zip(
         # Twee imports tegelijk (tweede tabblad, een retry) wachten op elkaar in plaats van
         # te botsen op de unieke sha256/slug.
         await storage.lock(ctx.session)
-        return await _import_pages(ctx, archive, pages, css_files, filename)
+        result = await _import_pages(ctx, archive, pages, css_files, filename)
+    await ctx.session.commit()
+    log.info(
+        "capture_imported",
+        file=filename,
+        snapshots=result.snapshots,
+        kept_previous=len(result.kept_previous),
+    )
+    return result
 
 
 async def _import_pages(
@@ -235,9 +270,18 @@ async def _import_pages(
     cache: dict[bytes, Asset] = {}
     css_assets: dict[str, Asset] = {}
     result = schemas.CaptureImportResult(
-        services_created=[], services_updated=[], snapshots=0, without_snapshot=[], skipped=[]
+        services_created=[],
+        services_updated=[],
+        snapshots=0,
+        without_snapshot=[],
+        kept_previous=[],
+        skipped=[],
     )
     services: dict[str, Service] = {}
+    imported_at = datetime.now(UTC)
+
+    async def put(data: bytes, content_type: str) -> Asset:
+        return await storage.put(ctx.session, storage_dir, data, content_type, cache)
 
     async def css_asset(page: _Page, name: str) -> Asset | None:
         key = str(page.css_dir / name)
@@ -246,9 +290,7 @@ async def _import_pages(
         info = css_files.get(key)
         if info is None:
             return None
-        asset = await storage.put(
-            ctx.session, storage_dir, _read(archive, info), "text/css; charset=utf-8", cache
-        )
+        asset = await put(_read(archive, info), "text/css; charset=utf-8")
         css_assets[key] = asset
         return asset
 
@@ -265,6 +307,34 @@ async def _import_pages(
 
         service = services.get(hostname) or await _upsert_service(ctx, hostname, info, result)
         services[hostname] = service
+        page_name = page.page_dir.name
+        status = _str(info.get("status"), 60)
+        http_status = _http_status(info.get("http_status"))
+        captured_at = _captured_at(info)
+        snapshot = await _previous_snapshot(ctx, service, page_name)
+
+        if (
+            snapshot is not None
+            and _failed(status, http_status)
+            and snapshot.document_asset_id is not None
+            and _document_status(snapshot) in USABLE_STATUSES
+        ):
+            # De app was stuk of onbereikbaar: de goede snapshot (HTML en screenshots) blijft,
+            # met de status en tijd van deze opname; `behouden` onthoudt die van het document.
+            # Een nieuwe goede opname vervangt alles.
+            previous: dict[str, Any] = snapshot.capture_info or {}
+            kept = previous.get("behouden")
+            snapshot.capture_info = {
+                **previous,
+                "status": status,
+                "vastgelegd": captured_at or previous.get("vastgelegd"),
+                "behouden": kept
+                if isinstance(kept, dict)
+                else {"status": previous.get("status"), "vastgelegd": previous.get("vastgelegd")},
+            }
+            result.kept_previous.append(_page_label(hostname, page_name))
+            service.last_crawled_at = imported_at
+            continue
 
         document: Asset | None = None
         stylesheets: list[dict[str, Any]] = []
@@ -274,9 +344,7 @@ async def _import_pages(
         if snapshot_info is not None:
             raw = _read(archive, snapshot_info)
             html = raw.decode("utf-8", errors="replace")
-            document = await storage.put(
-                ctx.session, storage_dir, raw, "text/html; charset=utf-8", cache
-            )
+            document = await put(raw, "text/html; charset=utf-8")
             for name in dict.fromkeys(_CSS_LINK_RE.findall(html)):
                 asset = await css_asset(page, name)
                 if asset is None:
@@ -290,16 +358,13 @@ async def _import_pages(
         for key, name in SCREENSHOTS.items():
             shot = page.files.get(name)
             if shot is not None:
-                asset = await storage.put(
-                    ctx.session, storage_dir, _read(archive, shot), "image/jpeg", cache
-                )
+                asset = await put(_read(archive, shot), "image/jpeg")
                 screenshots[key] = str(asset.id)
 
         colors = _json(archive, page.files.get("kleuren.json"))
         raw_thema = info.get("thema")
         thema: dict[str, Any] = raw_thema if isinstance(raw_thema, dict) else {}
         url = _str(info.get("start_url"), 2048) or f"https://{hostname}/"
-        page_name = page.page_dir.name
         kind = (
             PageKind.LOGIN
             if info.get("inlogpagina")
@@ -307,57 +372,51 @@ async def _import_pages(
             if page_name == "start"
             else PageKind.CUSTOM
         )
-        # Dezelfde pagina opnieuw geïmporteerd: de vorige snapshot vervalt.
-        await ctx.session.execute(
-            delete(DomSnapshot).where(
-                DomSnapshot.service_id == service.id,
-                DomSnapshot.capture_info["pagina"].astext == page_name,
-            )
-        )
         raw_vars = info.get("variabelen")
         variables: dict[str, Any] = raw_vars if isinstance(raw_vars, dict) else {}
         frameworks = [_clean(f)[:40] for f in _list(info.get("frameworks")) if isinstance(f, str)]
-        ctx.session.add(
-            DomSnapshot(
-                service_id=service.id,
-                page_kind=kind,
-                url=url,
-                final_url=_str(info.get("url"), 2048),
-                http_status=_http_status(info.get("http_status")),
-                origin=SnapshotOrigin.UPLOAD,
-                document_asset_id=document.id if document else None,
-                html_sha256=document.sha256 if document else None,
-                title=_str(info.get("titel"), 500),
-                css_variables={
-                    _clean(str(k))[:200]: _clean(str(v))[:500]
-                    for k, v in list(variables.items())[:2000]
-                },
-                components=[],
-                framework_hints=frameworks[:20],
-                stylesheets=stylesheets,
-                colors=_clean(colors) if isinstance(colors, dict) else {},
-                class_count=len({c for m in _CLASS_ATTR_RE.findall(html) for c in m.split()}),
-                id_count=len(set(_ID_ATTR_RE.findall(html))),
-                has_shadow_dom="shadowrootmode" in html,
-                capture_info={
-                    "pagina": page_name,
-                    "status": _str(info.get("status"), 60),
-                    "vastgelegd": _captured_at(info),
-                    "screenshots": screenshots,
-                    "thema_links": [
-                        _clean(str(link.get("href")))[:500]
-                        for link in _list(thema.get("links"))
-                        if isinstance(link, dict)
-                    ][:20],
-                    "csp_fouten": len(_list(thema.get("csp_fouten"))),
-                    "ontbrekende_css": missing_css,
-                    "bestand": filename,
-                },
-            )
-        )
+        # Dezelfde pagina opnieuw geïmporteerd: de rij wordt bijgewerkt, zodat het id (en een
+        # gekozen preview in de editor) blijft.
+        if snapshot is None:
+            snapshot = DomSnapshot(service_id=service.id)
+            ctx.session.add(snapshot)
+        snapshot.page_kind = kind
+        snapshot.url = url
+        snapshot.final_url = _str(info.get("url"), 2048)
+        snapshot.http_status = http_status
+        snapshot.origin = SnapshotOrigin.UPLOAD
+        snapshot.document_asset_id = document.id if document else None
+        snapshot.html_sha256 = document.sha256 if document else None
+        snapshot.title = _str(info.get("titel"), 500)
+        snapshot.css_variables = {
+            _clean(str(k))[:200]: _clean(str(v))[:500] for k, v in list(variables.items())[:2000]
+        }
+        snapshot.components = []
+        snapshot.framework_hints = frameworks[:20]
+        snapshot.stylesheets = stylesheets
+        snapshot.colors = _clean(colors) if isinstance(colors, dict) else {}
+        snapshot.class_count = len({c for m in _CLASS_ATTR_RE.findall(html) for c in m.split()})
+        snapshot.id_count = len(set(_ID_ATTR_RE.findall(html)))
+        snapshot.has_shadow_dom = "shadowrootmode" in html
+        snapshot.capture_info = {
+            "pagina": page_name,
+            "status": status,
+            "vastgelegd": captured_at,
+            "screenshots": screenshots,
+            "thema_links": [
+                _clean(str(link.get("href")))[:500]
+                for link in _list(thema.get("links"))
+                if isinstance(link, dict)
+            ][:20],
+            "csp_fouten": len(_list(thema.get("csp_fouten"))),
+            "ontbrekende_css": missing_css,
+            "bestand": filename,
+        }
+        # `created_at` is het moment van de import van deze inhoud (`imported_at` in de API).
+        snapshot.created_at = imported_at
         if document is not None:
             result.snapshots += 1
-        service.last_crawled_at = datetime.now(UTC)
+        service.last_crawled_at = imported_at
 
     audit.record(
         ctx,
@@ -368,11 +427,31 @@ async def _import_pages(
             "file": filename,
             "services_created": len(result.services_created),
             "snapshots": result.snapshots,
+            "kept_previous": len(result.kept_previous),
         },
     )
-    await ctx.session.commit()
-    log.info("capture_imported", file=filename, snapshots=result.snapshots)
     return result
+
+
+async def _previous_snapshot(
+    ctx: ServiceContext, service: Service, page_name: str
+) -> DomSnapshot | None:
+    """De snapshot van deze pagina uit een vorige import; eventuele dubbele rijen vervallen."""
+    snapshots = (
+        await ctx.session.scalars(
+            select(DomSnapshot)
+            .where(
+                DomSnapshot.service_id == service.id,
+                DomSnapshot.capture_info["pagina"].astext == page_name,
+            )
+            .order_by(DomSnapshot.created_at.desc(), DomSnapshot.id.desc())
+        )
+    ).all()
+    if len(snapshots) > 1:
+        await ctx.session.execute(
+            delete(DomSnapshot).where(DomSnapshot.id.in_([s.id for s in snapshots[1:]]))
+        )
+    return snapshots[0] if snapshots else None
 
 
 async def _upsert_service(

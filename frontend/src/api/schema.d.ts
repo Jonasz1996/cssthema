@@ -776,6 +776,11 @@ export interface components {
              * @description Hostnamen zonder snapshot.html (bv. de app antwoordde niet): alleen status en screenshots.
              */
             without_snapshot: string[];
+            /**
+             * Kept Previous
+             * @description Pagina's (hostnaam, of `hostnaam/pagina`) waarvan de vorige snapshot bleef staan: de nieuwe opname mislukte (fout, geen html, Authentik-login of http-5xx) en kreeg alleen de nieuwe status en tijd.
+             */
+            kept_previous?: string[];
             /** Skipped */
             skipped: components["schemas"]["CaptureSkipped"][];
         };

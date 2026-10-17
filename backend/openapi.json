@@ -3436,6 +3436,14 @@
             "title": "Without Snapshot",
             "description": "Hostnamen zonder snapshot.html (bv. de app antwoordde niet): alleen status en screenshots."
           },
+          "kept_previous": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Kept Previous",
+            "description": "Pagina's (hostnaam, of `hostnaam/pagina`) waarvan de vorige snapshot bleef staan: de nieuwe opname mislukte (fout, geen html, Authentik-login of http-5xx) en kreeg alleen de nieuwe status en tijd."
+          },
           "skipped": {
             "items": {
               "$ref": "#/components/schemas/CaptureSkipped"
