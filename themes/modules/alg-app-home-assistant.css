@@ -1,5 +1,8 @@
 /* alg-app-home-assistant.css - gegenereerd uit algemeen.css door scripts/themes/modules.py;
-   niet met de hand aanpassen. Laadt na alg-kern.css (zie themes/README.md). */
+   niet met de hand aanpassen. Laadt na alg-kern.css (zie themes/README.md).
+   Alleen voor de host van deze app: de herkenning html:has(> head > ...) uit
+   algemeen.css staat hier als html:not(head > ...) (altijd waar, zelfde
+   specificiteit, geen herberekening van de hele pagina bij elke DOM-wijziging). */
 /* ==========================================================================
    60 HOME ASSISTANT (frontend 2025+, Lit-componenten in shadow DOM)
    Herkenning: meta application-name "Home Assistant" (app), of het element
@@ -14,7 +17,7 @@
    instellingen, entiteiten, profiel, login).
    ========================================================================== */
 
-html:is(:has(> head > meta[name="application-name"][content="Home Assistant"]), :has(ha-authorize), :has(ha-onboarding)) {
+html:is(:not(head > meta[name="application-name"][content="Home Assistant"]), :not(ha-authorize), :not(ha-onboarding)) {
   color-scheme: dark;
   /* ---------- onze stijl ---------- */
   /* kaarten: glas, radius 16 */

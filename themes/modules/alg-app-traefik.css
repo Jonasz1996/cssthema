@@ -1,5 +1,8 @@
 /* alg-app-traefik.css - gegenereerd uit algemeen.css door scripts/themes/modules.py;
-   niet met de hand aanpassen. Laadt na alg-kern.css (zie themes/README.md). */
+   niet met de hand aanpassen. Laadt na alg-kern.css (zie themes/README.md).
+   Alleen voor de host van deze app: de herkenning html:has(> head > ...) uit
+   algemeen.css staat hier als html:not(head > ...) (altijd waar, zelfde
+   specificiteit, geen herberekening van de hele pagina bij elke DOM-wijziging). */
 /* ==========================================================================
    60 TRAEFIK (dashboard v3, Faency/Stitches met gehashte klassen)
    Herkenning: meta-beschrijving "Traefik Proxy". Traefik zet zijn thema als
@@ -12,7 +15,7 @@
    zoeken.
    ========================================================================== */
 
-html:has(> head > meta[name="description"][content="Traefik Proxy"]) {
+html:not(head > meta[name="description"][content="Traefik Proxy"]) {
   color-scheme: dark;
   /* lettertype: Faency zet alles via --fonts-rubik; het versienummer naast
      het logo wordt (ook zonder thema) afgekapt met "..." */
@@ -182,19 +185,19 @@ html:has(> head > meta[name="description"][content="Traefik Proxy"]) {
 /* kaarten: glas met dunne lichte rand (als schaduwring: geen verschuiving)
    en de grote radius; de zijbalk (een Flex met variant direction) blijft
    een vlak paneel met alleen een lijn rechts */
-html:has(> head > meta[name="description"][content="Traefik Proxy"]) [class*="-elevation-1"]:not([class*="-direction-"]) {
+html:not(head > meta[name="description"][content="Traefik Proxy"]) [class*="-elevation-1"]:not([class*="-direction-"]) {
   border-radius: var(--alg-radius-groot) !important;
   box-shadow: inset 0 0 0 1px var(--alg-rand), var(--alg-schaduw-midden) !important;
 }
 
-html:has(> head > meta[name="description"][content="Traefik Proxy"]) [class*="-elevation-1"][class*="-direction-"] {
+html:not(head > meta[name="description"][content="Traefik Proxy"]) [class*="-elevation-1"][class*="-direction-"] {
   box-shadow: inset -1px 0 0 var(--alg-rand) !important;
 }
 
 /* logo in de zijbalk: inline svg met het woord "traefik proxy" in vast
    zwart (fill="#000", voor licht; Traefiks eigen donkere modus wisselt de
    svg via JS). Inline svg, geen afbeelding: alleen dat zwart wordt wit. */
-html:has(> head > meta[name="description"][content="Traefik Proxy"]) svg[viewBox="0 0 280 108"] :is(path, g)[fill="#000"] {
+html:not(head > meta[name="description"][content="Traefik Proxy"]) svg[viewBox="0 0 280 108"] :is(path, g)[fill="#000"] {
   fill: var(--alg-tekst-sterk);
 }
 

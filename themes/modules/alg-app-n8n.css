@@ -1,5 +1,8 @@
 /* alg-app-n8n.css - gegenereerd uit algemeen.css door scripts/themes/modules.py;
-   niet met de hand aanpassen. Laadt na alg-kern.css (zie themes/README.md). */
+   niet met de hand aanpassen. Laadt na alg-kern.css (zie themes/README.md).
+   Alleen voor de host van deze app: de herkenning html:has(> head > ...) uit
+   algemeen.css staat hier als html:not(head > ...) (altijd waar, zelfde
+   specificiteit, geen herberekening van de hele pagina bij elke DOM-wijziging). */
 /* ==========================================================================
    60 N8N (2.x, Vue 3 + eigen design system met --color--*, --button--* ...)
    Herkenning: meta n8n:config:rest-endpoint in de kop (vast in n8n).
@@ -19,7 +22,7 @@
 /* ---------- n8n's eigen donkere thema (naar [data-theme="dark"] van n8n
    2.41: waarden die van licht verschillen, plus wat ernaar verwijst;
    AI-assistent, chat en diff-weergave weggelaten) --------------------- */
-html:has(> head > meta[name="n8n:config:rest-endpoint"]) body {
+html:not(head > meta[name="n8n:config:rest-endpoint"]) body {
   color-scheme: dark;
   --color--danger: var(--color--red-400); --color--text--shade-1: var(--color--neutral-white);
   --color--text: var(--color--neutral-200); --color--text--tint-1: var(--color--neutral-400);
@@ -326,12 +329,12 @@ html:has(> head > meta[name="n8n:config:rest-endpoint"]) body {
 /* de inhoud van de overzichtspagina's ligt doorzichtig op het verloop;
    kaarten zijn glas (5 % wit was te doorzichtig: de lijnen van het netwerk
    liepen scherp door de kaarttekst) */
-html:has(> head > meta[name="n8n:config:rest-endpoint"]) .card[data-test-id^="resources-list-item"] {
+html:not(head > meta[name="n8n:config:rest-endpoint"]) .card[data-test-id^="resources-list-item"] {
   background: var(--alg-glas) !important;
   border-color: var(--alg-rand) !important;
 }
 
-html:has(> head > meta[name="n8n:config:rest-endpoint"]) .card[data-test-id^="resources-list-item"]:hover {
+html:not(head > meta[name="n8n:config:rest-endpoint"]) .card[data-test-id^="resources-list-item"]:hover {
   background: rgba(34, 34, 34, .82) !important;
   border-color: var(--alg-rand-hover) !important;
 }
@@ -339,43 +342,43 @@ html:has(> head > meta[name="n8n:config:rest-endpoint"]) .card[data-test-id^="re
 /* instellingen: de inhoud ligt op een dekkend vlak (#171717) over bijna
    het hele scherm; glas zoals de kaarten, zodat verloop en netwerk zwak
    doorschijnen */
-html:has(> head > meta[name="n8n:config:rest-endpoint"]) main[class^="_content_"] > [class^="_contentWrapper_"] > [class^="_contentContainer_"] {
+html:not(head > meta[name="n8n:config:rest-endpoint"]) main[class^="_content_"] > [class^="_contentWrapper_"] > [class^="_contentContainer_"] {
   background-color: var(--alg-glas) !important;
 }
 
 /* ---------- Invoer ----------------------------------------------------- */
 /* n8n's eigen invoer: het vak eromheen draagt kleur, rand en focus; het
    echte veld is doorzichtig (anders een zwart blok in het vak) */
-html:has(> head > meta[name="n8n:config:rest-endpoint"]) :is(input, textarea):is([class^="_input_"], [class^="_textarea_"], [class*="search-input"], [data-test-id="search-bar"] *) {
+html:not(head > meta[name="n8n:config:rest-endpoint"]) :is(input, textarea):is([class^="_input_"], [class^="_textarea_"], [class*="search-input"], [data-test-id="search-bar"] *) {
   background-color: transparent !important;
   box-shadow: none !important;
 }
 
-html:has(> head > meta[name="n8n:config:rest-endpoint"]) :is(input, textarea):is([class^="_input_"], [class^="_textarea_"], [class*="search-input"], [data-test-id="search-bar"] *):focus-visible {
+html:not(head > meta[name="n8n:config:rest-endpoint"]) :is(input, textarea):is([class^="_input_"], [class^="_textarea_"], [class*="search-input"], [data-test-id="search-bar"] *):focus-visible {
   outline: 0 !important;
 }
 
 /* ---------- Kleine details --------------------------------------------- */
 /* "Preview"-label: lichtpaars vlak met paarse tekst (4.25:1) wordt donker
    paars vlak met lichte tekst. */
-html:has(> head > meta[name="n8n:config:rest-endpoint"]) [class^="_preview_"] {
+html:not(head > meta[name="n8n:config:rest-endpoint"]) [class^="_preview_"] {
   background-color: rgba(167, 139, 250, .16) !important;
   color: #d4c8ff !important;
 }
 
 /* schuine streep in het pad bovenaan de editor: bijna onzichtbaar */
-html:has(> head > meta[name="n8n:config:rest-endpoint"]) [class^="_path-separator_"] {
+html:not(head > meta[name="n8n:config:rest-endpoint"]) [class^="_path-separator_"] {
   color: var(--alg-gedempt) !important;
 }
 
 /* zoekveld in de node-kiezer: focusrand nog paars (eigen vaste kleur) */
-html:has(> head > meta[name="n8n:config:rest-endpoint"]) [class^="_searchContainer_"]:focus-within {
+html:not(head > meta[name="n8n:config:rest-endpoint"]) [class^="_searchContainer_"]:focus-within {
   border-color: var(--alg-accent-kleur) !important;
 }
 
 /* "Add option": een keuzelijst die als knop dient, met de plaatshouder als
    opschrift; onze plaatshouderkleur was daar te zwak (3:1) */
-html:has(> head > meta[name="n8n:config:rest-endpoint"]) [data-test-id="collection-parameter-add"] input::placeholder {
+html:not(head > meta[name="n8n:config:rest-endpoint"]) [data-test-id="collection-parameter-add"] input::placeholder {
   color: var(--alg-tekst) !important;
 }
 

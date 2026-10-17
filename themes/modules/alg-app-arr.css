@@ -1,5 +1,8 @@
 /* alg-app-arr.css - gegenereerd uit algemeen.css door scripts/themes/modules.py;
-   niet met de hand aanpassen. Laadt na alg-kern.css (zie themes/README.md). */
+   niet met de hand aanpassen. Laadt na alg-kern.css (zie themes/README.md).
+   Alleen voor de host van deze app: de herkenning html:has(> head > ...) uit
+   algemeen.css staat hier als html:not(head > ...) (altijd waar, zelfde
+   specificiteit, geen herberekening van de hele pagina bij elke DOM-wijziging). */
 /* ==========================================================================
    60 ARR (Sonarr, Radarr, Prowlarr, Lidarr, Readarr, Whisparr; v4/v5)
    Herkenning: meta-beschrijving met de appnaam. De *arr-apps zetten hun
@@ -12,7 +15,7 @@
    Radarr/Prowlarr e.a. gebruiken dezelfde namen (zelfde codebasis), ongetest.
    ========================================================================== */
 
-html:is(:has(> head > meta[name="description"][content="Sonarr"]), :has(> head > meta[name="description"][content="Radarr"]), :has(> head > meta[name="description"][content="Prowlarr"]), :has(> head > meta[name="description"][content="Lidarr"]), :has(> head > meta[name="description"][content="Readarr"]), :has(> head > meta[name="description"][content="Whisparr"])) {
+html:is(:not(head > meta[name="description"][content="Sonarr"]), :not(head > meta[name="description"][content="Radarr"]), :not(head > meta[name="description"][content="Prowlarr"]), :not(head > meta[name="description"][content="Lidarr"]), :not(head > meta[name="description"][content="Readarr"]), :not(head > meta[name="description"][content="Whisparr"])) {
   color-scheme: dark;
   --textColor: var(--alg-tekst) !important; --defaultColor: var(--alg-tekst) !important;
   --themeDarkColor: #262626 !important; --themeLightColor: #3a3a3a !important;
@@ -96,7 +99,7 @@ html:is(:has(> head > meta[name="description"][content="Sonarr"]), :has(> head >
 
 /* ---------- Dialogen (modals): glas met ronde hoeken ---------------------- */
 /* rand als schaduwring (geen border: die zou de maat met 1px veranderen) */
-html:has(> head > meta[name="description"]:is([content="Sonarr"], [content="Radarr"], [content="Prowlarr"], [content="Lidarr"], [content="Readarr"], [content="Whisparr"])) [class*="ModalContent-modalContent"] {
+html:not(head > meta[name="description"]:is([content="Sonarr"], [content="Radarr"], [content="Prowlarr"], [content="Lidarr"], [content="Readarr"], [content="Whisparr"])) [class*="ModalContent-modalContent"] {
   background-color: var(--alg-glas-sterk) !important;
   border-radius: var(--alg-radius-groot);
   box-shadow: 0 0 0 1px var(--alg-rand-sterk), var(--alg-schaduw);
@@ -105,18 +108,18 @@ html:has(> head > meta[name="description"]:is([content="Sonarr"], [content="Rada
 }
 
 /* ---------- Koppen van formuliersecties: zachte lijn i.p.v. bijna wit ---- */
-html:has(> head > meta[name="description"]:is([content="Sonarr"], [content="Radarr"], [content="Prowlarr"], [content="Lidarr"], [content="Readarr"], [content="Whisparr"])) [class*="FieldSet-legend"] {
+html:not(head > meta[name="description"]:is([content="Sonarr"], [content="Radarr"], [content="Prowlarr"], [content="Lidarr"], [content="Readarr"], [content="Whisparr"])) [class*="FieldSet-legend"] {
   border-bottom-color: var(--alg-rand-sterk) !important;
   color: var(--alg-tekst-sterk);
 }
 
 /* ---------- Vinkjes: donker vak i.p.v. wit, aangevinkt in knopgrijs ----- */
-html:has(> head > meta[name="description"]:is([content="Sonarr"], [content="Radarr"], [content="Prowlarr"], [content="Lidarr"], [content="Readarr"], [content="Whisparr"])) [class*="CheckInput-isNotChecked"] {
+html:not(head > meta[name="description"]:is([content="Sonarr"], [content="Radarr"], [content="Prowlarr"], [content="Lidarr"], [content="Readarr"], [content="Whisparr"])) [class*="CheckInput-isNotChecked"] {
   background-color: var(--alg-veld) !important;
   border-color: rgba(255, 255, 255, .35) !important;
 }
 
-html:has(> head > meta[name="description"]:is([content="Sonarr"], [content="Radarr"], [content="Prowlarr"], [content="Lidarr"], [content="Readarr"], [content="Whisparr"])) [class*="CheckInput-primaryIsChecked"] {
+html:not(head > meta[name="description"]:is([content="Sonarr"], [content="Radarr"], [content="Prowlarr"], [content="Lidarr"], [content="Readarr"], [content="Whisparr"])) [class*="CheckInput-primaryIsChecked"] {
   background-color: var(--alg-knop) !important;
   border-color: var(--alg-accent-kleur) !important;
 }
@@ -124,44 +127,44 @@ html:has(> head > meta[name="description"]:is([content="Sonarr"], [content="Rada
 /* ---------- Zijbalk: subitems iets kleiner ------------------------------ */
 /* monospace is breder: "Media Management" en "Download Clients" liepen
    anders over twee regels */
-html:has(> head > meta[name="description"]:is([content="Sonarr"], [content="Radarr"], [content="Prowlarr"], [content="Lidarr"], [content="Readarr"], [content="Whisparr"])) [class*="PageSidebarItem-childLink"] {
+html:not(head > meta[name="description"]:is([content="Sonarr"], [content="Radarr"], [content="Prowlarr"], [content="Lidarr"], [content="Readarr"], [content="Whisparr"])) [class*="PageSidebarItem-childLink"] {
   font-size: 13px;
 }
 
 /* ---------- Loginpagina (statische html, eigen klassen) ------------------ */
-html:has(> head > meta[name="description"]:is([content="Sonarr"], [content="Radarr"], [content="Prowlarr"], [content="Lidarr"], [content="Readarr"], [content="Whisparr"])) body > .center .panel {
+html:not(head > meta[name="description"]:is([content="Sonarr"], [content="Radarr"], [content="Prowlarr"], [content="Lidarr"], [content="Readarr"], [content="Whisparr"])) body > .center .panel {
   border-radius: var(--alg-radius-groot);
   box-shadow: 0 0 0 1px var(--alg-rand-sterk), var(--alg-schaduw);
 }
 
-html:has(> head > meta[name="description"]:is([content="Sonarr"], [content="Radarr"], [content="Prowlarr"], [content="Lidarr"], [content="Readarr"], [content="Whisparr"])) body > .center .panel-header {
+html:not(head > meta[name="description"]:is([content="Sonarr"], [content="Radarr"], [content="Prowlarr"], [content="Lidarr"], [content="Readarr"], [content="Whisparr"])) body > .center .panel-header {
   background-color: rgba(255, 255, 255, .04);
   border-bottom: 1px solid var(--alg-rand);
   border-radius: var(--alg-radius-groot) var(--alg-radius-groot) 0 0;
 }
 
-html:has(> head > meta[name="description"]:is([content="Sonarr"], [content="Radarr"], [content="Prowlarr"], [content="Lidarr"], [content="Readarr"], [content="Whisparr"])) body > .center .panel-body {
+html:not(head > meta[name="description"]:is([content="Sonarr"], [content="Radarr"], [content="Prowlarr"], [content="Lidarr"], [content="Readarr"], [content="Whisparr"])) body > .center .panel-body {
   border-radius: 0 0 var(--alg-radius-groot) var(--alg-radius-groot);
 }
 
-html:has(> head > meta[name="description"]:is([content="Sonarr"], [content="Radarr"], [content="Prowlarr"], [content="Lidarr"], [content="Readarr"], [content="Whisparr"])) body > .center :is(.form-input, .button) {
+html:not(head > meta[name="description"]:is([content="Sonarr"], [content="Radarr"], [content="Prowlarr"], [content="Lidarr"], [content="Readarr"], [content="Whisparr"])) body > .center :is(.form-input, .button) {
   border-radius: var(--alg-radius);
 }
 
-html:has(> head > meta[name="description"]:is([content="Sonarr"], [content="Radarr"], [content="Prowlarr"], [content="Lidarr"], [content="Readarr"], [content="Whisparr"])) body > .center .button {
+html:not(head > meta[name="description"]:is([content="Sonarr"], [content="Radarr"], [content="Prowlarr"], [content="Lidarr"], [content="Readarr"], [content="Whisparr"])) body > .center .button {
   font-weight: 700;
 }
 
-html:has(> head > meta[name="description"]:is([content="Sonarr"], [content="Radarr"], [content="Prowlarr"], [content="Lidarr"], [content="Readarr"], [content="Whisparr"])) body > .center .button:hover {
+html:not(head > meta[name="description"]:is([content="Sonarr"], [content="Radarr"], [content="Prowlarr"], [content="Lidarr"], [content="Readarr"], [content="Whisparr"])) body > .center .button:hover {
   box-shadow: var(--alg-gloed);
 }
 
 /* "Remember Me" en "Forgot your password?" raakten elkaar in monospace */
-html:has(> head > meta[name="description"]:is([content="Sonarr"], [content="Radarr"], [content="Prowlarr"], [content="Lidarr"], [content="Readarr"], [content="Whisparr"])) body > .center .remember-me {
+html:not(head > meta[name="description"]:is([content="Sonarr"], [content="Radarr"], [content="Prowlarr"], [content="Lidarr"], [content="Readarr"], [content="Whisparr"])) body > .center .remember-me {
   font-size: 13px;
 }
 
-html:has(> head > meta[name="description"]:is([content="Sonarr"], [content="Radarr"], [content="Prowlarr"], [content="Lidarr"], [content="Readarr"], [content="Whisparr"])) body > .center .forgot-password {
+html:not(head > meta[name="description"]:is([content="Sonarr"], [content="Radarr"], [content="Prowlarr"], [content="Lidarr"], [content="Readarr"], [content="Whisparr"])) body > .center .forgot-password {
   font-size: 12px;
 }
 
@@ -169,7 +172,7 @@ html:has(> head > meta[name="description"]:is([content="Sonarr"], [content="Rada
 /* --themeAlternateBlue (wit) alleen gaf #fff tegen #e1e1e1: niet te zien
    op welke pagina je bent. Een vlak en vet (de groep heeft links al een
    witte streep van de app). */
-html:has(> head > meta[name="description"]:is([content="Sonarr"], [content="Radarr"], [content="Prowlarr"], [content="Lidarr"], [content="Readarr"], [content="Whisparr"])) [class*="PageSidebarItem-isActiveLink"] {
+html:not(head > meta[name="description"]:is([content="Sonarr"], [content="Radarr"], [content="Prowlarr"], [content="Lidarr"], [content="Readarr"], [content="Whisparr"])) [class*="PageSidebarItem-isActiveLink"] {
   background-color: var(--alg-rij-actief) !important;
   font-weight: 700;
 }
@@ -177,7 +180,7 @@ html:has(> head > meta[name="description"]:is([content="Sonarr"], [content="Rada
 /* ---------- Pagina-inhoud op licht glas -------------------------------- */
 /* formulieren, tabellen en lege staten stonden rechtstreeks op het netwerk;
    halfdoorzichtig glas houdt ze rustig, het netwerk blijft zwak zichtbaar */
-html:has(> head > meta[name="description"]:is([content="Sonarr"], [content="Radarr"], [content="Prowlarr"], [content="Lidarr"], [content="Readarr"], [content="Whisparr"])) [class*="PageContentBody-contentBody"] {
+html:not(head > meta[name="description"]:is([content="Sonarr"], [content="Radarr"], [content="Prowlarr"], [content="Lidarr"], [content="Readarr"], [content="Whisparr"])) [class*="PageContentBody-contentBody"] {
   background-color: rgba(12, 12, 12, .6);
 }
 

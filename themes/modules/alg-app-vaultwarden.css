@@ -1,5 +1,8 @@
 /* alg-app-vaultwarden.css - gegenereerd uit algemeen.css door scripts/themes/modules.py;
-   niet met de hand aanpassen. Laadt na alg-kern.css (zie themes/README.md). */
+   niet met de hand aanpassen. Laadt na alg-kern.css (zie themes/README.md).
+   Alleen voor de host van deze app: de herkenning html:has(> head > ...) uit
+   algemeen.css staat hier als html:not(head > ...) (altijd waar, zelfde
+   specificiteit, geen herberekening van de hele pagina bij elke DOM-wijziging). */
 /* ==========================================================================
    60 VAULTWARDEN (Bitwarden web-vault, Angular + Tailwind met --color-*)
    Herkenning: het mask-icon met kleur #175DDC (Bitwarden). De vault zet
@@ -11,7 +14,7 @@
    script-src 'self'): zonder aanpassing in NPM laadt dit thema er niet.
    ========================================================================== */
 
-html:has(> head > link[rel="mask-icon"][color="#175DDC" i]) {
+html:not(head > link[rel="mask-icon"][color="#175DDC" i]) {
   color-scheme: dark;
   /* grijsschaal neutraal (Bitwarden's grijzen zijn blauwig) */
   --color-gray-050: #f7f7f7; --color-gray-100: #ebebeb; --color-gray-200: #dadada; --color-gray-300: #bdbdbd;
@@ -125,47 +128,47 @@ html:has(> head > link[rel="mask-icon"][color="#175DDC" i]) {
 
 /* het veld zit in een bit-form-field (of het zoekvak in een
    [bitfieldcontainer]) dat zelf rand en vlak tekent */
-html:has(> head > link[rel="mask-icon"][color="#175DDC" i]) :is(:is(input, textarea, select)[bitinput], [bitfieldcontainer] input) {
+html:not(head > link[rel="mask-icon"][color="#175DDC" i]) :is(:is(input, textarea, select)[bitinput], [bitfieldcontainer] input) {
   background-color: transparent !important;
 }
 
 /* ---------- Paginavlakken doorzichtig: verloop (en netwerk) zichtbaar ---- */
 /* body.layout_frontend zet zijn kleur zelf met !important (loginpagina's) */
-html:has(> head > link[rel="mask-icon"][color="#175DDC" i]) body.layout_frontend {
+html:not(head > link[rel="mask-icon"][color="#175DDC" i]) body.layout_frontend {
   background-color: transparent !important;
 }
 
-html:has(> head > link[rel="mask-icon"][color="#175DDC" i]) :is(main.tw-bg-background, bit-landing-content .tw-bg-background-alt, .tw-min-h-screen.tw-bg-background-alt) {
+html:not(head > link[rel="mask-icon"][color="#175DDC" i]) :is(main.tw-bg-background, bit-landing-content .tw-bg-background-alt, .tw-min-h-screen.tw-bg-background-alt) {
   background-color: transparent !important;
 }
 
 /* zijbalk: donker glas zoals de *arr-apps (geen blur: is geen overlay) */
-html:has(> head > link[rel="mask-icon"][color="#175DDC" i]) bit-side-nav nav.tw-bg-bg-nav {
+html:not(head > link[rel="mask-icon"][color="#175DDC" i]) bit-side-nav nav.tw-bg-bg-nav {
   background-color: var(--alg-glas) !important;
   border-right: 1px solid var(--alg-rand);
 }
 
 /* elk menu-item draagt zelf ook .tw-bg-bg-nav: doorzichtig maken, anders
    staan er grijze blokjes op het glas (hover en actief houden hun kleur) */
-html:has(> head > link[rel="mask-icon"][color="#175DDC" i]) bit-side-nav nav.tw-bg-bg-nav .tw-rounded-xl.tw-bg-bg-nav {
+html:not(head > link[rel="mask-icon"][color="#175DDC" i]) bit-side-nav nav.tw-bg-bg-nav .tw-rounded-xl.tw-bg-bg-nav {
   --color-nav-bg-primary: transparent;
 }
 
 /* kop (logo) en voet plakken boven schuivende items: zelfde glas erover,
    zodat er nooit tekst door de kop heen leest */
-html:has(> head > link[rel="mask-icon"][color="#175DDC" i]) bit-side-nav nav.tw-bg-bg-nav :is(.tw-sticky.tw-top-0, [class*="tw-bottom-0"] > div).tw-bg-bg-nav {
+html:not(head > link[rel="mask-icon"][color="#175DDC" i]) bit-side-nav nav.tw-bg-bg-nav :is(.tw-sticky.tw-top-0, [class*="tw-bottom-0"] > div).tw-bg-bg-nav {
   background-color: var(--alg-glas) !important;
 }
 
 /* ---------- Kaarten, filterpaneel, loginvak: glas ----------------------- */
-html:has(> head > link[rel="mask-icon"][color="#175DDC" i]) :is(bit-landing-content bit-base-card, bit-landing-content .tw-rounded-xl.tw-border, app-vault-filter > div, app-vault-onboarding > div, div:has(> app-vault-items)) {
+html:not(head > link[rel="mask-icon"][color="#175DDC" i]) :is(bit-landing-content bit-base-card, bit-landing-content .tw-rounded-xl.tw-border, app-vault-filter > div, app-vault-onboarding > div, div:has(> app-vault-items)) {
   background-color: var(--alg-glas) !important;
   border-color: var(--alg-rand-sterk) !important;
   border-radius: var(--alg-radius-groot);
 }
 
 /* ---------- Dialogen: glas met ronde hoeken ----------------------------- */
-html:has(> head > link[rel="mask-icon"][color="#175DDC" i]) :is(bit-dialog, bit-simple-dialog) > :is(section, div):first-child {
+html:not(head > link[rel="mask-icon"][color="#175DDC" i]) :is(bit-dialog, bit-simple-dialog) > :is(section, div):first-child {
   background-color: var(--alg-glas-sterk) !important;
   border-color: var(--alg-rand-sterk) !important;
   border-radius: var(--alg-radius-groot) !important;
@@ -175,28 +178,28 @@ html:has(> head > link[rel="mask-icon"][color="#175DDC" i]) :is(bit-dialog, bit-
 }
 
 /* ---------- Knoppen: primair in knopgrijs met witte tekst --------------- */
-html:has(> head > link[rel="mask-icon"][color="#175DDC" i]) :is(button, a)[bitbutton][buttontype="primary"] {
+html:not(head > link[rel="mask-icon"][color="#175DDC" i]) :is(button, a)[bitbutton][buttontype="primary"] {
   background-color: var(--alg-knop) !important;
   border-color: var(--alg-knop) !important;
   color: var(--alg-knop-tekst) !important;
   font-weight: 700;
 }
 
-html:has(> head > link[rel="mask-icon"][color="#175DDC" i]) :is(button, a)[bitbutton][buttontype="primary"]:is(:hover, [aria-expanded="true"]):not([aria-disabled="true"], :disabled) {
+html:not(head > link[rel="mask-icon"][color="#175DDC" i]) :is(button, a)[bitbutton][buttontype="primary"]:is(:hover, [aria-expanded="true"]):not([aria-disabled="true"], :disabled) {
   background-color: var(--alg-knop-hover) !important;
   border-color: var(--alg-knop-hover) !important;
   box-shadow: var(--alg-gloed);
 }
 
 /* ---------- Velden in bit-form-field: het vak tekent zelf rand en focus -- */
-html:has(> head > link[rel="mask-icon"][color="#175DDC" i]) :is(input, textarea, select)[bitinput]:focus-visible {
+html:not(head > link[rel="mask-icon"][color="#175DDC" i]) :is(input, textarea, select)[bitinput]:focus-visible {
   outline: none !important;
   box-shadow: none !important;
 }
 
 /* ---------- Aanmelden: kop en voet zonder dekkende band ----------------- */
 /* de banden (#0e0e0e) sneden verloop en netwerk af bovenaan en onderaan */
-html:has(> head > link[rel="mask-icon"][color="#175DDC" i]) :is(bit-landing-header > header, bit-landing-footer > footer) {
+html:not(head > link[rel="mask-icon"][color="#175DDC" i]) :is(bit-landing-header > header, bit-landing-footer > footer) {
   background-color: transparent !important;
 }
 

@@ -1,5 +1,8 @@
 /* alg-app-node-red.css - gegenereerd uit algemeen.css door scripts/themes/modules.py;
-   niet met de hand aanpassen. Laadt na alg-kern.css (zie themes/README.md). */
+   niet met de hand aanpassen. Laadt na alg-kern.css (zie themes/README.md).
+   Alleen voor de host van deze app: de herkenning html:has(> head > ...) uit
+   algemeen.css staat hier als html:not(head > ...) (altijd waar, zelfde
+   specificiteit, geen herberekening van de hele pagina bij elke DOM-wijziging). */
 /* ==========================================================================
    60 NODE-RED (editor v4)
    Herkenning: het mask-icon red/images/node-red-icon in de kop.
@@ -10,7 +13,7 @@
    Getest met nodered/node-red:latest (v5.0.7; v4 gebruikt dezelfde namen).
    ========================================================================== */
 
-html:has(> head > link[rel="mask-icon"][href^="red/images/node-red-icon"]) {
+html:not(head > link[rel="mask-icon"][href^="red/images/node-red-icon"]) {
   color-scheme: dark;
   /* naar Node-RED nr-theme-dark (Apache-2.0), aangepast aan onze kleuren */
   --red-ui-scrollbar-handle-background: #333; --red-ui-secondary-color: #232323;
@@ -163,7 +166,7 @@ html:has(> head > link[rel="mask-icon"][href^="red/images/node-red-icon"]) {
 
 /* een witte node in het palet (comment) is een kleurvlak, geen paneel:
    de algemene regel voor inline wit (20) zet die anders op glas */
-html:has(> head > link[rel="mask-icon"][href^="red/images/node-red-icon"]) .red-ui-palette-node[style*="background-color: rgb(255, 255, 255)"] {
+html:not(head > link[rel="mask-icon"][href^="red/images/node-red-icon"]) .red-ui-palette-node[style*="background-color: rgb(255, 255, 255)"] {
   background-color: #fff !important;
 }
 
@@ -175,13 +178,13 @@ html:has(> head > link[rel="mask-icon"][href^="red/images/node-red-icon"]) .red-
    waardoor het veld onder het label sprong. */
 
 /* variabele (velden, knoppen) en geërfde letter (labels, tekst) allebei */
-html:has(> head > link[rel="mask-icon"][href^="red/images/node-red-icon"]) :is(.red-ui-tray, .red-ui-editor-dialog, .red-ui-popover, .red-ui-typedInput-options) {
+html:not(head > link[rel="mask-icon"][href^="red/images/node-red-icon"]) :is(.red-ui-tray, .red-ui-editor-dialog, .red-ui-popover, .red-ui-typedInput-options) {
   --red-ui-primary-font: "Helvetica Neue", Arial, Helvetica, sans-serif;
   font-family: var(--red-ui-primary-font);
 }
 
 /* ---------- Menu's, popovers en dialogen: glas met ronde hoeken --------- */
-html:has(> head > link[rel="mask-icon"][href^="red/images/node-red-icon"]) :is(.red-ui-menu-dropdown, .red-ui-menu-dropdown-portaled) {
+html:not(head > link[rel="mask-icon"][href^="red/images/node-red-icon"]) :is(.red-ui-menu-dropdown, .red-ui-menu-dropdown-portaled) {
   background: var(--alg-glas-sterk) !important;
   border-color: var(--alg-rand-sterk) !important;
   border-radius: var(--alg-radius-midden) !important;
@@ -190,7 +193,7 @@ html:has(> head > link[rel="mask-icon"][href^="red/images/node-red-icon"]) :is(.
   backdrop-filter: var(--alg-blur);
 }
 
-html:has(> head > link[rel="mask-icon"][href^="red/images/node-red-icon"]) .ui-dialog.red-ui-editor-dialog {
+html:not(head > link[rel="mask-icon"][href^="red/images/node-red-icon"]) .ui-dialog.red-ui-editor-dialog {
   background: var(--alg-glas-sterk) !important;
   border-color: var(--alg-rand-sterk) !important;
   border-radius: var(--alg-radius-groot) !important;
@@ -199,7 +202,7 @@ html:has(> head > link[rel="mask-icon"][href^="red/images/node-red-icon"]) .ui-d
   backdrop-filter: var(--alg-blur);
 }
 
-html:has(> head > link[rel="mask-icon"][href^="red/images/node-red-icon"]) .red-ui-notification {
+html:not(head > link[rel="mask-icon"][href^="red/images/node-red-icon"]) .red-ui-notification {
   border-radius: var(--alg-radius) !important;
   box-shadow: var(--alg-schaduw-midden) !important;
 }
@@ -209,7 +212,7 @@ html:has(> head > link[rel="mask-icon"][href^="red/images/node-red-icon"]) .red-
    Wij zetten de editorkleuren donker (Monaco's --vscode-variabelen) en de
    tokenkleuren op hun tegenhanger uit "vs-dark" (allemaal 5:1 of meer op
    #0e0e0e). In Node-RED's eigen donkere modus ("vs-dark") gebeurt niets. */
-html:has(> head > link[rel="mask-icon"][href^="red/images/node-red-icon"]) .monaco-editor.vs {
+html:not(head > link[rel="mask-icon"][href^="red/images/node-red-icon"]) .monaco-editor.vs {
   --vscode-editor-background: #0e0e0e !important;
   --vscode-editor-foreground: #d4d4d4 !important;
   --vscode-editorGutter-background: #0e0e0e !important;
@@ -276,72 +279,72 @@ html:has(> head > link[rel="mask-icon"][href^="red/images/node-red-icon"]) .mona
 
 /* tokens: eerst alles licht (vangnet als de nummering ooit verschuift),
    dan per klasse de kleur uit vs-dark */
-html:has(> head > link[rel="mask-icon"][href^="red/images/node-red-icon"]) .monaco-editor.vs [class*="mtk"] { color: #d4d4d4; }
-html:has(> head > link[rel="mask-icon"][href^="red/images/node-red-icon"]) .monaco-editor.vs .mtk2 { color: #0e0e0e; }
-html:has(> head > link[rel="mask-icon"][href^="red/images/node-red-icon"]) .monaco-editor.vs :is(.mtk3, .mtk10) { color: #9a9a9a; }
-html:has(> head > link[rel="mask-icon"][href^="red/images/node-red-icon"]) .monaco-editor.vs :is(.mtk4, .mtk12) { color: #9cdcfe; }
-html:has(> head > link[rel="mask-icon"][href^="red/images/node-red-icon"]) .monaco-editor.vs :is(.mtk5, .mtk20) { color: #ce9178; }
-html:has(> head > link[rel="mask-icon"][href^="red/images/node-red-icon"]) .monaco-editor.vs :is(.mtk6, .mtk9) { color: #569cd6; }
-html:has(> head > link[rel="mask-icon"][href^="red/images/node-red-icon"]) .monaco-editor.vs .mtk7 { color: #b5cea8; }
-html:has(> head > link[rel="mask-icon"][href^="red/images/node-red-icon"]) .monaco-editor.vs .mtk8 { color: #7ca668; }
-html:has(> head > link[rel="mask-icon"][href^="red/images/node-red-icon"]) .monaco-editor.vs .mtk11 { color: #f44747; }
-html:has(> head > link[rel="mask-icon"][href^="red/images/node-red-icon"]) .monaco-editor.vs .mtk13 { color: #c586c0; }
-html:has(> head > link[rel="mask-icon"][href^="red/images/node-red-icon"]) .monaco-editor.vs .mtk14 { color: #d7a0c4; }
-html:has(> head > link[rel="mask-icon"][href^="red/images/node-red-icon"]) .monaco-editor.vs .mtk15 { color: #dd6a6f; }
-html:has(> head > link[rel="mask-icon"][href^="red/images/node-red-icon"]) .monaco-editor.vs .mtk16 { color: #5bb498; }
-html:has(> head > link[rel="mask-icon"][href^="red/images/node-red-icon"]) .monaco-editor.vs .mtk17 { color: #909090; }
-html:has(> head > link[rel="mask-icon"][href^="red/images/node-red-icon"]) .monaco-editor.vs .mtk18 { color: #778899; }
-html:has(> head > link[rel="mask-icon"][href^="red/images/node-red-icon"]) .monaco-editor.vs .mtk19 { color: #ff79ff; }
-html:has(> head > link[rel="mask-icon"][href^="red/images/node-red-icon"]) .monaco-editor.vs .mtk21 { color: #7fa6dc; }
-html:has(> head > link[rel="mask-icon"][href^="red/images/node-red-icon"]) .monaco-editor.vs .mtk22 { color: #3dc9b0; }
-html:has(> head > link[rel="mask-icon"][href^="red/images/node-red-icon"]) .monaco-editor.vs .mtk23 { color: #74b0df; }
-html:has(> head > link[rel="mask-icon"][href^="red/images/node-red-icon"]) .monaco-editor.vs .mtk24 { color: #8fa8e0; }
+html:not(head > link[rel="mask-icon"][href^="red/images/node-red-icon"]) .monaco-editor.vs [class*="mtk"] { color: #d4d4d4; }
+html:not(head > link[rel="mask-icon"][href^="red/images/node-red-icon"]) .monaco-editor.vs .mtk2 { color: #0e0e0e; }
+html:not(head > link[rel="mask-icon"][href^="red/images/node-red-icon"]) .monaco-editor.vs :is(.mtk3, .mtk10) { color: #9a9a9a; }
+html:not(head > link[rel="mask-icon"][href^="red/images/node-red-icon"]) .monaco-editor.vs :is(.mtk4, .mtk12) { color: #9cdcfe; }
+html:not(head > link[rel="mask-icon"][href^="red/images/node-red-icon"]) .monaco-editor.vs :is(.mtk5, .mtk20) { color: #ce9178; }
+html:not(head > link[rel="mask-icon"][href^="red/images/node-red-icon"]) .monaco-editor.vs :is(.mtk6, .mtk9) { color: #569cd6; }
+html:not(head > link[rel="mask-icon"][href^="red/images/node-red-icon"]) .monaco-editor.vs .mtk7 { color: #b5cea8; }
+html:not(head > link[rel="mask-icon"][href^="red/images/node-red-icon"]) .monaco-editor.vs .mtk8 { color: #7ca668; }
+html:not(head > link[rel="mask-icon"][href^="red/images/node-red-icon"]) .monaco-editor.vs .mtk11 { color: #f44747; }
+html:not(head > link[rel="mask-icon"][href^="red/images/node-red-icon"]) .monaco-editor.vs .mtk13 { color: #c586c0; }
+html:not(head > link[rel="mask-icon"][href^="red/images/node-red-icon"]) .monaco-editor.vs .mtk14 { color: #d7a0c4; }
+html:not(head > link[rel="mask-icon"][href^="red/images/node-red-icon"]) .monaco-editor.vs .mtk15 { color: #dd6a6f; }
+html:not(head > link[rel="mask-icon"][href^="red/images/node-red-icon"]) .monaco-editor.vs .mtk16 { color: #5bb498; }
+html:not(head > link[rel="mask-icon"][href^="red/images/node-red-icon"]) .monaco-editor.vs .mtk17 { color: #909090; }
+html:not(head > link[rel="mask-icon"][href^="red/images/node-red-icon"]) .monaco-editor.vs .mtk18 { color: #778899; }
+html:not(head > link[rel="mask-icon"][href^="red/images/node-red-icon"]) .monaco-editor.vs .mtk19 { color: #ff79ff; }
+html:not(head > link[rel="mask-icon"][href^="red/images/node-red-icon"]) .monaco-editor.vs .mtk21 { color: #7fa6dc; }
+html:not(head > link[rel="mask-icon"][href^="red/images/node-red-icon"]) .monaco-editor.vs .mtk22 { color: #3dc9b0; }
+html:not(head > link[rel="mask-icon"][href^="red/images/node-red-icon"]) .monaco-editor.vs .mtk23 { color: #74b0df; }
+html:not(head > link[rel="mask-icon"][href^="red/images/node-red-icon"]) .monaco-editor.vs .mtk24 { color: #8fa8e0; }
 
 /* vaste kleuren uit Monaco's thema "vs" (niet via variabelen) */
-html:has(> head > link[rel="mask-icon"][href^="red/images/node-red-icon"]) .monaco-editor.vs .inputarea.ime-input {
+html:not(head > link[rel="mask-icon"][href^="red/images/node-red-icon"]) .monaco-editor.vs .inputarea.ime-input {
   background-color: #0e0e0e !important;
 }
 
-html:has(> head > link[rel="mask-icon"][href^="red/images/node-red-icon"]) .monaco-editor.vs :is(.view-overlays .current-line-exact, .margin-view-overlays .current-line-exact-margin) {
+html:not(head > link[rel="mask-icon"][href^="red/images/node-red-icon"]) .monaco-editor.vs :is(.view-overlays .current-line-exact, .margin-view-overlays .current-line-exact-margin) {
   border-color: #282828 !important;
 }
 
-html:has(> head > link[rel="mask-icon"][href^="red/images/node-red-icon"]) .monaco-editor.vs .lines-content .core-guide-indent {
+html:not(head > link[rel="mask-icon"][href^="red/images/node-red-icon"]) .monaco-editor.vs .lines-content .core-guide-indent {
   --indent-color: #404040 !important;
   --indent-color-active: #707070 !important;
 }
 
-html:has(> head > link[rel="mask-icon"][href^="red/images/node-red-icon"]) .monaco-editor.vs .bracket-indent-guide {
+html:not(head > link[rel="mask-icon"][href^="red/images/node-red-icon"]) .monaco-editor.vs .bracket-indent-guide {
   --guide-color: rgba(255, 255, 255, .15) !important;
   --guide-color-active: rgba(255, 255, 255, .45) !important;
 }
 
-html:has(> head > link[rel="mask-icon"][href^="red/images/node-red-icon"]) .monaco-editor.vs .line-numbers.dimmed-line-number {
+html:not(head > link[rel="mask-icon"][href^="red/images/node-red-icon"]) .monaco-editor.vs .line-numbers.dimmed-line-number {
   color: rgba(133, 133, 133, .55) !important;
 }
 
-html:has(> head > link[rel="mask-icon"][href^="red/images/node-red-icon"]) .monaco-editor.vs .cursors-layer :is(.cursor, .cursor-primary, .cursor-secondary) {
+html:not(head > link[rel="mask-icon"][href^="red/images/node-red-icon"]) .monaco-editor.vs .cursors-layer :is(.cursor, .cursor-primary, .cursor-secondary) {
   background-color: #fff !important;
   border-color: #fff !important;
   color: #000 !important;
 }
 
 /* haakjes in drie kleuren (zoals vs-dark), het patroon herhaalt per 3 */
-html:has(> head > link[rel="mask-icon"][href^="red/images/node-red-icon"]) .monaco-editor.vs [class*="bracket-highlighting-"] { color: #ffd700 !important; }
-html:has(> head > link[rel="mask-icon"][href^="red/images/node-red-icon"]) .monaco-editor.vs :is(.bracket-highlighting-1, .bracket-highlighting-4, .bracket-highlighting-7, .bracket-highlighting-10, .bracket-highlighting-13, .bracket-highlighting-16, .bracket-highlighting-19, .bracket-highlighting-22, .bracket-highlighting-25, .bracket-highlighting-28) { color: #da70d6 !important; }
-html:has(> head > link[rel="mask-icon"][href^="red/images/node-red-icon"]) .monaco-editor.vs :is(.bracket-highlighting-2, .bracket-highlighting-5, .bracket-highlighting-8, .bracket-highlighting-11, .bracket-highlighting-14, .bracket-highlighting-17, .bracket-highlighting-20, .bracket-highlighting-23, .bracket-highlighting-26, .bracket-highlighting-29) { color: #179fff !important; }
-html:has(> head > link[rel="mask-icon"][href^="red/images/node-red-icon"]) .monaco-editor.vs .unexpected-closing-bracket { color: #f44747 !important; }
+html:not(head > link[rel="mask-icon"][href^="red/images/node-red-icon"]) .monaco-editor.vs [class*="bracket-highlighting-"] { color: #ffd700 !important; }
+html:not(head > link[rel="mask-icon"][href^="red/images/node-red-icon"]) .monaco-editor.vs :is(.bracket-highlighting-1, .bracket-highlighting-4, .bracket-highlighting-7, .bracket-highlighting-10, .bracket-highlighting-13, .bracket-highlighting-16, .bracket-highlighting-19, .bracket-highlighting-22, .bracket-highlighting-25, .bracket-highlighting-28) { color: #da70d6 !important; }
+html:not(head > link[rel="mask-icon"][href^="red/images/node-red-icon"]) .monaco-editor.vs :is(.bracket-highlighting-2, .bracket-highlighting-5, .bracket-highlighting-8, .bracket-highlighting-11, .bracket-highlighting-14, .bracket-highlighting-17, .bracket-highlighting-20, .bracket-highlighting-23, .bracket-highlighting-26, .bracket-highlighting-29) { color: #179fff !important; }
+html:not(head > link[rel="mask-icon"][href^="red/images/node-red-icon"]) .monaco-editor.vs .unexpected-closing-bracket { color: #f44747 !important; }
 
 /* minikaart rechts: een canvas die Monaco zelf tekent in de kleuren van "vs"
    (wit vlak); variabelen komen daar niet aan, een filter op een canvas mag
    niet. De houder sterk gedempt (de witte strook wordt donkergrijs, het
    klikken en slepen blijft werken). Mooiste oplossing buiten CSS: in
    settings.js editorTheme.codeEditor.options.theme = "vs-dark". */
-html:has(> head > link[rel="mask-icon"][href^="red/images/node-red-icon"]) .monaco-editor.vs .minimap {
+html:not(head > link[rel="mask-icon"][href^="red/images/node-red-icon"]) .monaco-editor.vs .minimap {
   opacity: .15;
 }
 
-html:has(> head > link[rel="mask-icon"][href^="red/images/node-red-icon"]) .monaco-editor.vs .decorationsOverviewRuler {
+html:not(head > link[rel="mask-icon"][href^="red/images/node-red-icon"]) .monaco-editor.vs .decorationsOverviewRuler {
   opacity: .25;
 }
 

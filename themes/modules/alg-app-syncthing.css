@@ -1,5 +1,8 @@
 /* alg-app-syncthing.css - gegenereerd uit algemeen.css door scripts/themes/modules.py;
-   niet met de hand aanpassen. Laadt na alg-kern.css (zie themes/README.md). */
+   niet met de hand aanpassen. Laadt na alg-kern.css (zie themes/README.md).
+   Alleen voor de host van deze app: de herkenning html:has(> head > ...) uit
+   algemeen.css staat hier als html:not(head > ...) (altijd waar, zelfde
+   specificiteit, geen herberekening van de hele pagina bij elke DOM-wijziging). */
 /* ==========================================================================
    60 SYNCTHING (v2, AngularJS 1 + Bootstrap 3)
    Bootstrap 3 (30) doet het meeste. Hier de eigen onderdelen uit Syncthings

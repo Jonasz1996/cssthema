@@ -1,5 +1,8 @@
 /* alg-app-nginx-proxy-manager.css - gegenereerd uit algemeen.css door scripts/themes/modules.py;
-   niet met de hand aanpassen. Laadt na alg-kern.css (zie themes/README.md). */
+   niet met de hand aanpassen. Laadt na alg-kern.css (zie themes/README.md).
+   Alleen voor de host van deze app: de herkenning html:has(> head > ...) uit
+   algemeen.css staat hier als html:not(head > ...) (altijd waar, zelfde
+   specificiteit, geen herberekening van de hele pagina bij elke DOM-wijziging). */
 /* ==========================================================================
    60 NGINX PROXY MANAGER (v2.13+, React + Tabler 1.x)
    Getest met v2.16.0: login, dashboard, proxy hosts, rij-menu, Edit-dialoog
@@ -13,8 +16,8 @@
    paar schakelvariabelen. Die op "donker" zetten geeft overal NPM's eigen
    donkere kleuren (ook waar wij geen variabele overschrijven), ongeacht de
    lichte/donkere knop in NPM. */
-html:has(> head > meta[name="description"][content^="Manage Nginx hosts"]),
-html:has(> head > meta[name="description"][content^="Manage Nginx hosts"]) > body {
+html:not(head > meta[name="description"][content^="Manage Nginx hosts"]),
+html:not(head > meta[name="description"][content^="Manage Nginx hosts"]) > body {
   --lightningcss-light: !important;
   --lightningcss-dark: initial !important;
 }
@@ -23,9 +26,9 @@ html:has(> head > meta[name="description"][content^="Manage Nginx hosts"]) > bod
 /* NPM kleurt per onderdeel (limoen proxy hosts, geel redirections, blauw
    streams, rood 404, azuur login). In de stijl van allow: grijze knop met
    gloed. Rood/danger in dialogen (verwijderen bevestigen) blijft rood. */
-html:has(> head > meta[name="description"][content^="Manage Nginx hosts"]) .btn:is(.btn-lime, .btn-yellow, .btn-blue, .btn-teal, .btn-cyan,
+html:not(head > meta[name="description"][content^="Manage Nginx hosts"]) .btn:is(.btn-lime, .btn-yellow, .btn-blue, .btn-teal, .btn-cyan,
     .btn-pink, .btn-orange, .btn-azure, .btn-green, .btn-purple, .btn-indigo),
-html:has(> head > meta[name="description"][content^="Manage Nginx hosts"]) .btn.btn-red:not(.modal *) {
+html:not(head > meta[name="description"][content^="Manage Nginx hosts"]) .btn.btn-red:not(.modal *) {
   --tblr-btn-bg: var(--alg-knop) !important;
   --tblr-btn-color: var(--alg-knop-tekst) !important;
   --tblr-btn-border-color: transparent !important;
@@ -39,16 +42,16 @@ html:has(> head > meta[name="description"][content^="Manage Nginx hosts"]) .btn.
   font-weight: 700;
 }
 
-html:has(> head > meta[name="description"][content^="Manage Nginx hosts"]) .btn:is(.btn-lime, .btn-yellow, .btn-blue, .btn-teal, .btn-cyan,
+html:not(head > meta[name="description"][content^="Manage Nginx hosts"]) .btn:is(.btn-lime, .btn-yellow, .btn-blue, .btn-teal, .btn-cyan,
     .btn-pink, .btn-orange, .btn-azure, .btn-green, .btn-purple, .btn-indigo):hover,
-html:has(> head > meta[name="description"][content^="Manage Nginx hosts"]) .btn.btn-red:not(.modal *):hover {
+html:not(head > meta[name="description"][content^="Manage Nginx hosts"]) .btn.btn-red:not(.modal *):hover {
   box-shadow: var(--alg-gloed) !important;
 }
 
 /* ---------- Hamburger op een smal scherm -------------------------------- */
 /* Tabler tekent de streepjes met currentColor (al licht); de basis (30)
    inverteert het icoon voor Bootstraps donkere svg, wat ze hier donker maakt */
-html:has(> head > meta[name="description"][content^="Manage Nginx hosts"]) .navbar-toggler-icon {
+html:not(head > meta[name="description"][content^="Manage Nginx hosts"]) .navbar-toggler-icon {
   filter: none;
 }
 
@@ -173,7 +176,7 @@ html:has(> head > meta[name="description"][content^="Manage Nginx hosts"]) .navb
 /* ---------- Statusbalk boven de kaarten --------------------------------- */
 /* NPM kleurt hem per onderdeel (limoen bij Proxy Hosts), net als de
    actieknoppen: decoratief, dus grijs zoals de rest */
-html:has(> head > meta[name="description"][content^="Manage Nginx hosts"]) .card-status-top {
+html:not(head > meta[name="description"][content^="Manage Nginx hosts"]) .card-status-top {
   background-color: var(--alg-rand-hover) !important;
 }
 

@@ -1,5 +1,8 @@
 /* alg-app-jellyfin.css - gegenereerd uit algemeen.css door scripts/themes/modules.py;
-   niet met de hand aanpassen. Laadt na alg-kern.css (zie themes/README.md). */
+   niet met de hand aanpassen. Laadt na alg-kern.css (zie themes/README.md).
+   Alleen voor de host van deze app: de herkenning html:has(> head > ...) uit
+   algemeen.css staat hier als html:not(head > ...) (altijd waar, zelfde
+   specificiteit, geen herberekening van de hele pagina bij elke DOM-wijziging). */
 /* ==========================================================================
    60 JELLYFIN (jellyfin-web 10.9+ / 12, eigen UI + MUI-dashboard)
    Herkenning: meta application-name "Jellyfin" in de kop.
@@ -14,7 +17,7 @@
    instellingen (weergave), contextmenu, login, opstartwizard.
    ========================================================================== */
 
-html:has(> head > meta[name="application-name"][content="Jellyfin"]) {
+html:not(head > meta[name="application-name"][content="Jellyfin"]) {
   color-scheme: dark;
   /* hoofdkleur: grijs (naar ons accent) */
   --jf-palette-primary-main: #aaa;
@@ -83,13 +86,13 @@ html:has(> head > meta[name="application-name"][content="Jellyfin"]) {
 /* ---------- Pagina ----------------------------------------------------- */
 /* de vaste achtergrondlaag doorzichtig (niet bij een achtergrondfoto van
    een item: die heeft .withBackdrop en blijft) */
-html:has(> head > meta[name="application-name"][content="Jellyfin"]) .backgroundContainer:not(.withBackdrop) {
+html:not(head > meta[name="application-name"][content="Jellyfin"]) .backgroundContainer:not(.withBackdrop) {
   background-color: transparent !important;
   background-image: none !important;
 }
 
 /* kopbalk met achtergrond (na scrollen, dashboard): glas */
-html:has(> head > meta[name="application-name"][content="Jellyfin"]) .skinHeader-withBackground {
+html:not(head > meta[name="application-name"][content="Jellyfin"]) .skinHeader-withBackground {
   -webkit-backdrop-filter: var(--alg-blur);
   backdrop-filter: var(--alg-blur);
 }
@@ -97,14 +100,14 @@ html:has(> head > meta[name="application-name"][content="Jellyfin"]) .skinHeader
 /* sectietitels die een link zijn (Onlangs toegevoegd aan ...): het bredere
    monospace lettertype laat ze op smalle schermen omslaan; dan links
    uitlijnen zoals de andere titels in plaats van gecentreerd */
-html:has(> head > meta[name="application-name"][content="Jellyfin"]) .sectionTitleTextButton {
+html:not(head > meta[name="application-name"][content="Jellyfin"]) .sectionTitleTextButton {
   text-align: start;
 }
 
 /* ---------- Tegels ----------------------------------------------------- */
 /* .card is in Jellyfin een tegelhouder, geen Bootstrap-kaart: geen glasvlak
    en schaduw achter posters (die komen anders uit 30-bootstrap) */
-html:has(> head > meta[name="application-name"][content="Jellyfin"]) .card {
+html:not(head > meta[name="application-name"][content="Jellyfin"]) .card {
   background-color: transparent !important;
   box-shadow: none !important;
   border-radius: 0 !important;
@@ -112,18 +115,18 @@ html:has(> head > meta[name="application-name"][content="Jellyfin"]) .card {
 
 /* tegels zonder afbeelding: grijstinten in plaats van fel blauw (witte
    tekst en iconen blijven leesbaar) */
-html:has(> head > meta[name="application-name"][content="Jellyfin"]) :is(.defaultCardBackground1, .defaultCardBackground4) { background-color: #2a2a2a !important; }
-html:has(> head > meta[name="application-name"][content="Jellyfin"]) :is(.defaultCardBackground2, .defaultCardBackground5) { background-color: #333 !important; }
-html:has(> head > meta[name="application-name"][content="Jellyfin"]) .defaultCardBackground3 { background-color: #3a3a3a !important; }
+html:not(head > meta[name="application-name"][content="Jellyfin"]) :is(.defaultCardBackground1, .defaultCardBackground4) { background-color: #2a2a2a !important; }
+html:not(head > meta[name="application-name"][content="Jellyfin"]) :is(.defaultCardBackground2, .defaultCardBackground5) { background-color: #333 !important; }
+html:not(head > meta[name="application-name"][content="Jellyfin"]) .defaultCardBackground3 { background-color: #3a3a3a !important; }
 
 /* ---------- Velden, knoppen, menu's ------------------------------------ */
 /* afronding zoals allow */
-html:has(> head > meta[name="application-name"][content="Jellyfin"]) :is(.emby-input, .emby-textarea, .emby-select-withcolor, .button-submit, .raised:not(.fab)) {
+html:not(head > meta[name="application-name"][content="Jellyfin"]) :is(.emby-input, .emby-textarea, .emby-select-withcolor, .button-submit, .raised:not(.fab)) {
   border-radius: var(--alg-radius) !important;
 }
 
 /* actiemenu (drie puntjes) en dialogen: sterk glas met dunne rand */
-html:has(> head > meta[name="application-name"][content="Jellyfin"]) .dialog:is(.actionSheet, .formDialog) {
+html:not(head > meta[name="application-name"][content="Jellyfin"]) .dialog:is(.actionSheet, .formDialog) {
   background-color: var(--alg-glas-sterk) !important;
   box-shadow: inset 0 0 0 1px var(--alg-rand-sterk), var(--alg-schaduw) !important;
   border-radius: var(--alg-radius) !important;
@@ -133,25 +136,25 @@ html:has(> head > meta[name="application-name"][content="Jellyfin"]) .dialog:is(
 
 /* hoofdknop (Aanmelden, Volgende, Opslaan): onze grijze knop met witte
    tekst in plaats van het lichtgrijze hoofdkleurvlak */
-html:has(> head > meta[name="application-name"][content="Jellyfin"]) .button-submit:not(:disabled) {
+html:not(head > meta[name="application-name"][content="Jellyfin"]) .button-submit:not(:disabled) {
   background: var(--alg-knop) !important;
   color: var(--alg-knop-tekst) !important;
 }
 
-html:has(> head > meta[name="application-name"][content="Jellyfin"]) .button-submit:not(:disabled):hover {
+html:not(head > meta[name="application-name"][content="Jellyfin"]) .button-submit:not(:disabled):hover {
   background: var(--alg-knop-hover) !important;
   box-shadow: var(--alg-gloed);
 }
 
 /* blauwe accenten die (nog) niet via de variabelen lopen */
-html:has(> head > meta[name="application-name"][content="Jellyfin"]) :is(.listItemIcon:not(.listItemIcon-transparent), progress[aria-valuenow]::before) {
+html:not(head > meta[name="application-name"][content="Jellyfin"]) :is(.listItemIcon:not(.listItemIcon-transparent), progress[aria-valuenow]::before) {
   background-color: #555 !important;
 }
 
 /* keuzelijsten in de instellingen (MUI "filled"): 33 geeft ze 6 % wit, op
    Jellyfins doorzichtige pagina liep het netwerk door de velden; hier het
    donkere veld zoals overal */
-html:has(> head > meta[name="application-name"][content="Jellyfin"]) .MuiFilledInput-root {
+html:not(head > meta[name="application-name"][content="Jellyfin"]) .MuiFilledInput-root {
   background-color: var(--alg-veld) !important;
 }
 

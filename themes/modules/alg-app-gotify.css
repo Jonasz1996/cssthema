@@ -1,5 +1,8 @@
 /* alg-app-gotify.css - gegenereerd uit algemeen.css door scripts/themes/modules.py;
-   niet met de hand aanpassen. Laadt na alg-kern.css (zie themes/README.md). */
+   niet met de hand aanpassen. Laadt na alg-kern.css (zie themes/README.md).
+   Alleen voor de host van deze app: de herkenning html:has(> head > ...) uit
+   algemeen.css staat hier als html:not(head > ...) (altijd waar, zelfde
+   specificiteit, geen herberekening van de hele pagina bij elke DOM-wijziging). */
 /* ==========================================================================
    60 GOTIFY (React + MUI v6, eigen wissel licht/donker; standaard licht)
    Getest (berichten, apps, gebruikers, dialoog "app maken", login): MUI (33)
