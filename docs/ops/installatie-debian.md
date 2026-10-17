@@ -216,7 +216,7 @@ more_set_input_headers "Accept-Encoding: $ct_ae";
 # /cssthema
 ```
 
-- `sub_filter` werkt alleen op HTML die niet gecomprimeerd is. De laatste drie regels halen `Accept-Encoding` weg bij paginaverzoeken (de browser vraagt `text/html`), zodat de app die pagina ongecomprimeerd stuurt; scripts, CSS en JSON van de app blijven gecomprimeerd. Een `proxy_set_header Accept-Encoding ""` in Advanced werkt in NPM niet: de eigen `location /` van NPM zet zijn eigen `proxy_set_header`-regels, en dan gelden die van de server niet meer. `more_set_input_headers` wel (getest op NPM 2.16).
+- `sub_filter` werkt alleen op HTML die niet gecomprimeerd is. De laatste drie regels halen `Accept-Encoding` weg bij paginaverzoeken (de browser vraagt `text/html`), zodat de app die pagina ongecomprimeerd stuurt; scripts, CSS en JSON van de app blijven gecomprimeerd. Een `proxy_set_header Accept-Encoding ""` in Advanced werkt in NPM niet: de eigen `location /` van NPM zet zijn eigen `proxy_set_header`-regels, en dan gelden die van de server niet meer. `more_set_input_headers` wel (getest op NPM 2.16). Gevolg: ook NPM zelf comprimeert die HTML-pagina's niet meer, want zijn `gzip` kijkt naar dezelfde header. Dat kost wat bandbreedte bij grote pagina's; scripts, CSS, afbeeldingen en JSON blijven gecomprimeerd.
 - De regel heeft geen `location /`, dus de `location /` van NPM blijft, met de Access List en de websockets van die host.
 - `# cssthema…` en `# /cssthema` markeren het blok, zodat [`scripts/npm/regel.py`](../../scripts/npm/README.md) het in elke host kan vinden en vervangen.
 - Zet de regel in elke proxy host apart, niet in de globale `server_proxy.conf` van NPM: die geldt voor elke host, ook voor de hosts die de regel nooit mogen krijgen.
