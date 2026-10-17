@@ -2974,6 +2974,9 @@
               }
             }
           },
+          "304": {
+            "description": "Niet gewijzigd (If-None-Match)"
+          },
           "404": {
             "description": "Niet gevonden",
             "content": {

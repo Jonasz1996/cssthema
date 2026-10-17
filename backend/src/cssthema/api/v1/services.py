@@ -1,9 +1,10 @@
 """Diensten en snapshots uit de capture-zips van vastleggen.py (stappenplan D1/D2)."""
 
+import hashlib
 import uuid
 from typing import Annotated, Any
 
-from fastapi import APIRouter, File, Response, UploadFile, status
+from fastapi import APIRouter, File, Request, Response, UploadFile, status
 
 from cssthema.api.deps import Ctx
 from cssthema.api.errors import Problem
@@ -59,10 +60,23 @@ async def delete_service(service_id: uuid.UUID, ctx: Ctx) -> Response:
     response_model=SnapshotDocument,
     operation_id="snapshots_document",
     summary="HTML en stylesheets van een snapshot, voor de preview in de editor",
-    responses=_NOT_FOUND,
+    responses={304: {"description": "Niet gewijzigd (If-None-Match)"}, **_NOT_FOUND},
 )
-async def snapshot_document(snapshot_id: uuid.UUID, ctx: Ctx) -> SnapshotDocument:
-    return await service_catalog.snapshot_document(ctx, snapshot_id)
+async def snapshot_document(snapshot_id: uuid.UUID, request: Request, ctx: Ctx) -> Response:
+    # Tot 1,6 MB per document. Het id blijft bij een nieuwe import van dezelfde pagina, de
+    # inhoud niet: dus geen `immutable`, wel een ETag op de inhoud zodat de browser bij elke
+    # editor-load alleen een 304 krijgt.
+    document = await service_catalog.snapshot_document(ctx, snapshot_id)
+    body = document.model_dump_json().encode("utf-8")
+    etag = f'"sha256-{hashlib.sha256(body).hexdigest()[:32]}"'
+    headers = {"ETag": etag, "Cache-Control": "private, no-cache"}
+    if_none_match = request.headers.get("if-none-match")
+    # nginx maakt de ETag zwak (`W/`) als hij de response comprimeert.
+    if if_none_match is not None and any(
+        part.strip().removeprefix("W/") in (etag, "*") for part in if_none_match.split(",")
+    ):
+        return Response(status_code=status.HTTP_304_NOT_MODIFIED, headers=headers)
+    return Response(body, media_type="application/json", headers=headers)
 
 
 @router.get(

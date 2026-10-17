@@ -57,7 +57,9 @@ export const snapshotDocumentQuery = (snapshotId: string) =>
     queryKey: serviceKeys.document(snapshotId),
     queryFn: ({ signal }) => fetchSnapshotDocument(snapshotId, signal),
     retry: shouldRetry,
-    // Een snapshot verandert nooit (een nieuwe import maakt een nieuwe).
+    // Een snapshot verandert alleen door een nieuwe import van dezelfde pagina (zelfde id);
+    // `useImportCapture` maakt de documenten dan ongeldig. De server stuurt een ETag, dus een
+    // nieuwe editor-load kost alleen een 304.
     staleTime: Infinity,
   });
 
@@ -78,7 +80,8 @@ export function useImportCapture() {
   const queryClient = useQueryClient();
   return useMutation<CaptureImportResult, ApiError, File>({
     mutationFn: importCapture,
-    onSettled: () => queryClient.invalidateQueries({ queryKey: serviceKeys.list() }),
+    // Ook de documenten: een nieuwe import werkt bestaande snapshots bij onder hetzelfde id.
+    onSettled: () => queryClient.invalidateQueries({ queryKey: serviceKeys.all }),
   });
 }
 

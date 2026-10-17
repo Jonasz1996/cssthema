@@ -4009,6 +4009,13 @@ export interface operations {
                     "application/json": components["schemas"]["SnapshotDocument"];
                 };
             };
+            /** @description Niet gewijzigd (If-None-Match) */
+            304: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
             /** @description Niet gevonden */
             404: {
                 headers: {

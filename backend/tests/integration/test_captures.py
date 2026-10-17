@@ -462,6 +462,29 @@ async def test_cleanup_keeps_favicons(api: Api) -> None:
 # --- preview-document -----------------------------------------------------------------------
 
 
+async def test_snapshot_document_has_an_etag_and_answers_304(api: Api) -> None:
+    name = host()
+    await upload(api, capture_zip(name))
+    snapshot_id = (await service_of(api, name))["snapshots"][0]["id"]
+    url = f"/api/v1/snapshots/{snapshot_id}/document"
+    response = await api.client.get(url)
+    etag = response.headers["ETag"]
+    assert response.headers["Cache-Control"] == "private, no-cache"
+
+    for header in (etag, f"W/{etag}", f'"x", {etag}'):
+        cached = await api.client.get(url, headers={"If-None-Match": header})
+        assert cached.status_code == 304
+        assert cached.headers["ETag"] == etag
+        assert cached.content == b""
+
+    # Zelfde id, nieuwe inhoud na een nieuwe import: andere ETag, dus de nieuwe versie.
+    await upload(api, capture_zip(name, html_body="Bijgewerkt"))
+    fresh = await api.client.get(url, headers={"If-None-Match": etag})
+    assert fresh.status_code == 200
+    assert fresh.headers["ETag"] != etag
+    assert "Bijgewerkt" in fresh.json()["html"]
+
+
 async def test_pages_of_one_import_are_listed_in_a_fixed_order(api: Api) -> None:
     name = host()
     folder = name.replace(".", "-")

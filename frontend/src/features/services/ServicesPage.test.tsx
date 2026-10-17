@@ -1,9 +1,11 @@
 import { fireEvent, screen, waitFor, within } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import { json, noContent, problem } from "@/api/testing/fetch-mock";
+import { serviceKeys } from "@/api/queries/keys";
 import {
   makeCaptureImportResult,
   makeServiceSummary,
+  makeSnapshotDocument,
   makeSnapshotSummary,
   testId,
 } from "@/api/testing/fixtures";
@@ -299,7 +301,7 @@ describe("ServicesPage", () => {
     expect(screen.getByRole("button", { name: "1 zip uploaden" })).toBeEnabled();
   });
 
-  it("toont welke pagina's hun vorige snapshot hielden", async () => {
+  it("toont welke pagina's hun vorige snapshot hielden en haalt de documenten opnieuw op", async () => {
     const api = server().on("POST", "/api/v1/captures", () =>
       json(
         makeCaptureImportResult({
@@ -309,8 +311,9 @@ describe("ServicesPage", () => {
         }),
       ),
     );
-    renderPage(<ServicesPage />, { path: "/services", server: api });
+    const { queryClient } = renderPage(<ServicesPage />, { path: "/services", server: api });
     await screen.findByRole("article", { name: "Proxmox" });
+    queryClient.setQueryData(serviceKeys.document(testId(11)), makeSnapshotDocument());
 
     pick(screen.getByTestId("capture-input"), [zipFile("vastgelegd-deel1.zip")]);
     fireEvent.click(screen.getByRole("button", { name: "1 zip uploaden" }));
@@ -327,6 +330,8 @@ describe("ServicesPage", () => {
     expect(within(kept!).getByText("vault.example")).toBeInTheDocument();
     expect(within(kept!).getByText("proxmox.example/opslag")).toBeInTheDocument();
     expect(kept).toHaveTextContent("De vorige, goede snapshot blijft staan");
+    // Bijgewerkte snapshots houden hun id: de documenten in de cache zijn niet meer geldig.
+    expect(queryClient.getQueryState(serviceKeys.document(testId(11)))?.isInvalidated).toBe(true);
   });
 
   it("toont geen teller voor behouden snapshots als er geen zijn", async () => {
