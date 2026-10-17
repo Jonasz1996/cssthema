@@ -9,7 +9,7 @@ import {
   makeHostOptions,
   testId,
 } from "@/api/testing/fixtures";
-import type { HostBinding, HostHealthOverview } from "@/api/types";
+import type { HostBinding, HostHealthOverview, HostOptions } from "@/api/types";
 import { createServer, renderPage, toastTexts } from "@/features/themes/testing";
 import { HostsPage } from "./HostsPage";
 
@@ -37,10 +37,11 @@ const vault = makeHost({
 function server(
   hosts: HostBinding[] = [fallback, proxmox, vault],
   health: HostHealthOverview = makeHostHealthOverview(),
+  options: HostOptions = makeHostOptions(),
 ) {
   return createServer()
     .on("GET", "/api/v1/hosts", () => json(hosts))
-    .on("GET", "/api/v1/hosts/options", () => json(makeHostOptions()))
+    .on("GET", "/api/v1/hosts/options", () => json(options))
     .on("GET", "/api/v1/hosts/health", () => json(health));
 }
 
@@ -54,13 +55,37 @@ function rows() {
   return within(table).getAllByRole("row").slice(1);
 }
 
+/** De sectie "Zonder eigen koppeling" (onder de tabel). */
+async function unboundSection() {
+  const heading = await screen.findByRole("heading", { name: "Zonder eigen koppeling" });
+  return within(heading.closest("section")!);
+}
+
 describe("HostsPage", () => {
   it("toont de regel voor NPM en de koppelingen, met * als Standaard", async () => {
-    renderPage(<HostsPage />, { path: "/hosts", server: server() });
+    const options = makeHostOptions({
+      snippet_own_domain_script:
+        "sub_filter '</head>' '<script src=\"/alg-thema/host/$host.js\" defer></script></head>';\n",
+      excluded_hosts: ["auth.example", "css.example"],
+    });
+    renderPage(<HostsPage />, { path: "/hosts", server: server(undefined, undefined, options) });
     expect(await screen.findByRole("table", { name: "Host-koppelingen" })).toBeInTheDocument();
     expect(screen.getByRole("heading", { level: 1, name: "Hosts" })).toBeInTheDocument();
     expect(document.querySelector("[data-snippet-code]")).toHaveTextContent("/host/$host.css");
     expect(document.querySelector("[data-snippet-own-domain]")).toHaveTextContent("/alg-thema/");
+    expect(document.querySelector("[data-snippet-own-domain-script]")).toHaveTextContent(
+      "/alg-thema/host/$host.js",
+    );
+    // Advanced op server-niveau, nooit in een location /, en de hosts die het nooit krijgen.
+    expect(
+      screen.getByText(/los op server-niveau: nooit binnen een location \//),
+    ).toBeInTheDocument();
+    expect(screen.getByText(/Nooit voor een wachtwoordkluis/)).toBeInTheDocument();
+    const never = within(screen.getByRole("list", { name: "Hosts die nooit iets krijgen" }));
+    expect(never.getAllByRole("listitem").map((li) => li.textContent)).toEqual([
+      "auth.example",
+      "css.example",
+    ]);
 
     const [first, second, third] = rows();
     expect(within(first!).getByText("Standaard (*)")).toBeInTheDocument();
@@ -219,6 +244,106 @@ describe("HostsPage", () => {
     await waitFor(() => expect(api.callsTo("GET", "/api/v1/hosts").length).toBeGreaterThan(1));
   });
 
+  describe("bulkactie", () => {
+    it("vervangt een thema bij de geselecteerde hosts en wist daarna de selectie", async () => {
+      const api = server().on("POST", "/api/v1/hosts/bulk", () =>
+        json({
+          changed: ["vault.example"],
+          unchanged: ["proxmox.example"],
+          skipped: [],
+        }),
+      );
+      renderPage(<HostsPage />, { path: "/hosts", server: api });
+      await screen.findByRole("table", { name: "Host-koppelingen" });
+
+      fireEvent.click(screen.getByRole("checkbox", { name: "vault.example selecteren" }));
+      fireEvent.click(screen.getByRole("checkbox", { name: "proxmox.example selecteren" }));
+      expect(screen.getByText("2 geselecteerd")).toBeInTheDocument();
+      expect(
+        (
+          screen.getByRole("checkbox", {
+            name: "Alle zichtbare hosts selecteren",
+          }) as HTMLInputElement
+        ).indeterminate,
+      ).toBe(true);
+
+      fireEvent.click(screen.getByRole("button", { name: "Bulkactie" }));
+      const dialog = within(await screen.findByRole("dialog", { name: "Bulkactie" }));
+      expect(dialog.getByLabelText("Welke hosts")).toHaveValue("selected");
+      fireEvent.change(dialog.getByLabelText("Wat"), { target: { value: "replace-styles" } });
+
+      // Zonder namen: eerst invullen, niets verstuurd.
+      fireEvent.click(dialog.getByRole("button", { name: "Toepassen" }));
+      expect(await dialog.findByText("Vul een naam in.")).toBeInTheDocument();
+      expect(api.callsTo("POST", "/api/v1/hosts/bulk")).toHaveLength(0);
+
+      fireEvent.change(dialog.getByLabelText("Naam"), { target: { value: " nord " } });
+      fireEvent.change(dialog.getByLabelText("Vervangen door"), {
+        target: { value: "alg-var-dracula" },
+      });
+      fireEvent.click(dialog.getByRole("button", { name: "Toepassen" }));
+
+      await waitFor(() => expect(api.callsTo("POST", "/api/v1/hosts/bulk")).toHaveLength(1));
+      expect(api.callsTo("POST", "/api/v1/hosts/bulk")[0]?.body).toEqual({
+        hostnames: ["proxmox.example", "vault.example"],
+        action: "replace",
+        kind: "styles",
+        name: "nord",
+        replacement: "alg-var-dracula",
+      });
+      await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
+      expect(toastTexts()).toContainEqual({ tone: "ok", text: "1 host aangepast." });
+      expect(screen.queryByText("2 geselecteerd")).not.toBeInTheDocument();
+      expect(screen.getByRole("checkbox", { name: "vault.example selecteren" })).not.toBeChecked();
+      // Daarna wordt de lijst opnieuw opgehaald.
+      await waitFor(() => expect(api.callsTo("GET", "/api/v1/hosts").length).toBeGreaterThan(1));
+    });
+
+    it("zet alle koppelingen uit (hostnames null) en meldt overgeslagen hosts", async () => {
+      const api = server().on("POST", "/api/v1/hosts/bulk", () =>
+        json({
+          changed: ["*", "proxmox.example"],
+          unchanged: ["vault.example"],
+          skipped: [{ hostname: "css.example", reason: "Krijgt nooit iets." }],
+        }),
+      );
+      renderPage(<HostsPage />, { path: "/hosts", server: api });
+      await screen.findByRole("table", { name: "Host-koppelingen" });
+
+      // Alles zichtbaar selecteren en weer wissen.
+      const all = screen.getByRole("checkbox", { name: "Alle zichtbare hosts selecteren" });
+      fireEvent.click(all);
+      expect(screen.getByText("3 geselecteerd")).toBeInTheDocument();
+      fireEvent.click(screen.getByRole("button", { name: "Selectie wissen" }));
+      expect(all).not.toBeChecked();
+
+      fireEvent.click(screen.getByRole("button", { name: "Bulkactie" }));
+      const dialog = within(await screen.findByRole("dialog", { name: "Bulkactie" }));
+      // Zonder selectie kan alleen "alle".
+      expect(dialog.getByLabelText("Welke hosts")).toHaveValue("all");
+      expect(
+        dialog.getByRole("option", { name: "Alle koppelingen (3, ook de standaard)" }),
+      ).toBeInTheDocument();
+      fireEvent.change(dialog.getByLabelText("Wat"), { target: { value: "disable" } });
+      expect(dialog.queryByLabelText("Naam")).toBeNull();
+      fireEvent.click(dialog.getByRole("button", { name: "Toepassen" }));
+
+      await waitFor(() => expect(api.callsTo("POST", "/api/v1/hosts/bulk")).toHaveLength(1));
+      expect(api.callsTo("POST", "/api/v1/hosts/bulk")[0]?.body).toEqual({
+        hostnames: null,
+        action: "disable",
+        kind: "styles",
+      });
+      await waitFor(() =>
+        expect(toastTexts()).toContainEqual({
+          tone: "err",
+          text: "1 overgeslagen: css.example (Krijgt nooit iets.)",
+        }),
+      );
+      expect(toastTexts()).toContainEqual({ tone: "ok", text: "2 hosts aangepast." });
+    });
+  });
+
   describe("gezondheid", () => {
     const health = makeHostHealthOverview({
       check_finished_at: minutesAgo(10),
@@ -267,9 +392,57 @@ describe("HostsPage", () => {
       expect(third!.querySelector("[data-level]")).toHaveAttribute("data-level", "off");
 
       expect(screen.getByText(/^Laatste controle: 10 min/)).toBeInTheDocument();
+      // * en uitgeschakelde koppelingen tellen niet mee.
+      expect(document.querySelector("[data-health-summary]")).toHaveTextContent(
+        "Samenvatting van de controle: 0 in orde · 0 achter login · 0 met een waarschuwing · " +
+          "1 met een fout",
+      );
       expect(
-        screen.queryByRole("heading", { name: "Geladen zonder eigen koppeling" }),
+        screen.queryByRole("heading", { name: "Zonder eigen koppeling" }),
       ).not.toBeInTheDocument();
+    });
+
+    it("toont nooit (recent) geladen en uitgesloten hosts apart", async () => {
+      const stale = makeHostHealthOverview({
+        hosts: [
+          makeHostHealth({ hostname: "*", level: "ok" }),
+          makeHostHealth({
+            hostname: "proxmox.example",
+            level: "warn",
+            stale: true,
+            last_seen: new Date(Date.now() - 20 * 86_400_000).toISOString(),
+          }),
+          makeHostHealth({
+            hostname: "vault.example",
+            enabled: false,
+            excluded: true,
+            check: makeHostCheck({
+              level: "warn",
+              code: "no_rule",
+              detail: "Geen thema in de pagina.",
+              content_encoding: "gzip",
+            }),
+          }),
+        ],
+      });
+      renderPage(<HostsPage />, { path: "/hosts", server: server(undefined, stale) });
+      await screen.findByRole("table", { name: "Host-koppelingen" });
+      const [, second, third] = rows();
+
+      await waitFor(() =>
+        expect(within(second!).getByText("Nooit (recent) geladen")).toBeInTheDocument(),
+      );
+      expect(second!.querySelector("[data-level]")).toHaveAttribute("data-level", "warn");
+      expect(within(second!).getByText(/^Al 14 dagen niet/)).toBeInTheDocument();
+
+      expect(within(third!).getByText("Nooit (uitgesloten)")).toBeInTheDocument();
+      expect(third!.querySelector("[data-level]")).toHaveAttribute("data-level", "excluded");
+      expect(within(third!).getByText(/^Krijgt nooit iets/)).toBeInTheDocument();
+      expect(within(third!).getByText("Antwoord gecomprimeerd (gzip)")).toBeInTheDocument();
+
+      expect(document.querySelector("[data-health-summary]")).toHaveTextContent(
+        "0 in orde · 0 achter login · 1 met een waarschuwing · 0 met een fout",
+      );
     });
 
     it("start een controle en pollt tot ze klaar is", { timeout: 10_000 }, async () => {
@@ -322,10 +495,7 @@ describe("HostsPage", () => {
         });
       renderPage(<HostsPage />, { path: "/hosts", server: api });
 
-      const section = within(
-        (await screen.findByRole("heading", { name: "Geladen zonder eigen koppeling" }))
-          .parentElement!,
-      );
+      const section = await unboundSection();
       expect(section.getByText("git.example")).toBeInTheDocument();
       expect(section.getByText(/^Laatst geladen: 3 min/)).toBeInTheDocument();
 
@@ -341,10 +511,63 @@ describe("HostsPage", () => {
       expect(api.callsTo("DELETE")[0]?.path).toBe("/api/v1/hosts/seen/git.example");
       await waitFor(() =>
         expect(
-          screen.queryByRole("heading", { name: "Geladen zonder eigen koppeling" }),
+          screen.queryByRole("heading", { name: "Zonder eigen koppeling" }),
         ).not.toBeInTheDocument(),
       );
       expect(toastTexts()).toContainEqual({ tone: "ok", text: "git.example vergeten." });
+    });
+
+    it("toont diensten die * volgen met hun controle, en vergeet alle niet-gekoppelde", async () => {
+      const overview = makeHostHealthOverview({
+        hosts: [
+          makeHostHealth({ hostname: "*", level: "ok" }),
+          makeHostHealth({ hostname: "git.example", bound: false, last_seen: minutesAgo(3) }),
+          makeHostHealth({
+            hostname: "nas.example",
+            bound: false,
+            service: true,
+            level: "error",
+            check: makeHostCheck({
+              level: "error",
+              code: "unreachable",
+              detail: "Niet bereikbaar.",
+              http_status: null,
+            }),
+          }),
+        ],
+      });
+      let forgotten = false;
+      const api = server(undefined, overview)
+        .on("GET", "/api/v1/hosts/health", () =>
+          json(
+            forgotten
+              ? { ...overview, hosts: overview.hosts.filter((h) => h.hostname !== "git.example") }
+              : overview,
+          ),
+        )
+        .on("DELETE", "/api/v1/hosts/seen", () => {
+          forgotten = true;
+          return noContent();
+        });
+      renderPage(<HostsPage />, { path: "/hosts", server: api });
+
+      const section = await unboundSection();
+      const nas = section.getByText("nas.example").closest("li")!;
+      expect(within(nas).getByText("dienst")).toBeInTheDocument();
+      expect(within(nas).getByText("Onbereikbaar")).toBeInTheDocument();
+      // Een dienst komt uit de import, niet uit "laatst geladen": niets te vergeten.
+      expect(within(nas).queryByRole("button", { name: /vergeten/ })).toBeNull();
+      // De dienst telt mee in de samenvatting.
+      expect(document.querySelector("[data-health-summary]")).toHaveTextContent("1 met een fout");
+
+      fireEvent.click(section.getByRole("button", { name: "Niet-gekoppelde vergeten" }));
+      await waitFor(() => expect(api.callsTo("DELETE", "/api/v1/hosts/seen")).toHaveLength(1));
+      await waitFor(() => expect(screen.queryByText("git.example")).not.toBeInTheDocument());
+      expect(screen.getByText("nas.example")).toBeInTheDocument();
+      expect(toastTexts()).toContainEqual({
+        tone: "ok",
+        text: "Hosts zonder eigen koppeling vergeten.",
+      });
     });
   });
 });

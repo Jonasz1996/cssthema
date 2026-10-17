@@ -3,6 +3,7 @@ import { Button, toast } from "@/components/ui";
 import { errorText } from "@/features/themes/lib/errors";
 import { formatDateTime, formatRelativeTime } from "@/features/themes/lib/format";
 import { useI18n } from "@/lib/i18n";
+import { healthSummary } from "../lib/hosts";
 
 /**
  * "Alles controleren" met de tijd van de laatste controle. De controle loopt op de server op de
@@ -10,11 +11,20 @@ import { useI18n } from "@/lib/i18n";
  */
 export function HostCheckBar() {
   const i18n = useI18n();
-  const { t, locale } = i18n;
+  const { t, tc, locale } = i18n;
   const health = useHostHealth();
   const start = useStartHostCheck();
   const running = health.data?.check_running === true || start.isPending;
   const finished = health.data?.check_finished_at ?? null;
+  const summary = healthSummary(health.data?.hosts);
+  const summaryParts = [
+    tc("hosts.healthOk", summary.ok),
+    tc("hosts.healthLogin", summary.login),
+    tc("hosts.healthWarn", summary.warn),
+    tc("hosts.healthError", summary.error),
+    ...(summary.unchecked ? [tc("hosts.healthUnchecked", summary.unchecked)] : []),
+  ];
+  const counted = summary.ok + summary.login + summary.warn + summary.error + summary.unchecked;
 
   const onCheck = () =>
     start.mutate(undefined, {
@@ -59,6 +69,12 @@ export function HostCheckBar() {
           </p>
         )}
       </div>
+      {health.isSuccess && counted > 0 && (
+        <p data-health-summary="" className="m-0 mt-2 text-[12px] text-muted">
+          <span className="sr-only">{t("hosts.healthSummaryLabel")}: </span>
+          {summaryParts.join(" · ")}
+        </p>
+      )}
     </section>
   );
 }

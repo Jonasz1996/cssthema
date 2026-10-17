@@ -24,6 +24,7 @@ import { errorText } from "@/features/themes/lib/errors";
 import { listOf } from "@/features/themes/lib/list";
 import { useI18n } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
+import { BulkHostsDialog } from "./components/BulkHostsDialog";
 import { HostCheckBar } from "./components/HostCheckBar";
 import { HostDialog, type HostDialogTarget } from "./components/HostDialog";
 import { HostStatus } from "./components/HostStatus";
@@ -36,7 +37,8 @@ import { filterHosts, HOST_ERROR_KEYS, isDefaultHost, toInput } from "./lib/host
  * Hosts (`/hosts`): elke proxy host in NPM krijgt dezelfde `sub_filter`-regel met `$host`; hier
  * stel je per host in welke thema's en scripts hij krijgt. Hosts zonder eigen rij volgen `*`.
  * Per koppeling een status (laatste controle, laatst geladen); hosts die de regel laadden zonder
- * eigen rij staan apart onderaan.
+ * eigen rij staan apart onderaan. Met de selectiekolom pas je veel koppelingen tegelijk aan
+ * (bulkactie).
  */
 export function HostsPage() {
   const i18n = useI18n();
@@ -52,6 +54,8 @@ export function HostsPage() {
   const [importOpen, setImportOpen] = useState(false);
   const [pendingDelete, setPendingDelete] = useState<HostBinding | null>(null);
   const [toggling, setToggling] = useState<ReadonlySet<string>>(() => new Set());
+  const [selected, setSelected] = useState<ReadonlySet<string>>(() => new Set());
+  const [bulkOpen, setBulkOpen] = useState(false);
 
   const defaultLabel = t("hosts.defaultLabel");
   const nameOf = (host: HostBinding) =>
@@ -63,6 +67,29 @@ export function HostsPage() {
     (health.data?.hosts ?? []).map((item) => [item.hostname, item]),
   );
   const defaultHost = list.find((host) => isDefaultHost(host.hostname));
+  // Alleen namen die nog bestaan (na verwijderen of een import blijft er niets hangen).
+  const chosen = list.filter((host) => selected.has(host.hostname)).map((host) => host.hostname);
+  const allVisibleChosen =
+    visible.length > 0 && visible.every((host) => selected.has(host.hostname));
+  const someVisibleChosen = visible.some((host) => selected.has(host.hostname));
+
+  const toggleSelected = (hostname: string, on: boolean) =>
+    setSelected((previous) => {
+      const next = new Set(previous);
+      if (on) next.add(hostname);
+      else next.delete(hostname);
+      return next;
+    });
+
+  const toggleAllVisible = (on: boolean) =>
+    setSelected((previous) => {
+      const next = new Set(previous);
+      for (const host of visible) {
+        if (on) next.add(host.hostname);
+        else next.delete(host.hostname);
+      }
+      return next;
+    });
 
   const setBusy = (id: string, on: boolean) =>
     setToggling((previous) => {
@@ -118,6 +145,31 @@ export function HostsPage() {
 
   const columns: TableColumn<HostBinding>[] = [
     {
+      key: "select",
+      header: (
+        <input
+          type="checkbox"
+          aria-label={t("hosts.selectAll")}
+          checked={allVisibleChosen}
+          ref={(element) => {
+            if (element) element.indeterminate = someVisibleChosen && !allVisibleChosen;
+          }}
+          onChange={(event) => toggleAllVisible(event.target.checked)}
+          className={CHECKBOX}
+        />
+      ),
+      className: "w-[1%]",
+      cell: (host) => (
+        <input
+          type="checkbox"
+          aria-label={t("hosts.selectHost", { host: nameOf(host) })}
+          checked={selected.has(host.hostname)}
+          onChange={(event) => toggleSelected(host.hostname, event.target.checked)}
+          className={CHECKBOX}
+        />
+      ),
+    },
+    {
       key: "host",
       header: t("hosts.colHost"),
       cell: (host) => (
@@ -170,9 +222,11 @@ export function HostsPage() {
     {
       key: "actions",
       header: <span className="sr-only">{t("hosts.colActions")}</span>,
-      className: "w-[1%] whitespace-nowrap",
+      // `relative`: het sr-only-label (position: absolute) blijft binnen de scrollende tabel, en
+      // de pagina scrolt op een telefoon niet horizontaal (FE-7).
+      className: "relative w-[1%] whitespace-nowrap",
       cell: (host) => (
-        <span className="flex flex-wrap justify-end gap-1">
+        <span className="flex flex-wrap justify-end gap-1 lg:flex-nowrap">
           <a
             href={host.css_url}
             target="_blank"
@@ -266,7 +320,7 @@ export function HostsPage() {
             onChange={(event) => setQuery(event.target.value)}
             placeholder={t("hosts.searchPlaceholder")}
             aria-label={t("hosts.search")}
-            className="max-w-[420px] flex-1"
+            className="max-w-[420px] min-w-[180px] flex-1"
           />
           <Button
             variant="mini"
@@ -276,6 +330,23 @@ export function HostsPage() {
           >
             ⟳ {t("hosts.refresh")}
           </Button>
+          {list.length > 0 && (
+            <span className="flex flex-wrap items-center gap-2">
+              <Button variant="mini" onClick={() => setBulkOpen(true)}>
+                {t("hosts.bulk")}
+              </Button>
+              {chosen.length > 0 && (
+                <>
+                  <span className="text-[12px] text-muted">
+                    {tc("hosts.selected", chosen.length)}
+                  </span>
+                  <Button variant="mini" onClick={() => setSelected(new Set())}>
+                    {t("hosts.clearSelection")}
+                  </Button>
+                </>
+              )}
+            </span>
+          )}
         </div>
 
         {hosts.isPending ? (
@@ -333,6 +404,17 @@ export function HostsPage() {
 
       <ImportHostsDialog open={importOpen} onClose={() => setImportOpen(false)} />
 
+      <BulkHostsDialog
+        open={bulkOpen}
+        selected={chosen}
+        total={list.length}
+        onClose={() => setBulkOpen(false)}
+        onDone={() => {
+          setBulkOpen(false);
+          setSelected(new Set());
+        }}
+      />
+
       <ConfirmDialog
         open={pendingDelete !== null}
         tone="danger"
@@ -351,6 +433,9 @@ export function HostsPage() {
     </div>
   );
 }
+
+const CHECKBOX =
+  "size-3.5 accent-[#bbb] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white";
 
 /** Namen als tags; thema's genummerd (laadvolgorde). */
 function NameTags({

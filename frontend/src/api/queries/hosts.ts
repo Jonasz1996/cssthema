@@ -9,6 +9,8 @@ import { api, send, shouldRetry, type ApiError } from "../client";
 import type {
   HostBinding,
   HostBindingInput,
+  HostBulkRequest,
+  HostBulkResult,
   HostCheckStarted,
   HostHealthOverview,
   HostImportRequest,
@@ -79,6 +81,15 @@ export async function startHostCheck(): Promise<HostCheckStarted> {
 
 export async function forgetSeenHost(hostname: string): Promise<void> {
   await send(api.DELETE("/api/v1/hosts/seen/{hostname}", { params: { path: { hostname } } }));
+}
+
+export async function forgetAllSeenHosts(): Promise<void> {
+  await send(api.DELETE("/api/v1/hosts/seen"));
+}
+
+export async function bulkHosts(body: HostBulkRequest): Promise<HostBulkResult> {
+  const { data } = await send(api.POST("/api/v1/hosts/bulk", { body }));
+  return data;
 }
 
 // --- query-opties ---------------------------------------------------------------------------
@@ -183,6 +194,27 @@ export function useForgetSeenHost() {
       refreshHealth(queryClient);
     },
     onError: () => refreshHealth(queryClient),
+  });
+}
+
+/** `DELETE /hosts/seen`: elke host zonder eigen koppeling verdwijnt uit "laatst geladen". */
+export function useForgetAllSeenHosts() {
+  const queryClient = useQueryClient();
+  return useMutation<void, ApiError, void>({
+    mutationFn: forgetAllSeenHosts,
+    onSettled: () => refreshHealth(queryClient),
+  });
+}
+
+/**
+ * `POST /hosts/bulk`: één wijziging voor veel koppelingen (naam toevoegen, weghalen, vervangen,
+ * aan/uit). Fouten: 422 `validation_error`.
+ */
+export function useBulkHosts() {
+  const queryClient = useQueryClient();
+  return useMutation<HostBulkResult, ApiError, HostBulkRequest>({
+    mutationFn: bulkHosts,
+    onSuccess: () => refreshHosts(queryClient),
   });
 }
 

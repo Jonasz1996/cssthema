@@ -1,6 +1,12 @@
 import { fieldErrorsOf, isApiError } from "@/api/client";
 import { DEFAULT_HOST } from "@/api/queries/hosts";
-import type { HostBinding, HostBindingInput, HostHealth, HostHealthLevel } from "@/api/types";
+import type {
+  HostBinding,
+  HostBindingInput,
+  HostBulkRequest,
+  HostHealth,
+  HostHealthLevel,
+} from "@/api/types";
 import type { ErrorKeys } from "@/features/themes/lib/errors";
 import type { MessageKey } from "@/lib/i18n";
 
@@ -104,6 +110,9 @@ export const CHECK_CODE_KEYS: Readonly<Partial<Record<string, MessageKey>>> = {
  * anders het niveau. Zonder controle maar met ontbrekende onderdelen: "Onderdeel ontbreekt".
  */
 export function healthLabelKey(health: HostHealth): MessageKey {
+  if (health.excluded) return "hosts.statusExcluded";
+  // Achter login (of niet gecontroleerd) en nooit geladen: dat laatste zegt het meest.
+  if (health.stale && (!health.check || health.check.code === "login")) return "hosts.levelStale";
   if (health.check) return CHECK_CODE_KEYS[health.check.code] ?? LEVEL_KEYS[health.check.level];
   if (health.missing_styles.length || health.missing_scripts.length) return "hosts.levelMissing";
   return LEVEL_KEYS[health.level];
@@ -117,4 +126,74 @@ export function missingParts(health: HostHealth): string[] {
 /** Hosts die de regel laadden maar geen eigen koppeling hebben (zonder `*`). */
 export function unboundHosts(hosts: readonly HostHealth[] | undefined): HostHealth[] {
   return (hosts ?? []).filter((host) => !host.bound && !isDefaultHost(host.hostname));
+}
+
+export interface HealthSummary {
+  ok: number;
+  login: number;
+  warn: number;
+  error: number;
+  unchecked: number;
+}
+
+/**
+ * Telling voor de regel boven de lijst: hoeveel hosts in orde zijn, achter login zitten, een
+ * waarschuwing of een fout hebben. Telt hosts die iets krijgen en gecontroleerd worden: eigen
+ * koppelingen (aan, niet uitgesloten, zonder `*`) en diensten die `*` volgen; geen namen die
+ * alleen in "laatst geladen" staan.
+ */
+export function healthSummary(hosts: readonly HostHealth[] | undefined): HealthSummary {
+  const summary: HealthSummary = { ok: 0, login: 0, warn: 0, error: 0, unchecked: 0 };
+  for (const host of hosts ?? []) {
+    if (isDefaultHost(host.hostname) || host.excluded || !host.enabled) continue;
+    if (!host.bound && !host.service) continue;
+    if (host.level === "ok") summary.ok += 1;
+    else if (host.level === "warn") summary.warn += 1;
+    else if (host.level === "error") summary.error += 1;
+    else if (host.check?.code === "login") summary.login += 1;
+    else summary.unchecked += 1;
+  }
+  return summary;
+}
+
+export type BulkChoice =
+  | "add-styles"
+  | "remove-styles"
+  | "replace-styles"
+  | "add-scripts"
+  | "remove-scripts"
+  | "replace-scripts"
+  | "enable"
+  | "disable";
+
+export const BULK_CHOICES: readonly { value: BulkChoice; label: MessageKey }[] = [
+  { value: "add-styles", label: "hosts.bulkAddStyle" },
+  { value: "remove-styles", label: "hosts.bulkRemoveStyle" },
+  { value: "replace-styles", label: "hosts.bulkReplaceStyle" },
+  { value: "add-scripts", label: "hosts.bulkAddScript" },
+  { value: "remove-scripts", label: "hosts.bulkRemoveScript" },
+  { value: "replace-scripts", label: "hosts.bulkReplaceScript" },
+  { value: "enable", label: "hosts.bulkEnable" },
+  { value: "disable", label: "hosts.bulkDisable" },
+];
+
+/** De body van `POST /hosts/bulk` voor een keuze uit de dialoog; `hostnames` null = alle. */
+export function bulkRequest(
+  choice: BulkChoice,
+  hostnames: readonly string[] | null,
+  name: string,
+  replacement: string,
+): HostBulkRequest {
+  const list = hostnames ? [...hostnames] : null;
+  if (choice === "enable" || choice === "disable") {
+    return { hostnames: list, action: choice, kind: "styles" };
+  }
+  const [action, kind] = choice.split("-") as ["add" | "remove" | "replace", "styles" | "scripts"];
+  return {
+    hostnames: list,
+    action,
+    kind,
+    name: name.trim(),
+    replacement: action === "replace" ? replacement.trim() : null,
+  };
 }

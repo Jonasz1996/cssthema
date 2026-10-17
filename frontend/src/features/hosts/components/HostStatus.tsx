@@ -22,29 +22,35 @@ export function HostStatus({ health, enabled, name }: HostStatusProps) {
   if (!health) return <span className="text-[12px] text-dim">–</span>;
 
   const lines: string[] = [];
+  if (health.excluded) lines.push(t("hosts.excludedLine"));
   if (health.check) {
     lines.push(health.check.detail);
+    if (health.check.content_encoding) {
+      lines.push(t("hosts.encodingLine", { encoding: health.check.content_encoding }));
+    }
     lines.push(
       t("hosts.checkedAgo", { time: formatRelativeTime(health.check.checked_at, locale) }),
     );
   }
   const missing = missingParts(health);
   if (missing.length) lines.push(t("hosts.missing", { names: missing.join(", ") }));
+  if (health.stale) lines.push(t("hosts.staleLine"));
   lines.push(
     health.last_seen
       ? t("hosts.lastSeen", { time: formatRelativeTime(health.last_seen, locale) })
       : t("hosts.neverSeen"),
   );
 
-  const label = enabled ? t(healthLabelKey(health)) : t("hosts.statusOff");
-  const dot = enabled ? LEVEL_DOT[health.level] : "text-dim";
+  const off = !enabled && !health.excluded;
+  const label = off ? t("hosts.statusOff") : t(healthLabelKey(health));
+  const dot = off || health.excluded ? "text-dim" : LEVEL_DOT[health.level];
 
   return (
     <Details
       className="min-w-[13ch]"
       summary={
         <span
-          data-level={enabled ? health.level : "off"}
+          data-level={health.excluded ? "excluded" : enabled ? health.level : "off"}
           title={`${t("hosts.statusTitle", { host: name })}\n${lines.join("\n")}`}
           className="inline-flex items-center gap-1.5 whitespace-nowrap text-fg"
         >
