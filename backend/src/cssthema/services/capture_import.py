@@ -13,8 +13,10 @@ limieten per bestand en in totaal.
 import hashlib
 import io
 import json
+import lzma
 import re
 import zipfile
+import zlib
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
 from pathlib import PurePosixPath
@@ -96,8 +98,20 @@ def _scan(archive: zipfile.ZipFile) -> tuple[list[_Page], dict[str, zipfile.ZipI
 def _read(archive: zipfile.ZipFile, info: zipfile.ZipInfo) -> bytes:
     if info.file_size > MAX_FILE_BYTES:
         raise _invalid(f"{info.filename} is groter dan 32 MB.")
-    with archive.open(info) as handle:
-        data = handle.read(MAX_FILE_BYTES + 1)
+    try:
+        with archive.open(info) as handle:
+            data = handle.read(MAX_FILE_BYTES + 1)
+    except NotImplementedError as exc:  # vóór RuntimeError: daar is het een subklasse van
+        raise _invalid(
+            f"{info.filename} gebruikt een compressiemethode die niet ondersteund wordt."
+        ) from exc
+    except RuntimeError as exc:  # versleuteld: zipfile vraagt een wachtwoord
+        raise _invalid(f"{info.filename} is versleuteld; maak de zip zonder wachtwoord.") from exc
+    except (zipfile.BadZipFile, zlib.error, lzma.LZMAError, EOFError, OSError) as exc:
+        # Verkeerde CRC of kapotte deflate-stroom: een deel dat slecht gekopieerd is.
+        raise _invalid(
+            f"{info.filename} is beschadigd (CRC- of uitpakfout). Maak of kopieer de zip opnieuw."
+        ) from exc
     if len(data) > MAX_FILE_BYTES:
         raise _invalid(f"{info.filename} is groter dan 32 MB.")
     return data
@@ -108,8 +122,23 @@ def _json(archive: zipfile.ZipFile, info: zipfile.ZipInfo | None) -> Any:
         return None
     try:
         return json.loads(_read(archive, info).decode("utf-8", errors="replace"))
-    except ValueError:
+    except (ValueError, RecursionError):
         return None
+
+
+def _clean(value: Any) -> Any:
+    """JSON zonder NUL-tekens: PostgreSQL weigert `\\x00` in tekst en `\\u0000` in jsonb."""
+    if isinstance(value, str):
+        return value.replace("\x00", "")
+    if isinstance(value, dict):
+        return {_clean(str(k)): _clean(v) for k, v in value.items()}
+    if isinstance(value, list):
+        return [_clean(v) for v in value]
+    return value
+
+
+def _list(value: Any) -> list[Any]:
+    return value if isinstance(value, list) else []
 
 
 def service_slug(hostname: str) -> str:
@@ -141,7 +170,16 @@ def _captured_at(info: dict[str, Any]) -> str | None:
 
 
 def _str(value: Any, limit: int) -> str | None:
-    return value[:limit] if isinstance(value, str) and value else None
+    if not isinstance(value, str):
+        return None
+    return value.replace("\x00", "")[:limit] or None
+
+
+def _http_status(value: Any) -> int | None:
+    # `bool` is ook een int; en een getal buiten int4 past niet in de kolom.
+    if isinstance(value, int) and not isinstance(value, bool) and 100 <= value <= 599:
+        return value
+    return None
 
 
 async def import_zip(
@@ -153,6 +191,7 @@ async def import_zip(
         archive = zipfile.ZipFile(io.BytesIO(data))
     except zipfile.BadZipFile as exc:
         raise _invalid("Dit is geen zip-bestand.") from exc
+    filename = filename.replace("\x00", "")[:200]
     with archive:
         pages, css_files = _scan(archive)
         if not pages:
@@ -255,27 +294,26 @@ async def _import_pages(
         )
         raw_vars = info.get("variabelen")
         variables: dict[str, Any] = raw_vars if isinstance(raw_vars, dict) else {}
-        frameworks = [str(f)[:40] for f in info.get("frameworks") or [] if isinstance(f, str)]
+        frameworks = [_clean(f)[:40] for f in _list(info.get("frameworks")) if isinstance(f, str)]
         ctx.session.add(
             DomSnapshot(
                 service_id=service.id,
                 page_kind=kind,
                 url=url,
                 final_url=_str(info.get("url"), 2048),
-                http_status=info.get("http_status")
-                if isinstance(info.get("http_status"), int)
-                else None,
+                http_status=_http_status(info.get("http_status")),
                 origin=SnapshotOrigin.UPLOAD,
                 document_asset_id=document.id if document else None,
                 html_sha256=document.sha256 if document else None,
                 title=_str(info.get("titel"), 500),
                 css_variables={
-                    str(k)[:200]: str(v)[:500] for k, v in list(variables.items())[:2000]
+                    _clean(str(k))[:200]: _clean(str(v))[:500]
+                    for k, v in list(variables.items())[:2000]
                 },
                 components=[],
                 framework_hints=frameworks[:20],
                 stylesheets=stylesheets,
-                colors=colors if isinstance(colors, dict) else {},
+                colors=_clean(colors) if isinstance(colors, dict) else {},
                 class_count=len({c for m in _CLASS_ATTR_RE.findall(html) for c in m.split()}),
                 id_count=len(set(_ID_ATTR_RE.findall(html))),
                 has_shadow_dom="shadowrootmode" in html,
@@ -285,13 +323,13 @@ async def _import_pages(
                     "vastgelegd": _captured_at(info),
                     "screenshots": screenshots,
                     "thema_links": [
-                        str(link.get("href"))[:500]
-                        for link in thema.get("links") or []
+                        _clean(str(link.get("href")))[:500]
+                        for link in _list(thema.get("links"))
                         if isinstance(link, dict)
                     ][:20],
-                    "csp_fouten": len(thema.get("csp_fouten") or []),
+                    "csp_fouten": len(_list(thema.get("csp_fouten"))),
                     "ontbrekende_css": missing_css,
-                    "bestand": filename[:200],
+                    "bestand": filename,
                 },
             )
         )
@@ -305,7 +343,7 @@ async def _import_pages(
         entity_type="service",
         entity_id=None,
         changes={
-            "file": filename[:200],
+            "file": filename,
             "services_created": len(result.services_created),
             "snapshots": result.snapshots,
         },
