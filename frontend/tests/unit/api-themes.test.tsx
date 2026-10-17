@@ -1,7 +1,7 @@
 import { act, renderHook, waitFor } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import { isPreconditionFailed, type ApiError } from "@/api/client";
-import { dashboardKeys, normalizeThemeFilters, themeKeys } from "@/api/queries/keys";
+import { dashboardKeys, hostKeys, normalizeThemeFilters, themeKeys } from "@/api/queries/keys";
 import { flattenPages } from "@/api/queries/options";
 import {
   useCreateTheme,
@@ -177,6 +177,7 @@ describe("theme mutations", () => {
     server.on("DELETE", "/api/v1/themes/:id", noContent());
     queryClient.setQueryData(themeKeys.detail(theme.id), theme);
     queryClient.setQueryData(themeKeys.draft(theme.id), makeDraft());
+    queryClient.setQueryData(hostKeys.list(), []);
 
     const { result } = renderHook(() => useDeleteTheme(), { wrapper });
     await act(() => result.current.mutateAsync({ themeId: theme.id, lockVersion: 2 }));
@@ -184,6 +185,8 @@ describe("theme mutations", () => {
     expect(server.calls[0]!.url.searchParams.has("hard")).toBe(false);
     expect(server.calls[0]!.headers.get("If-Match")).toBe('"lv-2"');
     expect(queryClient.getQueryState(themeKeys.detail(theme.id))?.isInvalidated).toBe(true);
+    // De Hosts-pagina toont een verwijderd thema als "ontbreekt".
+    expect(queryClient.getQueryState(hostKeys.list())?.isInvalidated).toBe(true);
 
     await act(() => result.current.mutateAsync({ themeId: theme.id, hard: true }));
 

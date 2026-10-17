@@ -1,6 +1,5 @@
 import {
   infiniteQueryOptions,
-  keepPreviousData,
   skipToken,
   useInfiniteQuery,
   useMutation,
@@ -23,7 +22,7 @@ import type {
 import { invalidateCollections, invalidateThemeState, patchDraft, patchTheme } from "./cache";
 import { hostKeys, themeKeys } from "./keys";
 import type { QueryHookOptions } from "./options";
-import { fetchTheme } from "./themes";
+import { fetchTheme, invalidateHosts } from "./themes";
 
 /**
  * Editor en versies: draft lezen/opslaan (autosave met `If-Match`), lint, publiceren, versies,
@@ -214,8 +213,8 @@ export async function fetchThemeUsage(theme: string, signal?: AbortSignal): Prom
 }
 
 /**
- * Query-keys van de preview. Onder `["hosts"]`: ze hangen af van de koppelingen, net als de
- * rest van die groep.
+ * Query-keys van de preview. Onder `["hosts"]`: een gepubliceerd thema maakt de hele groep
+ * ongeldig (`invalidateHosts`).
  */
 export const previewKeys = {
   stack: (hostname: string, theme: string) =>
@@ -277,7 +276,10 @@ export function useLint(
     // Dezelfde CSS geeft hetzelfde resultaat; de opgeslagen draft kan intussen veranderen.
     staleTime: css === null ? 0 : Infinity,
     gcTime: 30_000,
-    placeholderData: keepPreviousData,
+    // Het vorige resultaat alleen binnen hetzelfde thema: na een tabwissel geen markers en
+    // tellers van het vorige thema op het nieuwe.
+    placeholderData: (previous, previousQuery) =>
+      previousQuery?.queryKey[2] === (themeId ?? "") ? previous : undefined,
     retry: shouldRetry,
     ...options,
   });
@@ -407,6 +409,7 @@ export function usePublishTheme() {
       patchTheme(queryClient, themeId, { lock_version: lockVersion });
       void invalidateThemeState(queryClient, themeId);
       void invalidateCollections(queryClient);
+      void invalidateHosts(queryClient);
     },
   });
 }
@@ -420,6 +423,7 @@ export function useRollback() {
       patchTheme(queryClient, themeId, { lock_version: lockVersion });
       void invalidateThemeState(queryClient, themeId, { draft: true });
       void invalidateCollections(queryClient);
+      void invalidateHosts(queryClient);
     },
   });
 }
