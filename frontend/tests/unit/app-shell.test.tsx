@@ -1,7 +1,8 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { act, fireEvent, render, screen, within } from "@testing-library/react";
 import { createMemoryRouter, RouterProvider } from "react-router";
-import { beforeEach, describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { resetSessionExpired } from "@/api/client";
 import { App } from "@/app/App";
 import { AppShell } from "@/app/AppShell";
 import { useShellCommand } from "@/app/shell-command";
@@ -39,13 +40,15 @@ describe("App-shell", () => {
     expect(terminalCommand()).toBe(command);
   });
 
-  it("heeft vier navigatieknoppen (Nederlands) en markeert de actieve", () => {
+  it("heeft zes navigatieknoppen (Nederlands) en markeert de actieve", () => {
     renderApp("/themes");
     const links = navLinks();
     expect(links.map((a) => a.textContent)).toEqual([
       "📊Dashboard",
       "🎨Thema's",
       "🖌️Paletten",
+      "🌐Hosts",
+      "📸Services",
       "📥Import",
     ]);
     // De emoji is decoratief: de toegankelijke naam is alleen het label.
@@ -53,6 +56,8 @@ describe("App-shell", () => {
       "/",
       "/themes",
       "/palettes",
+      "/hosts",
+      "/services",
       "/import",
     ]);
     const active = links.filter((a) => a.getAttribute("aria-current") === "page");
@@ -223,5 +228,35 @@ describe("Taal", () => {
     expect(input).toHaveValue("getypte tekst");
     expect(input).toHaveAttribute("placeholder", "Themes");
     expect(screen.getByRole("link", { name: "Themes" })).toBeInTheDocument();
+  });
+});
+
+describe("App-shell: sessie verlopen", () => {
+  afterEach(() => resetSessionExpired());
+
+  it("toont een melding met herladen zodra de login van de proxy verlopen is", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn((input: RequestInfo | URL) => {
+        const url = input instanceof Request ? input.url : String(input);
+        const path = new URL(url, "http://localhost").pathname;
+        return Promise.resolve(
+          path.startsWith("/api/")
+            ? new Response(null, {
+                status: 302,
+                headers: { Location: "/outpost.goauthentik.io/start" },
+              })
+            : new Response("{}", { status: 200 }),
+        );
+      }),
+    );
+    renderApp("/themes");
+    const alert = await screen.findByRole("alert");
+    expect(alert).toHaveTextContent("Sessie verlopen");
+    expect(alert).toHaveTextContent(/laad de pagina opnieuw om opnieuw in te loggen/);
+    const reload = vi.fn();
+    vi.stubGlobal("location", { ...window.location, reload });
+    fireEvent.click(within(alert).getByRole("button", { name: "Herladen" }));
+    expect(reload).toHaveBeenCalled();
   });
 });

@@ -1,0 +1,334 @@
+/* ==========================================================================
+   alg-cloudbeaver.css - CloudBeaver Community (DBeaver in de browser, v26)
+   Host: dbeaver.jbogaert.be
+   Laadt na algemeen.css (sub_filter in NPM, zelfde map op css.jbogaert.be).
+
+   WAT HET AFWERKT
+   CloudBeaver kleurt alles via eigen variabelen op body.theme-light (of
+   .theme-dark): --theme-*, de --mdc-theme-* die de app nergens zelf
+   definieert (dus vallen ze terug op witte vaste waarden) en de nieuwe
+   --dbv-kit-* van de componentenset. Die worden hier op de tokens van
+   algemeen.css gezet, voor licht en donker gelijk. Daarbij: kopbalk als
+   glas i.p.v. blauw, panelen als glas op de radiale achtergrond, monospace
+   i.p.v. Roboto, grijze knoppen, velden, menu's en dialogen.
+
+   BEPERKINGEN
+   - Alleen het startscherm zonder verbindingen is vastgelegd. Menu's,
+     dialogen, SQL-editor (CodeMirror) en het resultatenraster volgen uit
+     dezelfde variabelen maar zijn niet getest.
+   - Pictogrammen zijn svg-afbeeldingen (img): hun kleuren blijven.
+   - De kopbalk wordt gevonden via de structuur (#root > div > header):
+     CloudBeaver gebruikt gehashte CSS-moduleklassen.
+   ========================================================================== */
+
+/* ---------- Thema-variabelen (licht en donker gelijk) ------------------- */
+.theme-light,
+.theme-dark {
+  --theme-primary: var(--alg-knop);
+  --theme-secondary: var(--alg-vlak-2);
+  --theme-background: var(--alg-vlak-2);
+  --theme-surface: var(--alg-glas);
+  --theme-sub-secondary: var(--alg-paneel);
+  --theme-error: var(--alg-fout-vlak);
+  --theme-positive: var(--alg-ok-vlak);
+  --theme-negative: var(--alg-fout);
+  --theme-status: var(--alg-waarschuwing);
+  --theme-link-color: var(--alg-link);
+
+  --theme-on-primary: var(--alg-knop-tekst);
+  --theme-on-secondary: var(--alg-tekst);
+  --theme-on-sub-secondary: var(--alg-tekst);
+  --theme-on-surface: var(--alg-tekst);
+  --theme-on-error: var(--alg-knop-tekst);
+  --theme-on-positive: var(--alg-knop-tekst);
+
+  /* "on-light", "on-dark" en "on-background": alle vlakken zijn hier donker */
+  --theme-text-primary-on-background: var(--alg-tekst);
+  --theme-text-secondary-on-background: var(--alg-gedempt);
+  --theme-text-hint-on-background: var(--alg-gedempt);
+  --theme-text-disabled-on-background: var(--alg-zwak);
+  --theme-text-icon-on-background: var(--alg-gedempt);
+  --theme-text-primary-on-light: var(--alg-tekst);
+  --theme-text-secondary-on-light: var(--alg-gedempt);
+  --theme-text-hint-on-light: var(--alg-gedempt);
+  --theme-text-disabled-on-light: var(--alg-zwak);
+  --theme-text-icon-on-light: var(--alg-gedempt);
+  --theme-text-primary-on-dark: var(--alg-tekst);
+  --theme-text-secondary-on-dark: var(--alg-gedempt);
+  --theme-text-hint-on-dark: var(--alg-gedempt);
+  --theme-text-disabled-on-dark: var(--alg-zwak);
+  --theme-text-icon-on-dark: var(--alg-gedempt);
+
+  --theme-input-color: var(--alg-tekst-sterk);
+  --theme-input-color-readonly: var(--alg-tekst);
+  --theme-input-color-disabled: var(--alg-gedempt);
+  --theme-input-color-placeholder: var(--alg-placeholder);
+  --theme-input-border: var(--alg-rand-sterk);
+  --theme-input-border-readonly: var(--alg-rand);
+  --theme-input-border-disabled: var(--alg-rand);
+  --theme-input-background: var(--alg-veld);
+  --theme-input-background-readonly: var(--alg-veld-uit);
+  --theme-input-background-disabled: var(--alg-veld-uit);
+
+  /* gewijzigde, toegevoegde en verwijderde cellen in het resultatenraster */
+  --theme-add-status: var(--alg-ok-tint);
+  --theme-edit-status: var(--alg-waarschuwing-tint);
+  --theme-delete-status: var(--alg-fout-tint);
+  --data-grid-dnd-drop-target-bg: var(--alg-rij-actief);
+  --data-grid-dnd-drop-target-border-color: var(--alg-rand-hover);
+
+  /* de --mdc-theme-* volgen dezelfde waarden (de app definieert ze niet) */
+  --mdc-theme-primary: var(--theme-primary);
+  --mdc-theme-secondary: var(--theme-secondary);
+  --mdc-theme-background: var(--theme-background);
+  --mdc-theme-surface: var(--theme-surface);
+  --mdc-theme-sub-secondary: var(--theme-sub-secondary);
+  --mdc-theme-error: var(--theme-error);
+  --mdc-theme-positive: var(--theme-positive);
+  --mdc-theme-negative: var(--theme-negative);
+  --mdc-theme-status: var(--theme-status);
+  --mdc-theme-link-color: var(--theme-link-color);
+  --mdc-theme-on-primary: var(--theme-on-primary);
+  --mdc-theme-on-secondary: var(--theme-on-secondary);
+  --mdc-theme-on-sub-secondary: var(--theme-on-sub-secondary);
+  --mdc-theme-on-surface: var(--theme-on-surface);
+  --mdc-theme-on-error: var(--theme-on-error);
+  --mdc-theme-on-positive: var(--theme-on-positive);
+  --mdc-theme-text-primary-on-background: var(--alg-tekst);
+  --mdc-theme-text-secondary-on-background: var(--alg-gedempt);
+  --mdc-theme-text-hint-on-background: var(--alg-gedempt);
+  --mdc-theme-text-disabled-on-background: var(--alg-zwak);
+  --mdc-theme-text-icon-on-background: var(--alg-gedempt);
+  --mdc-theme-text-primary-on-light: var(--alg-tekst);
+  --mdc-theme-text-secondary-on-light: var(--alg-gedempt);
+  --mdc-theme-text-hint-on-light: var(--alg-gedempt);
+  --mdc-theme-text-disabled-on-light: var(--alg-zwak);
+  --mdc-theme-text-icon-on-light: var(--alg-gedempt);
+  --mdc-theme-text-primary-on-dark: var(--alg-tekst);
+  --mdc-theme-text-secondary-on-dark: var(--alg-gedempt);
+  --mdc-theme-text-hint-on-dark: var(--alg-gedempt);
+  --mdc-theme-text-disabled-on-dark: var(--alg-zwak);
+  --mdc-theme-text-icon-on-dark: var(--alg-gedempt);
+  --mdc-theme-input-color: var(--theme-input-color);
+  --mdc-theme-input-color-readonly: var(--theme-input-color-readonly);
+  --mdc-theme-input-color-disabled: var(--theme-input-color-disabled);
+  --mdc-theme-input-color-placeholder: var(--theme-input-color-placeholder);
+  --mdc-theme-input-border: var(--theme-input-border);
+  --mdc-theme-input-border-readonly: var(--theme-input-border-readonly);
+  --mdc-theme-input-border-disabled: var(--theme-input-border-disabled);
+  --mdc-theme-input-background: var(--theme-input-background);
+  --mdc-theme-input-background-readonly: var(--theme-input-background-readonly);
+  --mdc-theme-input-background-disabled: var(--theme-input-background-disabled);
+
+  /* ---------- dbv-kit (nieuwe componenten: knoppen, velden, menu's) ---- */
+  --dbv-kit-color-foreground: var(--alg-tekst);
+  --dbv-kit-color-background: var(--alg-vlak);
+  --dbv-kit-color-control-inactive: var(--alg-rand-hover);
+  --dbv-kit-color-control-hover: var(--alg-gedempt);
+  --dbv-kit-color-control-label: var(--alg-gedempt);
+  --dbv-kit-color-control-required: var(--alg-fout);
+  --dbv-kit-color-error-text: var(--alg-fout);
+  --dbv-kit-color-error-background: var(--alg-fout-tint);
+  --dbv-kit-color-error-border: var(--alg-fout-rand);
+  --dbv-kit-color-info-text: var(--alg-info);
+  --dbv-kit-color-info-background: var(--alg-info-tint);
+  --dbv-kit-color-info-border: var(--alg-info-rand);
+  --dbv-kit-color-warning-text: var(--alg-waarschuwing);
+  --dbv-kit-color-warning-background: var(--alg-waarschuwing-tint);
+  --dbv-kit-color-warning-border: var(--alg-waarschuwing-rand);
+  --dbv-kit-control-outline-color: var(--alg-focus-rand);
+  --dbv-kit-control-disabled-background: var(--alg-veld-uit);
+  --dbv-kit-control-disabled-foreground: var(--alg-gedempt);
+  --dbv-kit-spinner-stroke-color: var(--alg-tekst);
+
+  --dbv-kit-btn-background: var(--alg-knop);
+  --dbv-kit-btn-background-hover: var(--alg-knop-hover);
+  --dbv-kit-btn-background-active: var(--alg-knop-hover);
+  --dbv-kit-btn-foreground: var(--alg-knop-tekst);
+  --dbv-kit-btn-foreground-hover: var(--alg-knop-tekst);
+  --dbv-kit-btn-foreground-active: var(--alg-knop-tekst);
+  --dbv-kit-btn-primary-background: var(--alg-knop);
+  --dbv-kit-btn-primary-background-hover: var(--alg-knop-hover);
+  --dbv-kit-btn-primary-background-active: var(--alg-knop-hover);
+  --dbv-kit-btn-primary-foreground: var(--alg-knop-tekst);
+  --dbv-kit-btn-primary-foreground-hover: var(--alg-knop-tekst);
+  --dbv-kit-btn-primary-foreground-active: var(--alg-knop-tekst);
+  --dbv-kit-btn-secondary-background-hover: var(--alg-knop-zacht-hover);
+  --dbv-kit-btn-secondary-background-active: var(--alg-rij-actief);
+  --dbv-kit-btn-secondary-border-color: var(--alg-rand-sterk);
+  --dbv-kit-btn-secondary-border-color-hover: var(--alg-rand-hover);
+  --dbv-kit-btn-secondary-foreground: var(--alg-tekst);
+  --dbv-kit-btn-secondary-foreground-hover: var(--alg-tekst-sterk);
+  --dbv-kit-btn-secondary-foreground-active: var(--alg-tekst-sterk);
+  --dbv-kit-btn-ghost-background-hover: var(--alg-knop-zacht-hover);
+  --dbv-kit-btn-ghost-background-active: var(--alg-rij-actief);
+  --dbv-kit-btn-ghost-border-color-hover: var(--alg-rand-hover);
+  --dbv-kit-btn-ghost-foreground: var(--alg-tekst);
+  --dbv-kit-btn-ghost-foreground-hover: var(--alg-tekst-sterk);
+  --dbv-kit-btn-ghost-foreground-active: var(--alg-tekst-sterk);
+  --dbv-kit-btn-danger-background: var(--alg-fout-vlak);
+  --dbv-kit-btn-danger-background-hover: var(--alg-fout-vlak);
+  --dbv-kit-btn-danger-background-active: var(--alg-fout-vlak);
+  --dbv-kit-btn-danger-color-outline: var(--alg-fout-rand);
+  --dbv-kit-btn-outline-color: var(--alg-focus-rand);
+  --dbv-kit-btn-loader-color: var(--alg-knop-tekst);
+
+  --dbv-kit-icon-btn-foreground: var(--alg-gedempt);
+  --dbv-kit-icon-btn-foreground-hover: var(--alg-tekst-sterk);
+  --dbv-kit-icon-btn-foreground-active: var(--alg-tekst-sterk);
+  --dbv-kit-icon-btn-background-hover: var(--alg-knop-zacht-hover);
+  --dbv-kit-icon-btn-background-active: var(--alg-rij-actief);
+  --dbv-kit-icon-btn-primary-foreground: var(--alg-gedempt);
+  --dbv-kit-icon-btn-primary-foreground-hover: var(--alg-tekst-sterk);
+  --dbv-kit-icon-btn-primary-foreground-active: var(--alg-tekst-sterk);
+  --dbv-kit-icon-btn-primary-background-hover: var(--alg-knop-zacht-hover);
+  --dbv-kit-icon-btn-primary-background-active: var(--alg-rij-actief);
+  --dbv-kit-icon-btn-secondary-foreground: var(--alg-gedempt);
+  --dbv-kit-icon-btn-secondary-foreground-hover: var(--alg-tekst-sterk);
+  --dbv-kit-icon-btn-secondary-foreground-active: var(--alg-tekst-sterk);
+  --dbv-kit-icon-btn-danger-foreground: var(--alg-fout);
+  --dbv-kit-icon-btn-danger-foreground-hover: var(--alg-fout);
+  --dbv-kit-icon-btn-danger-foreground-active: var(--alg-fout);
+  --dbv-kit-icon-btn-danger-background-hover: var(--alg-fout-tint);
+  --dbv-kit-icon-btn-danger-background-active: var(--alg-fout-tint);
+  --dbv-kit-icon-btn-outline-color: var(--alg-focus-rand);
+
+  --dbv-kit-input-background: var(--alg-veld);
+  --dbv-kit-input-border-color: var(--alg-rand-sterk);
+  --dbv-kit-input-foreground: var(--alg-tekst-sterk);
+  --dbv-kit-input-label-foreground: var(--alg-gedempt);
+  --dbv-kit-input-placeholder-foreground: var(--alg-placeholder);
+  --dbv-kit-input-option-hover-background: var(--alg-rij-hover);
+  --dbv-kit-input-option-active-background: var(--alg-rij-actief);
+  --dbv-kit-input-option-active-border: var(--alg-rand-hover);
+  --dbv-kit-input-option-active-foreground: var(--alg-tekst-sterk);
+  --dbv-kit-input-validation-error-background: var(--alg-fout-tint);
+  --dbv-kit-input-validation-error-border: var(--alg-fout-rand);
+  --dbv-kit-input-validation-error-foreground: var(--alg-fout);
+  --dbv-kit-input-validation-warning-background: var(--alg-waarschuwing-tint);
+  --dbv-kit-input-validation-warning-border: var(--alg-waarschuwing-rand);
+  --dbv-kit-input-validation-warning-foreground: var(--alg-waarschuwing);
+  --dbv-kit-input-validation-info-background: var(--alg-info-tint);
+  --dbv-kit-input-validation-info-order: var(--alg-info-rand);
+  --dbv-kit-input-validation-info-foreground: var(--alg-info);
+
+  --dbv-kit-select-background: var(--alg-veld);
+  --dbv-kit-select-border-color: var(--alg-rand-sterk);
+  --dbv-kit-select-hover-border-color: var(--alg-rand-hover);
+  --dbv-kit-select-foreground: var(--alg-tekst-sterk);
+  --dbv-kit-select-label-foreground: var(--alg-gedempt);
+  --dbv-kit-select-disabled-background: var(--alg-veld-uit);
+  --dbv-kit-select-disabled-foreground: var(--alg-gedempt);
+  --dbv-kit-select-item-foreground: var(--alg-tekst);
+  --dbv-kit-select-item-hover-background: var(--alg-rij-hover);
+  --dbv-kit-select-item-hover-foreground: var(--alg-tekst-sterk);
+  --dbv-kit-select-item-selected-background: var(--alg-rij-actief);
+  --dbv-kit-select-popover-background: var(--alg-glas-sterk);
+  --dbv-kit-select-popover-foreground: var(--alg-tekst);
+  --dbv-kit-select-popover-shadow: var(--alg-schaduw-midden);
+  --dbv-kit-combobox-background: var(--alg-veld);
+  --dbv-kit-combobox-border-color: var(--alg-rand-sterk);
+  --dbv-kit-combobox-hover-border-color: var(--alg-rand-hover);
+  --dbv-kit-combobox-foreground: var(--alg-tekst-sterk);
+  --dbv-kit-combobox-label-foreground: var(--alg-gedempt);
+  --dbv-kit-combobox-disabled-background: var(--alg-veld-uit);
+  --dbv-kit-combobox-disabled-foreground: var(--alg-gedempt);
+  --dbv-kit-combobox-item-foreground: var(--alg-tekst);
+  --dbv-kit-combobox-item-hover-background: var(--alg-rij-hover);
+  --dbv-kit-combobox-item-hover-foreground: var(--alg-tekst-sterk);
+  --dbv-kit-combobox-item-selected-background: var(--alg-rij-actief);
+  --dbv-kit-combobox-popover-background: var(--alg-glas-sterk);
+  --dbv-kit-combobox-popover-foreground: var(--alg-tekst);
+  --dbv-kit-combobox-popover-shadow: var(--alg-schaduw-midden);
+
+  --dbv-kit-checkbox-border-color: var(--alg-rand-hover);
+  --dbv-kit-checkbox-background-checked: var(--alg-knop-hover);
+  --dbv-kit-checkbox-border-color-checked: var(--alg-knop-hover);
+  --dbv-kit-checkbox-icon-color: var(--alg-knop-tekst);
+  --dbv-kit-checkbox-foreground: var(--alg-tekst);
+  --dbv-kit-checkbox-hover-shadow-color: var(--alg-rij-hover);
+  --dbv-kit-radio-active-border: var(--alg-tekst);
+  --dbv-kit-radio-active-foreground: var(--alg-tekst-sterk);
+  --dbv-kit-radio-inactive-border: var(--alg-rand-hover);
+  --dbv-kit-radio-inactive-foreground: var(--alg-rand-hover);
+  --dbv-kit-radio-inactive-hover-border: var(--alg-gedempt);
+  --dbv-kit-radio-hover-shadow-color: var(--alg-rij-hover);
+  --dbv-kit-disclosure-foreground: var(--alg-tekst);
+  --dbv-kit-disclosure-outline-color: var(--alg-focus-rand);
+  --dbv-kit-color-picker-border-color: var(--alg-rand-sterk);
+
+  --dbv-kit-menu-background: var(--alg-glas-sterk);
+  --dbv-kit-menu-border-color: var(--alg-rand-sterk);
+  --dbv-kit-menu-hover-border-color: var(--alg-rand-hover);
+  --dbv-kit-menu-foreground: var(--alg-tekst);
+  --dbv-kit-menu-disabled-background: var(--alg-veld-uit);
+  --dbv-kit-menu-disabled-foreground: var(--alg-gedempt);
+  --dbv-kit-menu-item-hover-background: var(--alg-rij-hover);
+  --dbv-kit-menu-item-hover-foreground: var(--alg-tekst-sterk);
+  --dbv-kit-menu-item-selected-background: var(--alg-rij-actief);
+  --dbv-kit-menu-popover-background: var(--alg-glas-sterk);
+  --dbv-kit-menu-popover-foreground: var(--alg-tekst);
+  --dbv-kit-menu-popover-shadow: var(--alg-schaduw-midden);
+  --dbv-kit-menu-separator-color: var(--alg-rand-sterk);
+  --dbv-kit-popover-border-color: var(--alg-rand-sterk);
+  --dbv-kit-popover-content-background: var(--alg-glas-sterk);
+  --dbv-kit-popover-content-foreground: var(--alg-tekst);
+  --dbv-kit-popover-content-shadow: var(--alg-schaduw-midden);
+
+  --dbv-kit-dialog-backdrop-background: var(--alg-overlay);
+  --dbv-kit-dialog-content-background: var(--alg-glas-sterk);
+  --dbv-kit-dialog-content-foreground: var(--alg-tekst);
+  --dbv-kit-dialog-content-shadow: var(--alg-schaduw);
+  --dbv-kit-dialog-heading-color: var(--alg-tekst-sterk);
+  --dbv-kit-dialog-dismiss-background: var(--alg-knop-zacht);
+  --dbv-kit-dialog-dismiss-foreground: var(--alg-tekst);
+  --dbv-kit-dialog-dismiss-hover-background: var(--alg-knop-zacht-hover);
+}
+
+/* ---------- Lettertype: monospace i.p.v. Roboto ------------------------- */
+[class*="theme-typography"] {
+  font-family: var(--alg-font);
+}
+
+/* ---------- Glas op de radiale achtergrond ------------------------------ */
+/* De buitenste lagen (body, app-wrapper, main en geneste panelen) worden
+   doorzichtig; zo stapelt het glas niet tot een ondoorzichtig vlak. */
+#root > .theme-background-surface,
+#root main.theme-background-surface,
+#root [id^="pane-"] [id^="pane-"].theme-background-surface,
+#root [data-panel-id].theme-background-surface,
+#root [data-panel-id] .theme-background-surface {
+  background-color: transparent;
+}
+
+/* kopbalk: glas i.p.v. blauw */
+#root > div > header {
+  background-color: var(--alg-glas-sterk);
+  border-bottom: 1px solid var(--alg-rand);
+  -webkit-backdrop-filter: var(--alg-blur);
+  backdrop-filter: var(--alg-blur);
+}
+
+/* scheidingslijnen en hover in de kopbalk: grijs i.p.v. blauw (de app zet
+   de lijn met !important) */
+#root > div > header button::after {
+  background: var(--alg-rand-sterk) !important;
+}
+
+#root > div > header button:is(:hover, [aria-expanded="true"]) {
+  background: var(--alg-knop-zacht-hover);
+}
+
+/* menu's, popovers en dialogen: glas met vervaging en ronde hoeken */
+.dbv-kit-menu__popover,
+.dbv-kit-dialog {
+  -webkit-backdrop-filter: var(--alg-blur);
+  backdrop-filter: var(--alg-blur);
+  border: 1px solid var(--alg-rand-sterk);
+  border-radius: var(--alg-radius);
+}
+
+/* knoppen met gloed bij hover */
+.dbv-kit-button:not(.split-button):hover {
+  box-shadow: var(--alg-gloed);
+}

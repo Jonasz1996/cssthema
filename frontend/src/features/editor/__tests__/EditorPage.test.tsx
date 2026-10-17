@@ -2,25 +2,30 @@ import { QueryClientProvider } from "@tanstack/react-query";
 import { act, cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { createMemoryRouter, RouterProvider } from "react-router";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { resetSessionExpired } from "@/api/client";
 import { createFetchMock, etag, json, problem, type FetchMock } from "@/api/testing/fetch-mock";
 import {
   makeDraft,
   makeLintResult,
   makePalette,
+  makeServiceSummary,
+  makeSnapshotDocument,
+  makeSnapshotSummary,
   makeTheme,
   makeVersion,
   makeVersionSummary,
 } from "@/api/testing/fixtures";
 import { createTestQueryClient } from "@/api/testing/query";
-import type { LintIssue } from "@/api/types";
+import type { LintIssue, Theme, ThemeUpdate } from "@/api/types";
 import { useToastStore } from "@/components/ui/toast";
 import { fx } from "@/lib/fx";
-import { draftBuffer } from "../autosave/buffer";
-import { hasUnsavedChanges, peekSession, resetSessions } from "../autosave/sessions";
+import { createMemoryBuffer, draftBuffer } from "../autosave/buffer";
+import { ensureSession, hasUnsavedChanges, peekSession, resetSessions } from "../autosave/sessions";
 import { EditorPage } from "../EditorPage";
 import { revealCalls } from "./mocks/reveal-calls";
 import { resetBridgeCache } from "../preview/bridge";
-import { DEFAULT_LAYOUT, useEditorStore } from "../store";
+import { usePreviewSourceStore } from "../preview/source";
+import { DEFAULT_LAYOUT, MAX_TABS, useEditorStore } from "../store";
 import BRIDGE from "../../../../public/preview-bridge.js?raw";
 
 vi.mock("../components/CodeEditor", () => import("./mocks/code-editor"));
@@ -108,7 +113,9 @@ afterEach(() => {
   // Eerst ontkoppelen: anders maakt een laatste render een nieuwe sessie aan na het opruimen.
   cleanup();
   resetSessions();
+  resetSessionExpired();
   useEditorStore.setState({ tabs: [], layout: DEFAULT_LAYOUT });
+  usePreviewSourceStore.setState({ choices: {} });
 });
 
 describe("EditorPage", () => {
@@ -400,6 +407,34 @@ describe("EditorPage", () => {
     await draftBuffer().delete(ID);
   });
 
+  it("expired login while saving: says so (not offline) and reloads on click", async () => {
+    setup((mock) =>
+      mock.on(
+        "PUT",
+        "/api/v1/themes/:id/draft",
+        () =>
+          new Response(null, {
+            status: 302,
+            headers: { Location: "/outpost.goauthentik.io/start" },
+          }),
+      ),
+    );
+    const textarea = await editorTextarea();
+    fireEvent.change(textarea, { target: { value: "a{na de login}" } });
+    const button = await within(statusBar()).findByRole(
+      "button",
+      { name: /Sessie verlopen, laad de pagina opnieuw/ },
+      { timeout: 2500 },
+    );
+    expect(within(statusBar()).queryByText(/Offline/)).toBeNull();
+    expect(await draftBuffer().get(ID)).toMatchObject({ css: "a{na de login}" });
+    const reload = vi.fn();
+    vi.stubGlobal("location", { ...window.location, reload });
+    fireEvent.click(button);
+    expect(reload).toHaveBeenCalled();
+    await draftBuffer().delete(ID);
+  });
+
   it("closing the active tab opens its neighbour", async () => {
     useEditorStore.setState({
       tabs: [
@@ -412,6 +447,29 @@ describe("EditorPage", () => {
     fireEvent.click(screen.getByRole("button", { name: "Grafana Nord sluiten" }));
     await waitFor(() => expect(router.state.location.pathname).toBe("/editor/other"));
     expect(useEditorStore.getState().tabs.map((tab) => tab.id)).toEqual(["other"]);
+  });
+
+  it("a tab dropped past the maximum is cleaned up, one with unsaved work stays", async () => {
+    const draft = { css: "a{}", lock_version: 1, updated_at: "2026-10-05T10:00:00Z" };
+    const pending = () => new Promise<never>(() => {});
+    const others = Array.from({ length: MAX_TABS }, (_, n) => ({
+      id: `tab-${n}`,
+      name: `Thema ${n}`,
+      slug: `thema-${n}`,
+    }));
+    useEditorStore.setState({ tabs: others });
+    const unsaved = ensureSession("tab-0", { draft, save: pending, buffer: createMemoryBuffer() });
+    unsaved.edit("a{niet bewaard}");
+    ensureSession("tab-1", { draft, save: pending, buffer: createMemoryBuffer() });
+    setup();
+    await editorTextarea();
+    const ids = useEditorStore.getState().tabs.map((item) => item.id);
+    expect(ids).toHaveLength(MAX_TABS);
+    expect(ids).toContain("tab-0");
+    expect(ids).not.toContain("tab-1");
+    // Opgeruimd zoals bij sluiten: de sessie is weg, die met wijzigingen niet.
+    await waitFor(() => expect(peekSession("tab-1")).toBeUndefined());
+    expect(peekSession("tab-0")).toBe(unsaved);
   });
 
   it("closing the active tab while a save is pending: one PUT, no session left, no conflict", async () => {
@@ -622,5 +680,327 @@ describe("EditorPage", () => {
       }),
     ).toBeInTheDocument();
     expect(screen.queryByText(/Bad Gateway/)).toBeNull();
+  });
+
+  it("previews against a snapshot of the app and offers its classes in the editor", async () => {
+    const snapshot = makeSnapshotSummary({ page: "start", title: "Grafana" });
+    const service = makeServiceSummary({
+      hostname: "grafana.lan",
+      slug: "grafana-lan",
+      snapshots: [snapshot],
+    });
+    const { server, view } = setup((mock) =>
+      mock
+        .on("GET", "/api/v1/services", json([service]))
+        .on("GET", "/api/v1/snapshots/:id/document", ({ params }) =>
+          json(
+            makeSnapshotDocument({
+              id: params.id,
+              hostname: "grafana.lan",
+              html: '<body class="theme-dark"><nav class="sidemenu">menu</nav></body>',
+              stylesheets: [".panel-container{--panel-bg:#111}"],
+            }),
+          ),
+        ),
+    );
+    await editorTextarea();
+    // Grafana Nord past niet bij grafana.lan (geen koppeling, slug ≠ hostnaam): eerst de demo.
+    const picker = screen.getByRole("combobox", { name: "Bron van de preview" });
+    await waitFor(() => expect(picker).toHaveValue("demo"));
+    expect(screen.getByTestId("snapshot-completions")).toHaveTextContent("no snapshot");
+
+    fireEvent.change(picker, { target: { value: snapshot.id } });
+    await waitFor(() =>
+      expect(screen.getByTestId("snapshot-completions")).toHaveTextContent(
+        "grafana.lan start: sidemenu theme-dark panel-container",
+      ),
+    );
+    await waitFor(() =>
+      expect(view.container.querySelector("iframe")?.getAttribute("srcdoc")).toContain(
+        '<nav class="sidemenu">menu</nav>',
+      ),
+    );
+    // Preview en autocomplete delen één verzoek.
+    expect(server.callsTo("GET", "/api/v1/snapshots/:id/document")).toHaveLength(1);
+
+    fireEvent.change(picker, { target: { value: "demo" } });
+    await waitFor(() =>
+      expect(screen.getByTestId("snapshot-completions")).toHaveTextContent("no snapshot"),
+    );
+  });
+
+  it("the publish dialog says on how many hosts the theme goes live", async () => {
+    const { server } = setup((mock) =>
+      mock
+        .on(
+          "GET",
+          "/api/v1/themes/:id",
+          json({ ...theme, draft_dirty: true }, { headers: etag(3) }),
+        )
+        .on("GET", "/api/v1/preview/usage", ({ url }) =>
+          json({
+            theme: url.searchParams.get("theme"),
+            hostnames: ["a.lan", "b.lan"],
+            default: true,
+            bound: ["a.lan", "b.lan", "c.lan"],
+          }),
+        ),
+    );
+    await editorTextarea();
+    act(() => {
+      fireEvent.keyDown(window, { key: "s", ctrlKey: true });
+    });
+    const dialog = await screen.findByRole("dialog", { name: "grafana-nord publiceren" });
+    expect(await within(dialog).findByText("Gaat live op")).toBeInTheDocument();
+    expect(dialog.querySelector("[data-publish-hosts]")).toHaveTextContent(
+      "2 hosts + elke host zonder eigen koppeling (*)",
+    );
+    fireEvent.click(within(dialog).getByText("Toon de hosts"));
+    expect(within(dialog).getByText("b.lan")).toBeInTheDocument();
+    const usage = server.callsTo("GET", "/api/v1/preview/usage");
+    expect(usage.at(-1)!.url.searchParams.get("theme")).toBe("grafana-nord");
+  });
+
+  it("warns in algemeen that the module stacks do not follow it", async () => {
+    const general = { ...theme, name: "Algemeen", slug: "algemeen" };
+    setup((mock) =>
+      mock
+        .on("GET", "/api/v1/themes/:id", json(general, { headers: etag(3) }))
+        .on("GET", "/api/v1/preview/usage", ({ url }) =>
+          json({
+            theme: url.searchParams.get("theme"),
+            hostnames: url.searchParams.get("theme") === "alg-kern" ? ["a.lan", "b.lan"] : [],
+            default: url.searchParams.get("theme") === "algemeen",
+            bound: ["a.lan", "b.lan"],
+          }),
+        ),
+    );
+    expect(
+      await screen.findByText("Modulestapels volgen dit thema niet", undefined, { timeout: 3000 }),
+    ).toBeInTheDocument();
+    expect(screen.getByText(/^2 hosts hebben een modulestapel/)).toBeInTheDocument();
+  });
+
+  it("does not show the module notice on other themes", async () => {
+    const { server } = setup((mock) =>
+      mock.on(
+        "GET",
+        "/api/v1/preview/usage",
+        json({ theme: "x", hostnames: ["a.lan"], default: false, bound: ["a.lan"] }),
+      ),
+    );
+    await editorTextarea();
+    await waitFor(() =>
+      expect(server.callsTo("GET", "/api/v1/preview/usage").length).toBeGreaterThan(0),
+    );
+    expect(
+      server
+        .callsTo("GET", "/api/v1/preview/usage")
+        .map((call) => call.url.searchParams.get("theme")),
+    ).not.toContain("alg-kern");
+    expect(screen.queryByText("Modulestapels volgen dit thema niet")).toBeNull();
+  });
+
+  it("lints only after a pause, also for the first keystrokes", async () => {
+    const { server } = setup();
+    const textarea = await editorTextarea();
+    await waitFor(() => expect(server.callsTo("POST", "/api/v1/themes/:id/lint")).toHaveLength(1));
+    for (const value of ["a{b}", "a{bc}", "a{bcd}"]) {
+      fireEvent.change(textarea, { target: { value } });
+      await act(() => new Promise((resolve) => setTimeout(resolve, 50)));
+    }
+    // Typen geeft geen lint per toets (de statusbalk rendert wel opnieuw: "Opslaan…").
+    expect(server.callsTo("POST", "/api/v1/themes/:id/lint")).toHaveLength(1);
+    await waitFor(() => expect(server.callsTo("POST", "/api/v1/themes/:id/lint")).toHaveLength(2));
+    expect(server.callsTo("POST", "/api/v1/themes/:id/lint")[1]!.body).toEqual({ css: "a{bcd}" });
+  });
+});
+
+describe("EditorPage: instellingen", () => {
+  const dracula = makePalette({ name: "Dracula", tokens: { bg: "#282a36" } });
+
+  // Een vorige test kan getypte tekst in de offline-buffer laten: die zou eerst opgeslagen worden.
+  beforeEach(() => draftBuffer().delete(ID));
+
+  /** Server met één lock voor draft en metadata, zoals de backend: een verkeerde If-Match is 412. */
+  function settingsSetup(patchResponse?: (body: ThemeUpdate) => Response | null) {
+    let current: Theme = { ...theme };
+    let lock = 3;
+    const stale = () =>
+      problem(412, "precondition_failed", {
+        current: { etag: `"lv-${lock}"`, lock_version: lock, updated_by: null, updated_at: null },
+      });
+    return setup((mock) =>
+      mock
+        .on("GET", "/api/v1/themes/:id", () =>
+          json({ ...current, lock_version: lock }, { headers: etag(lock) }),
+        )
+        .on("GET", "/api/v1/palettes", json([palette, dracula]))
+        .on("PUT", "/api/v1/themes/:id/draft", ({ body, headers }) => {
+          if (headers.get("If-Match") !== `"lv-${lock}"`) return stale();
+          lock += 1;
+          const { css } = body as { css: string };
+          return json(makeDraft({ css, lock_version: lock }), { headers: etag(lock) });
+        })
+        .on("PATCH", "/api/v1/themes/:id", ({ body, headers }) => {
+          const fixed = patchResponse?.(body as ThemeUpdate);
+          if (fixed) return fixed;
+          if (headers.get("If-Match") !== `"lv-${lock}"`) return stale();
+          lock += 1;
+          current = { ...current, ...(body as Partial<Theme>) };
+          return json({ ...current, lock_version: lock }, { headers: etag(lock) });
+        }),
+    );
+  }
+
+  async function openSettings() {
+    fireEvent.click(screen.getByRole("button", { name: "Instellingen" }));
+    return within(await screen.findByRole("dialog", { name: "Instellingen van Grafana Nord" }));
+  }
+
+  it("renames the theme and changes palette and description, in place", async () => {
+    const { server } = settingsSetup();
+    const textarea = await editorTextarea();
+    const dialog = await openSettings();
+    fireEvent.change(dialog.getByLabelText("Naam"), { target: { value: "Grafana Licht" } });
+    fireEvent.change(dialog.getByLabelText("Slug (URL)"), { target: { value: "grafana-licht" } });
+    expect(dialog.getByText(/^Het bestand heet dan grafana-licht\.css\./)).toHaveTextContent(
+      "grafana-nord.css stuurt nog 90 dagen door, en host-koppelingen met grafana-nord krijgen de nieuwe naam.",
+    );
+    await dialog.findByRole("option", { name: "Dracula" });
+    fireEvent.change(dialog.getByLabelText("Palet"), { target: { value: dracula.id } });
+    fireEvent.change(dialog.getByLabelText("Beschrijving (optioneel)"), {
+      target: { value: "  Lichte variant " },
+    });
+    fireEvent.click(dialog.getByRole("button", { name: "Opslaan" }));
+    await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
+
+    const [patch, ...more] = server.callsTo("PATCH", "/api/v1/themes/:id");
+    expect(more).toHaveLength(0);
+    expect(patch!.headers.get("If-Match")).toBe('"lv-3"');
+    expect(patch!.body).toEqual({
+      name: "Grafana Licht",
+      slug: "grafana-licht",
+      description: "Lichte variant",
+      palette_id: dracula.id,
+    });
+    expect(screen.getByRole("heading", { name: "Grafana Licht" })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: /grafana-licht\.css/ })).toHaveAttribute(
+      "aria-current",
+      "page",
+    );
+    expect(useEditorStore.getState().tabs).toEqual([
+      { id: ID, name: "Grafana Licht", slug: "grafana-licht" },
+    ]);
+    expect(useToastStore.getState().toasts.map((item) => item.message)).toContain(
+      "Instellingen opgeslagen.",
+    );
+    expect(peekSession(ID)?.getSnapshot().lockVersion).toBe(4);
+
+    // De volgende autosave gebruikt de lock van na de PATCH: geen 412, geen conflict.
+    fireEvent.change(textarea, { target: { value: "a{color:red}" } });
+    await waitFor(() => expect(server.callsTo("PUT", "/api/v1/themes/:id/draft")).toHaveLength(1), {
+      timeout: 2500,
+    });
+    expect(server.callsTo("PUT", "/api/v1/themes/:id/draft")[0]!.headers.get("If-Match")).toBe(
+      '"lv-4"',
+    );
+    await waitFor(() => expect(within(statusBar()).getByText(/Opgeslagen/)).toBeInTheDocument());
+    expect(within(statusBar()).queryByRole("button", { name: /Conflict/ })).toBeNull();
+  });
+
+  it("saves pending text first, so draft and settings do not cross with one lock", async () => {
+    const { server } = settingsSetup();
+    const textarea = await editorTextarea();
+    fireEvent.change(textarea, { target: { value: "a{color:blue}" } });
+    const dialog = await openSettings();
+    fireEvent.change(dialog.getByLabelText("Naam"), { target: { value: "Grafana Blauw" } });
+    fireEvent.click(dialog.getByRole("button", { name: "Opslaan" }));
+    await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
+    const calls = server.calls
+      .filter((call) => call.method === "PUT" || call.method === "PATCH")
+      .map((call) => `${call.method} ${call.headers.get("If-Match")}`);
+    expect(calls).toEqual(['PUT "lv-3"', 'PATCH "lv-4"']);
+    expect(server.callsTo("PATCH", "/api/v1/themes/:id")[0]!.body).toEqual({
+      name: "Grafana Blauw",
+    });
+    expect(peekSession(ID)?.getSnapshot()).toMatchObject({ lockVersion: 5, dirty: false });
+  });
+
+  it("a taken slug shows under the field and keeps the dialog open; no change sends nothing", async () => {
+    const { server } = settingsSetup((body) =>
+      body.slug === "proxmox"
+        ? problem(409, "slug_conflict", { detail: "Slug 'proxmox' is al in gebruik." })
+        : null,
+    );
+    await editorTextarea();
+    let dialog = await openSettings();
+    fireEvent.change(dialog.getByLabelText("Slug (URL)"), { target: { value: "proxmox" } });
+    fireEvent.click(dialog.getByRole("button", { name: "Opslaan" }));
+    expect(await dialog.findByText("Slug 'proxmox' is al in gebruik.")).toBeInTheDocument();
+    expect(screen.getByRole("dialog")).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Grafana Nord" })).toBeInTheDocument();
+    // Een ongeldige slug gaat niet eens naar de server.
+    fireEvent.change(dialog.getByLabelText("Slug (URL)"), { target: { value: "api" } });
+    fireEvent.click(dialog.getByRole("button", { name: "Opslaan" }));
+    expect(server.callsTo("PATCH", "/api/v1/themes/:id")).toHaveLength(1);
+    fireEvent.click(dialog.getByRole("button", { name: "Annuleren" }));
+
+    dialog = await openSettings();
+    fireEvent.click(dialog.getByRole("button", { name: "Opslaan" }));
+    await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
+    expect(server.callsTo("PATCH", "/api/v1/themes/:id")).toHaveLength(1);
+  });
+
+  it("a lock that only moved elsewhere is retried once; a changed draft is an error", async () => {
+    const moved = (lockVersion: number) =>
+      problem(412, "precondition_failed", {
+        detail: "Het thema is intussen gewijzigd.",
+        current: {
+          etag: `"lv-${lockVersion}"`,
+          lock_version: lockVersion,
+          updated_by: null,
+          updated_at: null,
+        },
+      });
+    const { server } = settingsSetup();
+    await editorTextarea();
+    // Ergens anders gepubliceerd: de lock staat op 7, de draft is dezelfde.
+    server
+      .on("GET", "/api/v1/themes/:id/draft", json(makeDraft({ css: "a{}", lock_version: 7 })))
+      .on("PATCH", "/api/v1/themes/:id", ({ body, headers }) =>
+        headers.get("If-Match") === '"lv-7"'
+          ? json({ ...theme, ...(body as Partial<Theme>), lock_version: 8 }, { headers: etag(8) })
+          : moved(7),
+      );
+    let dialog = await openSettings();
+    fireEvent.change(dialog.getByLabelText("Naam"), { target: { value: "Grafana Nacht" } });
+    fireEvent.click(dialog.getByRole("button", { name: "Opslaan" }));
+    await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
+    expect(
+      server.callsTo("PATCH", "/api/v1/themes/:id").map((call) => call.headers.get("If-Match")),
+    ).toEqual(['"lv-3"', '"lv-7"']);
+    expect(peekSession(ID)?.getSnapshot().lockVersion).toBe(8);
+
+    // Nu veranderde ook de draft (een ander tabblad): geen stille overname, een melding.
+    server
+      .on("GET", "/api/v1/themes/:id/draft", json(makeDraft({ css: "b{}", lock_version: 9 })))
+      .on("PATCH", "/api/v1/themes/:id", () => moved(9));
+    fireEvent.click(screen.getByRole("button", { name: "Instellingen" }));
+    dialog = within(await screen.findByRole("dialog", { name: "Instellingen van Grafana Nacht" }));
+    fireEvent.change(dialog.getByLabelText("Naam"), { target: { value: "Grafana Dag" } });
+    fireEvent.click(dialog.getByRole("button", { name: "Opslaan" }));
+    expect(await dialog.findByRole("alert")).toHaveTextContent("Het thema is intussen gewijzigd.");
+    // Geen tweede poging: de draft op de server is niet meer die van ons.
+    expect(server.callsTo("PATCH", "/api/v1/themes/:id")).toHaveLength(3);
+    expect(peekSession(ID)?.getSnapshot()).toMatchObject({ lockVersion: 8, css: "a{}" });
+  });
+
+  it("is not offered for a deleted theme", async () => {
+    setup((mock) =>
+      mock.on("GET", "/api/v1/themes/:id", json({ ...theme, deleted_at: "2026-10-05T09:00:00Z" })),
+    );
+    await editorTextarea();
+    expect(screen.getByRole("button", { name: "Instellingen" })).toBeDisabled();
   });
 });

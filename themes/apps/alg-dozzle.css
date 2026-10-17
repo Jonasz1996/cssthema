@@ -1,0 +1,122 @@
+/* ==========================================================================
+   alg-dozzle.css - Dozzle (v10, Vue 3 + Tailwind 4 + DaisyUI 5)
+   Host: dozzle.jbogaert.be
+   Laadt NA algemeen.css.
+
+   Werkt af: de DaisyUI-kleurvariabelen (--color-base-*, primary, secondary,
+   status) naar de --alg-tokens, zodat kaarten, knoppen, kbd-toetsen, de
+   versie-tag, de containertabel (lichtgrijze tbody), de splitter tussen
+   zijbalk en inhoud en de teal/oranje merkkleuren donker en grijs worden.
+   Werkt voor licht, donker en "auto" (de variabelen gelden op alle drie).
+
+   Beperkingen: alleen het overzicht (hosts + containertabel) is vastgelegd;
+   de logweergave volgt via dezelfde variabelen maar is niet getest.
+   CSP: style-src 'self' 'unsafe-inline' blob: weigert css.jbogaert.be;
+   gebruik de /alg-thema/-omweg in NPM.
+   ========================================================================== */
+
+/* DaisyUI-thema's staan op :where(:root), [data-theme=light|dark] en
+   :root:not([data-theme]); :root[data-theme] wint van alle drie */
+:root,
+:root[data-theme] {
+  color-scheme: dark;
+  --color-base-100: var(--alg-vlak);
+  --color-base-200: var(--alg-achtergrond-kleur);
+  --color-base-300: var(--alg-vlak-2);
+  --color-base-content: var(--alg-tekst);
+  --color-primary: var(--alg-knop);
+  --color-primary-content: var(--alg-knop-tekst);
+  --color-secondary: var(--alg-gedempt);
+  --color-secondary-content: var(--alg-donker-tekst);
+  --color-accent: var(--alg-accent-kleur);
+  --color-accent-content: var(--alg-donker-tekst);
+  --color-neutral: var(--alg-vlak-2);
+  --color-neutral-content: var(--alg-tekst);
+  /* status: lichte tint als tekst en vlak, donkere tekst op het vlak */
+  --color-success: var(--alg-ok);
+  --color-success-content: var(--alg-donker-tekst);
+  --color-error: var(--alg-fout);
+  --color-error-content: var(--alg-donker-tekst);
+  --color-warning: var(--alg-waarschuwing);
+  --color-warning-content: var(--alg-donker-tekst);
+  --color-info: var(--alg-info);
+  --color-info-content: var(--alg-donker-tekst);
+  /* Dozzle-eigen kleuren (logniveaus, grafieken) */
+  --color-green: var(--alg-ok);
+  --color-red: var(--alg-fout);
+  --color-orange: var(--alg-waarschuwing);
+  --color-blue: var(--alg-info);
+  --noise: 0;
+  --fx-noise: none;
+}
+
+/* splitter tussen zijbalk en inhoud: dunne rand i.p.v. een wit vlak */
+html .splitpanes--vertical > .splitpanes__splitter {
+  background-color: var(--alg-rand);
+}
+html .splitpanes--vertical > .splitpanes__splitter:hover {
+  background-color: var(--alg-rand-hover);
+}
+
+/* knoppen (rond: meldingen, instellingen; join: grafiek/lijst) */
+html .btn:not(.btn-primary, .btn-error, .btn-success, .btn-warning, .btn-info, .btn-link, .btn-ghost) {
+  background-color: var(--alg-knop-zacht);
+  border-color: var(--alg-rand);
+  color: var(--alg-tekst);
+}
+html .btn:not(.btn-link, .btn-ghost):hover {
+  background-color: var(--alg-knop-zacht-hover);
+  border-color: var(--alg-rand-hover);
+  box-shadow: var(--alg-gloed);
+}
+html :is(.btn-primary, .btn-active, .btn:checked, input.btn[type="radio"]:checked) {
+  background-color: var(--alg-knop);
+  border-color: var(--alg-rand-sterk);
+  color: var(--alg-knop-tekst);
+}
+
+/* zoekveld, kbd en versie-tag */
+html .kbd {
+  background-color: var(--alg-knop-zacht);
+  border-color: var(--alg-rand-sterk);
+  color: var(--alg-gedempt);
+}
+html .tag.bg-base-100 {
+  background-color: var(--alg-knop-zacht);
+  border: 1px solid var(--alg-rand);
+  color: var(--alg-tekst);
+}
+
+/* hostkaart en containertabel als glas */
+html .card.bg-base-100,
+html .table {
+  background-color: var(--alg-glas);
+  border-color: var(--alg-rand);
+  backdrop-filter: var(--alg-blur);
+}
+html .table thead th {
+  color: var(--alg-gedempt);
+  border-color: var(--alg-rand);
+}
+html .table tbody tr:hover {
+  background-color: var(--alg-rij-hover);
+}
+
+/* menu's en dropdowns (rijen per pagina, instellingen) */
+html :is(.dropdown-content, .menu.bg-base-100, .modal-box) {
+  background-color: var(--alg-glas-sterk);
+  border: 1px solid var(--alg-rand-sterk);
+  color: var(--alg-tekst);
+  backdrop-filter: var(--alg-blur);
+}
+
+/* zoekknop bovenaan (Ctrl+K) ziet eruit als een invoerveld */
+html button.bg-base-200[class*="border-base-content"] {
+  background-color: var(--alg-veld);
+  border-color: var(--alg-rand-sterk);
+  color: var(--alg-placeholder);
+  box-shadow: none;
+}
+html button.bg-base-200[class*="border-base-content"]:hover {
+  border-color: var(--alg-rand-hover);
+}

@@ -42,7 +42,7 @@ typecheck: ## Typecheck backend (mypy strict) en frontend (tsc)
 test: test-backend test-frontend ## Alle tests
 
 test-backend: ## Backend-tests (integratietests als DATABASE_URL gezet is)
-	cd backend && uv run pytest
+	cd backend && uv run pytest && uv run pytest ../scripts/npm -q
 
 test-frontend: ## Frontend-tests
 	cd frontend && pnpm test

@@ -8,6 +8,7 @@ import {
   useQuery,
   useQueryClient,
   type InfiniteData,
+  type QueryClient,
 } from "@tanstack/react-query";
 import {
   api,
@@ -28,6 +29,7 @@ import type {
   DuplicateRequest,
   ExportFormat,
   ImportConflict,
+  ImportOutcome,
   LocalCssFile,
   LocalImportResult,
   Locked,
@@ -38,7 +40,7 @@ import type {
   ThemeUpdate,
 } from "../types";
 import { invalidateCollections, invalidateThemeState, putTheme, removeTheme } from "./cache";
-import { normalizeThemeFilters, themeKeys } from "./keys";
+import { hostKeys, normalizeThemeFilters, themeKeys } from "./keys";
 import type { QueryHookOptions } from "./options";
 
 /** Lock uit `ETag`, anders uit `lock_version` van het thema zelf. */
@@ -49,6 +51,15 @@ function lockOf(response: Response, theme: Theme): { etag: string; lockVersion: 
       lockVersion: theme.lock_version,
     }
   );
+}
+
+/**
+ * Koppelingen, keuzes, gezondheid en preview-stapels opnieuw laten ophalen: na publiceren,
+ * verwijderen, herstellen, hernoemen of importeren verandert wat een host krijgt (en wat de
+ * Hosts-pagina als "onbekend" of "ontbreekt" toont).
+ */
+export function invalidateHosts(queryClient: QueryClient): Promise<void> {
+  return queryClient.invalidateQueries({ queryKey: hostKeys.all });
 }
 
 // --- fetchers (ook bruikbaar buiten React, bv. in een loader of prefetch) ----------------------
@@ -177,6 +188,11 @@ export interface ImportThemeInput {
 export type ImportThemeResult = Locked<Theme> & {
   /** `false`: nieuwe versie op een bestaand thema (`on_conflict=new_version`, HTTP 200). */
   created: boolean;
+  /**
+   * `unchanged`: gelijk aan de laatste versie; er is niets opgeslagen of gepubliceerd
+   * (`on_conflict=new_version`).
+   */
+  outcome: ImportOutcome;
 };
 
 type ImportBody = components["schemas"]["Body_themes_import"];
@@ -197,7 +213,8 @@ export async function importTheme({
       ...multipart<ImportBody>({ file: upload, on_conflict: onConflict, publish, name }),
     }),
   );
-  return { data, ...lockOf(response, data), created: response.status === 201 };
+  const { outcome, ...theme } = data;
+  return { data: theme, ...lockOf(response, theme), created: response.status === 201, outcome };
 }
 
 export async function fetchLocalFiles(signal?: AbortSignal): Promise<LocalCssFile[]> {
@@ -321,6 +338,8 @@ export function useUpdateTheme() {
         palettes: "palette_id" in patch,
         localFiles: "slug" in patch,
       });
+      // Een nieuwe slug hernoemt hem ook in de host-koppelingen.
+      if ("slug" in patch) void invalidateHosts(queryClient);
     },
   });
 }
@@ -335,6 +354,7 @@ export function useDeleteTheme() {
       // De lock schuift op (de draft niet): een open editor neemt hem zo over.
       else void invalidateThemeState(queryClient, themeId, { draft: true });
       void invalidateCollections(queryClient, { palettes: true, localFiles: true });
+      void invalidateHosts(queryClient);
     },
   });
 }
@@ -349,6 +369,7 @@ export function useRestoreTheme() {
       // Herstellen verhoogt de lock zonder de draft te wijzigen: de editor moet hem overnemen.
       void invalidateThemeState(queryClient, data.id, { draft: true });
       void invalidateCollections(queryClient, { palettes: true, localFiles: true });
+      void invalidateHosts(queryClient);
     },
   });
 }
@@ -375,10 +396,12 @@ export function useImportTheme() {
   const queryClient = useQueryClient();
   return useMutation<ImportThemeResult, ApiError, ImportThemeInput>({
     mutationFn: importTheme,
-    onSuccess: ({ data, created }) => {
+    onSuccess: ({ data, created, outcome }) => {
+      if (outcome === "unchanged") return; // niets veranderd op de server
       putTheme(queryClient, data);
       if (!created) void invalidateThemeState(queryClient, data.id, { draft: true });
       void invalidateCollections(queryClient, { palettes: true, localFiles: true });
+      void invalidateHosts(queryClient);
     },
   });
 }
@@ -391,6 +414,7 @@ export function useImportLocalFiles() {
     onSuccess: ({ imported }) => {
       for (const theme of imported) putTheme(queryClient, theme);
       void invalidateCollections(queryClient, { palettes: true, localFiles: true });
+      void invalidateHosts(queryClient);
     },
   });
 }

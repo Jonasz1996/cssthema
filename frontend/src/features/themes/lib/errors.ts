@@ -1,4 +1,4 @@
-import { isApiError, NETWORK_ERROR } from "@/api/client";
+import { AUTH_EXPIRED, isApiError, NETWORK_ERROR } from "@/api/client";
 import type { I18n, MessageKey } from "@/lib/i18n";
 
 /**
@@ -66,6 +66,8 @@ export function apiErrorText(
   keys?: ErrorKeys,
 ): string {
   if (code === NETWORK_ERROR) return t("themes.errorNetwork");
+  // Een redirect of loginpagina van de proxy: geen Problem-body, maar wel een bekende oorzaak.
+  if (code === AUTH_EXPIRED) return t("themes.errorAuthExpired");
   if (!fromServer) {
     if (status === 413) return t("themes.errorTooLarge");
     if (status >= 500) return t("themes.errorServer");

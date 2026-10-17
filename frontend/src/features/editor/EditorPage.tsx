@@ -1,7 +1,7 @@
-import { Suspense, useCallback, useEffect, useId, useRef, useState } from "react";
+import { Suspense, useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router";
-import { saveBlob } from "@/api/client";
-import { useDraft, useLint, useSaveDraft } from "@/api/queries/editor";
+import { AUTH_EXPIRED, saveBlob } from "@/api/client";
+import { useDraft, useLint, useSaveDraft, useThemeUsage } from "@/api/queries/editor";
 import { usePalette } from "@/api/queries/palettes";
 import { useExportTheme, useTheme } from "@/api/queries/themes";
 import type { LintIssue } from "@/api/types";
@@ -30,15 +30,26 @@ import { ProblemsPanel } from "./components/ProblemsPanel";
 import { PublishDialog } from "./components/PublishDialog";
 import { Splitter } from "./components/Splitter";
 import { StatusBar } from "./components/StatusBar";
+import { ThemeSettingsDialog } from "./components/ThemeSettingsDialog";
 import { useFillHeight, useMediaQuery } from "./lib/layout-hooks";
 import { type EditorShortcut, editorShortcut, LINT_DEBOUNCE_MS } from "./lib/shortcuts";
+import { collectSnapshotSymbols } from "./lib/snapshot-symbols";
 import { themeStatusTags } from "./lib/theme-status";
 import { disposeThemeModel } from "./monaco/load";
+import type { ModelSnapshot } from "./monaco/providers";
 import { PreviewPane } from "./preview/PreviewPane";
+import { usePreviewSource } from "./preview/use-preview-source";
 import { EXPLORER_WIDTH, PREVIEW_SIZE, useEditorStore } from "./store";
+
+/** Het monolithische basisthema en de kernmodule die er (via modules.py) uit gemaakt is. */
+const GENERAL_THEME = "algemeen";
+const MODULE_CORE = "alg-kern";
 
 const selectConflict = (snapshot: SessionSnapshot): SaveState | null =>
   snapshot.state.kind === "conflict" ? snapshot.state : null;
+
+/** Een tab met wijzigingen die nog niet op de server staan (conflict, offline, nog niet bewaard). */
+const hasUnsavedWork = (themeId: string) => peekSession(themeId)?.getSnapshot().dirty ?? false;
 
 /** Gesloten tab opruimen: Monaco-model weg, wachtende wijzigingen opslaan, sessie weg. */
 function releaseTab(themeId: string): void {
@@ -74,6 +85,23 @@ export function EditorPage() {
   const lintCss = useDebouncedSessionCss(session, LINT_DEBOUNCE_MS);
   const lint = useLint(themeId, session ? lintCss : undefined);
   const exportTheme = useExportTheme();
+  // De modules (alg-kern, alg-fw-*, alg-app-*) zijn losse kopieën van stukken van algemeen: een
+  // wijziging hier bereikt de hosts op een modulestapel niet (review THM-3).
+  const moduleHosts = useThemeUsage(theme?.slug === GENERAL_THEME ? MODULE_CORE : null).data
+    ?.hostnames.length;
+  // Dezelfde bron als de preview (gedeelde keuze en cache): autocomplete op de classes, id's en
+  // variabelen van die snapshot, ook als de preview verborgen is.
+  const previewSource = usePreviewSource(theme);
+  const snapshotData = previewSource.document.data;
+  const snapshotPage = previewSource.selected?.snapshot.page;
+  const snapshotCompletions = useMemo((): ModelSnapshot | null => {
+    if (!previewSource.snapshotId || snapshotData?.id !== previewSource.snapshotId) return null;
+    return {
+      hostname: snapshotData.hostname,
+      page: snapshotPage ?? snapshotData.title ?? snapshotData.hostname,
+      symbols: collectSnapshotSymbols(snapshotData),
+    };
+  }, [previewSource.snapshotId, snapshotData, snapshotPage]);
 
   const tabs = useEditorStore((state) => state.tabs);
   const openTab = useEditorStore((state) => state.openTab);
@@ -91,6 +119,7 @@ export function EditorPage() {
   const [cursor, setCursor] = useState<CursorPosition | null>(null);
   const [dragging, setDragging] = useState(false);
   const [publishOpen, setPublishOpen] = useState(false);
+  const [settingsOpen, setSettingsOpen] = useState(false);
   // De conflictdialoog staat open zolang de sessie in conflict is, tot je hem voor díé
   // conflictmelding sluit; een nieuw conflict (of een klik op de statusbalk) opent hem weer.
   const conflict = useSessionValue(session, selectConflict, null);
@@ -101,11 +130,15 @@ export function EditorPage() {
   useShellCommand(theme?.slug ? `cssthema edit ${theme.slug}` : null);
   useDocumentTitle(theme?.name ? `${theme.name} · ${t("editor.title")}` : t("editor.title"));
 
-  // Tab openen of bijwerken (naam/slug) zodra het thema geladen is.
+  // Tab openen of bijwerken (naam/slug) zodra het thema geladen is. Tabs die boven het
+  // maximum wegvallen, ruimen we op zoals bij sluiten; een tab met onbewaarde wijzigingen blijft
+  // (review FE-9).
   const tabName = theme?.name;
   const tabSlug = theme?.slug;
   useEffect(() => {
-    if (tabName && tabSlug) openTab({ id: themeId, name: tabName, slug: tabSlug });
+    if (!tabName || !tabSlug) return;
+    const dropped = openTab({ id: themeId, name: tabName, slug: tabSlug }, themeId, hasUnsavedWork);
+    for (const id of dropped) releaseTab(id);
   }, [openTab, themeId, tabName, tabSlug]);
 
   // Wisselen van thema of de pagina verlaten: wachtende wijzigingen meteen opslaan.
@@ -187,6 +220,8 @@ export function EditorPage() {
   const onStatusAction = (state: SaveState) => {
     if (state.kind === "conflict") setDismissedConflict(null);
     else if (state.kind === "offline") session?.retryNow();
+    // Login verlopen: opnieuw opslaan lukt pas na herladen (de tekst staat in de buffer).
+    else if (state.kind === "error" && state.code === AUTH_EXPIRED) window.location.reload();
     else if (state.kind === "error") void session?.flush();
   };
 
@@ -331,6 +366,15 @@ export function EditorPage() {
           <ButtonLink to={`/editor/${theme.id}/versions`} variant="alt" size="sm">
             {t("editor.versions")}
           </ButtonLink>
+          <Button
+            variant="alt"
+            size="sm"
+            onClick={() => setSettingsOpen(true)}
+            disabled={!session || readOnly}
+            title={t("editor.settingsHint")}
+          >
+            {t("editor.settings")}
+          </Button>
           <MenuButton
             label={<span aria-hidden>⤓</span>}
             ariaLabel={t("editor.downloadMenu")}
@@ -388,6 +432,11 @@ export function EditorPage() {
           {t("editor.shadowedText", { slug: theme.slug })}
         </Callout>
       )}
+      {theme.slug === GENERAL_THEME && moduleHosts ? (
+        <Callout tone="mid" className="mb-2" title={t("editor.algemeenModulesTitle")}>
+          {i18n.tc("editor.algemeenModulesText", moduleHosts)}
+        </Callout>
+      ) : null}
 
       <EditorTabs tabs={tabs} activeId={themeId} onClose={handleCloseTab} />
 
@@ -476,6 +525,7 @@ export function EditorPage() {
                       themeId={themeId}
                       session={session}
                       palette={palette}
+                      snapshot={snapshotCompletions}
                       lint={lint.data}
                       readOnly={readOnly}
                       compact={narrow}
@@ -523,6 +573,7 @@ export function EditorPage() {
               >
                 <PreviewPane
                   session={session}
+                  theme={theme}
                   paletteTokens={palette?.tokens}
                   onShortcut={runShortcut}
                 />
@@ -549,6 +600,12 @@ export function EditorPage() {
           <PublishDialog
             open={publishOpen}
             onClose={() => setPublishOpen(false)}
+            theme={theme}
+            session={session}
+          />
+          <ThemeSettingsDialog
+            open={settingsOpen}
+            onClose={() => setSettingsOpen(false)}
             theme={theme}
             session={session}
           />

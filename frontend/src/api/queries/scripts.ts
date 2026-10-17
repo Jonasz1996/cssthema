@@ -20,7 +20,7 @@ import {
 } from "../client";
 import type { components } from "../schema";
 import type { ScriptFile } from "../types";
-import { scriptKeys } from "./keys";
+import { hostKeys, scriptKeys } from "./keys";
 import type { QueryHookOptions } from "./options";
 
 /**
@@ -156,6 +156,12 @@ export function isScriptGone(error: unknown): boolean {
 function forgetScript(queryClient: QueryClient, name: string): void {
   dropScript(queryClient, name);
   void queryClient.invalidateQueries({ queryKey: scriptKeys.list() });
+  refreshHosts(queryClient);
+}
+
+/** De Hosts-pagina toont een script dat ontbreekt of nieuw is: koppelingen en gezondheid opnieuw. */
+function refreshHosts(queryClient: QueryClient): void {
+  void queryClient.invalidateQueries({ queryKey: hostKeys.all });
 }
 
 // --- hooks ----------------------------------------------------------------------------------
@@ -197,6 +203,7 @@ export function useUploadScript() {
       putScript(queryClient, data);
       void queryClient.invalidateQueries({ queryKey: scriptKeys.list() });
       void queryClient.invalidateQueries({ queryKey: scriptKeys.content(data.name) });
+      refreshHosts(queryClient);
     },
   });
 }

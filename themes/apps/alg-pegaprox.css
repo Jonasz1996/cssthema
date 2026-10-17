@@ -1,0 +1,122 @@
+/* ==========================================================================
+   alg-pegaprox.css - PegaProx (clusterbeheer voor Proxmox VE; React +
+   Tailwind, layout "modern")
+   Host: pegaprox.jbogaert.be
+   Laadt NA algemeen.css.
+
+   PegaProx zet zijn kleuren als inline style op html (--color-primary,
+   --color-card, --color-dark, ... en de -rgb-varianten die Tailwind-klassen
+   als bg-proxmox-card en bg-proxmox-orange gebruiken). Die gaan hier met
+   !important naar de --alg-tokens; daarmee volgt ook het hoofdscherm.
+   De -rgb-varianten moeten r, g, b zijn: daar staan de rgb-waarden van de
+   tokens (--alg-knop #6a6a6a, --alg-vlak #181818, ...) als getal.
+   Gericht: glazen kaart, pagina doorzichtig (radiale achtergrond), oranje
+   knop/taalkeuze/gloed rond het logo/oranje sfeerverloop grijs.
+
+   Beperkingen: alleen de loginpagina is vastgelegd en getest; het
+   hoofdscherm (en de layouts "corporate"/"cloud") niet.
+   CSP: style-src 'self' 'unsafe-inline' fonts.googleapis.com cdn.jsdelivr.net
+   weigert css.jbogaert.be: gebruik de /alg-thema/-omweg in NPM.
+   ========================================================================== */
+
+/* ---------- Kleuren van PegaProx (inline op html, dus !important) --------- */
+:root {
+  --color-primary: var(--alg-knop) !important;
+  --color-primary-rgb: 106, 106, 106 !important;
+  --color-primaryHover: var(--alg-knop-hover) !important;
+  --color-primaryHover-rgb: 118, 118, 118 !important;
+  --color-dark: var(--alg-vlak) !important;
+  --color-dark-rgb: 24, 24, 24 !important;
+  --color-darker: var(--alg-achtergrond-kleur) !important;
+  --color-darker-rgb: 20, 20, 20 !important;
+  --color-card: var(--alg-vlak-2) !important;
+  --color-card-rgb: 34, 34, 34 !important;
+  --color-border: var(--alg-rand-sterk) !important;
+  --color-border-rgb: 60, 60, 60 !important;
+  --color-hover: var(--alg-rij-hover) !important;
+  --color-hover-rgb: 40, 40, 40 !important;
+  --color-text: var(--alg-tekst) !important;
+  --color-text-rgb: 221, 221, 221 !important;
+  --color-textMuted: var(--alg-gedempt) !important;
+  --color-textMuted-rgb: 153, 153, 153 !important;
+  --color-success: var(--alg-ok) !important;
+  --color-success-rgb: 143, 214, 164 !important;
+  --color-warning: var(--alg-waarschuwing) !important;
+  --color-warning-rgb: 230, 181, 107 !important;
+  --color-error: var(--alg-fout) !important;
+  --color-error-rgb: 229, 139, 139 !important;
+  --color-info: var(--alg-info) !important;
+  --color-info-rgb: 156, 201, 255 !important;
+}
+
+/* ---------- Pagina en kaarten -------------------------------------------- */
+/* buitenste vlak: doorzichtig, zodat de radiale achtergrond doorkomt */
+#root > .bg-proxmox-darker,
+#root > .min-h-screen {
+  background-color: transparent !important;
+}
+
+/* kaarten: glas met blur en de zachte rand van het thema */
+#root .bg-proxmox-card {
+  background-color: var(--alg-glas) !important;
+  -webkit-backdrop-filter: var(--alg-blur);
+  backdrop-filter: var(--alg-blur);
+}
+
+#root .border-proxmox-border {
+  border-color: var(--alg-rand-sterk) !important;
+}
+
+#root .bg-proxmox-card.shadow-xl {
+  box-shadow: var(--alg-schaduw-midden);
+}
+
+/* taalkeuze en andere balkjes op bg-proxmox-dark: glas i.p.v. vol vlak */
+#root div.bg-proxmox-dark {
+  background-color: var(--alg-glas) !important;
+}
+
+/* ---------- Knoppen ------------------------------------------------------ */
+#root button.bg-proxmox-orange:not(:disabled):hover,
+#root .hover\:bg-orange-600:hover {
+  background-color: var(--alg-knop-hover) !important;
+  box-shadow: var(--alg-gloed);
+}
+
+/* oranje gloed rond het logo */
+#root img[class*="drop-shadow-"] {
+  --tw-drop-shadow: drop-shadow(0 8px 20px rgba(255, 255, 255, .12));
+}
+
+/* ---------- Hoofdscherm (layout "modern", niet getest) ------------------- */
+/* oranje sfeerverloop achter het dashboard: grijs en zacht */
+.gradient-mesh {
+  background: radial-gradient(at 40% 20%, rgba(var(--alg-accent), .08) 0, transparent 50%),
+              radial-gradient(at 80% 100%, rgba(var(--alg-accent), .04) 0, transparent 50%) !important;
+}
+
+.toggle-switch {
+  background: var(--alg-knop-zacht);
+}
+
+.toggle-switch.active {
+  background: var(--alg-knop);
+}
+
+.table-row-hover:hover {
+  background: var(--alg-rij-hover);
+}
+
+.timeline-line {
+  background: linear-gradient(var(--alg-rand-hover), transparent);
+}
+
+.custom-slider::-webkit-slider-thumb {
+  background: var(--alg-knop-hover);
+  box-shadow: var(--alg-gloed);
+}
+
+/* tabellen: tbody krijgt van PegaProx de kaartkleur */
+#root tbody {
+  background-color: transparent;
+}

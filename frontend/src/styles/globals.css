@@ -20,7 +20,8 @@
   --ui-text: #ddd;
   --ui-text-h: #fff;
   --ui-muted: #999;
-  --ui-dim: #777;
+  /* ≥ 4,5:1 (WCAG AA) op de donkere vlakken (#202020 en donkerder), duidelijk onder --ui-muted. */
+  --ui-dim: #8c8c8c;
   --ui-body: #bbb;
   --ui-btn: #7a7a7a;
   --ui-btn-h: #9b9b9b;

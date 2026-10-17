@@ -1,0 +1,199 @@
+/* ==========================================================================
+   alg-onlyoffice.css - ONLYOFFICE
+   Hosts: onlyoffice.jbogaert.be     (ONLYOFFICE Docs, welkomstpagina)
+          onlyoffice109.jbogaert.be  (ONLYOFFICE Workspace / Community
+                                      Server "Web Office", ASP.NET)
+   Laadt NA algemeen.css. Beide hebben geen CSS-variabelen; vaste kleuren
+   op eigen klassen (oranje #ff6f3d op de welkomstpagina, blauw #0f4071 /
+   #2da7db / #116d9d in Workspace). Elk deel is afgebakend met een
+   herkenningsselector zodat de twee elkaar niet raken (beide hebben .button).
+
+   Wat het afwerkt:
+   - Docs-welkomstpagina: lichte grijze band (lichte tekst erop was
+     onleesbaar) en donkere kop/voet als glas, oranje titel en knop grijs,
+     codeblokken met rand zoals het thema
+   - Workspace-login: blauwe kopbalk als glas, blauwe titel "Web Office" en
+     knop "Inloggen" grijs met gloed, links en vinkje in accentgrijs
+   - Workspace-hoofdscherm: grijze en witte knoppen, actiemenu's, pop-ups,
+     filter, menulijst en tabelrijen
+
+   Beperkingen: van Workspace alleen de loginpagina vastgelegd; de regels
+   voor het hoofdscherm volgen klassen uit de meegeleverde skin-stylesheet
+   maar zijn niet getest. De editors zelf (iframes van Docs) hebben een
+   eigen donker thema in hun instellingen en vallen hier buiten. Logo's
+   komen van de server en ontbreken in de render.
+   ========================================================================== */
+
+/* ==========================================================================
+   DOCS - welkomstpagina (/welcome/)
+   Herkenning: body met .gray-block en .notice_block (alleen deze pagina).
+   ========================================================================== */
+
+body:has(> .gray-block + .notice_block) > header {
+  background: var(--alg-glas);
+  border-bottom: 1px solid var(--alg-rand);
+  -webkit-backdrop-filter: var(--alg-blur);
+  backdrop-filter: var(--alg-blur);
+}
+
+body:has(> .gray-block + .notice_block) > .gray-block {
+  background: var(--alg-paneel);
+  border-bottom: 1px solid var(--alg-rand);
+}
+
+body:has(> .gray-block + .notice_block) > .black-block {
+  background: var(--alg-glas);
+  border-top: 1px solid var(--alg-rand);
+}
+
+body:has(> .gray-block + .notice_block) .black-block p,
+body:has(> .gray-block + .notice_block) footer {
+  color: var(--alg-gedempt);
+}
+
+body:has(> .gray-block + .notice_block) :is(h1, h2, h3, .orange-text) {
+  color: var(--alg-tekst-sterk);
+}
+
+body:has(> .gray-block + .notice_block) :is(p, .links-block) {
+  color: var(--alg-tekst);
+}
+
+body:has(> .gray-block + .notice_block) pre {
+  border-color: var(--alg-rand-sterk);
+  font-family: var(--alg-font);
+}
+
+body:has(> .gray-block + .notice_block) .button {
+  background: var(--alg-knop);
+  border-radius: var(--alg-radius);
+  color: var(--alg-knop-tekst);
+}
+
+body:has(> .gray-block + .notice_block) .button:hover {
+  background: var(--alg-knop-hover);
+  box-shadow: var(--alg-gloed);
+}
+
+/* ==========================================================================
+   WORKSPACE (Community Server, onlyoffice109)
+   Herkenning: #studioPageContent (de hoofdcontainer van elke pagina).
+   ========================================================================== */
+
+/* ---------- Kopbalk ----------------------------------------------------- */
+body:has(#studioPageContent) :is(.studio-top-panel, .main-header-color, .main-header-color-hover) {
+  background: var(--alg-glas);
+  border-bottom: 1px solid var(--alg-rand);
+  color: var(--alg-tekst);
+  -webkit-backdrop-filter: var(--alg-blur);
+  backdrop-filter: var(--alg-blur);
+}
+
+/* ---------- Tekst en links in merkblauw --------------------------------- */
+body:has(#studioPageContent) .blue-text {
+  color: var(--alg-tekst-sterk) !important;
+}
+
+body:has(#studioPageContent) :is(a, a:visited, a:hover, a:active, .link.blue) {
+  color: var(--alg-link);
+  border-color: currentColor;
+}
+
+body:has(#studioPageContent) .link.gray {
+  color: var(--alg-gedempt);
+}
+
+/* ---------- Knoppen ----------------------------------------------------- */
+body:has(#studioPageContent) .button.blue,
+body:has(#studioPageContent) .menuAction.blue.unlockAction {
+  background-color: var(--alg-knop);
+  border-radius: var(--alg-radius-klein);
+  color: var(--alg-knop-tekst);
+}
+
+body:has(#studioPageContent) .button.blue:hover,
+body:has(#studioPageContent) .menuAction.blue.unlockAction:hover {
+  background-color: var(--alg-knop-hover);
+  box-shadow: var(--alg-gloed);
+}
+
+body:has(#studioPageContent) .button.blue.disable {
+  background-color: var(--alg-knop-zacht);
+  color: var(--alg-gedempt);
+}
+
+body:has(#studioPageContent) :is(.button.gray, .button.white, .menuAction, .page-menu .menu-actions .menu-gray-button, .page-menu .menu-actions .menu-upload-button) {
+  background-color: var(--alg-knop-zacht);
+  border-color: var(--alg-rand-sterk);
+  color: var(--alg-tekst);
+}
+
+body:has(#studioPageContent) :is(.button.gray, .button.white, .menuAction, .page-menu .menu-actions .menu-gray-button, .page-menu .menu-actions .menu-upload-button):hover {
+  background-color: var(--alg-knop-zacht-hover);
+  border-color: var(--alg-rand-hover);
+  color: var(--alg-tekst-sterk);
+}
+
+body:has(#studioPageContent) .button.gray .plus::after,
+body:has(#studioPageContent) .button.gray.plus::after {
+  color: var(--alg-tekst);
+}
+
+/* ---------- Velden en knoppen: rand en lettertype van het thema --------- */
+body:has(#studioPageContent) :is(.textEdit, .pwdLoginTextbox, .comboBox) {
+  border-color: var(--alg-rand-sterk);
+}
+
+/* Workspace zet "Open Sans" vast op velden en knoppen */
+body:has(#studioPageContent) :is(.textEdit, .pwdLoginTextbox, .button) {
+  font-family: var(--alg-font);
+}
+
+/* ---------- Pop-ups, menu's, filter (niet getest) ------------------------ */
+body:has(#studioPageContent) :is(.studio-action-panel, .popupContainerClass, .popupbox-border, .contentMenu, .tl-combobox .combobox-container, div.advansed-filter div.advansed-item-list ul.item-list) {
+  background-color: var(--alg-glas-sterk);
+  border-color: var(--alg-rand-sterk);
+  color: var(--alg-tekst);
+  -webkit-backdrop-filter: var(--alg-blur);
+  backdrop-filter: var(--alg-blur);
+}
+
+body:has(#studioPageContent) :is(.studio-action-panel .dropdown-content .dropdown-item:hover, .studio-action-panel .dropdown-content .menu-row:hover, .tl-combobox .combobox-container .combobox-options .option-item:hover, .tl-combobox .combobox-container .combobox-options .option-item.in-focus) {
+  background-color: var(--alg-rij-hover);
+}
+
+body:has(#studioPageContent) :is(.studio-action-panel .dropdown-content .dropdown-item.active, .tl-combobox .combobox-container .combobox-options .option-item.selected-item, div.advansed-filter div.advansed-item-list ul.item-list li.item-item.selected) {
+  color: var(--alg-tekst-sterk) !important;
+}
+
+body:has(#studioPageContent) div.advansed-filter-container div.advansed-filter-filters :is(div.btn-show-hidden-filters, div.filter-item) {
+  background-color: var(--alg-knop-zacht);
+  border-color: var(--alg-rand-sterk);
+}
+
+body:has(#studioPageContent) .dashboard-center-box {
+  background-color: var(--alg-glas);
+  border-color: var(--alg-rand);
+}
+
+body:has(#studioPageContent) .dashboard-center-box .slick-carousel .slick-dots li.slick-active button {
+  background: var(--alg-accent-kleur);
+}
+
+/* ---------- Menulijst en tabellen (niet getest) -------------------------- */
+body:has(#studioPageContent) :is(.menu-list .menu-item.active .category-wrapper, .menu-list .menu-item.none-sub-list.active, .menu-list .menu-item .menu-sub-list .menu-sub-item.active) {
+  background-color: var(--alg-rij-actief);
+}
+
+body:has(#studioPageContent) table.table-list tbody tr:hover,
+body:has(#studioPageContent) .items-display-list .items-display-list_i:hover {
+  background-color: var(--alg-rij-hover);
+}
+
+body:has(#studioPageContent) table.table-list tbody tr.selected {
+  background-color: var(--alg-rij-actief);
+}
+
+body:has(#studioPageContent) :is(.tintLight, .tintMedium, .tintGray) {
+  background-color: var(--alg-paneel);
+}

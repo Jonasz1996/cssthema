@@ -266,25 +266,34 @@ def test_script_vector_negative(css: str) -> None:
     "css",
     [
         "</style><script>alert(1)</script>",
-        "/* <b> */ a{}",
-        "a::after { content: '<' }",
-        "a::after { content: '\\3c' }",
-        "a::after { content: '\\00003C' }",
-        "a { background: url(x\\3c.png) }",
-        "@media (width < 600px) { a { color: red } }",
+        "a { --x: </b> }",
     ],
 )
 def test_html_in_css(css: str) -> None:
     assert "html-in-css" in rules(run(css))
 
 
-@pytest.mark.parametrize("css", ["a > b { color: red }", "a::after { content: '\\3d' }"])
+@pytest.mark.parametrize(
+    "css",
+    [
+        "a > b { color: red }",
+        "a::after { content: '\\3d' }",
+        "/* <b></b> */ a{}",
+        "a::after { content: '</style>' }",
+        "a::after { content: '\\3c' }",
+        "a { background: url(x\\3c.png) }",
+        'a { background: url("data:image/svg+xml;utf8,'
+        "<svg xmlns='http://www.w3.org/2000/svg'><path d='M0 0'/></svg>\") }",
+        "a { background: url(data:image/svg+xml;utf8,<svg></svg>) }",
+        "@media (width < 600px) { a { color: red } }",
+    ],
+)
 def test_html_in_css_negative(css: str) -> None:
     assert "html-in-css" not in rules(run(css))
 
 
 def test_issue_count_is_capped_per_rule() -> None:
-    result = run("a{}" + "<" * 1000)
+    result = run("a{}" + "</" * 1000)
     assert rules(result).count("html-in-css") == MAX_ISSUES_PER_RULE
 
 
@@ -303,7 +312,6 @@ def test_descriptors_in_at_rules_are_known() -> None:
         "@property --x { syntax: '<length>'; inherits: false; initial-value: 0px; }"
         "@page { size: A4; margin: 1cm; }"
     )
-    # '<length>' bevat een '<' (html-in-css), maar geen onbekende descriptors.
     assert "unknown-property" not in rules(run(css), "warning")
 
 

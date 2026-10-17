@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { ApiError, NETWORK_ERROR } from "@/api/client";
+import { ApiError, NETWORK_ERROR, sessionExpiredError } from "@/api/client";
 import type { Problem } from "@/api/types";
 import { t } from "@/lib/i18n";
 import { errorText } from "./errors";
@@ -27,6 +27,12 @@ describe("errorText", () => {
   it("houdt de servertekst bij een onbekende code", () => {
     const error = apiError(400, "iets_nieuws", "Server says no");
     expect(errorText(error, { t, locale: "en" })).toBe("Server says no");
+  });
+
+  it("een verlopen login (redirect van de proxy) zegt dat, niet 'HTTP 401'", () => {
+    const expired = sessionExpiredError(new Response(null, { status: 302 }));
+    expect(errorText(expired, { t, locale: "nl" })).toBe(t("themes.errorAuthExpired"));
+    expect(errorText(expired, { t, locale: "en" })).toBe(t("themes.errorAuthExpired"));
   });
 
   it("netwerk- en serverfouten zonder body krijgen een eigen tekst", () => {

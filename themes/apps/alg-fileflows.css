@@ -1,0 +1,99 @@
+/* ==========================================================================
+   alg-fileflows.css - FileFlows 26.x (Blazor WebAssembly, eigen CSS)
+   Host: fileflows.jbogaert.be
+   Laadt na algemeen.css (sub_filter in NPM, zelfde map op css.jbogaert.be).
+
+   WAT HET AFWERKT
+   FileFlows is al donker en kleurt bijna alles via variabelen op body
+   (--accent, --base, --widget-background, --border-color ...). Die worden
+   hier op de tokens van algemeen.css gezet: het felroze accent (spinner,
+   selectie, actieve menu-items, pictogrammen in de kop) wordt grijs, de
+   vlakken worden glas zodat de radiale achtergrond doorkomt, velden en
+   knoppen volgen de stijl. Statuskleuren (fout, waarschuwing, ok) blijven
+   status. De kleuren van de flow-onderdelen (input, output, logica ...)
+   blijven: die betekenen iets in de flow-editor.
+
+   BEPERKINGEN
+   - Alleen het laadscherm ("Loading...") is vastgelegd: de app zelf komt
+     pas na het laden van Blazor. Alles behalve spinner en laadtekst is
+     uit de CSS van 26.06 afgeleid en niet getest.
+   ========================================================================== */
+
+body,
+body.is-mobile {
+  --accent: var(--alg-accent-kleur);
+  --accent-rgb: var(--alg-accent);
+  --menu-icon-color: var(--alg-tekst);
+  --accent-2: var(--alg-info);
+  --modified: rgba(var(--alg-accent), .4);
+  --selected-border: solid 1px var(--alg-rand-hover);
+
+  --color: var(--alg-tekst);
+  --color-darker: var(--alg-tekst);
+  --color-darkest: var(--alg-gedempt);
+
+  --base: var(--alg-vlak);
+  --base-darker: var(--alg-achtergrond-kleur);
+  --base-darkest: var(--alg-achtergrond-kleur);
+  --base-lighter: var(--alg-vlak-2);
+  --base-lightest: var(--alg-vlak-2);
+  --main-background: transparent;
+  --widget-background: var(--alg-glas);
+  --nav-menu-background: var(--alg-glas-sterk);
+  --border-color: var(--alg-rand-sterk);
+  --blur-background: var(--alg-glas);
+  --blur-filter: var(--alg-blur);
+
+  --input-background: var(--alg-veld);
+  --input-background-focus: var(--alg-veld);
+  --input-border-radius: var(--alg-radius);
+  --button-border-radius: var(--alg-radius-midden);
+  --container-border-radius: var(--alg-radius);
+
+  --primary: var(--alg-knop);
+  --table-link-color: var(--alg-link);
+  --error: var(--alg-fout);
+  --success: var(--alg-ok-vlak);
+  --danger: var(--alg-fout-vlak);
+
+  --toast-background-color: var(--alg-glas-sterk);
+  --iw-background: var(--alg-glas);
+  --iw-border-color: var(--alg-rand-sterk);
+  --iw-error-background: var(--alg-fout-tint);
+  --iw-error-border-color: var(--alg-fout-rand);
+}
+
+/* laad-/wachtscherm: glas i.p.v. bijna zwart, de achtergrond schemert door */
+.blocker {
+  background: var(--alg-glas);
+}
+
+/* knoppen: grijs met gloed i.p.v. het vaste hover-grijs */
+.btn:hover:not(:disabled),
+a.btn:hover:not(:disabled) {
+  background: var(--alg-knop-hover);
+  box-shadow: var(--alg-gloed);
+}
+
+.btn-primary {
+  background-color: var(--alg-knop);
+  border-color: var(--alg-knop);
+  color: var(--alg-knop-tekst);
+}
+
+/* overlay achter dialogen (desktop): iets doorzichtiger, met blur */
+body.is-desktop .background-overlay {
+  background: var(--alg-overlay);
+  -webkit-backdrop-filter: var(--alg-blur);
+  backdrop-filter: var(--alg-blur);
+}
+
+/* mobiele "glas"-knoppen hebben vast roze */
+body.is-mobile .glass-box button {
+  background: var(--alg-knop) !important;
+}
+
+body.is-mobile .glass-box,
+body.is-mobile .glass-box .label-value + .label-value {
+  border-color: var(--alg-rand-sterk);
+}

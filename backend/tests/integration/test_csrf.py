@@ -23,6 +23,9 @@ FOREIGN: list[dict[str, str]] = [
     {"Origin": "https://evil.example"},
     {"Origin": "http://test:8096"},  # zelfde host, andere poort (een andere app)
     {"Origin": "null"},  # sandboxed iframe, data:-URL
+    # Een app met `location /alg-thema/` naar cssthema: voor de browser same-origin (SEC-3).
+    {"Sec-Fetch-Site": "same-origin", "Origin": "https://nextcloud.example.be"},
+    {"Sec-Fetch-Site": "none", "Origin": "https://nextcloud.example.be"},
 ]
 OWN: list[dict[str, str]] = [
     {},  # curl, scripts
@@ -30,6 +33,8 @@ OWN: list[dict[str, str]] = [
     {"Sec-Fetch-Site": "none"},
     {"Origin": "https://css.example.be"},  # PUBLIC_BASE_URL
     {"Origin": "http://test"},  # de host die de browser aansprak
+    # De Vite-devserver (changeOrigin) verandert alleen de poort in Host.
+    {"Sec-Fetch-Site": "same-origin", "Origin": "http://test:5173"},
 ]
 
 
@@ -104,3 +109,17 @@ async def test_theme_mutations_are_protected_too(api: Api) -> None:
     )
     assert response.status_code == 403
     assert response.json()["code"] == "csrf_failed"
+
+
+async def test_dashboard_host_may_write(api: Api) -> None:
+    # Het dashboard op een eigen naam (DASHBOARD_HOST), ook als Host iets anders is.
+    headers = {"Origin": "https://cssthema.example.be"}
+    status, _ = await upload(api, unique_slug(), headers, data=b"void 0;\n")
+    assert status == 403
+    settings = api.app.state.settings
+    api.app.state.settings = settings.model_copy(update={"dashboard_host": ["cssthema.example.be"]})
+    status, body = await upload(api, unique_slug(), headers, data=b"void 0;\n")
+    assert status == 201, body
+    # Een andere poort op die naam is een andere origin.
+    status, _ = await upload(api, unique_slug(), {"Origin": "https://cssthema.example.be:8443"})
+    assert status == 403

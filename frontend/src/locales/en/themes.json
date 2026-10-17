@@ -115,6 +115,7 @@
   "errorUnsupported": "Unsupported file type: use .css or .cssthema.zip.",
   "errorLint": "The CSS contains errors.",
   "errorValidation": "Some fields are invalid.",
+  "errorAuthExpired": "Your login has expired: reload the page to log in again.",
   "errorCsrf": "Refused: changes can only be made from the dashboard itself, not from another page.",
   "errorProxyRequired": "Refused: changes are only accepted through Nginx Proxy Manager (TRUSTED_PROXIES). Open the dashboard through your domain."
 }

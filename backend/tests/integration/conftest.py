@@ -11,6 +11,7 @@ from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession, async_sessionmaker
 from cssthema.config import Settings
 from cssthema.db.session import create_engine
 from cssthema.main import create_app
+from cssthema.services import host_health
 from tests.integration.api_helpers import Api
 
 if not os.environ.get("DATABASE_URL"):
@@ -51,6 +52,13 @@ async def session(engine: AsyncEngine) -> AsyncIterator[AsyncSession]:
 
 # --- API-tests ------------------------------------------------------------------------------
 
+HOST_HEALTH_KEYS = (
+    host_health.SEEN_KEY,
+    host_health.CHECK_KEY,
+    host_health.CHECK_META_KEY,
+    host_health.CHECK_LOCK_KEY,
+)
+
 
 @pytest.fixture
 async def api(settings: Settings, engine: AsyncEngine, tmp_path: Path) -> AsyncIterator[Api]:
@@ -66,7 +74,11 @@ async def api(settings: Settings, engine: AsyncEngine, tmp_path: Path) -> AsyncI
 
     app = create_app(
         settings.model_copy(
-            update={"css_files_dir": css_dir, "public_base_url": "https://css.example.be"}
+            update={
+                "css_files_dir": css_dir,
+                "storage_dir": tmp_path / "storage",
+                "public_base_url": "https://css.example.be",
+            }
         ),
         css_refresh_transport=httpx.MockTransport(refresh),
     )
@@ -77,7 +89,10 @@ async def api(settings: Settings, engine: AsyncEngine, tmp_path: Path) -> AsyncI
         ):
             state.client = client
             state.app = app
-            yield state
+            try:
+                yield state
+            finally:
+                await app.state.redis.delete(*HOST_HEALTH_KEYS)
     finally:
         await cleanup_test_themes(engine)
 
@@ -87,3 +102,14 @@ async def cleanup_test_themes(engine: AsyncEngine) -> None:
     # (append-only) en verwijzen niet naar thema's.
     async with engine.begin() as conn:
         await conn.execute(text("DELETE FROM themes WHERE slug LIKE 'it-%'"))
+        await conn.execute(
+            text("DELETE FROM host_bindings WHERE hostname LIKE 'it-%' OR hostname = '*'")
+        )
+        await conn.execute(text("DELETE FROM services WHERE base_url LIKE 'https://it-%'"))
+
+
+# Ook de begrensde lijst van namen zonder eigen koppeling (host_health.record_seen).
+HOST_HEALTH_KEYS = (*HOST_HEALTH_KEYS, host_health.SEEN_UNKNOWN_KEY)
+
+# En de oude hash van vóór de sorted sets (host_health.migrate_legacy_seen).
+HOST_HEALTH_KEYS = (*HOST_HEALTH_KEYS, host_health.LEGACY_SEEN_KEY)

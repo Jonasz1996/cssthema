@@ -1,3 +1,4 @@
+import { PreviewError } from "./errors";
 import { sha256Base64 } from "./sha256";
 
 /**
@@ -21,11 +22,18 @@ export async function fetchBridge(
 ): Promise<PreviewBridge> {
   const url = new URL(BRIDGE_PATH, globalThis.location?.origin ?? "http://localhost").href;
   const response = await fetchImpl(url, { credentials: "same-origin", cache: "no-cache" });
-  if (!response.ok) throw new Error(`${BRIDGE_PATH}: HTTP ${response.status}`);
+  if (!response.ok) {
+    throw new PreviewError("http", `${BRIDGE_PATH}: HTTP ${response.status}`, {
+      path: BRIDGE_PATH,
+      status: response.status,
+    });
+  }
   const source = await response.text();
   if (!source.includes("cssthema preview bridge")) {
     // Bv. de SPA-fallback (index.html) in plaats van het script.
-    throw new Error(`${BRIDGE_PATH}: onverwachte inhoud`);
+    throw new PreviewError("unexpected", `${BRIDGE_PATH}: onverwachte inhoud`, {
+      path: BRIDGE_PATH,
+    });
   }
   return { source, hash: await sha256Base64(source) };
 }

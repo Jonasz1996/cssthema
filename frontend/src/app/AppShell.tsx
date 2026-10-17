@@ -6,6 +6,7 @@ import { useI18n } from "@/lib/i18n";
 import { useReducedMotion } from "@/lib/motion";
 import type { NetworkMode } from "@/lib/particles";
 import { isNavItemActive, isWideRoute, mainNav } from "./nav";
+import { SessionExpiredBanner } from "./SessionExpired";
 import { routeCommand } from "./shell-command";
 import { BackgroundToggle, LanguageToggle, SystemStatus } from "./ShellControls";
 import { useUiStore } from "./ui-store";
@@ -67,6 +68,7 @@ export function AppShell() {
                 <LanguageToggle />
               </div>
             </header>
+            <SessionExpiredBanner />
             <main id="main" tabIndex={-1} className="min-w-0 outline-none">
               <Outlet />
             </main>

@@ -1,0 +1,126 @@
+/* ==========================================================================
+   alg-vaultx.css - VaultX Admin (React, eigen CSS met variabelen op :root)
+   Host: vaultx.jbogaert.be
+   Laadt NA algemeen.css. VaultX kleurt alles via een handvol variabelen
+   (--bg, --surface, --text, --primary, statusparen --good-bg/--good-fg ...).
+   Die krijgen hier de tokens van algemeen.css; dat werkt ook in de delen
+   die niet vastgelegd zijn (zijbalk, tabellen, badges, dialoog).
+
+   Wat het afwerkt:
+   - witte kaart en loginvak: glas met vervaging (de titel "VaultX" was wit
+     op wit en onleesbaar)
+   - blauwe primaire knop: grijs met gloed; gewone knoppen zacht grijs
+   - statusbadges en meldingen: onze ok/fout/waarschuwing/info-tinten
+   - zijbalk (actief item), dialoog, details, geselecteerde statistiek
+
+   Beperkingen: alleen de loginpagina vastgelegd. De regels voor zijbalk,
+   kaarten, tabellen en dialoog volgen de klassen uit VaultX' eigen
+   stylesheet (meegeleverd bij de vastlegging), maar zijn niet getest.
+   CSP: style-src 'self' weigert css.jbogaert.be; via /alg-thema/ laden.
+   ========================================================================== */
+
+/* ---------- Variabelen -------------------------------------------------- */
+:root {
+  --bg: var(--alg-achtergrond-kleur);
+  --surface: var(--alg-glas);
+  --surface-2: var(--alg-rij-hover);
+  --border: var(--alg-rand-sterk);
+  --text: var(--alg-tekst);
+  --muted: var(--alg-gedempt);
+  --primary: var(--alg-knop);
+  --primary-text: var(--alg-knop-tekst);
+  --danger: var(--alg-fout);
+  --good-bg: var(--alg-ok-tint);
+  --good-fg: var(--alg-ok);
+  --warn-bg: var(--alg-waarschuwing-tint);
+  --warn-fg: var(--alg-waarschuwing);
+  --bad-bg: var(--alg-fout-tint);
+  --bad-fg: var(--alg-fout);
+  --info-bg: var(--alg-info-tint);
+  --info-fg: var(--alg-info);
+  --neutral-bg: var(--alg-knop-zacht);
+  --neutral-fg: var(--alg-tekst);
+  --radius: var(--alg-radius);
+  --shadow: var(--alg-schaduw-klein);
+}
+
+/* ---------- Kaarten, loginvak, zijbalk: glas ---------------------------- */
+.login-card,
+.card,
+.stat,
+.sidebar {
+  -webkit-backdrop-filter: var(--alg-blur);
+  backdrop-filter: var(--alg-blur);
+}
+
+.login-card {
+  border-radius: var(--alg-radius-groot);
+  box-shadow: var(--alg-schaduw-midden);
+}
+
+.login-card h1 {
+  color: var(--alg-tekst-sterk);
+}
+
+/* actief menu-item: neutraal in plaats van de blauwe infotint */
+.sidebar nav a.active {
+  background: var(--alg-rij-actief);
+  color: var(--alg-tekst-sterk);
+}
+
+.sidebar nav a:hover {
+  background: var(--alg-rij-hover);
+}
+
+/* ---------- Knoppen ----------------------------------------------------- */
+.btn {
+  background: var(--alg-knop-zacht);
+}
+
+.btn:hover:not(:disabled) {
+  background: var(--alg-knop-zacht-hover);
+}
+
+.btn-primary:hover:not(:disabled) {
+  background: var(--alg-knop-hover);
+  filter: none;
+  box-shadow: var(--alg-gloed);
+}
+
+.btn-danger {
+  background: var(--alg-fout-tint);
+  border-color: var(--alg-fout-rand);
+}
+
+.btn-ghost,
+.btn-icon {
+  background: transparent;
+}
+
+/* ---------- Accenten die --primary als tekst- of randkleur gebruiken ----- */
+/* knopgrijs (#6a6a6a) is te donker als tekst of rand op het donkere vlak */
+details summary {
+  color: var(--alg-link);
+}
+
+.stat-button.selected {
+  outline-color: var(--alg-accent-kleur);
+}
+
+/* ---------- Dialoog ----------------------------------------------------- */
+.modal {
+  background: var(--alg-glas-sterk);
+  border-radius: var(--alg-radius-groot);
+  box-shadow: var(--alg-schaduw);
+  -webkit-backdrop-filter: var(--alg-blur);
+  backdrop-filter: var(--alg-blur);
+}
+
+.modal::backdrop {
+  background: var(--alg-overlay);
+}
+
+/* codeblokken: het pre-vlak van algemeen.css in plaats van --surface-2 */
+pre {
+  background: var(--alg-pre-vlak);
+}

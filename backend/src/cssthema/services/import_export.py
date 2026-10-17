@@ -60,6 +60,8 @@ from cssthema.services.theme_service import (
 
 ARCHIVE_DIR_NAME = ".geimporteerd"
 MAX_LISTED_FILES = 2000
+# Elke versie wordt bij een bundel-import gelint en gecompileerd binnen één request.
+MAX_BUNDLE_VERSIONS = 200
 LOCAL_FILE_RE = re.compile(r"^[a-z0-9][a-z0-9-]{0,62}[a-z0-9]\.css$")
 ZIP_MAGIC = b"PK\x03\x04"
 
@@ -201,8 +203,8 @@ async def import_upload(
     on_conflict: str,
     publish: bool | None,
     name: str | None,
-) -> tuple[schemas.Theme, bool]:
-    """Importeert een `.css` of `.cssthema.zip`; geeft het thema en of het nieuw is."""
+) -> tuple[schemas.Theme, schemas.ImportOutcome]:
+    """Importeert een `.css` of `.cssthema.zip`; geeft het thema en wat er gebeurde."""
     # Alleen de bestandsnaam, zonder stuurtekens (NUL kan niet in PostgreSQL-tekst).
     base_name = PurePosixPath(filename.replace("\\", "/")).name
     base_name = "".join(char for char in base_name if char.isprintable()) or "upload"
@@ -233,7 +235,7 @@ async def _import_css(
     on_conflict: str,
     publish: bool,
     name: str | None,
-) -> tuple[schemas.Theme, bool]:
+) -> tuple[schemas.Theme, schemas.ImportOutcome]:
     limit = ctx.settings.css_max_bytes
     if len(data) > limit:
         raise PayloadTooLargeError(
@@ -291,7 +293,7 @@ async def _import_css(
     await ctx.session.commit()
     if publish or redirect_removed:
         await ctx.delivery.invalidate([slug])
-    return await theme_view(ctx, theme.id), True
+    return await theme_view(ctx, theme.id), "created"
 
 
 async def _new_version_on(
@@ -303,10 +305,17 @@ async def _new_version_on(
     publish: bool,
     file: str,
     fmt: str,
-) -> tuple[schemas.Theme, bool]:
-    """`on_conflict=new_version`: nieuwe draft + versie (bron `import`) op het bestaande thema."""
+) -> tuple[schemas.Theme, schemas.ImportOutcome]:
+    """`on_conflict=new_version`: nieuwe draft + versie (bron `import`) op het bestaande thema.
+
+    Is de CSS gelijk aan de laatste versie (zelfde palet, en live als publiceren gevraagd is),
+    dan gebeurt er niets: geen versie, geen publicatie, de draft blijft ("ongewijzigd"). Zo
+    maakt de hele themamap opnieuw uploaden alleen versies van wat echt veranderde.
+    """
     theme = await load_theme(ctx, theme_id)
     ensure_active(theme)
+    if version_css is not None and await _same_as_latest(ctx, theme, version_css, publish=publish):
+        return await theme_view(ctx, theme.id), "unchanged"
     result = await run_lint(ctx, version_css) if version_css is not None else None
     if result is not None and not result.ok:
         raise lint_failed(result)
@@ -344,7 +353,19 @@ async def _new_version_on(
     await ctx.session.commit()
     if live:
         await ctx.delivery.invalidate([theme.slug])
-    return await theme_view(ctx, theme.id), False
+    return await theme_view(ctx, theme.id), "new_version"
+
+
+async def _same_as_latest(ctx: ServiceContext, theme: Theme, css: str, *, publish: bool) -> bool:
+    if theme.latest_version_number < 1:
+        return False
+    latest = await theme_repo.get_version(ctx.session, theme.id, theme.latest_version_number)
+    return (
+        latest is not None
+        and latest.css_source == css
+        and latest.palette_id == theme.palette_id
+        and (not publish or theme.published_version_id == latest.id)
+    )
 
 
 async def _import_bundle(
@@ -355,7 +376,7 @@ async def _import_bundle(
     on_conflict: str,
     publish: bool | None,
     name: str | None,
-) -> tuple[schemas.Theme, bool]:
+) -> tuple[schemas.Theme, schemas.ImportOutcome]:
     if len(data) > MAX_BUNDLE_BYTES:
         raise PayloadTooLargeError("Bundel is te groot", detail="De limiet is 25 MB.")
     try:
@@ -364,6 +385,11 @@ async def _import_bundle(
         )
     except BundleError as exc:
         raise _file_error("Ongeldige bundel", str(exc)) from exc
+    if len(bundle.versions) > MAX_BUNDLE_VERSIONS:
+        raise _file_error(
+            "Ongeldige bundel",
+            f"De bundel heeft {len(bundle.versions)} versies; de limiet is {MAX_BUNDLE_VERSIONS}.",
+        )
     slug = checked_slug(bundle.theme.slug)
 
     # Elke versie is publiek bereikbaar via /themes/<slug>@<n>.css: allemaal linten.
@@ -449,7 +475,7 @@ async def _import_bundle(
     await ctx.session.commit()
     if new_live is not None or redirect_removed:
         await ctx.delivery.invalidate([slug])
-    return await theme_view(ctx, theme.id), True
+    return await theme_view(ctx, theme.id), "created"
 
 
 # --- handgemaakte bestanden op de server ----------------------------------------------------

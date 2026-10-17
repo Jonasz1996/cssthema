@@ -1,0 +1,142 @@
+/* ==========================================================================
+   alg-it-tools.css - IT-Tools (Vue 3 + Naive UI + UnoCSS, eigen c-*-lib)
+   Host: ittools.jbogaert.be
+   Laadt NA algemeen.css.
+
+   Naive UI zet zijn kleuren als inline variabelen (--n-*) op elk component,
+   de eigen c-componenten (c-card, c-button, c-select, c-input-text) als
+   inline variabelen met gehashte namen. Daarom hier !important: op de
+   --n-variabelen van layout, zijbalk en menu, en rechtstreeks op de
+   eigenschappen van de c-componenten. Werkt af: lichte layout en witte
+   zijbalk naar glas, witte kaarten naar glas met grijze rand (ook bij
+   hover i.p.v. groen), donkere tekst op donker (zoekknop, menu, titels),
+   groene accenten (actief menu-item, hero met golf, "Buy me a coffee")
+   naar grijs, taalkeuze en invoervelden als donker veld.
+
+   Beperkingen: alleen het overzicht is vastgelegd (in de lichte modus van
+   de app). De regels voor c-input-text en de Naive-invoervelden komen uit
+   de CSS van de app en zijn niet getest op een toolpagina. Tip: zet IT-Tools
+   zelf op donker (maan-icoon), dan zijn ook de niet-afgewerkte Naive-delen
+   (n-input, n-slider, n-tabs) al donker.
+   CSP: alleen frame-ancestors, blokkeert css.jbogaert.be niet.
+   ========================================================================== */
+
+/* ---------- Layout en zijbalk ------------------------------------------ */
+.n-layout {
+  --n-color: transparent !important;
+  --n-text-color: var(--alg-tekst) !important;
+}
+.n-layout-sider {
+  --n-color: var(--alg-glas) !important;
+  --n-text-color: var(--alg-tekst) !important;
+  --n-border-color: var(--alg-rand) !important;
+  --n-toggle-button-color: var(--alg-vlak-2) !important;
+  --n-toggle-button-border: 1px solid var(--alg-rand-sterk) !important;
+  --n-toggle-button-icon-color: var(--alg-tekst) !important;
+  -webkit-backdrop-filter: var(--alg-blur);
+  backdrop-filter: var(--alg-blur);
+}
+
+/* menu: grijs i.p.v. groen voor het actieve item */
+.n-menu {
+  --n-divider-color: var(--alg-rand) !important;
+  --n-group-text-color: var(--alg-gedempt) !important;
+  --n-item-text-color: var(--alg-tekst) !important;
+  --n-item-text-color-hover: var(--alg-tekst-sterk) !important;
+  --n-item-text-color-active: var(--alg-tekst-sterk) !important;
+  --n-item-text-color-active-hover: var(--alg-tekst-sterk) !important;
+  --n-item-text-color-child-active: var(--alg-tekst-sterk) !important;
+  --n-item-text-color-child-active-hover: var(--alg-tekst-sterk) !important;
+  --n-item-icon-color: var(--alg-gedempt) !important;
+  --n-item-icon-color-hover: var(--alg-tekst-sterk) !important;
+  --n-item-icon-color-active: var(--alg-tekst-sterk) !important;
+  --n-item-icon-color-active-hover: var(--alg-tekst-sterk) !important;
+  --n-item-icon-color-child-active: var(--alg-tekst-sterk) !important;
+  --n-item-icon-color-child-active-hover: var(--alg-tekst-sterk) !important;
+  --n-item-color-hover: var(--alg-rij-hover) !important;
+  --n-item-color-active: var(--alg-rij-actief) !important;
+  --n-item-color-active-hover: var(--alg-rij-actief) !important;
+  --n-arrow-color: var(--alg-gedempt) !important;
+  --n-arrow-color-hover: var(--alg-tekst) !important;
+  --n-arrow-color-active: var(--alg-tekst-sterk) !important;
+  --n-arrow-color-child-active: var(--alg-tekst-sterk) !important;
+}
+.menu-wrapper .toggle-bar::before {
+  background-color: var(--alg-tekst) !important;
+}
+
+/* hero linksboven: groene golf en verloop naar grijstinten */
+.hero-wrapper .gradient stop:nth-child(1) { stop-color: var(--alg-vlak-2); }
+.hero-wrapper .gradient stop:nth-child(2) { stop-color: var(--alg-knop); }
+.hero-wrapper .gradient stop:nth-child(3) { stop-color: var(--alg-knop-hover); }
+.hero-wrapper .gradient path:not([fill^="url"]) { fill: var(--alg-knop); }
+.hero-wrapper .text-wrapper .divider {
+  background-color: var(--alg-tekst-sterk) !important;
+}
+
+/* ---------- Kaarten ------------------------------------------------------ */
+.c-card {
+  background-color: var(--alg-glas) !important;
+  border-color: var(--alg-rand) !important;
+  border-radius: var(--alg-radius) !important;
+  color: var(--alg-tekst);
+}
+.c-card:hover,
+a:hover > .c-card {
+  border-color: var(--alg-rand-hover) !important;
+  box-shadow: var(--alg-gloed);
+}
+.c-card .text-black {
+  color: var(--alg-tekst-sterk);
+}
+.c-card .text-neutral-500 {
+  color: var(--alg-gedempt);
+}
+.c-card .text-neutral-400 {
+  color: var(--alg-gedempt);
+}
+
+/* ---------- Knoppen ------------------------------------------------------ */
+.c-button {
+  color: var(--alg-tekst) !important;
+}
+.c-button:not(.disabled):hover {
+  background-color: var(--alg-knop-zacht-hover) !important;
+  color: var(--alg-tekst-sterk) !important;
+}
+.c-button:focus {
+  outline-color: var(--alg-focus-rand) !important;
+}
+/* brede zoekknop bovenaan (Ctrl+K) als invoerveld */
+.c-button:not(.circle, .round) {
+  background-color: var(--alg-veld) !important;
+  border: 1px solid var(--alg-rand-sterk) !important;
+  color: var(--alg-placeholder) !important;
+}
+.c-button.support-button {
+  background: var(--alg-knop) !important;
+  color: var(--alg-knop-tekst) !important;
+}
+.c-button.support-button:hover {
+  background: var(--alg-knop-hover) !important;
+  box-shadow: var(--alg-gloed);
+}
+
+/* ---------- Velden ------------------------------------------------------- */
+.c-select .c-select-input,
+.c-input-text .input-wrapper {
+  background-color: var(--alg-veld) !important;
+  border-color: var(--alg-rand-sterk) !important;
+  color: var(--alg-tekst) !important;
+}
+.c-select .c-select-input:hover,
+.c-input-text .input-wrapper:hover,
+.c-input-text .input-wrapper:focus-within {
+  border-color: var(--alg-rand-hover) !important;
+}
+.c-input-text .input-wrapper > :is(.input, textarea) {
+  color: var(--alg-tekst) !important;
+}
+.c-select .c-select-input :is(.placeholder, .chevron) {
+  color: var(--alg-placeholder) !important;
+}

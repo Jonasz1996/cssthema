@@ -1,3 +1,4 @@
+import { AUTH_EXPIRED } from "@/api/client";
 import type { Locale, MessageKey } from "@/lib/i18n";
 import type { SaveState } from "../autosave/draft-session";
 import { formatTime } from "./format";
@@ -30,6 +31,9 @@ export function saveStatusView(state: SaveState, locale: Locale): SaveStatusView
     case "offline":
       return { tone: "mid", icon: "⚡", key: "editor.saveOffline" };
     case "error":
-      return { tone: "err", icon: "✕", key: "editor.saveError" };
+      // Login van de proxy verlopen: geen serverfout, herladen helpt (review FE-10).
+      return state.code === AUTH_EXPIRED
+        ? { tone: "err", icon: "🔒", key: "editor.saveSessionExpired" }
+        : { tone: "err", icon: "✕", key: "editor.saveError" };
   }
 }

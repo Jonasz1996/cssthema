@@ -1,0 +1,103 @@
+/* ==========================================================================
+   alg-wgdashboard.css - WGDashboard (v4, Vue 3 + Bootstrap 5.3, donker)
+   Host: vpn.jbogaert.be
+   Laadt NA algemeen.css.
+
+   Bootstrap 5.3 doet algemeen.css al. Dit bestand werkt af:
+   - de bewegende rood/blauwe achtergrond van de login en de vaste
+     #1b1e21 van #app/.main maken plaats voor de radiale achtergrond;
+   - het merkverloop (--brandColor1/2, rood-blauw) van het logo
+     "WGDashboard", de Sign In-knop en de laadbalk wordt grijs;
+   - zwevende labels (form-floating): algemeen.css maakt elke placeholder
+     zichtbaar, waardoor label en placeholder over elkaar staan; hier weer
+     doorzichtig zoals Bootstrap het bedoelt, en zonder donker labelvlak;
+   - een universele font-regel (* { font-family }) houdt monospace tegen;
+   - de koptekst van meldingen (geel vlak met grijze tekst) leesbaar;
+   - zijbalk (niet getest): blauwe actieve link en hover-vlak naar grijs.
+
+   Beperkingen: alleen de loginpagina is vastgelegd; zijbalk, peers en
+   grafieken komen uit de CSS van de app en zijn niet getest. Het logo is
+   tekst met een verloop dat in de vastgelegde CSS leeg is; hier krijgt het
+   een eigen grijs verloop. CSP: alleen frame-ancestors, blokkeert
+   css.jbogaert.be niet.
+   ========================================================================== */
+
+/* ---------- Achtergrond en lettertype ----------------------------------- */
+/* #app#app: wint van #app:has(.main[data-bs-theme="dark"]) */
+#app#app,
+#app .main,
+#app .login-container-fluid,
+#app .login-container-fluid[data-bs-theme] {
+  background: transparent;
+  animation: none;
+}
+#app,
+#app * {
+  font-family: var(--alg-font);
+}
+#app .navbar-container {
+  background-color: var(--alg-glas);
+  -webkit-backdrop-filter: var(--alg-blur);
+  backdrop-filter: var(--alg-blur);
+}
+
+/* ---------- Merkverloop naar grijs -------------------------------------- */
+#app .dashboardLogo,
+#app .dashboardLogo:hover {
+  background: linear-gradient(90deg, var(--alg-tekst-sterk), var(--alg-gedempt));
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+#app .btn-brand,
+#app .loadingBar {
+  --brandColor1: var(--alg-knop-hover);
+  --brandColor2: var(--alg-knop);
+  color: var(--alg-knop-tekst) !important;
+}
+#app .btn-brand:hover {
+  --brandColor1: var(--alg-knop-hover);
+  --brandColor2: var(--alg-knop-hover);
+  box-shadow: var(--alg-gloed);
+}
+#app .btn-brand:disabled {
+  opacity: .8;
+}
+
+/* ---------- Zwevende labels ---------------------------------------------- */
+#app .form-floating > .form-control::placeholder {
+  color: transparent !important;
+}
+#app .form-floating > label::after {
+  background-color: transparent !important;
+}
+#app .form-floating > label {
+  color: var(--alg-gedempt);
+}
+
+/* ---------- Meldingen ----------------------------------------------------- */
+#app .messageCentre .card-header[class*="text-bg-"] small {
+  color: inherit;
+}
+#app .messageCentre .card {
+  background-color: var(--alg-glas-sterk);
+  -webkit-backdrop-filter: var(--alg-blur);
+  backdrop-filter: var(--alg-blur);
+}
+
+/* ---------- Zijbalk (niet getest) --------------------------------------- */
+#app .sidebar .nav-link,
+#app .bottomNavContainer .nav-link {
+  color: var(--alg-tekst);
+}
+#app .sidebar .nav-link.active,
+#app .bottomNavContainer .nav-link.active {
+  color: var(--alg-tekst-sterk);
+  background-color: var(--alg-rij-actief);
+}
+#app .nav-link:hover {
+  background-color: var(--alg-rij-hover);
+}
+#app .sidebar .nav-link .feather {
+  color: var(--alg-gedempt);
+}

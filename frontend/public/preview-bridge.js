@@ -22,12 +22,18 @@
  * iframe -> parent:
  *   { type: "cssthema:ready" }               once the bridge listens (send the CSS now)
  *   { type: "cssthema:applied", seq }        after a "css" message was applied
+ *   { type: "cssthema:too-large", kind, max } a "css"/"palette" message was over the size cap
+ *                                            (max characters) and was NOT applied
  *   { type: "cssthema:shortcut", action }    Ctrl/Cmd+S ("publish") or Ctrl+\ ("togglePreview")
  *                                            pressed while the preview has focus; the browser
  *                                            default ("Save page as") is prevented here, the
  *                                            editor decides what to do
  * Both stylesheets are mirrored into every open shadow root via adoptedStyleSheets,
- * approximating what a userscript injection would do.
+ * approximating what a userscript injection would do. A captured page of a real app (snapshot)
+ * brings declarative shadow roots that may finish parsing after the first message, so the
+ * sheets are adopted again once the document has loaded.
+ * Clicking a link or submitting a form never navigates the preview away (a snapshot has real
+ * links into the app; the CSP already blocks form submissions).
  *
  * Inspector mode ({type:"click", selectorPath}) follows in a later phase.
  * Safety: only messages from the direct parent with the exact expected shape are accepted;
@@ -63,6 +69,15 @@
     return out;
   }
 
+  function adoptEverywhere(sheet) {
+    collectOpenShadowRoots(document, []).forEach(function (sr) {
+      var sheets = sr.adoptedStyleSheets || [];
+      if (sheets.indexOf(sheet) === -1) {
+        sr.adoptedStyleSheets = sheets.concat([sheet]);
+      }
+    });
+  }
+
   function applyToShadowRoots(kind, css) {
     if (typeof CSSStyleSheet !== "function" || !("replaceSync" in CSSStyleSheet.prototype)) return;
     if (!shadowSheets[kind]) shadowSheets[kind] = new CSSStyleSheet();
@@ -72,21 +87,57 @@
     } catch {
       return; // invalid CSS for constructable sheets: keep previous state
     }
-    collectOpenShadowRoots(document, []).forEach(function (sr) {
-      var sheets = sr.adoptedStyleSheets || [];
-      if (sheets.indexOf(sheet) === -1) {
-        sr.adoptedStyleSheets = sheets.concat([sheet]);
-      }
-    });
+    adoptEverywhere(sheet);
   }
+
+  // Shadow roots parsed after the first message (large snapshot) get the current sheets too.
+  function adoptCurrentSheets() {
+    if (shadowSheets.palette) adoptEverywhere(shadowSheets.palette);
+    if (shadowSheets.css) adoptEverywhere(shadowSheets.css);
+  }
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", adoptCurrentSheets);
+  }
+
+  // Keep the preview on its page: no navigation through links (also inside shadow roots).
+  function isLink(node) {
+    return (
+      node &&
+      node.nodeType === 1 &&
+      (node.localName === "a" || node.localName === "area") &&
+      (node.hasAttribute("href") || node.hasAttribute("xlink:href"))
+    );
+  }
+
+  window.addEventListener(
+    "click",
+    function (event) {
+      var path = typeof event.composedPath === "function" ? event.composedPath() : [event.target];
+      for (var i = 0; i < path.length; i++) {
+        if (isLink(path[i])) {
+          event.preventDefault();
+          return;
+        }
+      }
+    },
+    true,
+  );
+
+  window.addEventListener(
+    "submit",
+    function (event) {
+      event.preventDefault();
+    },
+    true,
+  );
 
   function isStyleMessage(data) {
     return (
       data !== null &&
       typeof data === "object" &&
       (data.type === "css" || data.type === "palette") &&
-      typeof data.css === "string" &&
-      data.css.length <= MAX_CSS_LENGTH
+      typeof data.css === "string"
     );
   }
 
@@ -119,6 +170,10 @@
     if (event.source !== window.parent) return;
     var data = event.data;
     if (!isStyleMessage(data)) return;
+    if (data.css.length > MAX_CSS_LENGTH) {
+      reply({ type: "cssthema:too-large", kind: data.type, max: MAX_CSS_LENGTH });
+      return;
+    }
     getStyleElement(TARGETS[data.type]).textContent = data.css;
     applyToShadowRoots(data.type, data.css);
     if (data.type === "css") {

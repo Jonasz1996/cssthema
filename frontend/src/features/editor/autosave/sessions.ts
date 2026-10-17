@@ -1,4 +1,4 @@
-import { useEffect, useState, useSyncExternalStore } from "react";
+import { useEffect, useMemo, useSyncExternalStore } from "react";
 import { fetchDraft } from "@/api/queries/editor";
 import { type DraftBuffer, draftBuffer } from "./buffer";
 import {
@@ -160,32 +160,54 @@ export function useSessionValue<T>(
 }
 
 /**
+ * Vertraagde CSS van één sessie, voor `useSyncExternalStore`: begint bij de tekst van het
+ * moment van aanmaken en volgt pas na `delay` ms zonder wijziging. Meldingen zonder nieuwe
+ * tekst (status "Opslaan…", "Opgeslagen") stellen niets uit.
+ */
+function debouncedCss(session: DraftSession, delay: number) {
+  let value = session.getSnapshot().css;
+  return {
+    getSnapshot: () => value,
+    subscribe: (listener: () => void) => {
+      let timer: ReturnType<typeof setTimeout> | undefined;
+      let last = session.getSnapshot().css;
+      const settle = () => {
+        timer = undefined;
+        if (value === last) return;
+        value = last;
+        listener();
+      };
+      // Gewijzigd tussen aanmaken en abonneren.
+      if (last !== value) timer = setTimeout(settle, delay);
+      const unsubscribe = session.subscribe(() => {
+        const css = session.getSnapshot().css;
+        if (css === last) return;
+        last = css;
+        clearTimeout(timer);
+        timer = setTimeout(settle, delay);
+      });
+      return () => {
+        clearTimeout(timer);
+        unsubscribe();
+      };
+    },
+  };
+}
+
+/**
  * De CSS van een sessie, pas na `delay` ms zonder wijzigingen (voor de lint, 400 ms). De
  * component rendert alleen opnieuw als de vertraagde waarde verandert, niet bij elke toets.
+ * Ook de eerste toetsen na het openen wachten: de waarde begint bij de tekst van dat moment,
+ * niet bij de live tekst van elke render (review FE-3, PERF-2).
  */
 export function useDebouncedSessionCss(
   session: DraftSession | undefined,
   delay: number,
 ): string | undefined {
-  const [latest, setLatest] = useState<{ session: DraftSession; css: string } | null>(null);
-
-  useEffect(() => {
-    if (!session) return;
-    let timer: ReturnType<typeof setTimeout> | undefined;
-    let last = session.getSnapshot().css;
-    const unsubscribe = session.subscribe(() => {
-      const css = session.getSnapshot().css;
-      if (css === last) return;
-      last = css;
-      clearTimeout(timer);
-      timer = setTimeout(() => setLatest({ session, css }), delay);
-    });
-    return () => {
-      clearTimeout(timer);
-      unsubscribe();
-    };
-  }, [session, delay]);
-
-  if (!session) return undefined;
-  return latest?.session === session ? latest.css : session.getSnapshot().css;
+  const store = useMemo(() => (session ? debouncedCss(session, delay) : null), [session, delay]);
+  return useSyncExternalStore(
+    store?.subscribe ?? EMPTY,
+    () => store?.getSnapshot(),
+    () => store?.getSnapshot(),
+  );
 }

@@ -5,6 +5,8 @@ const PAGES = [
   ["/", "Dashboard"],
   ["/themes", "Thema's"],
   ["/palettes", "Paletten"],
+  ["/hosts", "Hosts"],
+  ["/services", "Services"],
   ["/import", "Import"],
   ["/import?tab=upload", "Import"],
   ["/import?tab=scripts", "Import"],

@@ -1,4 +1,5 @@
 import { DEMO_BASE_CSS, escapeHtml } from "./demo-page";
+import { PreviewError } from "./errors";
 
 /**
  * Het document van de preview-iframe (`srcdoc`), docs/02 § 4.2:
@@ -14,7 +15,8 @@ import { DEMO_BASE_CSS, escapeHtml } from "./demo-page";
  * ```
  *
  * Palet en CSS komen via `postMessage` (zie `channel.ts`), niet in de srcdoc zelf: dan hoeft
- * de iframe bij elke toets niet opnieuw te laden.
+ * de iframe bij elke toets niet opnieuw te laden. Een vastgelegde pagina van een echte app
+ * (snapshot) bouwt `snapshot-document.ts` met dezelfde kop, zonder de demo-stijl.
  *
  * De CSP laat niets van buiten toe: geen netwerk (ook geen fonts of afbeeldingen van een
  * server), alleen inline stijl, `data:`-afbeeldingen/-fonts en het bridge-script.
@@ -42,6 +44,40 @@ export interface PreviewDocumentInput {
   baseCss?: string;
 }
 
+/** Gooit als het bridge-script zijn `<script>`-blok zou kunnen sluiten (of een commentaar openen). */
+export function assertInlineableBridge(bridgeSource: string): void {
+  if (/<\/script|<!--/i.test(bridgeSource)) {
+    throw new PreviewError(
+      "notInlineable",
+      "preview-bridge.js bevat </script of <!-- en kan niet inline",
+    );
+  }
+}
+
+/** Begin van `<head>`: de CSP (altijd het eerste element), tekenset, viewport en titel. */
+export function previewHeadStart(bridgeHash: string, title: string): string[] {
+  return [
+    `<meta http-equiv="Content-Security-Policy" content="${escapeHtml(previewCsp(bridgeHash))}">`,
+    '<meta charset="utf-8">',
+    '<meta name="viewport" content="width=device-width, initial-scale=1">',
+    `<title>${escapeHtml(title)}</title>`,
+  ];
+}
+
+/**
+ * Einde van `<head>`: palet en live CSS (na alle andere stijl, zodat het thema wint) en de bridge.
+ * `afterLive`: kant-en-klare `<style>`-blokken die ná de live CSS horen (de rest van de stapel
+ * van een host, zie `snapshot-document.ts`).
+ */
+export function previewHeadEnd(bridgeSource: string, afterLive: readonly string[] = []): string[] {
+  return [
+    '<style id="ct-palette"></style>',
+    '<style id="ct-live"></style>',
+    ...afterLive,
+    `<script>${bridgeSource}</script>`,
+  ];
+}
+
 /** Bouwt de srcdoc. Gooit als het bridge-script het `<script>`-blok zou kunnen sluiten. */
 export function buildPreviewDocument({
   bridgeSource,
@@ -51,22 +87,15 @@ export function buildPreviewDocument({
   bodyHtml,
   baseCss = DEMO_BASE_CSS,
 }: PreviewDocumentInput): string {
-  if (/<\/script|<!--/i.test(bridgeSource)) {
-    throw new Error("preview-bridge.js bevat </script of <!-- en kan niet inline");
-  }
+  assertInlineableBridge(bridgeSource);
   if (/<\/style/i.test(baseCss)) throw new Error("demo-stijl bevat </style");
   return [
     "<!doctype html>",
     `<html lang="${escapeHtml(lang)}">`,
     "<head>",
-    `<meta http-equiv="Content-Security-Policy" content="${escapeHtml(previewCsp(bridgeHash))}">`,
-    '<meta charset="utf-8">',
-    '<meta name="viewport" content="width=device-width, initial-scale=1">',
-    `<title>${escapeHtml(title)}</title>`,
+    ...previewHeadStart(bridgeHash, title),
     `<style id="ct-demo-base">${baseCss}</style>`,
-    '<style id="ct-palette"></style>',
-    '<style id="ct-live"></style>',
-    `<script>${bridgeSource}</script>`,
+    ...previewHeadEnd(bridgeSource),
     "</head>",
     `<body>${bodyHtml}</body>`,
     "</html>",

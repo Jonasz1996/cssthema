@@ -123,10 +123,23 @@ async def test_bundle_import_conflicts(api: Api) -> None:
         data={"on_conflict": "new_version", "publish": "false"},
     )
     assert response.status_code == 200, response.text
+    unchanged = response.json()
+    assert unchanged["id"] == theme["id"]
+    assert unchanged["outcome"] == "unchanged"  # zelfde CSS als v1: geen nieuwe versie
+    assert unchanged["latest_version_number"] == 1
+
+    await api.save_draft(theme, "a { color: blue }")
+    await api.publish(theme)
+    response = await api.client.post(
+        f"{THEMES}/import",
+        files={"file": ("x.cssthema.zip", bundle)},
+        data={"on_conflict": "new_version", "publish": "false"},
+    )
+    assert response.status_code == 200, response.text
     updated = response.json()
-    assert updated["id"] == theme["id"]
-    assert updated["latest_version_number"] == 2
-    assert updated["published_version"]["version_number"] == 1  # niet gepubliceerd
+    assert updated["outcome"] == "new_version"
+    assert updated["latest_version_number"] == 3
+    assert updated["published_version"]["version_number"] == 2  # niet gepubliceerd
 
     response = await api.client.post(
         f"{THEMES}/import",
@@ -148,6 +161,7 @@ async def test_import_css_file(api: Api, engine: AsyncEngine) -> None:
     assert response.status_code == 201, response.text
     theme = response.json()
     assert theme["slug"] == slug
+    assert theme["outcome"] == "created"
     assert theme["published_version"]["source"] == "import"
     assert theme["published_version"]["message"] == f"Geïmporteerd uit {slug}.css"
     assert (await api.client.get(f"/{slug}.css")).text.endswith("body{color:red}")
@@ -160,6 +174,7 @@ async def test_import_css_file(api: Api, engine: AsyncEngine) -> None:
         data={"on_conflict": "new_version", "publish": "true"},
     )
     assert response.status_code == 200
+    assert response.json()["outcome"] == "new_version"
     assert response.json()["published_version"]["version_number"] == 2
     assert (await api.client.get(f"/{slug}.css")).text.endswith("body{color:blue}")
 
@@ -177,6 +192,44 @@ async def test_import_css_file(api: Api, engine: AsyncEngine) -> None:
     assert actions == ["theme.import", "theme.import"]
 
 
+async def test_reimporting_the_same_css_changes_nothing(api: Api, engine: AsyncEngine) -> None:
+    slug = unique_slug()
+    upload = {"file": (f"{slug}.css", b"body { color: red }", "text/css")}
+    first = await api.client.post(
+        f"{THEMES}/import", files=upload, data={"on_conflict": "new_version", "publish": "true"}
+    )
+    assert first.status_code == 201, first.text
+    theme = first.json()
+    await api.save_draft(theme, "body { color: green }")  # werk in het dashboard, niet live
+    api.refresh_calls.clear()
+
+    again = await api.client.post(
+        f"{THEMES}/import", files=upload, data={"on_conflict": "new_version", "publish": "true"}
+    )
+    assert again.status_code == 200, again.text
+    body = again.json()
+    assert body["outcome"] == "unchanged"
+    assert body["latest_version_number"] == 1
+    assert body["published_version"]["version_number"] == 1
+    assert await api.refreshed() == []  # niets ververst
+    draft = await api.client.get(f"{THEMES}/{theme['id']}/draft")
+    assert draft.json()["css"] == "body { color: green }"  # de draft blijft
+    assert [a for a, _ in await audit_actions(engine, theme["id"])] == ["theme.import"]
+
+    # Niet live en nu wel publiceren: dan telt het niet als ongewijzigd.
+    other = unique_slug()
+    upload = {"file": (f"{other}.css", b"a { color: red }", "text/css")}
+    draft_only = await api.client.post(
+        f"{THEMES}/import", files=upload, data={"on_conflict": "new_version", "publish": "false"}
+    )
+    assert draft_only.json()["published_version"] is None
+    published = await api.client.post(
+        f"{THEMES}/import", files=upload, data={"on_conflict": "new_version", "publish": "true"}
+    )
+    assert published.json()["outcome"] == "new_version"
+    assert published.json()["published_version"]["version_number"] == 1
+
+
 async def test_import_errors(api: Api) -> None:
     async def upload(name: str, data: bytes, **form: str) -> tuple[int, dict[str, object]]:
         response = await api.client.post(
@@ -190,7 +243,7 @@ async def test_import_errors(api: Api) -> None:
     assert (status, body["code"]) == (422, "validation_error")
     status, body = await upload(f"{unique_slug()}.css", b"\xff\xfe")
     assert (status, body["code"]) == (422, "validation_error")
-    status, body = await upload(f"{unique_slug()}.css", b"a" * (512 * 1024 + 1))
+    status, body = await upload(f"{unique_slug()}.css", b"a" * (1024 * 1024 + 1))
     assert (status, body["code"]) == (413, "payload_too_large")
     status, body = await upload("api.css", b"a{}")
     assert (status, body["code"]) == (422, "invalid_slug")

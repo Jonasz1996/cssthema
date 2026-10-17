@@ -21,6 +21,7 @@ def test_all_mvp_tables_are_registered() -> None:
         "jobs",
         "audit_logs",
         "settings",
+        "host_bindings",
     }
 
 

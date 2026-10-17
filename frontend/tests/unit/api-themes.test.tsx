@@ -1,7 +1,7 @@
 import { act, renderHook, waitFor } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import { isPreconditionFailed, type ApiError } from "@/api/client";
-import { dashboardKeys, normalizeThemeFilters, themeKeys } from "@/api/queries/keys";
+import { dashboardKeys, hostKeys, normalizeThemeFilters, themeKeys } from "@/api/queries/keys";
 import { flattenPages } from "@/api/queries/options";
 import {
   useCreateTheme,
@@ -177,6 +177,7 @@ describe("theme mutations", () => {
     server.on("DELETE", "/api/v1/themes/:id", noContent());
     queryClient.setQueryData(themeKeys.detail(theme.id), theme);
     queryClient.setQueryData(themeKeys.draft(theme.id), makeDraft());
+    queryClient.setQueryData(hostKeys.list(), []);
 
     const { result } = renderHook(() => useDeleteTheme(), { wrapper });
     await act(() => result.current.mutateAsync({ themeId: theme.id, lockVersion: 2 }));
@@ -184,6 +185,8 @@ describe("theme mutations", () => {
     expect(server.calls[0]!.url.searchParams.has("hard")).toBe(false);
     expect(server.calls[0]!.headers.get("If-Match")).toBe('"lv-2"');
     expect(queryClient.getQueryState(themeKeys.detail(theme.id))?.isInvalidated).toBe(true);
+    // De Hosts-pagina toont een verwijderd thema als "ontbreekt".
+    expect(queryClient.getQueryState(hostKeys.list())?.isInvalidated).toBe(true);
 
     await act(() => result.current.mutateAsync({ themeId: theme.id, hard: true }));
 
@@ -245,7 +248,10 @@ describe("theme mutations", () => {
     const { server, queryClient, wrapper } = setup();
     const theme = makeTheme({ lock_version: 2 });
     let status = 201;
-    server.on("POST", "/api/v1/themes/import", () => json(theme, { status, headers: etag(2) }));
+    let outcome = "created";
+    server.on("POST", "/api/v1/themes/import", () =>
+      json({ ...theme, outcome }, { status, headers: etag(2) }),
+    );
 
     const { result } = renderHook(() => useImportTheme(), { wrapper });
     const created = await act(() =>
@@ -256,7 +262,8 @@ describe("theme mutations", () => {
       }),
     );
 
-    expect(created).toMatchObject({ created: true, lockVersion: 2 });
+    expect(created).toMatchObject({ created: true, lockVersion: 2, outcome: "created" });
+    expect(created.data).toEqual(theme);
     const request = server.calls[0]!;
     expect(request.headers.get("Content-Type")).toMatch(/^multipart\/form-data; boundary=/);
     const form = request.body as FormData;
@@ -267,13 +274,28 @@ describe("theme mutations", () => {
     expect(await (form.get("file") as Blob).text()).toBe("body{}");
 
     status = 200;
+    outcome = "new_version";
     queryClient.setQueryData(themeKeys.draft(theme.id), makeDraft());
+    queryClient.setQueryData(hostKeys.list(), []);
     const updated = await act(() =>
       result.current.mutateAsync({ file: new Blob(["a{}"]), filename: "proxmox.css" }),
     );
 
-    expect(updated.created).toBe(false);
+    expect(updated).toMatchObject({ created: false, outcome: "new_version" });
     expect(queryClient.getQueryState(themeKeys.draft(theme.id))?.isInvalidated).toBe(true);
+    // Een nieuwe (gepubliceerde) versie verandert wat de hosts krijgen (review FE-6).
+    expect(queryClient.getQueryState(hostKeys.list())?.isInvalidated).toBe(true);
+
+    // Gelijk aan de laatste versie: niets veranderd, dus ook niets opnieuw ophalen.
+    outcome = "unchanged";
+    queryClient.setQueryData(themeKeys.draft(theme.id), makeDraft());
+    queryClient.setQueryData(hostKeys.list(), []);
+    const same = await act(() =>
+      result.current.mutateAsync({ file: new Blob(["a{}"]), filename: "proxmox.css" }),
+    );
+    expect(same).toMatchObject({ created: false, outcome: "unchanged" });
+    expect(queryClient.getQueryState(themeKeys.draft(theme.id))?.isInvalidated).toBe(false);
+    expect(queryClient.getQueryState(hostKeys.list())?.isInvalidated).toBe(false);
   });
 
   it("lists and imports local files with publish and archive on by default", async () => {

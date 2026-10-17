@@ -43,7 +43,13 @@ export function Table<T>({
 }: TableProps<T>) {
   const { t } = useI18n();
   return (
-    <div className={cn("overflow-x-auto", scroll && "max-h-[42vh] overflow-y-auto", className)}>
+    <div
+      className={cn(
+        "relative overflow-x-auto",
+        scroll && "max-h-[42vh] overflow-y-auto",
+        className,
+      )}
+    >
       <table className="mt-1.5 w-full border-collapse text-[12.5px]">
         {caption && <caption className="sr-only">{caption}</caption>}
         <thead>

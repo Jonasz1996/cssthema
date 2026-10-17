@@ -50,6 +50,19 @@ describe("editor store (tabs + layout, persisted)", () => {
     expect(ids).not.toContain("t1");
   });
 
+  it("returns the dropped tabs and keeps the ones with unsaved work", () => {
+    const { openTab } = useEditorStore.getState();
+    for (let n = 1; n <= MAX_TABS; n += 1) expect(openTab(tab(n))).toEqual([]);
+    expect(openTab({ ...tab(3), name: "Hernoemd" })).toEqual([]);
+    // t1 en t2 hebben onbewaarde wijzigingen: t3 valt weg.
+    const unsaved = (id: string) => id === "t1" || id === "t2";
+    expect(openTab(tab(MAX_TABS + 1), undefined, unsaved)).toEqual(["t3"]);
+    expect(useEditorStore.getState().tabs.map((item) => item.id)).toHaveLength(MAX_TABS);
+    // Alles bewaren: dan staan er even meer tabs open.
+    expect(openTab(tab(MAX_TABS + 2), undefined, () => true)).toEqual([]);
+    expect(useEditorStore.getState().tabs).toHaveLength(MAX_TABS + 1);
+  });
+
   it("clamps layout values (also from a tampered localStorage)", () => {
     const layout = normalizeLayout({
       explorerWidth: 5000,

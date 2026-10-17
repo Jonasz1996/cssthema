@@ -1,0 +1,52 @@
+/* ==========================================================================
+   alg-iventoy.css - iVentoy (PXE-server; AdminLTE 2 skin-blue, Bootstrap 3)
+   Host: iventoy.jbogaert.be
+   Laadt NA algemeen.css.
+
+   algemeen.css (deel 32 ADMINLTE) maakt kop, zijbalk, box, tabellen, modals
+   en knoppen al donker. Dit bestand werkt af:
+   - lettertype: iVentoy zet Arial op * (alle elementen); hier monospace,
+     iconen (.fa, .glyphicon, .ion) houden hun eigen font;
+   - start/stopknop: de link heeft de Bootstrap-klasse .progress en kreeg zo
+     een donkere voortgangsbalk achter het grote stop/play-icoon;
+   - stop/play-icoon en "FREE EDITION!" (inline rood) in de statuskleuren;
+   - blauw streepje van het actieve zijmenu-item grijs.
+
+   Beperkingen: Boot Information (met de "No IP"-melding) is vastgelegd en
+   getest; de andere tabbladen (Configuration, MAC Filter, Image Management)
+   gebruiken dezelfde AdminLTE-klassen maar zijn niet getest. Icoonfonts en
+   het logo ontbreken in de testrender (geen netwerk). De groene
+   laadanimatie (keyframes) blijft. CSP: alleen frame-ancestors.
+   ========================================================================== */
+
+/* ---------- Lettertype ---------------------------------------------------- */
+/* iVentoy: "* { font-family: Arial, ... }"; :where houdt dit op specificiteit
+   0,0,0 zodat .fa/.glyphicon/.ion (0,1,0) hun icoonfont houden */
+:where(body.skin-blue) * {
+  font-family: var(--alg-font);
+}
+
+/* ---------- Start/stop ---------------------------------------------------- */
+#VtoyStopButton.progress,
+#VtoyStartButton.progress {
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+#VtoyStopButton .fa-stop {
+  color: var(--alg-fout) !important;
+}
+
+#VtoyStartButton .fa-play-circle {
+  color: var(--alg-ok) !important;
+}
+
+/* ---------- Voettekst ----------------------------------------------------- */
+#version_tip > span[style*="color:red"] {
+  color: var(--alg-fout) !important;
+}
+
+/* ---------- Zijmenu ------------------------------------------------------- */
+.skin-blue .sidebar-menu > li:is(:hover, .active) > a {
+  border-left-color: var(--alg-accent-kleur);
+}

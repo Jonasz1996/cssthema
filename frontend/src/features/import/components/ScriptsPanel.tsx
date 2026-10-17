@@ -15,9 +15,10 @@ import { fx } from "@/lib/fx";
 import { type MessageKey, useI18n } from "@/lib/i18n";
 import { type ScriptUploadOutcome, useScriptUpload } from "../hooks/use-script-upload";
 import { copyScriptUrl } from "../lib/copy-url";
+import { checkScriptSyntax } from "../lib/script-syntax";
 import { SCRIPT_ARCHIVE_DIR, SCRIPT_ERROR_KEYS, shortHash } from "../lib/scripts";
 import { uploadKind, uploadProblem, type UploadProblem } from "../lib/upload";
-import { InjectionSnippet } from "./InjectionSnippet";
+import { HostsRuleHint } from "./HostsRuleHint";
 import { ScriptViewDialog } from "./ScriptViewDialog";
 
 const SCRIPT_ACCEPT = ".js,text/javascript,application/javascript";
@@ -95,6 +96,17 @@ export function ScriptsPanel() {
     }
   }, []);
 
+  /**
+   * Eerst de syntax (zoals in *Uploaden*): een fout script legt in de bundel van een host ook
+   * de andere stil. `false` = geweigerd, met een melding.
+   */
+  const syntaxOk = async (file: File): Promise<boolean> => {
+    const syntax = checkScriptSyntax(await file.text());
+    if (syntax.ok !== false) return true;
+    toast.err(`${file.name}: ${t("common.scriptSyntaxError", { message: syntax.message })}`);
+    return false;
+  };
+
   /** Een fout als melding, met de bestandsnaam ervoor. */
   const reportError = (file: File, outcome: ScriptUploadOutcome) => {
     if (outcome.status !== "error") return;
@@ -114,6 +126,7 @@ export function ScriptsPanel() {
           toast.err(`${file.name}: ${t(PROBLEM_TEXT[problem])}`);
           continue;
         }
+        if (!(await syntaxOk(file))) continue;
         const outcome = await upload(file);
         reportError(file, outcome);
         if (outcome.status === "ok") done.push(outcome);
@@ -143,6 +156,7 @@ export function ScriptsPanel() {
       toast.err(`${file.name}: ${t(PROBLEM_TEXT[problem])}`);
       return;
     }
+    if (!(await syntaxOk(file))) return;
     focusLater.current = () =>
       rows.current.get(name)?.querySelector<HTMLElement>("[data-action=replace]");
     const outcome = await track(name, () => upload(file, { name, replace: true }));
@@ -308,7 +322,7 @@ export function ScriptsPanel() {
         </section>
       )}
 
-      {!scripts.isError && <InjectionSnippet scripts={list} />}
+      {!scripts.isError && <HostsRuleHint />}
 
       {conflictDialog}
 

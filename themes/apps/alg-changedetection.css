@@ -1,0 +1,173 @@
+/* ==========================================================================
+   alg-changedetection.css - changedetection.io (0.5x, Pure.css + eigen CSS)
+   Host: changedetection.jbogaert.be
+   Laadt NA algemeen.css (dat geen changedetection-deel heeft).
+
+   changedetection.io kleurt alles via eigen --color-*-variabelen (licht op
+   :root, donker op html[data-darkmode="true"]). Die krijgen hier de
+   algemene tokens, voor beide modi, dus ook op niet vastgelegde pagina's
+   (bewerken, geschiedenis/diff, instellingen). Wat het afwerkt:
+   - witte kopbalk, voet, tabbladen, bewerkformulier en dialogen: glas
+   - blauw/paarse verloopgolf bovenaan weg (radiale achtergrond blijft)
+   - "nieuwe watch"-vak en invoervelden: glas en donkere velden
+   - tabel: lichtgrijze strepen en kop worden zebra/paneel
+   - blauwe knoppen (Watch, Recheck, Edit, History) grijs; groen/rood
+     alleen voor ok/fout; foutmeldingen in de foutkleur
+   - oranje/rode laadlijn onder de kop grijs; blauwe links grijs
+   - typebadges ("Text", "Restock") neutraal; zelfgekozen tagkleuren blijven
+
+   Beperkingen: vastgelegd is alleen de lijst met watches. Andere pagina's
+   volgen uit dezelfde variabelen, maar zijn niet getest. Iconen zijn
+   afbeeldingen en laden niet in de testopstelling.
+   ========================================================================== */
+
+/* ---------- Variabelen (licht en donker) --------------------------------- */
+:root,
+html[data-darkmode] {
+  --color-background: var(--alg-glas);
+  --color-background-page: transparent;
+  --color-text: var(--alg-tekst);
+  --color-link: var(--alg-link);
+  --color-link-new-version: var(--alg-waarschuwing);
+  --color-background-gradient-first: transparent;
+  --color-background-gradient-second: transparent;
+  --color-background-gradient-third: transparent;
+
+  --color-background-input: var(--alg-veld);
+  --color-text-input: var(--alg-tekst-sterk);
+  --color-border-input: var(--alg-rand-sterk);
+  --color-shadow-input: transparent;
+  --color-text-input-description: var(--alg-gedempt);
+  --color-text-input-placeholder: var(--alg-placeholder);
+  --color-background-new-watch-form: var(--alg-glas);
+  --color-background-new-watch-input: var(--alg-veld);
+  --color-background-new-watch-input-transparent: var(--alg-veld);
+  --color-text-new-watch-input: var(--alg-tekst-sterk);
+  --color-text-legend: var(--alg-tekst-sterk);
+  --color-background-checkbox-operations: var(--alg-paneel);
+
+  --color-background-table-thead: var(--alg-paneel);
+  --color-table-background: transparent;
+  --color-table-stripe: var(--alg-zebra);
+  --color-border-table-cell: var(--alg-rand);
+  --color-border-watch-table-cell: var(--alg-rand);
+  --color-watch-table-row-text: var(--alg-tekst);
+  --color-watch-table-error: var(--alg-fout);
+  --color-last-checked: var(--alg-gedempt);
+  --color-background-snapshot-age: var(--alg-paneel);
+  --color-error-background-snapshot-age: var(--alg-fout-vlak);
+  --color-error-text-snapshot-age: #fff;
+
+  --color-error: var(--alg-fout);
+  --color-dark-red: var(--alg-fout);
+  --color-light-red: var(--alg-fout);
+  --color-error-list: var(--alg-fout);
+  --color-error-input: var(--alg-fout-tint);
+  --color-warning: var(--alg-waarschuwing);
+  --color-border-warning: var(--alg-waarschuwing-rand);
+
+  --color-background-button-primary: var(--alg-knop);
+  --color-background-button-secondary: var(--alg-knop-zacht-hover);
+  --color-background-button-success: var(--alg-ok-vlak);
+  --color-background-button-green: var(--alg-ok-vlak);
+  --color-background-button-error: var(--alg-fout-vlak);
+  --color-background-button-warning: var(--alg-fout-vlak);
+  --color-background-button-red: var(--alg-fout-vlak);
+  --color-background-button-cancel: var(--alg-knop-zacht-hover);
+  --color-background-button-tag: var(--alg-knop-zacht-hover);
+  --color-background-button-tag-active: var(--alg-knop);
+  --color-text-button: var(--alg-knop-tekst);
+
+  --color-menu-accent: var(--alg-accent-kleur);
+  --color-text-menu-heading: var(--alg-tekst-sterk);
+  --color-text-menu-link: var(--alg-tekst);
+  --color-text-menu-link-hover: var(--alg-tekst-sterk);
+  --color-background-menu-link-hover: var(--alg-rij-hover);
+  --color-background-tab: var(--alg-knop-zacht);
+  --color-background-tab-hover: var(--alg-knop-zacht-hover);
+  --color-text-tab: var(--alg-tekst);
+  --color-text-tab-active: var(--alg-tekst-sterk);
+  --color-text-footer: var(--alg-gedempt);
+  --color-icon-github: var(--alg-tekst-sterk);
+  --color-icon-github-hover: var(--alg-gedempt);
+  --color-shadow-jump: transparent;
+  --color-border-notification: var(--alg-rand-sterk);
+  --color-background-code: var(--alg-code-vlak);
+  --color-api-key: var(--alg-info);
+  --color-background-messages-message: var(--alg-info-tint);
+  --color-background-messages-notice: var(--alg-info-tint);
+  --color-background-messages-error: var(--alg-fout-tint);
+  --color-text-messages: var(--alg-tekst);
+
+  --highlight-trigger-text-bg-color: var(--alg-info-tint);
+  --highlight-ignored-text-bg-color: var(--alg-rij-actief);
+  --highlight-blocked-text-bg-color: var(--alg-fout-tint);
+}
+
+/* ---------- Glas waar --color-background een vlak is --------------------- */
+.pure-menu-horizontal {
+  border-bottom: 1px solid var(--alg-rand);
+  -webkit-backdrop-filter: var(--alg-blur);
+  backdrop-filter: var(--alg-blur);
+}
+
+#new-watch-form,
+.edit-form .inner,
+.sticky-tab,
+.modal-dialog,
+.toast {
+  border: 1px solid var(--alg-rand-sterk);
+  -webkit-backdrop-filter: var(--alg-blur);
+  backdrop-filter: var(--alg-blur);
+}
+
+#new-watch-form {
+  border-radius: var(--alg-radius-groot);
+}
+
+.modal-dialog,
+.mobile-menu-drawer {
+  background: var(--alg-glas-sterk);
+}
+
+/* ---------- Laadlijn onder de kop: grijs in plaats van oranje/rood ------- */
+#pure-menu-horizontal-spinner {
+  background-image: linear-gradient(-75deg, var(--alg-rand), var(--alg-rand-hover), var(--alg-gedempt), var(--alg-rand));
+}
+
+/* ---------- Tabel -------------------------------------------------------- */
+.watch-table {
+  border-color: var(--alg-rand-sterk) !important;
+}
+
+.watch-table .pure-table-even,
+.pure-table-even {
+  background: transparent;
+}
+
+/* niet bekeken (vet) zonder fout: wit zoals in de donkere modus */
+.watch-table tr.unviewed:not(.has-error) {
+  color: var(--alg-tekst-sterk);
+}
+
+/* lijn onder de titel van het nieuwe-watch-vak (Pure.css: #e5e5e5) */
+.pure-form legend {
+  border-bottom-color: var(--alg-rand-sterk);
+}
+
+/* sorteerpijl in de tabelkop: vast blauw */
+.arrow {
+  border-color: var(--alg-tekst-sterk);
+}
+
+/* sponsorhartje in de kop: rode omlijning (inline) wordt grijs */
+#heartpath {
+  stroke: var(--alg-gedempt) !important;
+}
+
+/* ---------- Badges ------------------------------------------------------- */
+/* type van een watch (Text, Restock, Image): merkkleuren worden neutraal */
+.processor-badge {
+  background-color: var(--alg-knop-zacht-hover) !important;
+  color: var(--alg-tekst-sterk) !important;
+}

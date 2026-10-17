@@ -5,9 +5,18 @@ import { revealCalls } from "./reveal-calls";
 
 /**
  * Vervangt Monaco in component-tests (`vi.mock("../components/CodeEditor", …)`): een textarea
- * die net als de echte editor `session.edit()` aanroept, plus de lint-markers als tekst.
+ * die net als de echte editor `session.edit()` aanroept, plus de lint-markers en de classes van
+ * de snapshot (autocomplete) als tekst.
  */
-export function CodeEditor({ session, ariaLabel, lint, readOnly, onReady }: CodeEditorProps) {
+export function CodeEditor({
+  session,
+  ariaLabel,
+  lint,
+  readOnly,
+  onReady,
+  onCursorChange,
+  snapshot,
+}: CodeEditorProps) {
   const css = useSessionValue(session, (snapshot) => snapshot.css, "");
   useEffect(() => {
     onReady?.({
@@ -24,10 +33,19 @@ export function CodeEditor({ session, ariaLabel, lint, readOnly, onReady }: Code
         aria-label={ariaLabel}
         value={css}
         readOnly={readOnly}
-        onChange={(event) => session.edit(event.target.value)}
+        onChange={(event) => {
+          session.edit(event.target.value);
+          // Zoals Monaco: typen verplaatst de cursor (en rendert de pagina dus opnieuw).
+          onCursorChange?.({ line: 1, column: event.target.value.length + 1 });
+        }}
       />
       <output data-testid="markers">
         {lint ? `${lint.errors.length} errors, ${lint.warnings.length} warnings` : "no lint"}
+      </output>
+      <output data-testid="snapshot-completions">
+        {snapshot
+          ? `${snapshot.hostname} ${snapshot.page}: ${snapshot.symbols.classes.map((item) => item.name).join(" ")}`
+          : "no snapshot"}
       </output>
     </div>
   );

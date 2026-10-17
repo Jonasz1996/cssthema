@@ -45,10 +45,13 @@ def create_app(
         app.state.css_delivery = CssDelivery(
             app.state.redis, refresh_http, settings.css_refresh_url, app.state.sessionmaker
         )
+        app.state.background_tasks = set()  # bv. de host-controle (services/host_health.py)
         log.info("startup", version=__version__, environment=settings.environment)
         try:
             yield
         finally:
+            for task in app.state.background_tasks:
+                task.cancel()
             await app.state.css_delivery.aclose()
             await refresh_http.aclose()
             await app.state.redis.aclose()

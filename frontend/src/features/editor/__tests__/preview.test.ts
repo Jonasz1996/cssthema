@@ -1,8 +1,15 @@
 import { describe, expect, it, vi } from "vitest";
 import { messageKeys } from "@/lib/i18n";
 import { fetchBridge } from "../preview/bridge";
-import { parseBridgeMessage, PreviewChannel } from "../preview/channel";
+import {
+  LARGE_CSS_DEBOUNCE_MS,
+  LARGE_CSS_LENGTH,
+  LARGE_CSS_MAX_WAIT_MS,
+  parseBridgeMessage,
+  PreviewChannel,
+} from "../preview/channel";
 import { demoBodyHtml, escapeHtml } from "../preview/demo-page";
+import { PreviewError, previewErrorText } from "../preview/errors";
 import { DEMO_TEXT_FIELDS, demoTextKey, demoTexts } from "../preview/demo-texts";
 import { previewFrameHeight, previewScale } from "../preview/scale";
 import { sha256Base64, sha256Bytes } from "../preview/sha256";
@@ -29,6 +36,8 @@ interface BridgeEnv {
   send: (data: unknown, source?: unknown) => void;
   /** Een toets in de iframe; geeft het event terug (zie `defaultPrevented`). */
   press: (init: KeyboardEventInit) => KeyboardEvent;
+  /** Een `click`/`submit` op `window` (capture), zoals de browser hem doorgeeft. */
+  dispatch: (event: Event) => Event;
 }
 
 class FakeSheet {
@@ -38,16 +47,22 @@ class FakeSheet {
   }
 }
 
-/** Voert het echte bridge-script uit met een nep-`window` en een los document. */
-function runBridge({ standalone = false } = {}): BridgeEnv {
+/**
+ * Voert het echte bridge-script uit met een nep-`window` en een los document. `loading`: het
+ * document is nog aan het parsen (`DOMContentLoaded` volgt nog).
+ */
+function runBridge({ standalone = false, loading = false } = {}): BridgeEnv {
   const doc = document.implementation.createHTMLDocument("preview");
+  if (loading) Object.defineProperty(doc, "readyState", { value: "loading", configurable: true });
   const listeners: ((event: { source: unknown; data: unknown }) => void)[] = [];
   const keyListeners: ((event: KeyboardEvent) => void)[] = [];
+  const otherListeners: { type: string; listener: (event: Event) => void }[] = [];
   const parent = { postMessage: vi.fn() };
   const fakeWindow: Record<string, unknown> = {
     addEventListener: (type: string, listener: (event: never) => void) => {
       if (type === "message") listeners.push(listener as (typeof listeners)[number]);
-      if (type === "keydown") keyListeners.push(listener as (typeof keyListeners)[number]);
+      else if (type === "keydown") keyListeners.push(listener as (typeof keyListeners)[number]);
+      else otherListeners.push({ type, listener: listener as (event: Event) => void });
     },
   };
   fakeWindow.parent = standalone ? fakeWindow : parent;
@@ -62,6 +77,12 @@ function runBridge({ standalone = false } = {}): BridgeEnv {
     press: (init) => {
       const event = new KeyboardEvent("keydown", { cancelable: true, ...init });
       keyListeners.forEach((listener) => listener(event));
+      return event;
+    },
+    dispatch: (event) => {
+      otherListeners
+        .filter((entry) => entry.type === event.type)
+        .forEach((entry) => entry.listener(event));
       return event;
     },
   };
@@ -101,9 +122,25 @@ describe("preview-bridge.js", () => {
     send({ type: "script", css: "alert(1)" });
     send("css");
     send(null);
-    send({ type: "css", css: "x".repeat(2 * 1024 * 1024 + 1) });
     expect(doc.getElementById("ct-live")).toBeNull();
     expect(parent.postMessage).not.toHaveBeenCalled();
+  });
+
+  it("refuses CSS over the size cap and says so instead of staying silent", () => {
+    const { doc, parent, send } = runBridge();
+    parent.postMessage.mockClear();
+    const max = 2 * 1024 * 1024;
+    send({ type: "css", css: "x".repeat(max + 1), seq: 1 });
+    send({ type: "palette", css: "x".repeat(max + 1) });
+    expect(doc.getElementById("ct-live")).toBeNull();
+    expect(doc.getElementById("ct-palette")).toBeNull();
+    expect(parent.postMessage.mock.calls).toEqual([
+      [{ type: "cssthema:too-large", kind: "css", max }, "*"],
+      [{ type: "cssthema:too-large", kind: "palette", max }, "*"],
+    ]);
+    // Precies op de limiet mag nog.
+    send({ type: "css", css: "x".repeat(max), seq: 2 });
+    expect(doc.getElementById("ct-live")?.textContent).toHaveLength(max);
   });
 
   it("treats CSS strictly as text (no HTML injection)", () => {
@@ -127,6 +164,49 @@ describe("preview-bridge.js", () => {
     expect(
       (shadow as unknown as { adoptedStyleSheets: FakeSheet[] }).adoptedStyleSheets[0]!.css,
     ).toBe("p{margin:1px}");
+  });
+
+  it("also mirrors into shadow roots that were parsed after the first message", () => {
+    const { doc, send } = runBridge({ loading: true });
+    send({ type: "palette", css: ":root{--ct-bg:#000}" });
+    send({ type: "css", css: "p{margin:0}", seq: 1 });
+    // Een grote snapshot: de declaratieve shadow root staat er pas na het eerste bericht.
+    const host = doc.createElement("div");
+    doc.body.appendChild(host);
+    const shadow = host.attachShadow({ mode: "open" });
+    const adopted = () =>
+      (shadow as unknown as { adoptedStyleSheets?: FakeSheet[] }).adoptedStyleSheets ?? [];
+    expect(adopted()).toHaveLength(0);
+    doc.dispatchEvent(new Event("DOMContentLoaded"));
+    expect(adopted().map((sheet) => sheet.css)).toEqual([":root{--ct-bg:#000}", "p{margin:0}"]);
+  });
+
+  it("keeps the preview on its page: links and forms do not navigate", () => {
+    const { doc, dispatch } = runBridge();
+    doc.body.innerHTML =
+      '<a id="link" href="https://app.lan/settings"><span id="inner">x</span></a>' +
+      '<button id="plain">y</button><form id="form"></form>';
+    const click = (target: Element, path: EventTarget[] = []) => {
+      const event = new MouseEvent("click", { bubbles: true, cancelable: true });
+      Object.defineProperty(event, "target", { value: target });
+      Object.defineProperty(event, "composedPath", {
+        value: () => [...path, target, ...ancestors(target)],
+      });
+      return dispatch(event);
+    };
+    const ancestors = (node: Element) => {
+      const out: Element[] = [];
+      for (let parent = node.parentElement; parent; parent = parent.parentElement) out.push(parent);
+      return out;
+    };
+    expect(click(doc.getElementById("inner")!).defaultPrevented).toBe(true);
+    expect(click(doc.getElementById("plain")!).defaultPrevented).toBe(false);
+    // Een link in een shadow root: alleen via composedPath() te zien.
+    const shadowLink = doc.createElement("a");
+    shadowLink.setAttribute("href", "/elders");
+    expect(click(doc.getElementById("plain")!, [shadowLink]).defaultPrevented).toBe(true);
+    const submit = new Event("submit", { cancelable: true });
+    expect(dispatch(submit).defaultPrevented).toBe(true);
   });
 
   it("forwards Ctrl/⌘+S and Ctrl+\\ to the editor and blocks the browser's save dialog", () => {
@@ -243,8 +323,110 @@ describe("PreviewChannel", () => {
       action: "publish",
     });
     expect(parseBridgeMessage({ type: "cssthema:shortcut", action: "delete" })).toBeNull();
+    expect(parseBridgeMessage({ type: "cssthema:too-large", kind: "css", max: 9 })).toEqual({
+      type: "cssthema:too-large",
+      kind: "css",
+      max: 9,
+    });
+    expect(parseBridgeMessage({ type: "cssthema:too-large", kind: "html" })).toBeNull();
     expect(parseBridgeMessage({ type: "other" })).toBeNull();
     expect(parseBridgeMessage("cssthema:ready")).toBeNull();
+  });
+
+  it("sends large stylesheets after a pause in typing, and at least every max wait", () => {
+    let now = 1000;
+    let nextId = 0;
+    const timers = new Map<number, { at: number; callback: () => void }>();
+    const frames = new Map<number, () => void>();
+    const target = { postMessage: vi.fn() } as unknown as Window & {
+      postMessage: ReturnType<typeof vi.fn>;
+    };
+    const channel = new PreviewChannel({
+      getTarget: () => target,
+      requestFrame: (callback) => (frames.set(++nextId, callback), nextId),
+      cancelFrame: (id) => frames.delete(id),
+      now: () => now,
+      setTimer: (callback, ms) => {
+        timers.set(++nextId, { at: now + ms, callback });
+        return nextId as unknown as ReturnType<typeof setTimeout>;
+      },
+      clearTimer: (id) => timers.delete(id as unknown as number),
+    });
+    const runFrames = () => {
+      const pending = [...frames.values()];
+      frames.clear();
+      pending.forEach((frame) => frame());
+    };
+    const advance = (ms: number) => {
+      now += ms;
+      for (const [id, timer] of [...timers]) {
+        if (timer.at > now) continue;
+        timers.delete(id);
+        timer.callback();
+      }
+      runFrames();
+    };
+    const sentCss = () =>
+      target.postMessage.mock.calls
+        .map(([message]) => message as { type: string; css: string })
+        .filter((message) => message.type === "css")
+        .map((message) => message.css.slice(-1));
+    channel.handleMessage({
+      source: target,
+      data: { type: "cssthema:ready" },
+    } as unknown as MessageEvent);
+    target.postMessage.mockClear();
+    const big = (end: string) => "x".repeat(LARGE_CSS_LENGTH) + end;
+
+    // Groot: pas na een pauze; tussenliggende toestanden vallen weg.
+    channel.setCss(big("1"));
+    runFrames();
+    expect(sentCss()).toEqual([]);
+    advance(LARGE_CSS_DEBOUNCE_MS - 100);
+    channel.setCss(big("2"));
+    advance(LARGE_CSS_DEBOUNCE_MS - 1);
+    expect(sentCss()).toEqual([]);
+    // Dezelfde tekst opnieuw (bv. "opgeslagen"): stelt niets uit.
+    channel.setCss(big("2"));
+    advance(1);
+    expect(sentCss()).toEqual(["2"]);
+
+    // Doortypen zonder pauze: toch om de maximale wachttijd.
+    for (let i = 0; i * 100 < LARGE_CSS_MAX_WAIT_MS; i++) {
+      channel.setCss(big(`-${i}`));
+      advance(100);
+    }
+    expect(sentCss()).toEqual(["2", "9"]);
+
+    // Een palet tijdens het wachten gaat mee met de grote update.
+    channel.setCss(big("a"));
+    channel.setPalette(":root{--ct-bg:#000}");
+    advance(LARGE_CSS_DEBOUNCE_MS);
+    expect(sentCss()).toEqual(["2", "9", "a"]);
+    expect(target.postMessage).toHaveBeenCalledWith(
+      { type: "palette", css: ":root{--ct-bg:#000}" },
+      "*",
+    );
+
+    // Klein: gewoon per frame, zonder wachten (ook als er nog een grote wachtte).
+    channel.setCss(big("b"));
+    channel.setCss("a{}");
+    runFrames();
+    channel.setCss("b{}");
+    runFrames();
+    expect(sentCss()).toEqual(["2", "9", "a", "}", "}"]);
+    expect(timers.size).toBe(0);
+  });
+
+  it("reports a stylesheet the bridge refused as too large", () => {
+    const onTooLarge = vi.fn();
+    const target = { postMessage: vi.fn() } as unknown as Window;
+    const channel = new PreviewChannel({ getTarget: () => target, onTooLarge });
+    const data = { type: "cssthema:too-large", kind: "css", max: 10 };
+    channel.handleMessage({ source: {}, data } as MessageEvent);
+    expect(onTooLarge).not.toHaveBeenCalled();
+    channel.handleMessage({ source: target, data } as MessageEvent);
+    expect(onTooLarge).toHaveBeenCalledWith("css", 10);
   });
 
   it("passes shortcuts from its own frame to the editor, not from other windows", () => {
@@ -324,6 +506,12 @@ describe("preview document (srcdoc + CSP)", () => {
     await expect(fetchBridge(html as unknown as typeof fetch)).rejects.toThrow(
       /onverwachte inhoud/,
     );
+    const error = await fetchBridge(html as unknown as typeof fetch).catch((e: unknown) => e);
+    expect(error).toBeInstanceOf(PreviewError);
+    expect(previewErrorText(error, (key, params) => `${key} ${JSON.stringify(params)}`)).toBe(
+      'editor.previewError_unexpected {"path":"/preview-bridge.js"}',
+    );
+    expect(previewErrorText(new Error("kapot"), (key) => key)).toBe("kapot");
     const missing = vi.fn(async () => new Response("", { status: 404 }));
     await expect(fetchBridge(missing as unknown as typeof fetch)).rejects.toThrow(/404/);
   });

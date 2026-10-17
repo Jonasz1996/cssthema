@@ -1,0 +1,164 @@
+/* ==========================================================================
+   alg-netbootxyz.css - netboot.xyz webapp (Bootstrap 4 + jQuery, Ace-editor,
+   eigen licht/donker-schakelaar via data-theme op html)
+   Host: netbootxyz.jbogaert.be
+   Laadt NA algemeen.css.
+
+   Werkt af:
+   - navigatie: netboot.xyz zet alle drie de menu-items op .active, waardoor
+     algemeen.css er één grijs blok van maakte; alleen hover licht nog op;
+   - donkere modus van de app (maan-knop): de variabelen --bg-*, --text-*,
+     --border-color en het blauwe --accent-color naar de --alg-tokens, zodat
+     beide standen hetzelfde thema geven; blauwe focusgloed, actieve
+     paginering en de gekleurde alerts in stijl;
+   - Ace-editor (Menus, lichte stand "ace-tm"): donker vlak, lichte goot en
+     syntaxkleuren die leesbaar zijn op donker.
+
+   Beperkingen: vastgelegd tijdens het laden ("Getting Dashboard"); het
+   dashboard, de menu-editor en Local Assets zijn uit de eigen CSS van
+   netboot.xyz afgeleid en NIET getest. CSP: alleen frame-ancestors.
+   ========================================================================== */
+
+/* ---------- Variabelen (donkere modus van de app) ------------------------- */
+:root,
+:root[data-theme] {
+  --bg-primary: transparent;
+  --bg-secondary: var(--alg-glas);
+  --bg-tertiary: var(--alg-rij-hover);
+  --text-primary: var(--alg-tekst);
+  --text-secondary: var(--alg-tekst);
+  --text-muted: var(--alg-gedempt);
+  --border-color: var(--alg-rand-sterk);
+  --accent-color: var(--alg-link-hover);
+}
+
+/* ---------- Navigatie ---------------------------------------------------- */
+.navbar-light .navbar-nav .nav-item.active > .nav-link:not(:hover, :focus-visible) {
+  background-color: transparent !important;
+}
+
+.navbar .nav-link {
+  border-radius: var(--alg-radius-klein);
+}
+
+.theme-toggle:hover {
+  background-color: var(--alg-knop-zacht-hover);
+}
+
+/* ---------- Donkere modus: velden, knoppen, paginering, alerts ----------- */
+:root[data-theme="dark"] .form-control {
+  background-color: var(--alg-veld) !important;
+}
+
+:root[data-theme="dark"] .form-control:focus {
+  border-color: var(--alg-accent-kleur) !important;
+  box-shadow: var(--alg-focus-ring) !important;
+}
+
+:root[data-theme="dark"] .btn-secondary {
+  background-color: var(--alg-knop) !important;
+  color: var(--alg-knop-tekst) !important;
+}
+
+:root[data-theme="dark"] .btn-secondary:hover {
+  background-color: var(--alg-knop-hover) !important;
+  box-shadow: var(--alg-gloed);
+}
+
+:root[data-theme="dark"] .page-item.active .page-link {
+  background-color: var(--alg-knop) !important;
+  border-color: var(--alg-knop) !important;
+  color: var(--alg-knop-tekst) !important;
+}
+
+:root[data-theme="dark"] .modal-content {
+  background-color: var(--alg-glas-sterk) !important;
+}
+
+:root[data-theme="dark"] .alert-info {
+  background-color: var(--alg-info-tint) !important;
+  border-color: var(--alg-info-rand) !important;
+  color: var(--alg-info) !important;
+}
+
+:root[data-theme="dark"] .alert-success {
+  background-color: var(--alg-ok-tint) !important;
+  border-color: var(--alg-ok-rand) !important;
+  color: var(--alg-ok) !important;
+}
+
+:root[data-theme="dark"] .alert-warning {
+  background-color: var(--alg-waarschuwing-tint) !important;
+  border-color: var(--alg-waarschuwing-rand) !important;
+  color: var(--alg-waarschuwing) !important;
+}
+
+:root[data-theme="dark"] .alert-danger {
+  background-color: var(--alg-fout-tint) !important;
+  border-color: var(--alg-fout-rand) !important;
+  color: var(--alg-fout) !important;
+}
+
+:root[data-theme="dark"] a:hover {
+  color: var(--alg-link-hover) !important;
+}
+
+/* ---------- Ace-editor, lichte stand (menu-editor, niet getest) ---------- */
+.ace-tm {
+  background-color: var(--alg-pre-vlak);
+  color: var(--alg-code);
+}
+
+.ace-tm .ace_gutter {
+  background: var(--alg-paneel);
+  color: var(--alg-gedempt);
+}
+
+.ace-tm .ace_gutter-active-line {
+  background-color: var(--alg-rij-hover);
+}
+
+.ace-tm .ace_print-margin {
+  background: var(--alg-rand);
+}
+
+.ace-tm .ace_cursor {
+  color: var(--alg-tekst-sterk);
+}
+
+.ace-tm .ace_marker-layer .ace_active-line {
+  background: var(--alg-rij);
+}
+
+.ace-tm .ace_marker-layer .ace_selection {
+  background: rgba(var(--alg-accent), .3);
+}
+
+.ace-tm .ace_marker-layer .ace_selected-word {
+  background: var(--alg-rij-hover);
+  border-color: var(--alg-rand-hover);
+}
+
+.ace-tm :is(.ace_keyword, .ace_storage, .ace_meta.ace_tag, .ace_entity.ace_name.ace_function, .ace_heading) {
+  color: var(--alg-info);
+}
+
+.ace-tm :is(.ace_string, .ace_constant.ace_library, .ace_support.ace_constant) {
+  color: var(--alg-ok);
+}
+
+.ace-tm :is(.ace_constant, .ace_constant.ace_numeric, .ace_constant.ace_language, .ace_constant.ace_buildin) {
+  color: var(--alg-waarschuwing);
+}
+
+.ace-tm :is(.ace_comment, .ace_keyword.ace_operator, .ace_xml-pe) {
+  color: var(--alg-gedempt);
+}
+
+.ace-tm :is(.ace_variable, .ace_support.ace_function, .ace_support.ace_type, .ace_support.ace_class) {
+  color: var(--alg-tekst-sterk);
+}
+
+.ace-tm :is(.ace_invalid, .ace_string.ace_regex) {
+  color: var(--alg-fout);
+}

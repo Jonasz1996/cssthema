@@ -66,6 +66,9 @@ function monacoLocalOnly(): Plugin {
     },
     generateBundle(_options, bundle) {
       for (const file of Object.values(bundle)) {
+        // Sourcemaps (`--sourcemap`) bevatten de oorspronkelijke bron van Monaco, mét de
+        // CDN-URL in commentaar/strings; ze laden niets, dus niet meetellen.
+        if (file.fileName.endsWith(".map")) continue;
         const text =
           file.type === "chunk"
             ? file.code
