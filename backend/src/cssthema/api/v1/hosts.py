@@ -15,6 +15,8 @@ from cssthema.domain.hosts import HOSTNAME_RE
 from cssthema.schemas.hosts import (
     HostBinding,
     HostBindingInput,
+    HostBulkRequest,
+    HostBulkResult,
     HostCheckStarted,
     HostHealthOverview,
     HostImportRequest,
@@ -91,6 +93,28 @@ async def forget_seen(hostname: str, ctx: Ctx) -> Response:
     if HOSTNAME_RE.fullmatch(hostname):
         await host_service.forget_unbound(ctx, [hostname])
     return Response(status_code=status.HTTP_204_NO_CONTENT)
+
+
+@router.delete(
+    "/seen",
+    status_code=status.HTTP_204_NO_CONTENT,
+    response_class=Response,
+    operation_id="hosts_forget_all_seen",
+    summary="Elke host zonder eigen koppeling uit 'laatst geladen' halen",
+)
+async def forget_all_seen(ctx: Ctx) -> Response:
+    await host_service.forget_unbound(ctx)
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
+
+
+@router.post(
+    "/bulk",
+    response_model=HostBulkResult,
+    operation_id="hosts_bulk",
+    summary="Veel koppelingen tegelijk: een naam toevoegen, weghalen of vervangen, of aan/uit",
+)
+async def bulk_hosts(data: HostBulkRequest, ctx: Ctx) -> HostBulkResult:
+    return await host_service.bulk_update(ctx, data)
 
 
 @router.post(

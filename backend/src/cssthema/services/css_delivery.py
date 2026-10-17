@@ -51,6 +51,10 @@ REFRESH_TIMEOUT_S = 1.0
 REFRESH_ATTEMPTS = 4
 REFRESH_RETRY_DELAY_S = 0.25
 REFRESH_CONCURRENCY = 4
+# Op de achtergrond (tientallen hosts, vaste versies) wacht niemand: blijf bij een 429 langer
+# proberen (± 30 s per pad), zodat geen enkel pad wegvalt.
+REFRESH_BACKGROUND_ATTEMPTS = 32
+REFRESH_RETRY_MAX_DELAY_S = 1.0
 
 # KEYS[1] = cache-sleutel, KEYS[2] = generatieteller; ARGV = generatie bij het lezen
 # ("" als er geen teller was), waarde, TTL.
@@ -254,10 +258,7 @@ class CssDelivery:
             return
         paths = [f"/host/{name}.css" for name in for_styles]
         paths += [f"/host/{name}.js" for name in for_scripts]
-        if paths:
-            task = asyncio.create_task(self._refresh_many(self._http, paths))
-            self._background.add(task)
-            task.add_done_callback(self._background.discard)
+        self._refresh_later(self._http, paths)
 
     async def refresh_hosts(self, hostnames: Iterable[str]) -> None:
         """Ververst `/host/<h>.css|.js` van deze hosts (na een gewijzigde koppeling)."""
@@ -267,6 +268,23 @@ class CssDelivery:
         paths = [path for name in dict.fromkeys(hostnames) for path in host_refresh_paths(name)]
         if paths:
             await self._refresh_many(http, paths)
+
+    def refresh_hosts_later(self, hostnames: Iterable[str]) -> None:
+        """Zoals `refresh_hosts`, maar op de achtergrond: voor een import of bulkactie met
+        tientallen hosts (de refresh-server laat 10 per seconde toe)."""
+        if not self._refresh_url or self._http is None:
+            return
+        paths = [path for name in dict.fromkeys(hostnames) for path in host_refresh_paths(name)]
+        self._refresh_later(self._http, paths)
+
+    def _refresh_later(self, http: httpx.AsyncClient, paths: list[str]) -> None:
+        if not paths:
+            return
+        task = asyncio.create_task(
+            self._refresh_many(http, paths, attempts=REFRESH_BACKGROUND_ATTEMPTS)
+        )
+        self._background.add(task)
+        task.add_done_callback(self._background.discard)
 
     async def host_binding(self, hostname: str) -> HostBindingView | None:
         """De koppeling voor een host (of `*`), voor de publieke `/host/`-routes."""
@@ -313,23 +331,24 @@ class CssDelivery:
         fixed_paths = [
             path for slug in slugs for path in fixed_refresh_paths(slug, fixed.get(slug, []))
         ]
-        if fixed_paths:
-            task = asyncio.create_task(self._refresh_many(http, fixed_paths))
-            self._background.add(task)
-            task.add_done_callback(self._background.discard)
+        self._refresh_later(http, fixed_paths)
 
-    async def _refresh_many(self, http: httpx.AsyncClient, paths: list[str]) -> None:
+    async def _refresh_many(
+        self, http: httpx.AsyncClient, paths: list[str], *, attempts: int = REFRESH_ATTEMPTS
+    ) -> None:
         pending = iter(paths)  # gedeeld door de workers (één event loop: geen race)
 
         async def worker() -> None:
             for path in pending:
-                await self._refresh(http, path)
+                await self._refresh(http, path, attempts=attempts)
 
         await asyncio.gather(*(worker() for _ in range(min(REFRESH_CONCURRENCY, len(paths)))))
 
-    async def _refresh(self, http: httpx.AsyncClient, path: str) -> None:
+    async def _refresh(
+        self, http: httpx.AsyncClient, path: str, *, attempts: int = REFRESH_ATTEMPTS
+    ) -> None:
         url = self._refresh_url + path
-        for attempt in range(1, REFRESH_ATTEMPTS + 1):
+        for attempt in range(1, attempts + 1):
             try:
                 response = await http.get(
                     url, timeout=REFRESH_TIMEOUT_S, headers={REFRESH_HEADER: "1"}
@@ -338,8 +357,8 @@ class CssDelivery:
             except httpx.HTTPError as exc:
                 log.warning("css_refresh_failed", url=url, error=repr(exc))
                 return
-            if response.status_code == 429 and attempt < REFRESH_ATTEMPTS:
-                await asyncio.sleep(REFRESH_RETRY_DELAY_S * attempt)
+            if response.status_code == 429 and attempt < attempts:
+                await asyncio.sleep(min(REFRESH_RETRY_DELAY_S * attempt, REFRESH_RETRY_MAX_DELAY_S))
                 continue
             if response.status_code not in (200, 301, 404):
                 log.warning("css_refresh_unexpected_status", url=url, status=response.status_code)

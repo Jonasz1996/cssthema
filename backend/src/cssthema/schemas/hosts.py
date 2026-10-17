@@ -4,7 +4,7 @@ import uuid
 from datetime import datetime
 from typing import Literal
 
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, Field, field_validator, model_validator
 
 from cssthema.domain import hosts as domain
 
@@ -175,3 +175,65 @@ class HostHealthOverview(BaseModel):
 
 class HostCheckStarted(BaseModel):
     started: bool = Field(description="False als er al een controle loopt.")
+
+
+HostBulkAction = Literal["add", "remove", "replace", "enable", "disable"]
+
+
+class HostBulkRequest(BaseModel):
+    """Eén wijziging voor veel hosts tegelijk, bv. een kleurvariant overal toevoegen."""
+
+    hostnames: list[str] | None = Field(
+        default=None,
+        max_length=5000,
+        examples=[["proxmox100.jbogaert.be", "*"]],
+        description="De koppelingen om aan te passen; null: alle (ook `*`).",
+    )
+    action: HostBulkAction = Field(
+        description="`add` (achteraan), `remove`, `replace` (`name` door `replacement`), "
+        "`enable` of `disable`."
+    )
+    kind: Literal["styles", "scripts"] = Field(
+        default="styles", description="Voor add/remove/replace: thema's of scripts."
+    )
+    name: str | None = Field(default=None, max_length=200, examples=["alg-var-nord"])
+    replacement: str | None = Field(default=None, max_length=200, examples=["alg-var-dracula"])
+
+    @field_validator("hostnames")
+    @classmethod
+    def _hostnames(cls, value: list[str] | None) -> list[str] | None:
+        if value is None:
+            return None
+        return list(dict.fromkeys(domain.normalize_hostname(name) for name in value))
+
+    @model_validator(mode="after")
+    def _names(self) -> "HostBulkRequest":
+        normalize = (
+            domain.normalize_style_name if self.kind == "styles" else domain.normalize_script_name
+        )
+        if self.action in ("enable", "disable"):
+            self.name = self.replacement = None
+            return self
+        if not self.name or not self.name.strip():
+            raise ValueError("Geef de naam van een thema of script.")
+        self.name = normalize(self.name)
+        if self.action == "replace":
+            if not self.replacement or not self.replacement.strip():
+                raise ValueError("Geef ook de nieuwe naam.")
+            self.replacement = normalize(self.replacement)
+        else:
+            self.replacement = None
+        return self
+
+
+class HostBulkSkipped(BaseModel):
+    hostname: str
+    reason: str
+
+
+class HostBulkResult(BaseModel):
+    changed: list[str] = Field(description="Aangepast; hun bundels zijn ververst.")
+    unchanged: list[str] = Field(description="Al zoals gevraagd (of de naam stond er niet in).")
+    skipped: list[HostBulkSkipped] = Field(
+        description="Niet aangepast: geen koppeling, uitgesloten host of te veel namen."
+    )

@@ -190,13 +190,73 @@ async def import_config(
             changes={"created": len(created), "updated": len(updated)},
         )
     await ctx.session.commit()
-    await ctx.delivery.refresh_hosts([*created, *updated])
+    # Op de achtergrond: 2 paden per host aan 10 per seconde laat het verzoek anders ± 10 s
+    # wachten. Ook nieuwe hosts: die hadden in nginx de gecachte redirect naar `*`.
+    ctx.delivery.refresh_hosts_later([*created, *updated])
     return schemas.HostImportResult(
         created=created,
         updated=updated,
         unchanged=unchanged,
         skipped=[schemas.HostImportSkipped(line=s.line, reason=s.reason) for s in skipped],
     )
+
+
+async def bulk_update(ctx: ServiceContext, data: schemas.HostBulkRequest) -> schemas.HostBulkResult:
+    """Eén wijziging voor veel koppelingen (stappenplan FEAT-3): een naam toevoegen, weghalen of
+    vervangen in de thema's of scripts, of aan/uit. Hosts die nooit iets krijgen, slaan we over.
+    Daarna één refresh van de gewijzigde bundels, op de achtergrond."""
+    bindings = {b.hostname: b for b in await host_repo.list_bindings(ctx.session)}
+    excluded = ctx.settings.never_inject_hosts
+    limit = domain.MAX_STYLES if data.kind == "styles" else domain.MAX_SCRIPTS
+    changed: list[str] = []
+    unchanged: list[str] = []
+    skipped: list[schemas.HostBulkSkipped] = []
+    for hostname in data.hostnames if data.hostnames is not None else list(bindings):
+        binding = bindings.get(hostname)
+        if binding is None or hostname in excluded:
+            reason = (
+                "Geen eigen koppeling."
+                if binding is None
+                else "Krijgt nooit iets (dashboard, CSS-domein of EXCLUDED_HOSTS)."
+            )
+            skipped.append(schemas.HostBulkSkipped(hostname=hostname, reason=reason))
+            continue
+        if data.action in ("enable", "disable"):
+            enabled = data.action == "enable"
+            if binding.enabled == enabled:
+                unchanged.append(hostname)
+            else:
+                binding.enabled = enabled
+                changed.append(hostname)
+            continue
+        current = [str(name) for name in getattr(binding, data.kind)]
+        names = domain.edit_names(current, data.action, data.name or "", data.replacement)
+        if names == current:
+            unchanged.append(hostname)
+        elif len(names) > limit:
+            skipped.append(
+                schemas.HostBulkSkipped(hostname=hostname, reason=f"Hoogstens {limit} namen.")
+            )
+        else:
+            setattr(binding, data.kind, names)
+            changed.append(hostname)
+    if changed:
+        audit.record(
+            ctx,
+            "host.bulk",
+            entity_type="host",
+            entity_id=None,
+            changes={
+                "action": data.action,
+                "kind": data.kind,
+                "name": data.name,
+                "replacement": data.replacement,
+                "hosts": len(changed),
+            },
+        )
+    await ctx.session.commit()
+    ctx.delivery.refresh_hosts_later(changed)
+    return schemas.HostBulkResult(changed=changed, unchanged=unchanged, skipped=skipped)
 
 
 async def options(ctx: ServiceContext) -> schemas.HostOptions:

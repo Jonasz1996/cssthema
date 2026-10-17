@@ -2604,6 +2604,81 @@
         }
       }
     },
+    "/api/v1/hosts/seen": {
+      "delete": {
+        "tags": [
+          "hosts"
+        ],
+        "summary": "Elke host zonder eigen koppeling uit 'laatst geladen' halen",
+        "operationId": "hosts_forget_all_seen",
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "500": {
+            "description": "Interne fout",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/hosts/bulk": {
+      "post": {
+        "tags": [
+          "hosts"
+        ],
+        "summary": "Veel koppelingen tegelijk: een naam toevoegen, weghalen of vervangen, of aan/uit",
+        "operationId": "hosts_bulk",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/HostBulkRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HostBulkResult"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Interne fout",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/hosts/import": {
       "post": {
         "tags": [
@@ -3904,6 +3979,143 @@
         ],
         "title": "HostBindingInput"
       },
+      "HostBulkRequest": {
+        "properties": {
+          "hostnames": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array",
+                "maxItems": 5000
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Hostnames",
+            "description": "De koppelingen om aan te passen; null: alle (ook `*`).",
+            "examples": [
+              [
+                "proxmox100.jbogaert.be",
+                "*"
+              ]
+            ]
+          },
+          "action": {
+            "type": "string",
+            "enum": [
+              "add",
+              "remove",
+              "replace",
+              "enable",
+              "disable"
+            ],
+            "title": "Action",
+            "description": "`add` (achteraan), `remove`, `replace` (`name` door `replacement`), `enable` of `disable`."
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "styles",
+              "scripts"
+            ],
+            "title": "Kind",
+            "description": "Voor add/remove/replace: thema's of scripts.",
+            "default": "styles"
+          },
+          "name": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 200
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Name",
+            "examples": [
+              "alg-var-nord"
+            ]
+          },
+          "replacement": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 200
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Replacement",
+            "examples": [
+              "alg-var-dracula"
+            ]
+          }
+        },
+        "type": "object",
+        "required": [
+          "action"
+        ],
+        "title": "HostBulkRequest",
+        "description": "Eén wijziging voor veel hosts tegelijk, bv. een kleurvariant overal toevoegen."
+      },
+      "HostBulkResult": {
+        "properties": {
+          "changed": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Changed",
+            "description": "Aangepast; hun bundels zijn ververst."
+          },
+          "unchanged": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Unchanged",
+            "description": "Al zoals gevraagd (of de naam stond er niet in)."
+          },
+          "skipped": {
+            "items": {
+              "$ref": "#/components/schemas/HostBulkSkipped"
+            },
+            "type": "array",
+            "title": "Skipped",
+            "description": "Niet aangepast: geen koppeling, uitgesloten host of te veel namen."
+          }
+        },
+        "type": "object",
+        "required": [
+          "changed",
+          "unchanged",
+          "skipped"
+        ],
+        "title": "HostBulkResult"
+      },
+      "HostBulkSkipped": {
+        "properties": {
+          "hostname": {
+            "type": "string",
+            "title": "Hostname"
+          },
+          "reason": {
+            "type": "string",
+            "title": "Reason"
+          }
+        },
+        "type": "object",
+        "required": [
+          "hostname",
+          "reason"
+        ],
+        "title": "HostBulkSkipped"
+      },
       "HostCheck": {
         "properties": {
           "level": {
@@ -3940,6 +4152,18 @@
             "type": "string",
             "format": "date-time",
             "title": "Checked At"
+          },
+          "content_encoding": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Content Encoding",
+            "description": "Content-Encoding van het antwoord (bv. `gzip`), of null als het niet gecomprimeerd was."
           }
         },
         "type": "object",
@@ -4028,6 +4252,21 @@
                 "type": "null"
               }
             ]
+          },
+          "stale": {
+            "type": "boolean",
+            "title": "Stale",
+            "description": "Eigen, ingeschakelde koppeling, maar nooit of al 14 dagen niet geladen (niveau minstens `warn`)."
+          },
+          "service": {
+            "type": "boolean",
+            "title": "Service",
+            "description": "Hostnaam van een geïmporteerde dienst: zonder eigen koppeling volgt hij `*` en wordt hij ook gecontroleerd."
+          },
+          "excluded": {
+            "type": "boolean",
+            "title": "Excluded",
+            "description": "Krijgt nooit iets (DASHBOARD_HOST, het CSS-domein of EXCLUDED_HOSTS)."
           }
         },
         "type": "object",
@@ -4191,12 +4430,25 @@
           "snippet": {
             "type": "string",
             "title": "Snippet",
-            "description": "De `sub_filter`-regel voor elke proxy host in NPM."
+            "description": "Het blok voor Advanced (server-niveau) van elke proxy host in NPM, tussen `# cssthema…` en `# /cssthema`."
           },
           "snippet_own_domain": {
             "type": "string",
             "title": "Snippet Own Domain",
-            "description": "Dezelfde regel via `/alg-thema/` op het eigen domein, voor apps met een strikte CSP (met een `location ^~ /alg-thema/` die naar cssthema doorstuurt)."
+            "description": "Variant via `/alg-thema/` op het eigen domein, alleen CSS, voor apps waarvan de CSP het CSS-domein weigert (met de `location ^~ /alg-thema/` erin)."
+          },
+          "snippet_own_domain_script": {
+            "type": "string",
+            "title": "Snippet Own Domain Script",
+            "description": "Dezelfde variant met het script erbij, voor apps die alleen scripts van een ander domein weigeren. Nooit voor een wachtwoordkluis: het script draait daar same-origin."
+          },
+          "excluded_hosts": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Excluded Hosts",
+            "description": "Hosts die nooit iets krijgen (DASHBOARD_HOST, de host van PUBLIC_BASE_URL en EXCLUDED_HOSTS): de regel hoort daar niet."
           }
         },
         "type": "object",

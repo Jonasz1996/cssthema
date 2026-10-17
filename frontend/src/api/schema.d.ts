@@ -510,6 +510,40 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/hosts/seen": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Elke host zonder eigen koppeling uit 'laatst geladen' halen */
+        delete: operations["hosts_forget_all_seen"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/hosts/bulk": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Veel koppelingen tegelijk: een naam toevoegen, weghalen of vervangen, of aan/uit */
+        post: operations["hosts_bulk"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/hosts/import": {
         parameters: {
             query?: never;
@@ -984,6 +1018,69 @@ export interface components {
             /** Note */
             note?: string | null;
         };
+        /**
+         * HostBulkRequest
+         * @description Eén wijziging voor veel hosts tegelijk, bv. een kleurvariant overal toevoegen.
+         */
+        HostBulkRequest: {
+            /**
+             * Hostnames
+             * @description De koppelingen om aan te passen; null: alle (ook `*`).
+             * @example [
+             *       "proxmox100.jbogaert.be",
+             *       "*"
+             *     ]
+             */
+            hostnames?: string[] | null;
+            /**
+             * Action
+             * @description `add` (achteraan), `remove`, `replace` (`name` door `replacement`), `enable` of `disable`.
+             * @enum {string}
+             */
+            action: "add" | "remove" | "replace" | "enable" | "disable";
+            /**
+             * Kind
+             * @description Voor add/remove/replace: thema's of scripts.
+             * @default styles
+             * @enum {string}
+             */
+            kind: "styles" | "scripts";
+            /**
+             * Name
+             * @example alg-var-nord
+             */
+            name?: string | null;
+            /**
+             * Replacement
+             * @example alg-var-dracula
+             */
+            replacement?: string | null;
+        };
+        /** HostBulkResult */
+        HostBulkResult: {
+            /**
+             * Changed
+             * @description Aangepast; hun bundels zijn ververst.
+             */
+            changed: string[];
+            /**
+             * Unchanged
+             * @description Al zoals gevraagd (of de naam stond er niet in).
+             */
+            unchanged: string[];
+            /**
+             * Skipped
+             * @description Niet aangepast: geen koppeling, uitgesloten host of te veel namen.
+             */
+            skipped: components["schemas"]["HostBulkSkipped"][];
+        };
+        /** HostBulkSkipped */
+        HostBulkSkipped: {
+            /** Hostname */
+            hostname: string;
+            /** Reason */
+            reason: string;
+        };
         /** HostCheck */
         HostCheck: {
             /**
@@ -1005,6 +1102,11 @@ export interface components {
              * Format: date-time
              */
             checked_at: string;
+            /**
+             * Content Encoding
+             * @description Content-Encoding van het antwoord (bv. `gzip`), of null als het niet gecomprimeerd was.
+             */
+            content_encoding?: string | null;
         };
         /** HostCheckStarted */
         HostCheckStarted: {
@@ -1041,6 +1143,21 @@ export interface components {
             /** Missing Scripts */
             missing_scripts: string[];
             check: components["schemas"]["HostCheck"] | null;
+            /**
+             * Stale
+             * @description Eigen, ingeschakelde koppeling, maar nooit of al 14 dagen niet geladen (niveau minstens `warn`).
+             */
+            stale?: boolean;
+            /**
+             * Service
+             * @description Hostnaam van een geïmporteerde dienst: zonder eigen koppeling volgt hij `*` en wordt hij ook gecontroleerd.
+             */
+            service?: boolean;
+            /**
+             * Excluded
+             * @description Krijgt nooit iets (DASHBOARD_HOST, het CSS-domein of EXCLUDED_HOSTS).
+             */
+            excluded?: boolean;
         };
         /** HostHealthOverview */
         HostHealthOverview: {
@@ -1102,14 +1219,24 @@ export interface components {
             scripts: string[];
             /**
              * Snippet
-             * @description De `sub_filter`-regel voor elke proxy host in NPM.
+             * @description Het blok voor Advanced (server-niveau) van elke proxy host in NPM, tussen `# cssthema…` en `# /cssthema`.
              */
             snippet: string;
             /**
              * Snippet Own Domain
-             * @description Dezelfde regel via `/alg-thema/` op het eigen domein, voor apps met een strikte CSP (met een `location ^~ /alg-thema/` die naar cssthema doorstuurt).
+             * @description Variant via `/alg-thema/` op het eigen domein, alleen CSS, voor apps waarvan de CSP het CSS-domein weigert (met de `location ^~ /alg-thema/` erin).
              */
             snippet_own_domain: string;
+            /**
+             * Snippet Own Domain Script
+             * @description Dezelfde variant met het script erbij, voor apps die alleen scripts van een ander domein weigeren. Nooit voor een wachtwoordkluis: het script draait daar same-origin.
+             */
+            snippet_own_domain_script?: string;
+            /**
+             * Excluded Hosts
+             * @description Hosts die nooit iets krijgen (DASHBOARD_HOST, de host van PUBLIC_BASE_URL en EXCLUDED_HOSTS): de regel hoort daar niet.
+             */
+            excluded_hosts?: string[];
         };
         /** ImportedTheme */
         ImportedTheme: {
@@ -3707,6 +3834,75 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+            /** @description Interne fout */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    hosts_forget_all_seen: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Interne fout */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    hosts_bulk: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["HostBulkRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HostBulkResult"];
+                };
             };
             /** @description Validation Error */
             422: {

@@ -70,3 +70,7 @@ export interface Locked<T> {
   etag: string;
   lockVersion: number;
 }
+
+export type HostBulkRequest = Schemas["HostBulkRequest"];
+export type HostBulkAction = HostBulkRequest["action"];
+export type HostBulkResult = Schemas["HostBulkResult"];
