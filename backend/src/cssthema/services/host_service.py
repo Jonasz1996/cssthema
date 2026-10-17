@@ -390,6 +390,7 @@ async def health(ctx: ServiceContext) -> schemas.HostHealthOverview:
     redis = ctx.delivery.redis
     bindings = await host_repo.list_bindings(ctx.session)
     services = set(await host_repo.service_hostnames(ctx.session))
+    await host_health.migrate_legacy_seen(redis, {b.hostname for b in bindings})
     seen_at = await host_health.seen(redis)
     checks, meta = await host_health.check_results(redis)
     directory = ctx.settings.css_files_dir
@@ -504,5 +505,6 @@ async def forget_unbound(ctx: ServiceContext, hostnames: list[str] | None = None
     redis = ctx.delivery.redis
     if hostnames is None:
         bound = {b.hostname for b in await host_repo.list_bindings(ctx.session)}
+        await host_health.migrate_legacy_seen(redis, bound)
         hostnames = sorted((await host_health.seen(redis)).keys() - bound)
     await host_health.forget_seen(redis, hostnames)

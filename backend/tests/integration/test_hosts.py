@@ -363,6 +363,33 @@ async def test_bound_host_that_never_loaded_is_a_warning(api: Api) -> None:
     assert (entry(overview, off)["stale"], entry(overview, off)["level"]) == (False, "unknown")
 
 
+async def test_old_seen_hash_is_migrated_once(api: Api) -> None:
+    # Vóór de sorted sets stond 'laatst geladen' in één hash: na de update mag een eigen
+    # koppeling die vorige week nog laadde niet ineens 'nooit (recent) geladen' zijn.
+    redis = api.app.state.redis
+    week, now = int(time.time()) - 7 * 86400, int(time.time())
+    old, newer = (await create(api))["hostname"], (await create(api))["hostname"]
+    unbound = hostname()
+    await redis.hset(
+        host_health.LEGACY_SEEN_KEY,
+        mapping={old: str(week), newer: str(week), unbound: str(week), "kapot": "x"},
+    )
+    await redis.zadd(host_health.SEEN_KEY, {newer: now})  # al geladen na de update
+
+    overview = await health(api)
+    assert (entry(overview, old)["stale"], entry(overview, old)["level"]) == (False, "unknown")
+    assert await redis.exists(host_health.LEGACY_SEEN_KEY) == 0
+    assert int(await redis.zscore(host_health.SEEN_KEY, old)) == week
+    assert int(await redis.zscore(host_health.SEEN_KEY, newer)) == now  # nieuwere tijd blijft
+    # Alleen namen zonder eigen koppeling in de begrensde lijst.
+    assert await redis.zscore(host_health.SEEN_UNKNOWN_KEY, unbound) is not None
+    assert await redis.zscore(host_health.SEEN_UNKNOWN_KEY, old) is None
+    assert entry(overview, unbound)["bound"] is False
+
+    await health(api)  # tweede keer: niets meer te doen
+    assert int(await redis.zscore(host_health.SEEN_KEY, old)) == week
+
+
 async def test_seen_cannot_be_filled_by_anyone(api: Api, monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr(host_health, "MAX_SEEN", 3)
     redis = api.app.state.redis

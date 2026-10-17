@@ -16,7 +16,7 @@ import asyncio
 import inspect
 import json
 import time
-from collections.abc import Awaitable, Callable, Iterable
+from collections.abc import Awaitable, Callable, Collection, Iterable
 from dataclasses import asdict
 from datetime import UTC, datetime
 from typing import Any
@@ -38,6 +38,8 @@ log = get_logger(__name__)
 # Sorted sets hostnaam → unix-tijd: alle geladen hosts, en apart die zonder eigen koppeling.
 SEEN_KEY = "hosts:last-seen"
 SEEN_UNKNOWN_KEY = "hosts:last-seen:unknown"
+# Tot en met ronde 3: één hash hostnaam → unix-tijd (zie migrate_legacy_seen).
+LEGACY_SEEN_KEY = "hosts:seen"
 MAX_SEEN = 2000
 SEEN_UNKNOWN_MAX_AGE_S = 30 * 24 * 3600
 CHECK_KEY = "hosts:check"
@@ -107,6 +109,38 @@ async def _prune_unknown(redis: Redis, now: float, count: int) -> None:
         pipe.zrem(SEEN_UNKNOWN_KEY, *victims)
         pipe.zrem(SEEN_KEY, *victims)
         await pipe.execute()
+
+
+async def migrate_legacy_seen(redis: Redis, bound: Collection[str]) -> None:
+    """Eenmalig: zet de oude hash `hosts:seen` over naar de sorted sets en wist hem.
+
+    Anders krijgt na de update elke eigen koppeling 'nooit (recent) geladen' tot een browser
+    de app weer opent. NX: een nieuwere tijd van record_seen blijft staan. Namen zonder eigen
+    koppeling gaan ook in de begrensde lijst (die ruimt record_seen op).
+    """
+    try:
+        async with asyncio.timeout(REDIS_TIMEOUT_S * 4):
+            raw = await _r(redis.hgetall(LEGACY_SEEN_KEY))
+            if not raw:
+                return
+            scores: dict[str, float] = {}
+            for key, value in raw.items():
+                try:
+                    name = key.decode() if isinstance(key, bytes) else str(key)
+                    scores[name] = float(value)
+                except (ValueError, UnicodeDecodeError):
+                    continue
+            unknown = {name: at for name, at in scores.items() if name not in bound}
+            pipe = redis.pipeline(transaction=True)
+            if scores:
+                pipe.zadd(SEEN_KEY, scores, nx=True)
+            if unknown:
+                pipe.zadd(SEEN_UNKNOWN_KEY, unknown, nx=True)
+            pipe.delete(LEGACY_SEEN_KEY)
+            await pipe.execute()
+        log.info("host_seen_migrated", hosts=len(scores))
+    except Exception as exc:
+        log.warning("host_seen_migrate_failed", error=repr(exc))
 
 
 async def seen(redis: Redis) -> dict[str, datetime]:

@@ -110,3 +110,6 @@ async def cleanup_test_themes(engine: AsyncEngine) -> None:
 
 # Ook de begrensde lijst van namen zonder eigen koppeling (host_health.record_seen).
 HOST_HEALTH_KEYS = (*HOST_HEALTH_KEYS, host_health.SEEN_UNKNOWN_KEY)
+
+# En de oude hash van vóór de sorted sets (host_health.migrate_legacy_seen).
+HOST_HEALTH_KEYS = (*HOST_HEALTH_KEYS, host_health.LEGACY_SEEN_KEY)
