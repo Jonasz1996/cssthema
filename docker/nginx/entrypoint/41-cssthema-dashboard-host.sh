@@ -10,15 +10,31 @@
 set -eu
 out=${CSSTHEMA_DASHBOARD_HOST_CONF:-/etc/nginx/conf.d/01-dashboard-host.conf}
 hosts=$(printf %s "${DASHBOARD_HOST:-localhost}" | tr ',' ' ' | tr '[:upper:]' '[:lower:]')
-entries=""
-for host in $hosts; do
-    case "$host" in
+
+# Zoals HOSTNAME_RE in de backend (die weigert de api anders te starten): labels van a-z, 0-9
+# en '-', niet met '-' aan het begin of einde, hoogstens 63 tekens, samen hoogstens 253.
+geldige_hostnaam() {
+    [ ${#1} -le 253 ] || return 1
+    case "$1" in
         # De laatste vier zijn sleutelwoorden van map.
-        *[!a-z0-9.-]* | .* | *. | -* | *..* | default | hostnames | include | volatile)
-            echo "41-cssthema-dashboard-host.sh: ongeldige hostnaam in DASHBOARD_HOST: $host (alleen de naam, zonder schema of poort)" >&2
-            exit 1
-            ;;
+        *[!a-z0-9.-]* | .* | *. | *..* | default | hostnames | include | volatile) return 1 ;;
     esac
+    rest=$1
+    while [ -n "$rest" ]; do
+        label=${rest%%.*}
+        case "$label" in -* | *-) return 1 ;; esac
+        [ ${#label} -le 63 ] || return 1
+        case "$rest" in *.*) rest=${rest#*.} ;; *) rest="" ;; esac
+    done
+}
+
+entries=""
+set -f # een `*` in DASHBOARD_HOST is geen bestandspatroon
+for host in $hosts; do
+    if ! geldige_hostnaam "$host"; then
+        echo "41-cssthema-dashboard-host.sh: ongeldige hostnaam in DASHBOARD_HOST: $host (alleen de naam, zonder schema of poort)" >&2
+        exit 1
+    fi
     case " $entries " in
         *" $host "*) ;; # dubbel: nginx weigert een map met twee keer dezelfde sleutel
         *) entries="$entries $host" ;;

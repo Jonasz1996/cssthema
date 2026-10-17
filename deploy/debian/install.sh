@@ -36,6 +36,18 @@ UV_VERSION="uv==0.8.17"  # dezelfde versie die backend/uv.lock schreef
 
 step() { printf '\n\033[1m==> %s\033[0m\n' "$*"; }
 die() { printf 'cssthema-install: %s\n' "$*" >&2; exit 1; }
+# Zoals HOSTNAME_RE in de backend: een naam die de api weigert, legt anders na de back-up en de
+# build de api plat (migraties en uvicorn lezen dezelfde instellingen).
+HOSTNAAM_RE='^[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?(\.[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?)*$'
+hostnamen_controleren() {
+    local naam=$1 host hosts
+    read -ra hosts <<<"$(printf %s "$2" | tr ',' ' ' | tr '[:upper:]' '[:lower:]')"
+    for host in "${hosts[@]}"; do
+        if [ ${#host} -gt 253 ] || ! [[ $host =~ $HOSTNAAM_RE ]]; then
+            die "ongeldige hostnaam in $naam: $host (alleen de naam, zonder schema of poort, bv. cssthema.jbogaert.be); database, code en nginx zijn nog niet aangepast"
+        fi
+    done
+}
 trap 'printf "cssthema-install: mislukt (regel %s), zie de melding hierboven\n" "$LINENO" >&2' ERR
 # Stopt het script nadat het api en worker stopte (UTF8-omzetting), dan draaien ze weer:
 # anders blijven alle thema's en /host-bundels weg tot iemand het merkt.
@@ -59,9 +71,8 @@ Authentik). Alleen daar serveert nginx het dashboard en de api; op elke andere h
 publieke CSS en scripts. Er is nog niets aangepast. Draai het script opnieuw met die hostnaam, bv.:
   DASHBOARD_HOST=cssthema.jbogaert.be bash $APP_DIR/deploy/debian/install.sh"
 fi
-case $ARG_DASHBOARD_HOST,$ARG_EXCLUDED_HOSTS in
-    *[!A-Za-z0-9.,-]*) die "DASHBOARD_HOST en EXCLUDED_HOSTS: alleen hostnamen, zonder schema of poort (bv. cssthema.jbogaert.be)" ;;
-esac
+hostnamen_controleren DASHBOARD_HOST "$ARG_DASHBOARD_HOST"
+hostnamen_controleren EXCLUDED_HOSTS "$ARG_EXCLUDED_HOSTS"
 export DEBIAN_FRONTEND=noninteractive
 
 step "Pakketten installeren (nginx, PostgreSQL, Redis, Python)"
@@ -149,9 +160,8 @@ set +a
 # naar een nog ontbrekende map verwijst.
 [ -n "${DASHBOARD_HOST:-}" ] ||
     die "DASHBOARD_HOST is leeg in $ENV_FILE; zet daar de hostnaam van het dashboard (bv. DASHBOARD_HOST=cssthema.jbogaert.be) en draai het script opnieuw"
-case ${EXCLUDED_HOSTS:-} in
-    *[!A-Za-z0-9.,\ -]*) die "EXCLUDED_HOSTS in $ENV_FILE: alleen hostnamen, zonder schema of poort (bv. authentik.jbogaert.be)" ;;
-esac
+hostnamen_controleren DASHBOARD_HOST "$DASHBOARD_HOST"
+hostnamen_controleren EXCLUDED_HOSTS "${EXCLUDED_HOSTS:-}"
 controle=$(mktemp -d)
 if ! { TRUSTED_PROXIES=$TRUSTED_PROXIES CSSTHEMA_REAL_IP_CONF=$controle/real-ip.conf \
     sh "$APP_DIR/docker/nginx/entrypoint/40-cssthema-real-ip.sh" &&

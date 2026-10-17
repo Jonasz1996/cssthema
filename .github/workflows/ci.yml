@@ -301,6 +301,13 @@ jobs:
             grep -qF "nog niet aangepast" /root/ongeldig.log
             test "$(ls /var/backups/cssthema 2>/dev/null | wc -l)" = "$backups"
             test "$(md5sum < /etc/nginx/sites-available/cssthema)" = "$site"
+            # Een naam die alleen de backend weigert (label met een punt ervoor), ook vooraf.
+            cp /root/cssthema.env.goed /etc/cssthema/cssthema.env
+            sed -i "/^EXCLUDED_HOSTS=/d" /etc/cssthema/cssthema.env
+            echo "EXCLUDED_HOSTS=.authentik.example.be" >> /etc/cssthema/cssthema.env
+            if bash /opt/cssthema/deploy/debian/install.sh > /root/ongeldig.log 2>&1; then exit 1; fi
+            grep -qF "ongeldige hostnaam in EXCLUDED_HOSTS" /root/ongeldig.log
+            test "$(ls /var/backups/cssthema 2>/dev/null | wc -l)" = "$backups"
             cp /root/cssthema.env.goed /etc/cssthema/cssthema.env
           '
       - name: install.sh, nog een keer (bijwerken)
