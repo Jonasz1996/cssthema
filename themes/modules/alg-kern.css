@@ -8,24 +8,31 @@
    muis volgt (dat tekent algemeen.js; CSS alleen kan dat niet).
 
    GEBRUIK
-   Link dit bestand via sub_filter op de sluitende head-tag in Nginx Proxy
-   Manager (Advanced, per proxy host), met proxy_set_header Accept-Encoding "".
-   Zet in dezelfde sub_filter na de link een script-tag met defer naar
-   algemeen.js (zelfde map). Het bestand komt zo als laatste stylesheet in de
-   head en wint van de app. Zonder het script werkt het thema ook, alleen
-   zonder netwerk; laat het script weg bij wachtwoordkluizen (Vaultwarden).
+   Via cssthema: elke proxy host in Nginx Proxy Manager krijgt dezelfde
+   sub_filter-regel naar /host/$host.css en .js (Advanced; de regel staat op
+   de pagina Hosts en in themes/README.md). Per host kies je daar dit thema
+   of de lichtere modules eruit. De stylesheet komt zo als laatste in de head
+   en wint van de app. Zonder het script werkt het thema ook, alleen zonder
+   netwerk; geef wachtwoordkluizen (Vaultwarden) geen script.
 
    CSP: weigert een app stylesheets of scripts van een ander domein (header
    Content-Security-Policy met style-src/script-src 'self', bv. qBittorrent,
    Vaultwarden, Pi-hole; Portainer weigert alleen het script), laat dezelfde
    proxy host de themabestanden dan zelf doorgeven op het eigen domein:
      location ^~ /alg-thema/ {
-       proxy_pass https://css.jbogaert.be/;
-       proxy_set_header Host css.jbogaert.be;
-       proxy_ssl_server_name on;
+         limit_except GET HEAD { deny all; }
+         proxy_set_header Cookie "";
+         proxy_set_header Authorization "";
+         proxy_connect_timeout 2s;
+         proxy_read_timeout 5s;
+         proxy_ssl_server_name on;
+         proxy_pass https://css.jbogaert.be/;
      }
-   en laat de sub_filter naar /alg-thema/algemeen.css (en .js) wijzen. Wat
-   van hetzelfde domein komt valt onder 'self': de CSP hoeft niet open.
+   en laat de sub_filter naar /alg-thema/host/$host.css wijzen. Standaard
+   zonder script, zodat een kluis geen JavaScript van cssthema op haar eigen
+   domein krijgt; /alg-thema/host/$host.js alleen bij apps die enkel scripts
+   van een ander domein weigeren (Portainer, qBittorrent, Pi-hole). Wat van
+   hetzelfde domein komt valt onder 'self': de CSP hoeft niet open.
    Uitzondering: een script-src met nonce en 'strict-dynamic' (Nextcloud)
    negeert 'self'; daar laadt zo alleen de stylesheet (thema zonder netwerk).
 
