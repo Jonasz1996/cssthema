@@ -117,8 +117,10 @@
 /* AdminLTE zet koppen vast in Source Sans Pro en het logo in Helvetica:
    ook monospace. Alleen onder de AdminLTE-bodyklassen. Iconen in koppen
    zijn eigen elementen (.fa ...) met hun eigen lettertype en blijven heel;
-   .sidebar-toggle (zelf een icoon) krijgt niets. */
-:is(.sidebar-mini, .layout-boxed, .layout-top-nav, .layout-fixed, .hold-transition, .login-page, .register-page, .lockscreen, body[class*="skin-"]) :is(h1, h2, h3, h4, h5, h6, .h1, .h2, .h3, .h4, .h5, .h6):not([class*="fa-"], [class*="icon"], [class*="glyphicon"]),
+   .sidebar-toggle (zelf een icoon) krijgt niets. De skins van AdminLTE 2
+   staan bij naam, niet als [class*="skin-"]: die attribuutselector liet elke
+   klassewissel op body alle koppen van de pagina herberekenen. */
+:is(.sidebar-mini, .layout-boxed, .layout-top-nav, .layout-fixed, .hold-transition, .login-page, .register-page, .lockscreen, body:is(.skin-blue, .skin-blue-light, .skin-black, .skin-black-light, .skin-purple, .skin-purple-light, .skin-green, .skin-green-light, .skin-red, .skin-red-light, .skin-yellow, .skin-yellow-light)) :is(h1, h2, h3, h4, h5, h6, .h1, .h2, .h3, .h4, .h5, .h6):not([class*="fa-"], [class*="icon"], [class*="glyphicon"]),
 .main-header .logo {
   font-family: var(--alg-font);
 }
@@ -257,15 +259,18 @@
 
 /* het getal en de titel in de statuskleur, de rest gewone tekst; in de h3
    erft alles de kleur, alleen a en small hebben in 10 een eigen kleur (geen
-   h3 *: dat liet elke klassewijziging de hele pagina herberekenen) */
-.small-box[class*="bg-"] > .inner > h3,
-.small-box[class*="bg-"] > .inner > h3 :is(a, small),
+   h3 *: dat liet elke klassewijziging de hele pagina herberekenen). Bij h3,
+   a, small en p geen [class*="bg-"] op de small-box: een attribuutselector
+   op een voorouder laat elke klassewissel op body alle h3, a, small en p van
+   de pagina herberekenen. Een AdminLTE-small-box heeft altijd een bg-klasse. */
+.small-box > .inner > h3,
+.small-box > .inner > h3 :is(a, small),
 .box.box-solid:is(.box-success, .box-danger, .box-warning, .box-info) > .box-header :is(.box-title, a, .btn-box-tool),
 .callout:is(.callout-success, .callout-danger, .callout-warning, .callout-info) > :is(h4, h5) {
   color: var(--alg-status, var(--alg-tekst-sterk)) !important;
 }
 
-.small-box[class*="bg-"] > .inner > p,
+.small-box > .inner > p,
 .callout:is(.callout-success, .callout-danger, .callout-warning, .callout-info) > p {
   color: var(--alg-tekst) !important;
 }
@@ -326,11 +331,11 @@
 /* .text-green, .text-blue ... van AdminLTE zijn gemaakt voor wit (navy en
    black zijn onzichtbaar op donker, blue en purple halen geen 4.5:1). Alleen
    onder de AdminLTE-bodyklassen: dezelfde namen kunnen elders iets anders zijn. */
-:is(.sidebar-mini, .layout-boxed, .layout-top-nav, .layout-fixed, .hold-transition, body[class*="skin-"]) :is(.text-green, .text-olive, .text-lime) { color: var(--alg-ok) !important; }
-:is(.sidebar-mini, .layout-boxed, .layout-top-nav, .layout-fixed, .hold-transition, body[class*="skin-"]) :is(.text-red, .text-maroon) { color: var(--alg-fout) !important; }
-:is(.sidebar-mini, .layout-boxed, .layout-top-nav, .layout-fixed, .hold-transition, body[class*="skin-"]) :is(.text-yellow, .text-orange) { color: var(--alg-waarschuwing) !important; }
-:is(.sidebar-mini, .layout-boxed, .layout-top-nav, .layout-fixed, .hold-transition, body[class*="skin-"]) :is(.text-aqua, .text-blue, .text-light-blue, .text-teal, .text-navy, .text-purple, .text-fuchsia, .text-vivid-blue) { color: var(--alg-info) !important; }
-:is(.sidebar-mini, .layout-boxed, .layout-top-nav, .layout-fixed, .hold-transition, body[class*="skin-"]) :is(.text-black, .text-gray) { color: var(--alg-tekst) !important; }
+:is(.sidebar-mini, .layout-boxed, .layout-top-nav, .layout-fixed, .hold-transition, body:is(.skin-blue, .skin-blue-light, .skin-black, .skin-black-light, .skin-purple, .skin-purple-light, .skin-green, .skin-green-light, .skin-red, .skin-red-light, .skin-yellow, .skin-yellow-light)) :is(.text-green, .text-olive, .text-lime) { color: var(--alg-ok) !important; }
+:is(.sidebar-mini, .layout-boxed, .layout-top-nav, .layout-fixed, .hold-transition, body:is(.skin-blue, .skin-blue-light, .skin-black, .skin-black-light, .skin-purple, .skin-purple-light, .skin-green, .skin-green-light, .skin-red, .skin-red-light, .skin-yellow, .skin-yellow-light)) :is(.text-red, .text-maroon) { color: var(--alg-fout) !important; }
+:is(.sidebar-mini, .layout-boxed, .layout-top-nav, .layout-fixed, .hold-transition, body:is(.skin-blue, .skin-blue-light, .skin-black, .skin-black-light, .skin-purple, .skin-purple-light, .skin-green, .skin-green-light, .skin-red, .skin-red-light, .skin-yellow, .skin-yellow-light)) :is(.text-yellow, .text-orange) { color: var(--alg-waarschuwing) !important; }
+:is(.sidebar-mini, .layout-boxed, .layout-top-nav, .layout-fixed, .hold-transition, body:is(.skin-blue, .skin-blue-light, .skin-black, .skin-black-light, .skin-purple, .skin-purple-light, .skin-green, .skin-green-light, .skin-red, .skin-red-light, .skin-yellow, .skin-yellow-light)) :is(.text-aqua, .text-blue, .text-light-blue, .text-teal, .text-navy, .text-purple, .text-fuchsia, .text-vivid-blue) { color: var(--alg-info) !important; }
+:is(.sidebar-mini, .layout-boxed, .layout-top-nav, .layout-fixed, .hold-transition, body:is(.skin-blue, .skin-blue-light, .skin-black, .skin-black-light, .skin-purple, .skin-purple-light, .skin-green, .skin-green-light, .skin-red, .skin-red-light, .skin-yellow, .skin-yellow-light)) :is(.text-black, .text-gray) { color: var(--alg-tekst) !important; }
 
 /* ---------- Gebruikersmenu in de kopbalk (AdminLTE 2) ------------------- */
 /* kop in de skinkleur, midden lichtgrijs, voet wit: alles op het glas van
