@@ -122,6 +122,22 @@ async def test_reimport_replaces_the_snapshot_of_that_page(api: Api) -> None:
     assert len(service["snapshots"]) == 1
 
 
+async def test_capture_time_without_zone_is_belgian_time(api: Api) -> None:
+    summer, winter, with_zone = host(), host(), host()
+    for name, moment in (
+        (summer, "2026-10-06 13:38:07"),
+        (winter, "2026-12-01 13:38:07"),
+        (with_zone, "2026-10-06T13:38:07+00:00"),
+    ):
+        info = {"dienst": name, "status": "ok", "vastgelegd": moment}
+        await upload(api, capture_zip(name, info=info))
+    assert (await service_of(api, summer))["snapshots"][0]["captured_at"] == "2026-10-06T11:38:07Z"
+    assert (await service_of(api, winter))["snapshots"][0]["captured_at"] == "2026-12-01T12:38:07Z"
+    assert (await service_of(api, with_zone))["snapshots"][0][
+        "captured_at"
+    ] == "2026-10-06T13:38:07Z"
+
+
 async def test_unsafe_paths_are_ignored_and_bad_zips_refused(api: Api) -> None:
     name = host()
     evil = {"../../etc/passwd/info.json": b"{}", "/abs/info.json": b"{}"}

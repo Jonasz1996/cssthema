@@ -18,9 +18,10 @@ import re
 import zipfile
 import zlib
 from dataclasses import dataclass, field
-from datetime import UTC, datetime
+from datetime import UTC, datetime, tzinfo
 from pathlib import PurePosixPath
 from typing import Any
+from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 from sqlalchemy import delete, select
 
@@ -45,6 +46,9 @@ _CSS_LINK_RE = re.compile(r"""href=["'](?:\.\./)*_css/([0-9a-f]{16}\.css)["']"""
 _CLASS_ATTR_RE = re.compile(r"""\sclass=["']([^"']*)["']""")
 _ID_ATTR_RE = re.compile(r"""\sid=["']([^"']+)["']""")
 _SLUG_CLEAN_RE = re.compile(r"[^a-z0-9-]+")
+
+# vastleggen.py schrijft de lokale tijd zonder zone; Jonas legt vast in België.
+CAPTURE_TIMEZONE = "Europe/Brussels"
 
 
 @dataclass(slots=True)
@@ -159,13 +163,28 @@ def _hostname(info: dict[str, Any], page: _Page) -> str | None:
     return None
 
 
+def _capture_zone() -> tzinfo:
+    try:
+        return ZoneInfo(CAPTURE_TIMEZONE)
+    except ZoneInfoNotFoundError:  # geen tzdata op het systeem: dan maar UTC, zoals vroeger
+        return UTC
+
+
 def _captured_at(info: dict[str, Any]) -> str | None:
+    """Tijd van de opname als ISO 8601 in UTC (sorteerbaar als tekst).
+
+    Mét zone (`2026-10-06T13:38:07+02:00`) wordt overgenomen; zonder zone (zoals
+    vastleggen.py tot nu toe schrijft: `2026-10-06 13:38:07`) is het Belgische tijd.
+    """
     value = info.get("vastgelegd")
     if not isinstance(value, str):
         return None
     try:
-        return datetime.strptime(value, "%Y-%m-%d %H:%M:%S").replace(tzinfo=UTC).isoformat()
-    except ValueError:
+        moment = datetime.fromisoformat(value.strip())
+        if moment.tzinfo is None:
+            moment = moment.replace(tzinfo=_capture_zone())
+        return moment.astimezone(UTC).isoformat()
+    except (ValueError, OverflowError):  # onzin, of een jaar 1 dat in UTC jaar 0 wordt
         return None
 
 
