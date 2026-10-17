@@ -281,7 +281,7 @@ HostHealth:       { hostname, bound, enabled, level: ok|warn|error|unknown, last
 
 | Methode | Pad | Rol | Beschrijving | Responses |
 |---|---|---|---|---|
-| POST | `/captures` | E | multipart `file`: een zip (of een deel) van `vastleggen.py`, ≤ 25 MB. Elke app wordt een dienst met zijn snapshots, CSS en screenshots in storage | 200 `{ services_created, services_updated: [slug], snapshots, without_snapshot, skipped: [{path, reason}] }`, 413 (nginx), 422 `validation_error` (geen geldige capture-zip, of groter dan 25 MB) |
+| POST | `/captures` | E | multipart `file`: een zip (of een deel) van `vastleggen.py`, ≤ 25 MB. Elke app wordt een dienst met zijn snapshots, CSS en screenshots in storage | 200 `{ services_created: [hostname], services_updated: [hostname], snapshots, without_snapshot, skipped: [{path, reason}] }`, 413 (nginx), 422 `validation_error` (geen geldige capture-zip, of groter dan 25 MB) |
 | GET | `/services` | V | Diensten met hun snapshots, nieuwste eerst | 200 `[ServiceSummary]` |
 | DELETE | `/services/{id}` | E | Dienst verwijderen (met zijn snapshots uit de lijst) | 204, 404 |
 | GET | `/snapshots/{id}/document` | V | HTML en stylesheets van een snapshot voor de preview in de editor (JSON) | 200 `{ id, service_id, hostname, title?, url, html, stylesheets: [string] }`, 404 |
@@ -343,7 +343,7 @@ SnapshotSummary: { id, page, page_kind, title?, url, status?, has_document, fram
 | GET/HEAD | `/{slug}.css` | Gepubliceerde versie | `Content-Type: text/css; charset=utf-8`, `ETag`, `Last-Modified`, `Cache-Control: public, max-age=60, stale-while-revalidate=600, stale-if-error=86400`, `Access-Control-Allow-Origin: *`, `X-Cssthema-Version` |
 | GET/HEAD | `/themes/{slug}.css` | Idem | idem |
 | GET/HEAD | `/themes/{slug}@{n}.css` | Vaste versie | `Cache-Control: public, max-age=31536000, immutable` |
-| GET/HEAD | `/host/{hostname}.css` | Alle thema's van de koppeling van die host, samengevoegd (§ 4.6b). Zonder eigen koppeling: `302` naar `*.css` (relatief, dus ook via `/alg-thema/host/`). Lege bundel als de koppeling uit staat, en altijd voor `DASHBOARD_HOST`, de host van `PUBLIC_BASE_URL` en `EXCLUDED_HOSTS` | `text/css`, `ETag`, `Cache-Control` zoals `/{slug}.css`; de redirect `public, max-age=60` |
+| GET/HEAD | `/host/{hostname}.css` | Alle thema's van de koppeling van die host, samengevoegd (§ 4.6b). Zonder eigen koppeling: `302` naar `*.css` (relatief, dus ook via `/alg-thema/host/`). Lege bundel als de koppeling uit staat, en altijd voor `DASHBOARD_HOST`, de host van `PUBLIC_BASE_URL` en `EXCLUDED_HOSTS` | `text/css`, `ETag`, `Cache-Control` zoals `/{slug}.css`, ook op de redirect |
 | GET/HEAD | `/host/{hostname}.js` | Idem voor de scripts | `text/javascript` |
 | GET | `/themes/{slug}.user.css` | Stylus UserCSS (met `@updateURL`, `@-moz-document domain(...)` op basis van service-URL) | `text/css` |
 | GET | `/themes/{slug}.user.js` | Userscript (`@match` op service-URL, injecteert in document + shadow roots, haalt CSS met `?v=`) | `application/javascript` |

@@ -9,7 +9,7 @@ Vertrekpunt: `css.jbogaert.be` wijst nog naar de oude CSS-server, de LXC (192.16
 | Dashboard (`DASHBOARD_HOST`) | `cssthema.jbogaert.be`, in NPM achter Authentik |
 | Publiek CSS-domein (`PUBLIC_BASE_URL`) | `https://css.jbogaert.be`, in NPM zonder login |
 | cssthema (LXC) | `192.168.10.154`, poort 80 |
-| Krijgen nooit de regel | `cssthema.jbogaert.be`, `css.jbogaert.be`, `authentik.jbogaert.be` en `nginx.jbogaert.be` (die laatste twee in `EXCLUDED_HOSTS`), en `allow.jbogaert.be` en `aiverslag.jbogaert.be` (eigen netwerkachtergrond; krijgen ze de regel toch, zet hun koppeling op *Hosts* uit) |
+| Krijgen nooit de regel | `cssthema.jbogaert.be`, `css.jbogaert.be`, `authentik.jbogaert.be` en de beheerpagina's van NPM `nginx.jbogaert.be` en `nginx105.jbogaert.be` (die laatste drie in `EXCLUDED_HOSTS`), en `allow.jbogaert.be` en `aiverslag.jbogaert.be` (eigen netwerkachtergrond; krijgen ze de regel toch, zet hun koppeling op *Hosts* uit) |
 
 `<ip-van-npm>` is het LAN-IP waarmee Nginx Proxy Manager bij de LXC aankomt.
 
@@ -58,7 +58,7 @@ git -C /opt/cssthema rev-parse HEAD > /var/lib/cssthema/geinstalleerde-commit   
 git -C /opt/cssthema fetch
 git -C /opt/cssthema switch main
 DASHBOARD_HOST=cssthema.jbogaert.be PUBLIC_BASE_URL=https://css.jbogaert.be \
-  TRUSTED_PROXIES=<ip-van-npm> EXCLUDED_HOSTS=authentik.jbogaert.be,nginx.jbogaert.be \
+  TRUSTED_PROXIES=<ip-van-npm> EXCLUDED_HOSTS=authentik.jbogaert.be,nginx.jbogaert.be,nginx105.jbogaert.be \
   bash /opt/cssthema/deploy/debian/install.sh
 ```
 

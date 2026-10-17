@@ -35,7 +35,7 @@ EXCLUDED_HOSTS=authentik.jouwdomein.be,npm.jouwdomein.be \
 | `DASHBOARD_HOST` | **Verplicht.** De hostnaam waarop je het dashboard opent (in NPM, achter Authentik); meerdere mag, met spaties of komma's. Alleen daar serveert nginx het dashboard en de api. Elke andere hostnaam (het CSS-domein, het IP van de container) krijgt alleen de publieke bestanden. Zonder deze waarde stopt het script voor het iets verandert. |
 | `PUBLIC_BASE_URL` | Je publieke CSS-domein, met `https` en een domeinnaam (geen IP): het begin van de NPM-regel in elke proxy host (§ 4). Het script waarschuwt bij `http` of een IP. |
 | `TRUSTED_PROXIES` | Het adres waarmee NPM bij deze container aankomt (het LAN-IP van de NPM-host). Alleen daarvan neemt nginx het echte client-IP uit `X-Forwarded-For` over, en alleen daarvandaan (en vanaf de container zelf) is de api bereikbaar, lezen én schrijven: zie § 4, *Wie mag de api gebruiken*. |
-| `EXCLUDED_HOSTS` | Optioneel: hostnamen die nooit thema's of scripts krijgen, naast het dashboard en het CSS-domein. Zet hier Authentik en de beheerpagina van NPM (§ 4, *Nooit de regel*). |
+| `EXCLUDED_HOSTS` | Optioneel: hostnamen die nooit thema's of scripts krijgen, naast het dashboard en het CSS-domein. Zet hier Authentik en elke beheerpagina van NPM (§ 4, *Nooit de regel*). |
 
 Het script ([`deploy/debian/install.sh`](../../deploy/debian/install.sh)):
 
@@ -104,7 +104,7 @@ Voor beide hosts:
 | Details | Scheme / Forward IP / Port | `http` / IP van deze container / `80` |
 | | Cache Assets | **uit** (cssthema regelt zijn eigen cache) |
 | | Block Common Exploits | aan |
-| | Access List | *Publicly Accessible* (het dashboard beschermt Authentik) |
+| | Access List | *Publicly Accessible* (Authentik beschermt het dashboard) |
 | SSL | | zoals je andere hosts (Let's Encrypt, Force SSL) |
 | Custom locations | | **leeg** |
 
@@ -273,7 +273,7 @@ location ^~ /alg-thema/ {
 |---|---|
 | het dashboard (`DASHBOARD_HOST`) | een thema of script zou het dashboard zelf kunnen breken of overnemen |
 | het CSS-domein (host van `PUBLIC_BASE_URL`) | serveert alleen de bestanden |
-| Authentik en de beheerpagina van NPM (bij jbogaert.be: `authentik.jbogaert.be` en `nginx.jbogaert.be`) | de login van al je apps en het beheer van alle hosts: zet ze in `EXCLUDED_HOSTS` (§ 2) |
+| Authentik en elke beheerpagina van NPM (bij jbogaert.be: `authentik.jbogaert.be`, `nginx.jbogaert.be` en `nginx105.jbogaert.be`) | de login van al je apps en het beheer van alle hosts: zet ze in `EXCLUDED_HOSTS` (§ 2) |
 | apps met hun eigen achtergrond (bij jbogaert.be: `allow.jbogaert.be` en `aiverslag.jbogaert.be`) | hun netwerkcanvas botst met dat van `algemeen.js`; krijgen ze de regel toch, zet hun koppeling op **Hosts** dan uit |
 
 cssthema zelf injecteert daar ook niets: voor `DASHBOARD_HOST`, de host van `PUBLIC_BASE_URL` en `EXCLUDED_HOSTS` geven `/host/<host>.css` en `.js` een lege bundel, ook als de regel er per ongeluk staat.
@@ -290,7 +290,7 @@ Daarna verander je een thema of de bestanden van een host alleen nog in het dash
 
 Een host zonder eigen koppeling krijgt een redirect naar `/host/*.css` (en `.js`): al die hosts delen zo één gecachte bundel, en een wijziging aan `*` is meteen overal zichtbaar.
 
-**Cache.** Browsers krijgen `/host/…` en de thema-CSS met `Cache-Control: public, no-cache, stale-if-error=86400`: bij elke paginalaad vragen ze met de ETag of er iets veranderd is (meestal een `304` zonder inhoud). nginx van cssthema houdt de bundels zelf 60 s vast, ververst ze na elke wijziging in het dashboard, en levert bij uitval van de api nog tot een dag de laatste versie. Een wijziging zie je dus bij de volgende paginalaad, zonder Ctrl+F5.
+**Cache.** Browsers krijgen `/host/…` en de thema-CSS met `Cache-Control: public, no-cache, stale-if-error=86400`: bij elke paginalaad vragen ze met de ETag of er iets veranderd is (meestal een `304` zonder inhoud). nginx van cssthema houdt de bundels zelf 60 s vast, ververst ze na elke wijziging in het dashboard, en levert bij uitval van de api nog tot een dag de laatste versie. Een wijziging zie je dus bij de volgende paginalaad, zonder Ctrl+F5. Eén uitzondering: krijgt een host die `*` volgde een eigen koppeling, dan bewaren browsers de redirect naar `*.css` nog tot een minuut (`max-age=60`) en volgen ze hem daarna nog één paginalaad terwijl ze nakijken; daarna laden ze de nieuwe bundel.
 
 **Gezondheid.** De pagina Hosts toont per host:
 
@@ -355,7 +355,7 @@ cssthema-backup lijst                                  # zoek de back-up die ein
 cssthema-backup terugzetten 20261011-120000-voor-update
 ```
 
-Dat zet database, CSS-bestanden en storage terug (na nog een back-up van de huidige toestand). Hoort de back-up bij een andere databasemigratie dan de code die er nu staat, dan start het de api niet en toont het het commando om de bijbehorende code terug te zetten: `git -C /opt/cssthema checkout --detach <commit> && bash /opt/cssthema/deploy/debian/install.sh`. Is de commit `onbekend`, dan start het ook niet: zoek de versie met `git -C /opt/cssthema reflog`. Later weer naar de laatste versie: `git -C /opt/cssthema switch main && git -C /opt/cssthema pull && bash /opt/cssthema/deploy/debian/install.sh`.
+Dat zet database, CSS-bestanden en storage terug (na nog een back-up van de huidige toestand). Hoort de back-up bij een andere databasemigratie dan de code die er nu staat, dan start het de api niet en toont het het commando om de bijbehorende code terug te zetten: `git -C /opt/cssthema checkout --detach <commit> && bash /opt/cssthema/deploy/debian/install.sh`. Die commit komt dan ook in `/var/lib/cssthema/geinstalleerde-commit`, zodat de volgende back-up weet bij welke code de database hoort (ook als de oudere versie dat bestand zelf niet schrijft). Is de commit `onbekend`, dan start het ook niet: zoek de versie met `git -C /opt/cssthema reflog`. Later weer naar de laatste versie: `git -C /opt/cssthema switch main && git -C /opt/cssthema pull && bash /opt/cssthema/deploy/debian/install.sh`.
 
 ## 6. Waar staat wat
 

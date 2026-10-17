@@ -60,7 +60,7 @@ more_set_input_headers "Accept-Encoding: $ct_ae";
 - Waarom `more_set_input_headers` en niet `proxy_set_header Accept-Encoding ""`: de regel staat op serverniveau, en de `location /` van NPM zet zijn eigen `proxy_set_header`-regels (`include conf.d/include/proxy.conf`). Dan erft die location geen enkele `proxy_set_header` van de server meer, en stuurt de app gzip. `more_set_input_headers` (headers-more, zit in de OpenResty van NPM) wordt wel geërfd.
 - De regel heeft geen `location /`. NPM laat zijn eigen `location /` alleen weg als *Advanced* er een bevat; zo blijven de Access List, de websockets en *Block Common Exploits* van die host gewoon werken.
 - `# cssthema…` en `# /cssthema` markeren het blok, zodat een script het idempotent kan vinden en vervangen.
-- Nooit in het dashboard (`DASHBOARD_HOST`), het CSS-domein, Authentik of de beheerpagina van NPM; cssthema geeft daar ook zelf een lege bundel (`DASHBOARD_HOST`, host van `PUBLIC_BASE_URL`, `EXCLUDED_HOSTS`). Zie docs/ops/installatie-debian.md § 4, *Nooit de regel*.
+- Nooit in het dashboard (`DASHBOARD_HOST`), het CSS-domein, Authentik of een beheerpagina van NPM; cssthema geeft daar ook zelf een lege bundel (`DASHBOARD_HOST`, host van `PUBLIC_BASE_URL`, `EXCLUDED_HOSTS`). Zie docs/ops/installatie-debian.md § 4, *Nooit de regel*.
 
 **Getest op NPM 2.16 (2026-10-17):** injectie werkt bij een app die zijn HTML gzipt; scriptverzoeken van de app komen nog met `Accept-Encoding: gzip` aan; de host blijft *Online*. Spike S1 (2026-10-05) testte de eerdere vorm met een eigen `location /` en `proxy_set_header Accept-Encoding ""`: die werkt alleen zolang de `location /` in *Advanced* staat, en dan vallen de Access List en de andere instellingen van de `location /` van NPM weg.
 
@@ -257,7 +257,7 @@ Kanttekeningen (te valideren in v0.7):
 
 | Methode | Wanneer zien gebruikers een nieuwe versie? |
 |---|---|
-| A / B (`/host/…`, `/alg-thema/…` of een directe URL) | Bij de volgende paginalaad: browsers krijgen `Cache-Control: public, no-cache` en vragen met de ETag na (meestal `304`, dus goedkoop); nginx van cssthema ververst zijn cache na elke publicatie of gewijzigde koppeling (anders hooguit 60 s oud) |
+| A / B (`/host/…`, `/alg-thema/…` of een directe URL) | Bij de volgende paginalaad: browsers krijgen `Cache-Control: public, no-cache` en vragen met de ETag na (meestal `304`, dus goedkoop); nginx van cssthema ververst zijn cache na elke publicatie of gewijzigde koppeling (anders hooguit 60 s oud). Uitzondering: krijgt een host die `*` volgde een eigen koppeling, dan houden browsers de `302` naar `*.css` nog tot een minuut vast, en gebruiken ze hem daarna nog één keer terwijl ze nakijken |
 | C (Stylus) | Bij de volgende update-check van Stylus (standaard elke 24 u, handmatig direct) |
 | D (userscript) | Bij volgende paginalaad (CSS wordt altijd opgehaald); het script zelf alleen bij `@version`-wijziging |
 | HA-thema-YAML | Na opnieuw downloaden + `frontend.reload_themes` (later automatiseerbaar via de HA-API) |

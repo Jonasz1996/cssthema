@@ -137,7 +137,7 @@ Compilatie-stappen:
 | `</style` of `<` in de bron | Voorkomt uitbreken bij inline injectie. |
 | Grootte > limiet | DoS en per ongeluk geplakte data-URI's. |
 
-Allowlist standaard: de eigen host (`cssthema.domain.be`), `fonts.googleapis.com`, `fonts.gstatic.com`; configureerbaar door Admin.
+Allowlist standaard: de host van `PUBLIC_BASE_URL` (`css.domain.be`), `fonts.googleapis.com`, `fonts.gstatic.com`; configureerbaar door Admin.
 
 ### 3.3 Publieke CSS-levering
 
@@ -168,7 +168,7 @@ sequenceDiagram
 - nginx geeft `/{slug}.css`, `/themes/{slug}.css` en `/themes/{slug}@{n}.css` ongewijzigd door aan de api.
 - Bij elke wijziging van publieke CSS (publiceren, rollback, soft delete, herstel, hard delete, slug-wijziging) verwijdert de API `css:{slug}` uit Redis en vraagt hij best effort `http://nginx:8081/{slug}.css` en `/themes/{slug}.css` op. Die interne refresh-server (`proxy_cache_bypass`) overschrijft de cache-entry, ook met een 404. Open-source nginx kent geen purge; zie [spike S3](spikes/s3-css-cache.md). Met 60 s TTL is de vertraging ook zonder refresh begrensd.
 - `@{n}`-URL's zijn onveranderlijk en worden 1 jaar gecachet.
-- `/host/{hostname}.css` en `.js` (de bundel per proxy host) lopen door dezelfde microcache. Een host zonder eigen koppeling krijgt een `302` naar `/host/*.css` (`Cache-Control: public, max-age=60`), zodat al die hosts één cache-entry delen.
+- `/host/{hostname}.css` en `.js` (de bundel per proxy host) lopen door dezelfde microcache. Een host zonder eigen koppeling krijgt een `302` naar `/host/*.css` (`Cache-Control: public, max-age=60, stale-while-revalidate=600, stale-if-error=86400`, die nginx ongewijzigd doorgeeft), zodat al die hosts één cache-entry delen.
 - Browsers krijgen voor de laatste versie van een thema en voor `/host/` niet de `max-age` van de api maar `Cache-Control: public, no-cache, stale-if-error=86400` (nginx: `proxy_hide_header` + `add_header`, `snippets/browser-cache.conf`): ze vragen bij elke paginalaad met de ETag na (meestal `304`), zodat een publicatie meteen zichtbaar is; `stale-if-error` is voor caches die het kennen. De microcache van nginx gebruikt nog de `max-age=60` van de api (de map `$ct_browser_cache_control` herkent die aan `stale-while-revalidate`; `@{n}`, 404 en redirects houden hun eigen header).
 - Response headers: `Content-Type: text/css; charset=utf-8`, `ETag: "sha256-ab12…"`, `Last-Modified`, `Cache-Control`, `Access-Control-Allow-Origin: *`, `X-Content-Type-Options: nosniff`, `X-Cssthema-Version: 7`.
 
