@@ -24,6 +24,9 @@ Bulma-apps; daar is de herkenning altijd waar. In die modules wordt `:has(X)` da
 de cascade gelijk blijft aan algemeen.css. Bewakers die pagina's of toestanden van één app
 onderscheiden (`base[href="/setup/"]` van UniFi, `:has(#loginform)`, Grafana licht) blijven.
 
+Buiten de alg-app-modules mag geen :has() over het hele document overblijven; dan stopt het
+script met een melding.
+
 `--check` controleert dat de modules bij algemeen.css horen en dat elke naam in
 themes/hosts-modules.conf bestaat (CI).
 """
@@ -224,13 +227,17 @@ def cheap_guards(name: str, css: str) -> str:
 
 
 def expensive_guards(name: str, css: str) -> list[str]:
-    """Wat na cheap_guards nog aan :has()-herkenning in een alg-app-module of alg-fw-bulma
-    staat (hoort leeg te zijn; paginabewakers zoals UniFi's base[href] tellen niet)."""
-    if not (name.startswith("alg-app-") or name == "alg-fw-bulma"):
-        return []
+    """Wat na cheap_guards nog aan :has() over het hele document in een module staat (hoort
+    leeg te zijn). In een alg-app-module telt alleen de head-herkenning (bewakers op body of
+    UniFi's base[href] onderscheiden pagina's van die ene app); alg-kern en de alg-fw-modules
+    (de stapel van * en de frameworks) mogen geen html-, :root- of body:has() hebben. Zo valt
+    het ook op als Bulma door een andere blokkop weer in alg-fw-overig belandt."""
     code = _SKIP.sub("", css)
-    pattern = r"body:has\(" if name == "alg-fw-bulma" else r":has\(\s*>\s*head\s*>(?!\s*base\b)"
-    return [code[m.start() : m.start() + 60] for m in re.finditer(pattern, code)]
+    if name.startswith("alg-app-"):
+        found = re.finditer(r":has\(\s*>\s*head\s*>(?!\s*base\b)", code)
+    else:
+        found = _GUARD.finditer(code)
+    return [code[m.start() : m.start() + 60] for m in found]
 
 
 def banner(name: str) -> str:
