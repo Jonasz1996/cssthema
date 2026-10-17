@@ -1,7 +1,7 @@
 import { Suspense, useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router";
 import { saveBlob } from "@/api/client";
-import { useDraft, useLint, useSaveDraft } from "@/api/queries/editor";
+import { useDraft, useLint, useSaveDraft, useThemeUsage } from "@/api/queries/editor";
 import { usePalette } from "@/api/queries/palettes";
 import { useExportTheme, useTheme } from "@/api/queries/themes";
 import type { LintIssue } from "@/api/types";
@@ -40,6 +40,10 @@ import { PreviewPane } from "./preview/PreviewPane";
 import { usePreviewSource } from "./preview/use-preview-source";
 import { EXPLORER_WIDTH, PREVIEW_SIZE, useEditorStore } from "./store";
 
+/** Het monolithische basisthema en de kernmodule die er (via modules.py) uit gemaakt is. */
+const GENERAL_THEME = "algemeen";
+const MODULE_CORE = "alg-kern";
+
 const selectConflict = (snapshot: SessionSnapshot): SaveState | null =>
   snapshot.state.kind === "conflict" ? snapshot.state : null;
 
@@ -77,6 +81,10 @@ export function EditorPage() {
   const lintCss = useDebouncedSessionCss(session, LINT_DEBOUNCE_MS);
   const lint = useLint(themeId, session ? lintCss : undefined);
   const exportTheme = useExportTheme();
+  // De modules (alg-kern, alg-fw-*, alg-app-*) zijn losse kopieën van stukken van algemeen: een
+  // wijziging hier bereikt de hosts op een modulestapel niet (review THM-3).
+  const moduleHosts = useThemeUsage(theme?.slug === GENERAL_THEME ? MODULE_CORE : null).data
+    ?.hostnames.length;
   // Dezelfde bron als de preview (gedeelde keuze en cache): autocomplete op de classes, id's en
   // variabelen van die snapshot, ook als de preview verborgen is.
   const previewSource = usePreviewSource(theme);
@@ -404,6 +412,11 @@ export function EditorPage() {
           {t("editor.shadowedText", { slug: theme.slug })}
         </Callout>
       )}
+      {theme.slug === GENERAL_THEME && moduleHosts ? (
+        <Callout tone="mid" className="mb-2" title={t("editor.algemeenModulesTitle")}>
+          {i18n.tc("editor.algemeenModulesText", moduleHosts)}
+        </Callout>
+      ) : null}
 
       <EditorTabs tabs={tabs} activeId={themeId} onClose={handleCloseTab} />
 

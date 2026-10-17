@@ -708,6 +708,46 @@ describe("EditorPage", () => {
     expect(usage.at(-1)!.url.searchParams.get("theme")).toBe("grafana-nord");
   });
 
+  it("warns in algemeen that the module stacks do not follow it", async () => {
+    const general = { ...theme, name: "Algemeen", slug: "algemeen" };
+    setup((mock) =>
+      mock
+        .on("GET", "/api/v1/themes/:id", json(general, { headers: etag(3) }))
+        .on("GET", "/api/v1/preview/usage", ({ url }) =>
+          json({
+            theme: url.searchParams.get("theme"),
+            hostnames: url.searchParams.get("theme") === "alg-kern" ? ["a.lan", "b.lan"] : [],
+            default: url.searchParams.get("theme") === "algemeen",
+            bound: ["a.lan", "b.lan"],
+          }),
+        ),
+    );
+    expect(
+      await screen.findByText("Modulestapels volgen dit thema niet", undefined, { timeout: 3000 }),
+    ).toBeInTheDocument();
+    expect(screen.getByText(/^2 hosts hebben een modulestapel/)).toBeInTheDocument();
+  });
+
+  it("does not show the module notice on other themes", async () => {
+    const { server } = setup((mock) =>
+      mock.on(
+        "GET",
+        "/api/v1/preview/usage",
+        json({ theme: "x", hostnames: ["a.lan"], default: false, bound: ["a.lan"] }),
+      ),
+    );
+    await editorTextarea();
+    await waitFor(() =>
+      expect(server.callsTo("GET", "/api/v1/preview/usage").length).toBeGreaterThan(0),
+    );
+    expect(
+      server
+        .callsTo("GET", "/api/v1/preview/usage")
+        .map((call) => call.url.searchParams.get("theme")),
+    ).not.toContain("alg-kern");
+    expect(screen.queryByText("Modulestapels volgen dit thema niet")).toBeNull();
+  });
+
   it("lints only after a pause, also for the first keystrokes", async () => {
     const { server } = setup();
     const textarea = await editorTextarea();

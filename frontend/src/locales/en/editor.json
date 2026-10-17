@@ -261,5 +261,8 @@
   "publishHostsCount_other": "{count} hosts",
   "publishHostsDefault": "every host without its own binding (*)",
   "publishHostsNone": "no host yet (not bound, see Hosts)",
-  "publishHostsShow": "Show the hosts"
+  "publishHostsShow": "Show the hosts",
+  "algemeenModulesTitle": "Module stacks do not follow this theme",
+  "algemeenModulesText_one": "{count} host has a module stack (alg-kern, alg-fw-*, alg-app-*) and gets nothing of what you change in algemeen here: those modules are separate themes, made with scripts/themes/modules.py from themes/algemeen.css. Only hosts with algemeen in their binding (usually *) follow.",
+  "algemeenModulesText_other": "{count} hosts have a module stack (alg-kern, alg-fw-*, alg-app-*) and get nothing of what you change in algemeen here: those modules are separate themes, made with scripts/themes/modules.py from themes/algemeen.css. Only hosts with algemeen in their binding (usually *) follow."
 }

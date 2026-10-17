@@ -261,5 +261,8 @@
   "publishHostsCount_other": "{count} hosts",
   "publishHostsDefault": "elke host zonder eigen koppeling (*)",
   "publishHostsNone": "nog geen host (niet gekoppeld, zie Hosts)",
-  "publishHostsShow": "Toon de hosts"
+  "publishHostsShow": "Toon de hosts",
+  "algemeenModulesTitle": "Modulestapels volgen dit thema niet",
+  "algemeenModulesText_one": "{count} host heeft een modulestapel (alg-kern, alg-fw-*, alg-app-*) en krijgt niets van wat je hier aan algemeen wijzigt: die modules zijn losse thema's, gemaakt met scripts/themes/modules.py uit themes/algemeen.css. Alleen hosts met algemeen in hun koppeling (meestal *) volgen.",
+  "algemeenModulesText_other": "{count} hosts hebben een modulestapel (alg-kern, alg-fw-*, alg-app-*) en krijgen niets van wat je hier aan algemeen wijzigt: die modules zijn losse thema's, gemaakt met scripts/themes/modules.py uit themes/algemeen.css. Alleen hosts met algemeen in hun koppeling (meestal *) volgen."
 }
