@@ -772,7 +772,7 @@ export interface components {
             file: string;
             /**
              * On Conflict
-             * @description Slug bestaat al: `rename` (`-2`, `-3`, …), `new_version` (nieuwe draft en versie op het bestaande thema) of `fail` (409).
+             * @description Slug bestaat al: `rename` (`-2`, `-3`, …), `new_version` (nieuwe draft en versie op het bestaande thema; niets als de CSS gelijk is aan de laatste versie) of `fail` (409).
              * @default rename
              * @enum {string}
              */
@@ -1849,6 +1849,74 @@ export interface components {
             /** Tags */
             tags?: string[] | null;
         };
+        /** UploadedTheme */
+        UploadedTheme: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Slug */
+            slug: string;
+            /** Name */
+            name: string;
+            /** Description */
+            description: string | null;
+            /** Service Id */
+            service_id: string | null;
+            /** Palette Id */
+            palette_id: string | null;
+            status: components["schemas"]["ThemeStatus"];
+            /** Tags */
+            tags: string[];
+            published_version: components["schemas"]["VersionSummary"] | null;
+            /** Latest Version Number */
+            latest_version_number: number;
+            /**
+             * Lock Version
+             * @description Voor `If-Match: "lv-<n>"` bij de volgende wijziging.
+             */
+            lock_version: number;
+            /**
+             * Draft Dirty
+             * @description De draft (of het gekoppelde palet) verschilt van de live versie; zonder live versie: de draft is niet leeg.
+             */
+            draft_dirty: boolean;
+            /** Draft Size Bytes */
+            draft_size_bytes: number;
+            /** Draft Updated At */
+            draft_updated_at: string | null;
+            draft_updated_by: components["schemas"]["UserRef"] | null;
+            /**
+             * Public Url
+             * @example https://cssthema.domain.be/proxmox.css
+             */
+            public_url: string;
+            /**
+             * Shadowed By File
+             * @description Er staat een handgemaakt bestand `<slug>.css` in de css-files-map; nginx serveert dat in plaats van dit thema.
+             */
+            shadowed_by_file: boolean;
+            /** Deleted At */
+            deleted_at: string | null;
+            created_by: components["schemas"]["UserRef"] | null;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /**
+             * Updated At
+             * Format: date-time
+             */
+            updated_at: string;
+            /**
+             * Outcome
+             * @description `created`: nieuw thema (201). `new_version`: nieuwe draft en versie op het bestaande thema (200). `unchanged`: gelijk aan de laatste versie, er is niets veranderd (200).
+             * @enum {string}
+             */
+            outcome: "created" | "new_version" | "unchanged";
+        };
         /** UserRef */
         UserRef: {
             /**
@@ -2228,13 +2296,13 @@ export interface operations {
             };
         };
         responses: {
-            /** @description Nieuwe versie op een bestaand thema */
+            /** @description Nieuwe versie op een bestaand thema, of ongewijzigd (`outcome`) */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["Theme"];
+                    "application/json": components["schemas"]["UploadedTheme"];
                 };
             };
             /** @description Successful Response */
@@ -2243,7 +2311,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["Theme"];
+                    "application/json": components["schemas"]["UploadedTheme"];
                 };
             };
             /** @description Conflict (slug of status) */

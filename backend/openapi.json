@@ -415,7 +415,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Theme"
+                  "$ref": "#/components/schemas/UploadedTheme"
                 }
               }
             }
@@ -431,11 +431,11 @@
             }
           },
           "200": {
-            "description": "Nieuwe versie op een bestaand thema",
+            "description": "Nieuwe versie op een bestaand thema, of ongewijzigd (`outcome`)",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Theme"
+                  "$ref": "#/components/schemas/UploadedTheme"
                 }
               }
             }
@@ -3448,7 +3448,7 @@
               "fail"
             ],
             "title": "On Conflict",
-            "description": "Slug bestaat al: `rename` (`-2`, `-3`, …), `new_version` (nieuwe draft en versie op het bestaande thema) of `fail` (409).",
+            "description": "Slug bestaat al: `rename` (`-2`, `-3`, …), `new_version` (nieuwe draft en versie op het bestaande thema; niets als de CSS gelijk is aan de laatste versie) of `fail` (409).",
             "default": "rename"
           },
           "publish": {
@@ -6036,6 +6036,198 @@
         "type": "object",
         "title": "ThemeUpdate",
         "description": "Alleen de meegestuurde velden veranderen; `null` maakt een optioneel veld leeg."
+      },
+      "UploadedTheme": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "slug": {
+            "type": "string",
+            "title": "Slug"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
+          },
+          "service_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Service Id"
+          },
+          "palette_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Palette Id"
+          },
+          "status": {
+            "$ref": "#/components/schemas/ThemeStatus"
+          },
+          "tags": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Tags"
+          },
+          "published_version": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/VersionSummary"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "latest_version_number": {
+            "type": "integer",
+            "title": "Latest Version Number"
+          },
+          "lock_version": {
+            "type": "integer",
+            "title": "Lock Version",
+            "description": "Voor `If-Match: \"lv-<n>\"` bij de volgende wijziging."
+          },
+          "draft_dirty": {
+            "type": "boolean",
+            "title": "Draft Dirty",
+            "description": "De draft (of het gekoppelde palet) verschilt van de live versie; zonder live versie: de draft is niet leeg."
+          },
+          "draft_size_bytes": {
+            "type": "integer",
+            "title": "Draft Size Bytes"
+          },
+          "draft_updated_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Draft Updated At"
+          },
+          "draft_updated_by": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/UserRef"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "public_url": {
+            "type": "string",
+            "title": "Public Url",
+            "examples": [
+              "https://cssthema.domain.be/proxmox.css"
+            ]
+          },
+          "shadowed_by_file": {
+            "type": "boolean",
+            "title": "Shadowed By File",
+            "description": "Er staat een handgemaakt bestand `<slug>.css` in de css-files-map; nginx serveert dat in plaats van dit thema."
+          },
+          "deleted_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Deleted At"
+          },
+          "created_by": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/UserRef"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Updated At"
+          },
+          "outcome": {
+            "type": "string",
+            "enum": [
+              "created",
+              "new_version",
+              "unchanged"
+            ],
+            "title": "Outcome",
+            "description": "`created`: nieuw thema (201). `new_version`: nieuwe draft en versie op het bestaande thema (200). `unchanged`: gelijk aan de laatste versie, er is niets veranderd (200)."
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "slug",
+          "name",
+          "description",
+          "service_id",
+          "palette_id",
+          "status",
+          "tags",
+          "published_version",
+          "latest_version_number",
+          "lock_version",
+          "draft_dirty",
+          "draft_size_bytes",
+          "draft_updated_at",
+          "draft_updated_by",
+          "public_url",
+          "shadowed_by_file",
+          "deleted_at",
+          "created_by",
+          "created_at",
+          "updated_at",
+          "outcome"
+        ],
+        "title": "UploadedTheme"
       },
       "UserRef": {
         "properties": {

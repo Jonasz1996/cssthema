@@ -41,6 +41,7 @@ from cssthema.schemas.themes import (
     ThemeCreate,
     ThemePage,
     ThemeUpdate,
+    UploadedTheme,
     Version,
     VersionDiff,
     VersionPage,
@@ -143,11 +144,14 @@ async def create_theme(data: ThemeCreate, ctx: Ctx, response: Response) -> Theme
 
 @router.post(
     "/import",
-    response_model=Theme,
+    response_model=UploadedTheme,
     status_code=status.HTTP_201_CREATED,
     operation_id="themes_import",
     responses={
-        200: {"model": Theme, "description": "Nieuwe versie op een bestaand thema"},
+        200: {
+            "model": UploadedTheme,
+            "description": "Nieuwe versie op een bestaand thema, of ongewijzigd (`outcome`)",
+        },
         **_CONFLICT,
         **_TOO_LARGE,
         415: {"model": Problem, "description": "Geen .css of .cssthema.zip"},
@@ -163,7 +167,8 @@ async def import_theme(
         Form(
             description=(
                 "Slug bestaat al: `rename` (`-2`, `-3`, …), `new_version` (nieuwe draft en "
-                "versie op het bestaande thema) of `fail` (409)."
+                "versie op het bestaande thema; niets als de CSS gelijk is aan de laatste "
+                "versie) of `fail` (409)."
             )
         ),
     ] = "rename",
@@ -177,13 +182,13 @@ async def import_theme(
         ),
     ] = None,
     name: Annotated[str | None, Form(max_length=120, description="Naam (en slug).")] = None,
-) -> Theme:
+) -> UploadedTheme:
     data = await file.read(MAX_BUNDLE_BYTES + 1)
     if len(data) > MAX_BUNDLE_BYTES:
         raise PayloadTooLargeError(
             "Bestand is te groot", detail=f"De limiet is {MAX_BUNDLE_BYTES // (1024 * 1024)} MB."
         )
-    theme, created = await import_export.import_upload(
+    theme, outcome = await import_export.import_upload(
         ctx,
         filename=file.filename or "upload",
         data=data,
@@ -191,12 +196,12 @@ async def import_theme(
         publish=publish,
         name=name,
     )
-    if created:
+    if outcome == "created":
         response.headers["Location"] = _theme_location(theme.id)
     else:
         response.status_code = status.HTTP_200_OK
     _set_etag(response, theme.lock_version)
-    return theme
+    return UploadedTheme(**theme.model_dump(), outcome=outcome)
 
 
 @router.get(
