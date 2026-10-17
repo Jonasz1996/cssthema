@@ -5,7 +5,8 @@ een vaste versie. nginx cachet deze responses (spike S3) en serveert handgemaakt
 bestanden uit css-files vóór deze routes.
 
 `/host/{hostname}.css` en `.js` voegen samen wat de koppeling van die host (of `*`) noemt;
-zo is de `sub_filter`-regel in NPM voor elke proxy host dezelfde (`$host`).
+zo is de `sub_filter`-regel in NPM voor elke proxy host dezelfde (`$host`). Het dashboard,
+het CSS-domein en EXCLUDED_HOSTS krijgen nooit iets (`Settings.never_inject_hosts`).
 """
 
 import hashlib
@@ -16,6 +17,8 @@ from typing import Any
 
 from fastapi import APIRouter, Request, Response
 
+from cssthema.config import Settings
+from cssthema.domain import hosts as domain
 from cssthema.domain.css.compiler import etag_for
 from cssthema.domain.css.slugs import SLUG_PATTERN
 from cssthema.domain.hosts import DEFAULT_HOST, HOSTNAME_RE
@@ -119,18 +122,26 @@ async def _serve_host(request: Request, hostname: str, *, kind: str) -> Response
         body = b"/* cssthema: ongeldige hostnaam */\n"
         headers = {**_COMMON_HEADERS, "Cache-Control": NOT_FOUND_CACHE_CONTROL}
         return Response(body, status_code=404, media_type=media_type, headers=headers)
-    if kind == "css" and host_health.REFRESH_HEADER not in request.headers:
-        await host_health.record_seen(_delivery(request).redis, name)
+    settings: Settings = request.app.state.settings
     delivery = _delivery(request)
+    if name in settings.never_inject_hosts:
+        # Het dashboard, het CSS-domein en EXCLUDED_HOSTS: nooit een thema of script, ook niet
+        # met een koppeling of via `*` (de regel hoort daar niet, maar staat er soms toch).
+        return _host_response(request, domain.build_excluded(name), media_type)
     binding = await delivery.host_binding(name)
+    if kind == "css" and host_health.REFRESH_HEADER not in request.headers:
+        known = binding is not None and binding.hostname == name
+        await host_health.record_seen(delivery.redis, name, known=known)
     if name != DEFAULT_HOST and (binding is None or binding.hostname == DEFAULT_HOST):
         # Hosts zonder eigen koppeling delen één (gecachte) bundel: `*`. Relatief, zodat de
         # variant via /alg-thema/ op het eigen domein van de app blijft.
         headers = {**_COMMON_HEADERS, "Cache-Control": LATEST_CACHE_CONTROL}
         return Response(status_code=302, headers={**headers, "Location": f"*.{kind}"})
-    text = await host_service.render(
-        delivery, request.app.state.settings, name, kind=kind, binding=binding
-    )
+    text = await host_service.render(delivery, settings, name, kind=kind, binding=binding)
+    return _host_response(request, text, media_type)
+
+
+def _host_response(request: Request, text: str, media_type: str) -> Response:
     body = text.encode("utf-8")
     etag = f'"sha256-{hashlib.sha256(body).hexdigest()[:16]}"'
     headers = {

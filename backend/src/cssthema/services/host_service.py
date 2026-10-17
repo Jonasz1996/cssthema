@@ -206,11 +206,14 @@ async def options(ctx: ServiceContext) -> schemas.HostOptions:
         .order_by(Theme.slug)
     )
     css_files, scripts = await run_in_threadpool(_list_files, ctx.settings.css_files_dir)
+    base = ctx.settings.public_base_url
     return schemas.HostOptions(
         styles=sorted({*published, *css_files}),
         scripts=scripts,
-        snippet=domain.snippet(ctx.settings.public_base_url),
-        snippet_own_domain=domain.snippet(ctx.settings.public_base_url, via_own_domain=True),
+        snippet=domain.snippet(base),
+        snippet_own_domain=domain.snippet_own_domain(base),
+        snippet_own_domain_script=domain.snippet_own_domain(base, script=True),
+        excluded_hosts=sorted(ctx.settings.never_inject_hosts),
     )
 
 
@@ -302,7 +305,8 @@ def _read_file(path: Path) -> str | None:
         chunks = []
         while chunk := os.read(fd, 1024 * 1024):
             chunks.append(chunk)
-        return b"".join(chunks).decode("utf-8", errors="replace")
+        # utf-8-sig: een BOM (Windows-editor) zou anders midden in de bundel staan.
+        return b"".join(chunks).decode("utf-8-sig", errors="replace")
     except OSError as exc:
         log.warning("host_part_read_failed", path=str(path), error=repr(exc))
         return None

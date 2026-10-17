@@ -91,12 +91,32 @@ class HostOptions(BaseModel):
         description="Gepubliceerde thema's en CSS-bestanden in css-files (zonder `.css`)."
     )
     scripts: list[str] = Field(description="Scripts in css-files (zonder `.js`).")
-    snippet: str = Field(description="De `sub_filter`-regel voor elke proxy host in NPM.")
+    snippet: str = Field(
+        description=(
+            "Het blok voor Advanced (server-niveau) van elke proxy host in NPM, tussen "
+            "`# cssthema…` en `# /cssthema`."
+        )
+    )
     snippet_own_domain: str = Field(
         description=(
-            "Dezelfde regel via `/alg-thema/` op het eigen domein, voor apps met een strikte "
-            "CSP (met een `location ^~ /alg-thema/` die naar cssthema doorstuurt)."
+            "Variant via `/alg-thema/` op het eigen domein, alleen CSS, voor apps waarvan de "
+            "CSP het CSS-domein weigert (met de `location ^~ /alg-thema/` erin)."
         )
+    )
+    snippet_own_domain_script: str = Field(
+        default_factory=str,
+        description=(
+            "Dezelfde variant met het script erbij, voor apps die alleen scripts van een ander "
+            "domein weigeren. Nooit voor een wachtwoordkluis: het script draait daar "
+            "same-origin."
+        ),
+    )
+    excluded_hosts: list[str] = Field(
+        default_factory=list,
+        description=(
+            "Hosts die nooit iets krijgen (DASHBOARD_HOST, de host van PUBLIC_BASE_URL en "
+            "EXCLUDED_HOSTS): de regel hoort daar niet."
+        ),
     )
 
 

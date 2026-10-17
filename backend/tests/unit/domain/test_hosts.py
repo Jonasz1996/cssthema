@@ -118,12 +118,87 @@ def test_parse_npm_config_without_hostname() -> None:
     assert skipped[0].line == 1
 
 
-def test_snippet() -> None:
-    text = hosts.snippet("https://css.jbogaert.be/")
-    assert 'href="https://css.jbogaert.be/host/$host.css"' in text
-    assert 'src="https://css.jbogaert.be/host/$host.js" defer' in text
-    assert 'proxy_set_header Accept-Encoding "";' in text
-    assert 'href="/alg-thema/host/$host.css"' in hosts.snippet("x", via_own_domain=True)
+# De regel ligt vast (getest op NPM 2.16): docs en scripts/regel.py geven exact dezelfde tekst.
+MAIN_RULE = """\
+# cssthema: zelfde regel in elke proxy host
+sub_filter '</head>' '<link rel="stylesheet" href="https://css.jbogaert.be/host/$host.css"><script src="https://css.jbogaert.be/host/$host.js" defer></script></head>';
+sub_filter_once on;
+set $ct_ae $http_accept_encoding;
+if ($http_accept ~* "text/html") { set $ct_ae ""; }
+more_set_input_headers "Accept-Encoding: $ct_ae";
+# /cssthema
+"""
+
+OWN_DOMAIN_RULE = """\
+# cssthema: zelfde regel in elke proxy host (eigen domein, alleen CSS)
+sub_filter '</head>' '<link rel="stylesheet" href="/alg-thema/host/$host.css"></head>';
+sub_filter_once on;
+set $ct_ae $http_accept_encoding;
+if ($http_accept ~* "text/html") { set $ct_ae ""; }
+more_set_input_headers "Accept-Encoding: $ct_ae";
+location ^~ /alg-thema/ {
+    limit_except GET HEAD { deny all; }
+    proxy_set_header Cookie "";
+    proxy_set_header Authorization "";
+    proxy_connect_timeout 2s;
+    proxy_read_timeout 5s;
+    proxy_ssl_server_name on;
+    proxy_pass https://css.jbogaert.be/;
+}
+# /cssthema
+"""
+
+OWN_DOMAIN_SCRIPT_RULE = """\
+# cssthema: zelfde regel in elke proxy host (eigen domein, CSS en script)
+sub_filter '</head>' '<link rel="stylesheet" href="/alg-thema/host/$host.css"><script src="/alg-thema/host/$host.js" defer></script></head>';
+sub_filter_once on;
+set $ct_ae $http_accept_encoding;
+if ($http_accept ~* "text/html") { set $ct_ae ""; }
+more_set_input_headers "Accept-Encoding: $ct_ae";
+location ^~ /alg-thema/ {
+    limit_except GET HEAD { deny all; }
+    proxy_set_header Cookie "";
+    proxy_set_header Authorization "";
+    proxy_connect_timeout 2s;
+    proxy_read_timeout 5s;
+    proxy_ssl_server_name on;
+    proxy_pass https://css.jbogaert.be/;
+}
+# /cssthema
+"""
+
+
+@pytest.mark.parametrize("base", ["https://css.jbogaert.be", "https://css.jbogaert.be/"])
+def test_snippets_are_exactly_the_tested_rule(base: str) -> None:
+    assert hosts.snippet(base) == MAIN_RULE
+    assert hosts.snippet_own_domain(base) == OWN_DOMAIN_RULE
+    assert hosts.snippet_own_domain(base, script=True) == OWN_DOMAIN_SCRIPT_RULE
+
+
+def test_snippet_never_replaces_npms_location() -> None:
+    # Met `location / {` in Advanced vervangt NPM zijn eigen location (en de Access List).
+    for text in (MAIN_RULE, OWN_DOMAIN_RULE, OWN_DOMAIN_SCRIPT_RULE):
+        assert "location / {" not in text
+        assert "proxy_set_header Accept-Encoding" not in text
+        assert text.startswith(hosts.SNIPPET_START)
+        assert text.rstrip().endswith(hosts.SNIPPET_END)
+    assert ".js" not in OWN_DOMAIN_RULE
+
+
+@pytest.mark.parametrize("rule", [MAIN_RULE, OWN_DOMAIN_RULE, OWN_DOMAIN_SCRIPT_RULE])
+def test_import_ignores_the_new_rule_and_keeps_reading_old_ones(rule: str) -> None:
+    # Een geplakte Advanced met de nieuwe regel (markeringen, set/if/more_set_input_headers)
+    # levert niets op en stoort de oude regels eronder niet.
+    text = (
+        f"# app.jbogaert.be\n{rule}\n"
+        "# oud.jbogaert.be\n"
+        "sub_filter '</head>' '<link rel=\"stylesheet\" href=\"https://css.x.be/alg-oud.css\"></head>';\n"
+        "sub_filter_once on;\n"
+        'proxy_set_header Accept-Encoding "";\n'
+    )
+    imported, skipped = parse_npm_config(text)
+    assert [(h.hostname, h.styles) for h in imported] == [("oud.jbogaert.be", ["alg-oud"])]
+    assert skipped == []
 
 
 def test_comments_with_version_numbers_are_not_hostnames() -> None:
@@ -141,3 +216,76 @@ def test_scripts_are_isolated_from_each_other() -> None:
     js = build_js("a.be", "a.be", [Part("een", "throw 1"), Part("twee", "ok()")], enabled=True)
     assert js.count("try {") == 2
     assert 'console.error("cssthema: script een", e)' in js
+
+
+def test_build_css_strips_a_bom_per_part() -> None:
+    css = build_css("a.be", "a.be", [Part("een", "a{}"), Part("bom", "﻿:root{--x:1}")], enabled=True)
+    assert "﻿" not in css
+    assert "\n:root{--x:1}\n" in css
+
+
+def test_an_unclosed_block_does_not_swallow_the_next_part() -> None:
+    css = build_css(
+        "a.be",
+        "a.be",
+        [
+            Part("kapot", ".x-panel { color: red; @media (x) { a { b: c", "bestand"),
+            Part("nord", ":root{--v:1}"),
+        ],
+        enabled=True,
+    )
+    broken, variant = css.split("/* --- nord")
+    assert "a { b: c\n}}}\n" in broken  # alle drie afgesloten, vóór de variant
+    assert '"kapot" aangevuld (3 keer } ontbrak)' in broken
+    assert variant.endswith(":root{--v:1}\n")
+
+
+def test_open_comment_and_stray_brace_are_sealed_too() -> None:
+    css = build_css(
+        "a.be",
+        "a.be",
+        [Part("c", "a{} /* open {"), Part("s", "b{}}"), Part("v", ":root{}")],
+        enabled=True,
+    )
+    assert "/* open {\n*/\n" in css
+    # Een } te veel neemt de volgende regel mee: die is nu een lege regel, niet :root.
+    assert "b{}}\n:not(*){}\n" in css
+    assert "aangevuld (commentaar niet afgesloten)" in css
+    assert "aangevuld (} te veel)" in css
+
+
+def test_braces_in_strings_comments_and_escapes_do_not_count() -> None:
+    css = build_css(
+        "a.be",
+        "a.be",
+        [Part("ok", 'a{content:"{"} b{content:\'}\'} /* { */ c\\{d{} e{x:"a\\"{"}')],
+        enabled=True,
+    )
+    assert "aangevuld" not in css
+
+
+def test_imports_of_every_part_move_to_the_top() -> None:
+    fonts = '/* fonts */\n@charset "utf-8";\n@import url("https://fonts.googleapis.com/css2?family=Inter");\nbody{font-family:Inter}'
+    css = build_css("a.be", "a.be", [Part("kern", "a{}"), Part("fonts", fonts)], enabled=True)
+    head, rest = css.split("/* --- kern")
+    assert '@import url("https://fonts.googleapis.com/css2?family=Inter");' in head
+    assert '/* cssthema: @import uit "fonts" naar boven gehaald */' in head
+    assert "@import" not in rest
+    assert "body{font-family:Inter}" in rest
+    assert '@charset "utf-8";' in rest  # blijft staan (de browser negeert hem daar)
+
+
+def test_edit_names() -> None:
+    assert hosts.edit_names(["a", "b"], "add", "nord", None) == ["a", "b", "nord"]
+    assert hosts.edit_names(["a", "nord"], "add", "nord", None) == ["a", "nord"]
+    assert hosts.edit_names(["a", "b"], "remove", "a", None) == ["b"]
+    assert hosts.edit_names(["a", "x", "b"], "replace", "x", "y") == ["a", "y", "b"]
+    assert hosts.edit_names(["a", "x", "y"], "replace", "x", "y") == ["a", "y"]
+    with pytest.raises(ValueError):
+        hosts.edit_names(["a"], "replace", "a", None)
+
+
+def test_excluded_bundle_says_it_is_off() -> None:
+    assert hosts.build_excluded("cssthema.jbogaert.be").startswith(
+        "/* cssthema: cssthema.jbogaert.be staat uit"
+    )

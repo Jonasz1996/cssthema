@@ -149,7 +149,12 @@ async def test_options_list_themes_files_and_snippet(api: Api) -> None:
     assert theme["slug"] in options["styles"]
     assert options["scripts"] == ["netwerk"]
     assert "https://css.example.be/host/$host.css" in options["snippet"]
+    assert "more_set_input_headers" in options["snippet"]
     assert "/alg-thema/host/$host.css" in options["snippet_own_domain"]
+    assert ".js" not in options["snippet_own_domain"]
+    assert "/alg-thema/host/$host.js" in options["snippet_own_domain_script"]
+    assert "proxy_pass https://css.example.be/;" in options["snippet_own_domain"]
+    assert options["excluded_hosts"] == ["css.example.be"]
 
 
 # --- gezondheid (C3) --------------------------------------------------------------------------
