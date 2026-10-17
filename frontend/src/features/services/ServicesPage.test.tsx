@@ -365,7 +365,7 @@ describe("ServicesPage", () => {
     const dialog = within(await screen.findByRole("dialog", { name: "Proxmox verwijderen?" }));
     expect(
       dialog.getByText(
-        "proxmox.example en zijn 2 snapshots verdwijnen uit de lijst. Een nieuwe import van vastleggen.py zet hem terug.",
+        "proxmox.example en zijn 2 snapshots (met screenshots) worden verwijderd. Een nieuwe import van vastleggen.py zet hem terug.",
       ),
     ).toBeInTheDocument();
     fireEvent.click(dialog.getByRole("button", { name: "⚡ Verwijderen" }));

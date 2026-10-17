@@ -589,7 +589,7 @@ export interface paths {
         get?: never;
         put?: never;
         post?: never;
-        /** Dienst verwijderen (met zijn snapshots uit de lijst) */
+        /** Dienst verwijderen (met zijn snapshots en hun bestanden) */
         delete: operations["services_delete"];
         options?: never;
         head?: never;

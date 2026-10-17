@@ -47,7 +47,7 @@ async def list_services(ctx: Ctx) -> list[ServiceSummary]:
     status_code=status.HTTP_204_NO_CONTENT,
     response_class=Response,
     operation_id="services_delete",
-    summary="Dienst verwijderen (met zijn snapshots uit de lijst)",
+    summary="Dienst verwijderen (met zijn snapshots en hun bestanden)",
     responses=_NOT_FOUND,
 )
 async def delete_service(service_id: uuid.UUID, ctx: Ctx) -> Response:

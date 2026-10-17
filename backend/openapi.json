@@ -2883,7 +2883,7 @@
         "tags": [
           "services"
         ],
-        "summary": "Dienst verwijderen (met zijn snapshots uit de lijst)",
+        "summary": "Dienst verwijderen (met zijn snapshots en hun bestanden)",
         "operationId": "services_delete",
         "parameters": [
           {
