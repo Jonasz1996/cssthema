@@ -14,6 +14,7 @@ export function CodeEditor({
   lint,
   readOnly,
   onReady,
+  onCursorChange,
   snapshot,
 }: CodeEditorProps) {
   const css = useSessionValue(session, (snapshot) => snapshot.css, "");
@@ -32,7 +33,11 @@ export function CodeEditor({
         aria-label={ariaLabel}
         value={css}
         readOnly={readOnly}
-        onChange={(event) => session.edit(event.target.value)}
+        onChange={(event) => {
+          session.edit(event.target.value);
+          // Zoals Monaco: typen verplaatst de cursor (en rendert de pagina dus opnieuw).
+          onCursorChange?.({ line: 1, column: event.target.value.length + 1 });
+        }}
       />
       <output data-testid="markers">
         {lint ? `${lint.errors.length} errors, ${lint.warnings.length} warnings` : "no lint"}

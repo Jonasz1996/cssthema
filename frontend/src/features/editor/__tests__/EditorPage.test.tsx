@@ -675,4 +675,18 @@ describe("EditorPage", () => {
       expect(screen.getByTestId("snapshot-completions")).toHaveTextContent("no snapshot"),
     );
   });
+
+  it("lints only after a pause, also for the first keystrokes", async () => {
+    const { server } = setup();
+    const textarea = await editorTextarea();
+    await waitFor(() => expect(server.callsTo("POST", "/api/v1/themes/:id/lint")).toHaveLength(1));
+    for (const value of ["a{b}", "a{bc}", "a{bcd}"]) {
+      fireEvent.change(textarea, { target: { value } });
+      await act(() => new Promise((resolve) => setTimeout(resolve, 50)));
+    }
+    // Typen geeft geen lint per toets (de statusbalk rendert wel opnieuw: "Opslaan…").
+    expect(server.callsTo("POST", "/api/v1/themes/:id/lint")).toHaveLength(1);
+    await waitFor(() => expect(server.callsTo("POST", "/api/v1/themes/:id/lint")).toHaveLength(2));
+    expect(server.callsTo("POST", "/api/v1/themes/:id/lint")[1]!.body).toEqual({ css: "a{bcd}" });
+  });
 });

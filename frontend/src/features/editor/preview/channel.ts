@@ -5,15 +5,17 @@
  *
  * Updates zijn `requestAnimationFrame`-gedreven: hoe snel er ook getypt wordt, per frame gaat
  * hoogstens één bericht met de nieuwste CSS (< 100 ms tot zichtbaar, meestal één frame).
- * Grote stylesheets (> `LARGE_CSS_LENGTH` tekens) gaan hoogstens om de `LARGE_CSS_INTERVAL_MS`:
- * elke update kopieert en herparseert de hele tekst in de iframe. De laatste toestand komt er
- * altijd (trailing edge).
+ * Grote stylesheets (> `LARGE_CSS_LENGTH` tekens) gaan pas `LARGE_CSS_DEBOUNCE_MS` na de laatste
+ * wijziging (trailing debounce), en bij lang doortypen toch om de `LARGE_CSS_MAX_WAIT_MS`: elke
+ * update kopieert en herparseert de hele tekst in de iframe, op dezelfde thread als de editor
+ * (review PERF-5).
  */
 
 import type { EditorShortcut } from "../lib/shortcuts";
 
 export const LARGE_CSS_LENGTH = 200 * 1024;
-export const LARGE_CSS_INTERVAL_MS = 300;
+export const LARGE_CSS_DEBOUNCE_MS = 400;
+export const LARGE_CSS_MAX_WAIT_MS = 2000;
 
 export type BridgeInbound =
   | { type: "cssthema:ready" }
@@ -58,7 +60,7 @@ export interface PreviewChannelOptions {
   getTarget: () => Window | null;
   requestFrame?: (callback: () => void) => number;
   cancelFrame?: (handle: number) => void;
-  /** Klok en timer voor het afremmen van grote stylesheets (tests). */
+  /** Klok en timer voor het uitstellen van grote stylesheets (tests). */
   now?: () => number;
   setTimer?: (callback: () => void, ms: number) => ReturnType<typeof setTimeout>;
   clearTimer?: (handle: ReturnType<typeof setTimeout>) => void;
@@ -79,8 +81,8 @@ export class PreviewChannel {
   private ready = false;
   private frame: number | null = null;
   private timer: ReturnType<typeof setTimeout> | null = null;
-  /** Wanneer de CSS laatst verstuurd werd (voor het afremmen van grote stylesheets). */
-  private sentCssAt = -Infinity;
+  /** Sinds wanneer een grote stylesheet op een pauze in het typen wacht (`null` = niet). */
+  private waitingSince: number | null = null;
   private seq = 0;
   private readonly requestFrame: (callback: () => void) => number;
   private readonly cancelFrame: (handle: number) => void;
@@ -107,13 +109,16 @@ export class PreviewChannel {
   }
 
   setCss(css: string): void {
+    // De sessie meldt ook "opgeslagen" e.d.: dat mag een wachtende grote update niet uitstellen.
+    if (css === this.css) return;
     this.css = css;
     this.schedule();
   }
 
   setPalette(css: string): void {
     this.palette = css;
-    this.schedule();
+    // Wacht er een grote stylesheet op een pauze: het palet gaat met die update mee.
+    if (this.timer === null) this.schedule();
   }
 
   /** `message`-event van `window`: verwerkt alleen berichten van de eigen iframe. */
@@ -153,6 +158,7 @@ export class PreviewChannel {
     this.frame = null;
     if (this.timer !== null) this.clearTimer(this.timer);
     this.timer = null;
+    this.waitingSince = null;
     const target = this.options.getTarget();
     if (!this.ready || !target) return;
     if (this.palette !== this.sentPalette) {
@@ -163,8 +169,6 @@ export class PreviewChannel {
       this.seq += 1;
       this.post(target, { type: "css", css: this.css, seq: this.seq });
       this.sentCss = this.css;
-      // Alleen een groot bericht telt mee voor het interval (een klein kost niets).
-      this.sentCssAt = this.css.length > LARGE_CSS_LENGTH ? this.now() : -Infinity;
     }
   }
 
@@ -178,24 +182,32 @@ export class PreviewChannel {
   }
 
   private schedule(): void {
-    if (!this.ready || this.frame !== null || this.timer !== null) return;
-    const wait =
-      this.css.length > LARGE_CSS_LENGTH ? this.sentCssAt + LARGE_CSS_INTERVAL_MS - this.now() : 0;
-    if (wait > 0) {
-      // Groot en net nog verstuurd: wachten, daarna gewoon via het volgende frame.
-      this.timer = this.setTimer(() => {
-        this.timer = null;
-        this.schedule();
-      }, wait);
+    if (!this.ready) return;
+    if (this.css.length > LARGE_CSS_LENGTH && this.css !== this.sentCss) {
+      // Groot: opnieuw wachten op een pauze, maar niet langer dan de maximale wachttijd.
+      const now = this.now();
+      this.waitingSince ??= now;
+      const wait = Math.min(LARGE_CSS_DEBOUNCE_MS, this.waitingSince + LARGE_CSS_MAX_WAIT_MS - now);
+      this.cancel(false);
+      this.timer = this.setTimer(
+        () => {
+          this.timer = null;
+          this.frame = this.requestFrame(() => this.flush());
+        },
+        Math.max(0, wait),
+      );
       return;
     }
-    this.frame = this.requestFrame(() => this.flush());
+    // Klein (of alleen het palet): het volgende frame, ook als er nog een grote update wachtte.
+    if (this.timer !== null) this.cancel();
+    if (this.frame === null) this.frame = this.requestFrame(() => this.flush());
   }
 
-  private cancel(): void {
+  private cancel(stopWaiting = true): void {
     if (this.frame !== null) this.cancelFrame(this.frame);
     if (this.timer !== null) this.clearTimer(this.timer);
     this.frame = null;
     this.timer = null;
+    if (stopWaiting) this.waitingSince = null;
   }
 }

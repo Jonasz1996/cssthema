@@ -2,8 +2,9 @@ import { describe, expect, it, vi } from "vitest";
 import { messageKeys } from "@/lib/i18n";
 import { fetchBridge } from "../preview/bridge";
 import {
-  LARGE_CSS_INTERVAL_MS,
+  LARGE_CSS_DEBOUNCE_MS,
   LARGE_CSS_LENGTH,
+  LARGE_CSS_MAX_WAIT_MS,
   parseBridgeMessage,
   PreviewChannel,
 } from "../preview/channel";
@@ -332,31 +333,38 @@ describe("PreviewChannel", () => {
     expect(parseBridgeMessage("cssthema:ready")).toBeNull();
   });
 
-  it("throttles large stylesheets to one update per interval, always delivering the last", () => {
+  it("sends large stylesheets after a pause in typing, and at least every max wait", () => {
     let now = 1000;
-    const timers: { at: number; callback: () => void }[] = [];
-    const frames: (() => void)[] = [];
+    let nextId = 0;
+    const timers = new Map<number, { at: number; callback: () => void }>();
+    const frames = new Map<number, () => void>();
     const target = { postMessage: vi.fn() } as unknown as Window & {
       postMessage: ReturnType<typeof vi.fn>;
     };
     const channel = new PreviewChannel({
       getTarget: () => target,
-      requestFrame: (callback) => frames.push(callback),
-      cancelFrame: () => {},
+      requestFrame: (callback) => (frames.set(++nextId, callback), nextId),
+      cancelFrame: (id) => frames.delete(id),
       now: () => now,
       setTimer: (callback, ms) => {
-        timers.push({ at: now + ms, callback });
-        return timers.length as unknown as ReturnType<typeof setTimeout>;
+        timers.set(++nextId, { at: now + ms, callback });
+        return nextId as unknown as ReturnType<typeof setTimeout>;
       },
-      clearTimer: () => {},
+      clearTimer: (id) => timers.delete(id as unknown as number),
     });
-    const runFrames = () => frames.splice(0).forEach((frame) => frame());
+    const runFrames = () => {
+      const pending = [...frames.values()];
+      frames.clear();
+      pending.forEach((frame) => frame());
+    };
     const advance = (ms: number) => {
       now += ms;
-      timers
-        .splice(0)
-        .filter((timer) => (timer.at <= now ? (timer.callback(), false) : true))
-        .forEach((timer) => timers.push(timer));
+      for (const [id, timer] of [...timers]) {
+        if (timer.at > now) continue;
+        timers.delete(id);
+        timer.callback();
+      }
+      runFrames();
     };
     const sentCss = () =>
       target.postMessage.mock.calls
@@ -370,31 +378,44 @@ describe("PreviewChannel", () => {
     target.postMessage.mockClear();
     const big = (end: string) => "x".repeat(LARGE_CSS_LENGTH) + end;
 
-    // Eerste grote update na een rustige periode: meteen (volgende frame).
+    // Groot: pas na een pauze; tussenliggende toestanden vallen weg.
     channel.setCss(big("1"));
     runFrames();
-    expect(sentCss()).toEqual(["1"]);
-    // Binnen het interval: geen frame, wel een timer; tussenliggende toestanden vallen weg.
-    advance(50);
+    expect(sentCss()).toEqual([]);
+    advance(LARGE_CSS_DEBOUNCE_MS - 100);
     channel.setCss(big("2"));
-    channel.setCss(big("3"));
-    runFrames();
-    expect(frames).toHaveLength(0);
-    expect(sentCss()).toEqual(["1"]);
-    advance(LARGE_CSS_INTERVAL_MS - 60);
-    runFrames();
-    expect(sentCss()).toEqual(["1"]);
-    advance(10);
-    runFrames();
-    expect(sentCss()).toEqual(["1", "3"]);
+    advance(LARGE_CSS_DEBOUNCE_MS - 1);
+    expect(sentCss()).toEqual([]);
+    // Dezelfde tekst opnieuw (bv. "opgeslagen"): stelt niets uit.
+    channel.setCss(big("2"));
+    advance(1);
+    expect(sentCss()).toEqual(["2"]);
 
-    // Klein: gewoon per frame, zonder wachten.
+    // Doortypen zonder pauze: toch om de maximale wachttijd.
+    for (let i = 0; i * 100 < LARGE_CSS_MAX_WAIT_MS; i++) {
+      channel.setCss(big(`-${i}`));
+      advance(100);
+    }
+    expect(sentCss()).toEqual(["2", "9"]);
+
+    // Een palet tijdens het wachten gaat mee met de grote update.
+    channel.setCss(big("a"));
+    channel.setPalette(":root{--ct-bg:#000}");
+    advance(LARGE_CSS_DEBOUNCE_MS);
+    expect(sentCss()).toEqual(["2", "9", "a"]);
+    expect(target.postMessage).toHaveBeenCalledWith(
+      { type: "palette", css: ":root{--ct-bg:#000}" },
+      "*",
+    );
+
+    // Klein: gewoon per frame, zonder wachten (ook als er nog een grote wachtte).
+    channel.setCss(big("b"));
     channel.setCss("a{}");
     runFrames();
     channel.setCss("b{}");
     runFrames();
-    expect(sentCss()).toEqual(["1", "3", "}", "}"]);
-    expect(timers).toHaveLength(0);
+    expect(sentCss()).toEqual(["2", "9", "a", "}", "}"]);
+    expect(timers.size).toBe(0);
   });
 
   it("reports a stylesheet the bridge refused as too large", () => {
