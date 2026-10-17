@@ -80,7 +80,7 @@ flowchart LR
 | ADR-08 | **OIDC als BFF**: backend doet de code flow, browser krijgt alleen een httpOnly-sessiecookie | Tokens in de SPA | Geen tokens in JavaScript, eenvoudige CSRF-bescherming, sessie intrekbaar. |
 | ADR-09 | **Object storage-abstractie** (filesystem standaard, S3 optioneel) | Blobs in PostgreSQL | DB blijft klein, backups sneller, screenshots goedkoop te serveren. |
 | ADR-10 | **Paletten als design tokens** (`--ct-*`) die thema's kunnen delen | Alles per thema | Tientallen apps consistent restylen met één wijziging. |
-| ADR-11 | **Same-origin injectie als standaardadvies** (NPM `location /__cssthema/` + `sub_filter`) | `<link>` naar `cssthema.domain.be` | Omzeilt CSP van apps als Nextcloud; geen CORS; zie [10-theme-injectie](10-theme-injectie.md). |
+| ADR-11 | **Eén `sub_filter`-regel per proxy host met `$host`** naar `PUBLIC_BASE_URL/host/$host.css` en `.js`; welke thema's en scripts een host krijgt, staat in cssthema (pagina Hosts). Apps met een strenge CSP krijgen dezelfde regel via `location ^~ /alg-thema/` op hun eigen domein (standaard alleen CSS) (2026-10-17, was: same-origin `location /__cssthema/` per app) | Per app een eigen `sub_filter` met vaste bestanden; overal same-origin | Eén identieke regel in ± 100 hosts, wijzigingen alleen nog in het dashboard; cross-origin is de standaard omdat de meeste apps geen CSP hebben, same-origin alleen waar de CSP het vraagt; zie [10-theme-injectie](10-theme-injectie.md). |
 | ADR-12 | **AI-provider-abstractie met gestructureerde JSON-output + selector-validatie** | Vrije tekst-CSS | Betrouwbaar parsebaar, geen gehallucineerde selectors in productie-CSS. |
 | ADR-13 | **Problem Details (RFC 9457)** voor alle API-fouten | Eigen formaat | Standaard, goed te typen in de frontend. |
 | ADR-14 | **Frontend: Vite + React 19 + TS, TanStack Query, Zustand, Tailwind + eigen componenten** | Next.js, Redux, shadcn/ui | Pure SPA volstaat (geen SSR nodig), kleine bundle. De look volgt aiverslag (sinds 2026-10-05), daarom eigen componenten i.p.v. shadcn/ui. |
@@ -168,6 +168,8 @@ sequenceDiagram
 - nginx geeft `/{slug}.css`, `/themes/{slug}.css` en `/themes/{slug}@{n}.css` ongewijzigd door aan de api.
 - Bij elke wijziging van publieke CSS (publiceren, rollback, soft delete, herstel, hard delete, slug-wijziging) verwijdert de API `css:{slug}` uit Redis en vraagt hij best effort `http://nginx:8081/{slug}.css` en `/themes/{slug}.css` op. Die interne refresh-server (`proxy_cache_bypass`) overschrijft de cache-entry, ook met een 404. Open-source nginx kent geen purge; zie [spike S3](spikes/s3-css-cache.md). Met 60 s TTL is de vertraging ook zonder refresh begrensd.
 - `@{n}`-URL's zijn onveranderlijk en worden 1 jaar gecachet.
+- `/host/{hostname}.css` en `.js` (de bundel per proxy host) lopen door dezelfde microcache. Een host zonder eigen koppeling krijgt een `302` naar `/host/*.css` (`Cache-Control: public, max-age=60`), zodat al die hosts één cache-entry delen.
+- Browsers krijgen voor de laatste versie van een thema en voor `/host/` niet de `max-age` van de api maar `Cache-Control: public, no-cache, stale-if-error=86400` (nginx: `proxy_hide_header` + `add_header`, `snippets/browser-cache.conf`): ze vragen bij elke paginalaad met de ETag na (meestal `304`), zodat een publicatie meteen zichtbaar is; `stale-if-error` is voor caches die het kennen. De microcache van nginx gebruikt nog de `max-age=60` van de api (de map `$ct_browser_cache_control` herkent die aan `stale-while-revalidate`; `@{n}`, 404 en redirects houden hun eigen header).
 - Response headers: `Content-Type: text/css; charset=utf-8`, `ETag: "sha256-ab12…"`, `Last-Modified`, `Cache-Control`, `Access-Control-Allow-Origin: *`, `X-Content-Type-Options: nosniff`, `X-Cssthema-Version: 7`.
 
 ### 3.4 Jobs
@@ -318,10 +320,12 @@ Alles via omgevingsvariabelen (12-factor), gevalideerd met `pydantic-settings`. 
 
 | Variabele | Voorbeeld | Doel |
 |---|---|---|
-| `PUBLIC_BASE_URL` | `https://cssthema.domain.be` | Absolute URL's in snippets en UserCSS |
+| `PUBLIC_BASE_URL` | `https://css.domain.be` | Het publieke CSS-domein (https, geen IP): begin van de NPM-regel (`…/host/$host.css`) en van absolute URL's in snippets en UserCSS |
+| `DASHBOARD_HOST` | `cssthema.domain.be` (compose: standaard `localhost`) | Hostna(a)m(en) van het dashboard, spatie- of kommagescheiden. nginx serveert de SPA, `/assets/`, `/preview-bridge.js` en `/api/` alleen voor die `Host`; elders 404. De api injecteert er nooit (lege bundel op `/host/`). Verplicht bij `deploy/debian/install.sh` |
+| `EXCLUDED_HOSTS` | `authentik.domain.be,npm.domain.be` | Optioneel, zelfde formaat: hosts die nooit thema's of scripts krijgen (lege bundel op `/host/`), naast `DASHBOARD_HOST` en de host van `PUBLIC_BASE_URL` |
 | `POSTGRES_HOST` / `POSTGRES_USER` / `POSTGRES_PASSWORD` / `POSTGRES_DB` | `postgres` / `cssthema` / *** / `cssthema` | De api bouwt hier de database-URL uit (wachtwoord URL-gecodeerd) |
 | `DATABASE_URL` | `postgresql+asyncpg://cssthema:***@postgres/cssthema` | Optioneel: overschrijft de `POSTGRES_*`-delen |
-| `TRUSTED_PROXIES` | `172.16.0.0/12,192.168.1.10` | nginx: bronnen waarvan `X-Forwarded-For` vertrouwd wordt (NPM); alleen zij (en nginx' eigen machine) mogen via `/api/` schrijven |
+| `TRUSTED_PROXIES` | `172.16.0.0/12,192.168.1.10` | nginx: bronnen waarvan `X-Forwarded-For` vertrouwd wordt (NPM); alleen zij (en nginx' eigen machine) mogen `/api/` gebruiken, lezen en schrijven |
 | `REDIS_URL` | `redis://redis:6379/0` | |
 | `SECRET_KEY` | 64 random bytes | Sessies, CSRF |
 | `ENCRYPTION_KEY` | Fernet-key | Versleuteling van geheimen in DB |
@@ -333,7 +337,7 @@ Alles via omgevingsvariabelen (12-factor), gevalideerd met `pydantic-settings`. 
 | `AI_PROVIDER` / `AI_MODEL` / `AI_API_KEY` | `anthropic` / `claude-sonnet-5-5` | Ook via UI-instellingen (versleuteld) |
 | `FETCH_ALLOWED_CIDRS` | `10.0.0.0/8,192.168.0.0/16` | SSRF-allowlist |
 | `CSS_URL_ALLOWLIST` | `fonts.googleapis.com,fonts.gstatic.com` (standaard) | Security-lint: hosts die `url()`/`@import` mogen gebruiken; de host van `PUBLIC_BASE_URL` mag altijd |
-| `CSS_MAX_BYTES` | `524288` (standaard, 512 KB) | Maximale grootte van de CSS van één thema (draft, import, publicatie) |
+| `CSS_MAX_BYTES` | `1048576` (standaard, 1 MB) | Maximale grootte van de CSS van één thema (draft, import, publicatie) |
 | `CSS_REFRESH_URL` | `http://127.0.0.1:8081` (standaard); compose: `http://nginx:8081` | Interne refresh-server van nginx, aangeroepen na elke wijziging van publieke CSS (spike S3); leeg = niet verversen |
 | `CSS_FILES_DIR` | `/var/lib/cssthema/css-files` (standaard) | Handgemaakte CSS die nginx vóór de api serveert; bron voor *lokale bestanden importeren* (na import gearchiveerd in `.geimporteerd/`) |
 | `CSS_FILES_HOST_DIR` | `../../css-files` (standaard, t.o.v. `docker/compose/`) | Alleen Docker: hostmap die compose in `nginx` (alleen-lezen) én `api` op `/var/lib/cssthema/css-files` mount, zodat beide dezelfde handgemaakte bestanden zien; uid 10001 moet erin kunnen schrijven (archiveren) |
