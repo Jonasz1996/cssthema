@@ -1,7 +1,7 @@
 # syntax=docker/dockerfile:1.7
 # Bouwt de React-SPA en levert een nginx-image met statics + routering (docs/02 § 1.1).
 
-FROM node:22-alpine AS build
+FROM node:26-alpine AS build
 RUN corepack enable
 WORKDIR /src
 COPY frontend/package.json frontend/pnpm-lock.yaml ./
