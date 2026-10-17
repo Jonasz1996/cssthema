@@ -41,5 +41,8 @@
   "uploadUnchanged_other": "{count} bestanden waren gelijk aan de laatste versie (ongewijzigd).",
   "uploadNothingChanged_one": "Niets veranderd: het bestand is gelijk aan de laatste versie.",
   "uploadNothingChanged_other": "Niets veranderd: de {count} bestanden zijn gelijk aan hun laatste versie.",
-  "scriptSyntaxError": "Syntaxfout: {message}. Niet geüpload: in de bundel van een host houdt één fout script ook de andere scripts tegen."
+  "scriptSyntaxError": "Syntaxfout: {message}. Niet geüpload: in de bundel van een host houdt één fout script ook de andere scripts tegen.",
+
+  "sessionExpiredTitle": "Sessie verlopen",
+  "sessionExpiredText": "Je login is verlopen: laad de pagina opnieuw om opnieuw in te loggen. Wat je in de editor typte, staat veilig in deze browser en komt daarna terug."
 }

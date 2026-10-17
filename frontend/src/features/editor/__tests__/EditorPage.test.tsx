@@ -2,6 +2,7 @@ import { QueryClientProvider } from "@tanstack/react-query";
 import { act, cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { createMemoryRouter, RouterProvider } from "react-router";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { resetSessionExpired } from "@/api/client";
 import { createFetchMock, etag, json, problem, type FetchMock } from "@/api/testing/fetch-mock";
 import {
   makeDraft,
@@ -112,6 +113,7 @@ afterEach(() => {
   // Eerst ontkoppelen: anders maakt een laatste render een nieuwe sessie aan na het opruimen.
   cleanup();
   resetSessions();
+  resetSessionExpired();
   useEditorStore.setState({ tabs: [], layout: DEFAULT_LAYOUT });
   usePreviewSourceStore.setState({ choices: {} });
 });
@@ -402,6 +404,34 @@ describe("EditorPage", () => {
       await within(statusBar()).findByRole("button", { name: /Offline/ }, { timeout: 2500 }),
     ).toBeInTheDocument();
     expect(await draftBuffer().get(ID)).toMatchObject({ css: "a{offline}", baseLockVersion: 3 });
+    await draftBuffer().delete(ID);
+  });
+
+  it("expired login while saving: says so (not offline) and reloads on click", async () => {
+    setup((mock) =>
+      mock.on(
+        "PUT",
+        "/api/v1/themes/:id/draft",
+        () =>
+          new Response(null, {
+            status: 302,
+            headers: { Location: "/outpost.goauthentik.io/start" },
+          }),
+      ),
+    );
+    const textarea = await editorTextarea();
+    fireEvent.change(textarea, { target: { value: "a{na de login}" } });
+    const button = await within(statusBar()).findByRole(
+      "button",
+      { name: /Sessie verlopen, laad de pagina opnieuw/ },
+      { timeout: 2500 },
+    );
+    expect(within(statusBar()).queryByText(/Offline/)).toBeNull();
+    expect(await draftBuffer().get(ID)).toMatchObject({ css: "a{na de login}" });
+    const reload = vi.fn();
+    vi.stubGlobal("location", { ...window.location, reload });
+    fireEvent.click(button);
+    expect(reload).toHaveBeenCalled();
     await draftBuffer().delete(ID);
   });
 

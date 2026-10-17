@@ -1,6 +1,6 @@
 import { act, renderHook } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { ApiError, NETWORK_ERROR } from "@/api/client";
+import { ApiError, AUTH_EXPIRED, NETWORK_ERROR, sessionExpiredError } from "@/api/client";
 import { makeDraft } from "@/api/testing/fixtures";
 import type { Draft, Locked } from "@/api/types";
 import { createMemoryBuffer } from "../autosave/buffer";
@@ -19,6 +19,7 @@ import {
   useDebouncedSessionCss,
   useSessionValue,
 } from "../autosave/sessions";
+import { saveStatusView } from "../lib/save-status";
 
 const SERVER_TIME = "2026-10-05T10:00:00Z";
 
@@ -210,6 +211,25 @@ describe("DraftSession (autosave)", () => {
     });
     expect(session.getSnapshot().revision).toBe(before + 1);
     expect(buffer.entries.has("t1")).toBe(false);
+  });
+
+  it("an expired login is not offline: buffered, no retries, a state of its own", async () => {
+    const { session, save, buffer } = setup();
+    save.mockRejectedValue(sessionExpiredError(new Response(null, { status: 302 })));
+    session.edit("a{weg}");
+    await vi.advanceTimersByTimeAsync(1000);
+    expect(session.getSnapshot().state).toMatchObject({
+      kind: "error",
+      code: AUTH_EXPIRED,
+      status: 401,
+    });
+    expect(buffer.entries.get("t1")).toMatchObject({ css: "a{weg}" });
+    await vi.advanceTimersByTimeAsync(60_000);
+    expect(save).toHaveBeenCalledTimes(1);
+    expect(saveStatusView(session.getSnapshot().state, "nl")).toMatchObject({
+      tone: "err",
+      key: "editor.saveSessionExpired",
+    });
   });
 
   it("offline: buffers, retries with backoff and reports 'synced after offline'", async () => {

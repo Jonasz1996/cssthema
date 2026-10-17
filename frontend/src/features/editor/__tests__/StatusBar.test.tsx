@@ -1,5 +1,6 @@
 import { act, cleanup, render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
+import { AUTH_EXPIRED } from "@/api/client";
 import { createFetchMock, json } from "@/api/testing/fetch-mock";
 import { createQueryWrapper } from "@/api/testing/query";
 import type { DraftSession } from "../autosave/draft-session";
@@ -112,5 +113,41 @@ describe("StatusBar: size", () => {
     const { session } = fakeSession("x".repeat(2048));
     renderBar(session, null);
     expect(screen.getByText("2 KB")).toBeInTheDocument();
+  });
+});
+
+describe("StatusBar: login verlopen", () => {
+  it("says the session expired instead of a server error, with reload as the action", () => {
+    const state = {
+      kind: "error",
+      code: AUTH_EXPIRED,
+      status: 401,
+      message: "Je sessie is verlopen",
+      fromServer: false,
+    } as const;
+    const session = {
+      getSnapshot: () => ({ css: "a{}", state }),
+      subscribe: () => () => {},
+    } as unknown as DraftSession;
+    const onStatusAction = vi.fn();
+    vi.stubGlobal("fetch", createFetchMock().fetch);
+    render(
+      <StatusBar
+        session={session}
+        lint={undefined}
+        lintPending={false}
+        cursor={null}
+        paletteName={null}
+        problemsOpen={false}
+        problemsId="problems"
+        onToggleProblems={() => {}}
+        onStatusAction={onStatusAction}
+      />,
+      { wrapper: createQueryWrapper() },
+    );
+    const button = screen.getByRole("button", { name: /Sessie verlopen, laad de pagina opnieuw/ });
+    expect(button).toHaveAttribute("title", expect.stringMatching(/^Je login is verlopen\./));
+    act(() => button.click());
+    expect(onStatusAction).toHaveBeenCalledWith(state);
   });
 });

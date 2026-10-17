@@ -1,6 +1,6 @@
 import { Suspense, useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router";
-import { saveBlob } from "@/api/client";
+import { AUTH_EXPIRED, saveBlob } from "@/api/client";
 import { useDraft, useLint, useSaveDraft, useThemeUsage } from "@/api/queries/editor";
 import { usePalette } from "@/api/queries/palettes";
 import { useExportTheme, useTheme } from "@/api/queries/themes";
@@ -218,6 +218,8 @@ export function EditorPage() {
   const onStatusAction = (state: SaveState) => {
     if (state.kind === "conflict") setDismissedConflict(null);
     else if (state.kind === "offline") session?.retryNow();
+    // Login verlopen: opnieuw opslaan lukt pas na herladen (de tekst staat in de buffer).
+    else if (state.kind === "error" && state.code === AUTH_EXPIRED) window.location.reload();
     else if (state.kind === "error") void session?.flush();
   };
 

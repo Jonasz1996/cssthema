@@ -41,5 +41,8 @@
   "uploadUnchanged_other": "{count} files were the same as the latest version (unchanged).",
   "uploadNothingChanged_one": "Nothing changed: the file is the same as the latest version.",
   "uploadNothingChanged_other": "Nothing changed: the {count} files are the same as their latest version.",
-  "scriptSyntaxError": "Syntax error: {message}. Not uploaded: in a host's bundle one broken script also stops the other scripts."
+  "scriptSyntaxError": "Syntax error: {message}. Not uploaded: in a host's bundle one broken script also stops the other scripts.",
+
+  "sessionExpiredTitle": "Session expired",
+  "sessionExpiredText": "Your login has expired: reload the page to log in again. What you typed in the editor is kept safe in this browser and comes back afterwards."
 }

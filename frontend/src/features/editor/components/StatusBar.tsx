@@ -1,4 +1,5 @@
 import { type ReactNode, useMemo, useSyncExternalStore } from "react";
+import { AUTH_EXPIRED } from "@/api/client";
 import type { LintResult } from "@/api/types";
 import { Button } from "@/components/ui";
 import { useMeta } from "@/features/themes/hooks/use-meta";
@@ -86,7 +87,12 @@ export function StatusBar({
       ? (`editor.saveAction_${state.kind}` as const)
       : null;
   const label = t(view.key, view.params);
-  const detail = state.kind === "error" ? apiErrorText(state, i18n) : undefined;
+  const detail =
+    state.kind !== "error"
+      ? undefined
+      : state.code === AUTH_EXPIRED
+        ? t("editor.saveSessionExpiredHint")
+        : apiErrorText(state, i18n);
 
   return (
     <div

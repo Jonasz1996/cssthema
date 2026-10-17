@@ -12,10 +12,14 @@ import type { EtagState, LintIssue, Locked, Problem } from "./types";
  *
  * Gebruik in features bij voorkeur de hooks uit `src/api/queries/*`; die zetten fouten om in
  * `ApiError` en houden de cache bij. Rechtstreeks `api.GET(...)` kan, verpak het dan in `send()`.
+ *
+ * Doorverwijzingen volgen we niet (`redirect: "manual"`): de api verwijst nooit door, de login
+ * van de reverse proxy (Authentik) wel. Zie *Sessie verlopen* hieronder.
  */
 export const api = createClient<paths>({
   baseUrl: globalThis.location?.origin ?? "",
   credentials: "include",
+  redirect: "manual",
   fetch: (request: Request) => globalThis.fetch(request),
 });
 
@@ -53,6 +57,73 @@ const csrfMiddleware: Middleware = {
   },
 };
 api.use(csrfMiddleware);
+
+// --- sessie verlopen (login van de reverse proxy) ----------------------------------------------
+
+/**
+ * Foutcode van de client zelf: de reverse proxy wil eerst een (nieuwe) login. Achter Authentik
+ * forward-auth wordt elke call na het verlopen van de sessie een 302 naar de login (die `fetch`
+ * cross-origin niet mag volgen) of de loginpagina zelf. Zonder deze code leek dat "offline".
+ */
+export const AUTH_EXPIRED = "auth_expired";
+
+let sessionExpired = false;
+const sessionListeners = new Set<() => void>();
+
+/** Of een antwoord de login is in plaats van de api (doorverwijzing, 401 of HTML). */
+export function isLoginResponse(response: Response): boolean {
+  if (response.type === "opaqueredirect") return true;
+  if (response.status >= 300 && response.status < 400 && response.status !== 304) return true;
+  const type = response.headers.get("Content-Type") ?? "";
+  // Een 401 van cssthema zelf is JSON (Problem); die van de proxy niet.
+  if (response.status === 401 && !/json/i.test(type)) return true;
+  // De api geeft nooit HTML: dan is het de loginpagina, rechtstreeks getoond.
+  return response.ok && /text\/html/i.test(type);
+}
+
+/** De sessie is verlopen (sinds het laden van de pagina): voor de melding in de shell. */
+export function isSessionExpired(): boolean {
+  return sessionExpired;
+}
+
+export function subscribeSessionExpired(listener: () => void): () => void {
+  sessionListeners.add(listener);
+  return () => sessionListeners.delete(listener);
+}
+
+function markSessionExpired(): void {
+  if (sessionExpired) return;
+  sessionExpired = true;
+  for (const listener of sessionListeners) listener();
+}
+
+/** Alleen voor tests. */
+export function resetSessionExpired(): void {
+  sessionExpired = false;
+}
+
+export function sessionExpiredError(response: Response): ApiError {
+  return new ApiError({
+    status: 401,
+    code: AUTH_EXPIRED,
+    title: "Sessie verlopen",
+    detail: "Je sessie is verlopen: laad de pagina opnieuw om opnieuw in te loggen.",
+    requestId: response.headers.get("X-Request-ID"),
+  });
+}
+
+export function isAuthExpired(error: unknown): error is ApiError {
+  return isApiError(error) && error.code === AUTH_EXPIRED;
+}
+
+const sessionMiddleware: Middleware = {
+  onResponse({ response }) {
+    if (!isLoginResponse(response)) return undefined;
+    markSessionExpired();
+    throw sessionExpiredError(response);
+  },
+};
+api.use(sessionMiddleware);
 
 // --- ETag / If-Match ("lv-<n>") ----------------------------------------------------------------
 
@@ -500,7 +571,12 @@ export class HealthError extends Error {
  * (with the per-check result when the body has one); a network failure throws as `fetch` does.
  */
 export async function fetchHealth(path: "/healthz" | "/readyz"): Promise<HealthState> {
-  const res = await fetch(path, { headers: { Accept: "application/json" } });
+  const res = await fetch(path, { headers: { Accept: "application/json" }, redirect: "manual" });
+  // Achter de login van de proxy: de status-check merkt een verlopen sessie als eerste.
+  if (isLoginResponse(res)) {
+    markSessionExpired();
+    throw new HealthError(path, res.status, {});
+  }
   if (res.ok) return "ok";
   const checks: Record<string, HealthState> = {};
   try {
