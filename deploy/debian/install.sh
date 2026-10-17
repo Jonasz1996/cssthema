@@ -144,6 +144,23 @@ set -a
 # shellcheck disable=SC1090
 . "$ENV_FILE"
 set +a
+# Ook wat alleen in de configuratie staat (bv. met de hand aangepast) nu al controleren:
+# anders stopt het script pas bij nginx, na de back-up en de build, met een nginx-config die
+# naar een nog ontbrekende map verwijst.
+[ -n "${DASHBOARD_HOST:-}" ] ||
+    die "DASHBOARD_HOST is leeg in $ENV_FILE; zet daar de hostnaam van het dashboard (bv. DASHBOARD_HOST=cssthema.jbogaert.be) en draai het script opnieuw"
+case ${EXCLUDED_HOSTS:-} in
+    *[!A-Za-z0-9.,\ -]*) die "EXCLUDED_HOSTS in $ENV_FILE: alleen hostnamen, zonder schema of poort (bv. authentik.jbogaert.be)" ;;
+esac
+controle=$(mktemp -d)
+if ! { TRUSTED_PROXIES=$TRUSTED_PROXIES CSSTHEMA_REAL_IP_CONF=$controle/real-ip.conf \
+    sh "$APP_DIR/docker/nginx/entrypoint/40-cssthema-real-ip.sh" &&
+    DASHBOARD_HOST=$DASHBOARD_HOST CSSTHEMA_DASHBOARD_HOST_CONF=$controle/dashboard-host.conf \
+        sh "$APP_DIR/docker/nginx/entrypoint/41-cssthema-dashboard-host.sh"; }; then
+    rm -rf "$controle"
+    die "pas $ENV_FILE aan (zie de melding hierboven) en draai het script opnieuw; database, code en nginx zijn nog niet aangepast"
+fi
+rm -rf "$controle"
 
 step "PostgreSQL: gebruiker"
 psql_admin() { runuser -u postgres -- psql -X -q -v ON_ERROR_STOP=1 "$@"; }
@@ -303,7 +320,11 @@ else
         create_db "$new_db"
         if ! runuser -u postgres -- pg_restore --no-owner --role="$POSTGRES_USER" -d "$new_db" <"$dump"; then
             runuser -u postgres -- dropdb "$new_db"
-            die "omzetten naar UTF8 mislukt; de database is niet aangepast (dump: $dump)"
+            # De nieuwe code staat al klaar: de EXIT-trap start api en worker daarmee, en de
+            # api migreert bij het starten de database (nog in $encoding).
+            die "omzetten naar UTF8 mislukt (dump: $dump). api en worker starten weer, met de nieuwe
+code op de database in $encoding, die de api bij het starten migreert. Los de fout hierboven op en
+draai het script opnieuw; de back-up van vóór de update staat in: cssthema-backup lijst"
         fi
         old_db=${POSTGRES_DB}_$(echo "$encoding" | tr '[:upper:]' '[:lower:]')_$stamp
         psql_admin -v old="$POSTGRES_DB" -v bak="$old_db" -v new="$new_db" <<'SQL'

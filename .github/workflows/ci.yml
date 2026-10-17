@@ -280,6 +280,24 @@ jobs:
             grep -qF "git -C /opt/cssthema checkout --detach $OUDE_VERSIE" /root/terugzetten.log
             if systemctl is-active -q cssthema-api; then exit 1; fi
             test "$(runuser -u postgres -- psql -d cssthema -tAc "SELECT version_num FROM alembic_version")" = 0002
+            # De database hoort nu weer bij de oude versie: de volgende back-up moet dat noteren.
+            test "$(cat /var/lib/cssthema/geinstalleerde-commit)" = "$OUDE_VERSIE"
+          '
+      - name: Ongeldige DASHBOARD_HOST in cssthema.env
+        run: |
+          docker exec deb bash -euxc '
+            # Ook een waarde die alleen in de configuratie staat, weigert install.sh vóór de
+            # back-up en vóór nginx.
+            cp /etc/cssthema/cssthema.env /root/cssthema.env.goed
+            sed -i "s|^DASHBOARD_HOST=.*|DASHBOARD_HOST=https://localhost|" /etc/cssthema/cssthema.env
+            backups=$(ls /var/backups/cssthema 2>/dev/null | wc -l)
+            site=$(md5sum < /etc/nginx/sites-available/cssthema)
+            if bash /opt/cssthema/deploy/debian/install.sh > /root/ongeldig.log 2>&1; then exit 1; fi
+            grep -qF "ongeldige hostnaam in DASHBOARD_HOST" /root/ongeldig.log
+            grep -qF "nog niet aangepast" /root/ongeldig.log
+            test "$(ls /var/backups/cssthema 2>/dev/null | wc -l)" = "$backups"
+            test "$(md5sum < /etc/nginx/sites-available/cssthema)" = "$site"
+            cp /root/cssthema.env.goed /etc/cssthema/cssthema.env
           '
       - name: install.sh, nog een keer (bijwerken)
         run: docker exec -e PUBLIC_BASE_URL=https://css.example.test deb bash /opt/cssthema/deploy/debian/install.sh

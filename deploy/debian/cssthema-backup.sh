@@ -168,14 +168,18 @@ terugzetten() {
 
     # Alleen starten als de code bij de teruggezette database past: de api migreert bij het
     # starten naar het schema van de code die er nu staat, en een nieuwere code zou de
-    # teruggezette database zo meteen weer omzetten.
+    # teruggezette database zo meteen weer omzetten. Niet gestart: de database hoort nu bij de
+    # commit van de back-up. Die noteren, want een oudere install.sh schrijft dat bestand niet,
+    # en anders noemt de volgende back-up de nieuwere code bij de oude migratie.
     if [ "$commit" = onbekend ]; then
+        echo onbekend >"$DATA_DIR/geinstalleerde-commit"
         echo
         echo "Data teruggezet, niet gestart: de back-up weet niet bij welke versie van de code hij hoort"
         echo "(databasemigratie ${revisie:-onbekend}; de code hier staat op ${heads//$'\n'/, }). Zoek die versie"
         echo "met git -C $APP_DIR reflog en start alles met:"
         echo "  git -C $APP_DIR checkout --detach <commit> && bash $APP_DIR/deploy/debian/install.sh"
     elif { [ -n "$revisie" ] && [ "$revisie" != "$heads" ]; } || { [ -z "$revisie" ] && [ "$commit" != "$current" ]; }; then
+        echo "$commit" >"$DATA_DIR/geinstalleerde-commit"
         echo
         echo "Data teruggezet, niet gestart. De back-up hoort bij een andere versie van de code ($commit${revisie:+, databasemigratie $revisie})."
         echo "Zet die code terug en start alles met:"
