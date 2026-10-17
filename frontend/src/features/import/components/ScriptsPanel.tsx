@@ -17,7 +17,7 @@ import { type ScriptUploadOutcome, useScriptUpload } from "../hooks/use-script-u
 import { copyScriptUrl } from "../lib/copy-url";
 import { SCRIPT_ARCHIVE_DIR, SCRIPT_ERROR_KEYS, shortHash } from "../lib/scripts";
 import { uploadKind, uploadProblem, type UploadProblem } from "../lib/upload";
-import { InjectionSnippet } from "./InjectionSnippet";
+import { HostsRuleHint } from "./HostsRuleHint";
 import { ScriptViewDialog } from "./ScriptViewDialog";
 
 const SCRIPT_ACCEPT = ".js,text/javascript,application/javascript";
@@ -308,7 +308,7 @@ export function ScriptsPanel() {
         </section>
       )}
 
-      {!scripts.isError && <InjectionSnippet scripts={list} />}
+      {!scripts.isError && <HostsRuleHint />}
 
       {conflictDialog}
 

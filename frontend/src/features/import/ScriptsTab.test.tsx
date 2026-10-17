@@ -433,16 +433,15 @@ describe("Import: tab Scripts", () => {
     );
   });
 
-  it("lege map: uitleg, uploadknop en het snippet met /algemeen.js als voorbeeld", async () => {
+  it("lege map: uitleg, uploadknop en de verwijzing naar de regel op Hosts", async () => {
     const api = scriptsServer([]);
     renderPage(<ImportPage />, { path: "/import?tab=scripts", server: api });
     expect(await screen.findByText("Nog geen scripts")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /Script uploaden/ })).toBeEnabled();
-    await waitFor(() =>
-      expect(document.querySelector("[data-snippet-code]")).toHaveTextContent(
-        '<script src="https://css.example/algemeen.js" defer></script>',
-      ),
-    );
+    expect(
+      screen.getByText(/op de pagina Hosts stel je in welke apps het laden/),
+    ).toBeInTheDocument();
+    expect(document.querySelector("[data-hosts-rule-hint]")).not.toBeNull();
 
     pick(screen.getByTestId("script-upload-input"), [jsFile("algemeen.js")]);
     await waitFor(() =>
@@ -467,38 +466,33 @@ describe("Import: tab Scripts", () => {
     renderPage(<ImportPage />, { path: "/import?tab=scripts", server: api });
     expect(await screen.findByText("De scripts konden niet gelezen worden")).toBeInTheDocument();
     expect(screen.getByText("/srv/css-files is geen map.")).toBeInTheDocument();
-    expect(document.querySelector("[data-snippet]")).toBeNull();
+    expect(document.querySelector("[data-hosts-rule-hint]")).toBeNull();
 
     broken = false;
     fireEvent.click(screen.getByRole("button", { name: /Vernieuwen/ }));
     await row("algemeen");
-    expect(document.querySelector("[data-snippet]")).not.toBeNull();
+    expect(document.querySelector("[data-hosts-rule-hint]")).not.toBeNull();
   });
 
-  it("snippet: thema vrij te kiezen, script te kiezen, kopiëren en de waarschuwing", async () => {
-    const writeText = stubClipboard();
-    renderPage(<ImportPage />, { path: "/import?tab=scripts", server: scriptsServer() });
+  it("geen eigen location-snippet meer: verwijzing naar Hosts en de scriptwaarschuwing", async () => {
+    // FE-5/ROLL-7: de oude snippet (eigen `location /`) schakelde de Access List van NPM uit.
+    const { router } = renderPage(<ImportPage />, {
+      path: "/import?tab=scripts",
+      server: scriptsServer(),
+    });
     await row("algemeen");
-    const code = () => document.querySelector("[data-snippet-code]")?.textContent ?? "";
-    expect(code()).toContain(
-      `sub_filter '</head>' '<link rel="stylesheet" href="https://css.example/algemeen.css">` +
-        `<script src="https://css.example/algemeen.js" defer></script></head>';`,
-    );
-    expect(code()).toContain('proxy_set_header Accept-Encoding "";');
-    expect(code()).toContain("sub_filter_once on;");
-
-    fireEvent.change(screen.getByLabelText("Thema (slug)"), { target: { value: "Nord Donker" } });
-    expect(code()).toContain('href="https://css.example/nord-donker.css"');
-    fireEvent.change(screen.getByLabelText("Script"), { target: { value: "klok-widget" } });
-    expect(code()).toContain('<script src="https://css.example/klok-widget.js" defer>');
-    fireEvent.change(screen.getByLabelText("Thema (slug)"), { target: { value: "" } });
-    expect(code()).not.toContain("<link");
-
-    fireEvent.click(screen.getByRole("button", { name: /Snippet kopiëren/ }));
-    await waitFor(() => expect(writeText).toHaveBeenCalledWith(code()));
-    expect(toastTexts()).toContainEqual({ tone: "ok", text: "Snippet gekopieerd." });
+    const hint = document.querySelector<HTMLElement>("[data-hosts-rule-hint]");
+    expect(hint).not.toBeNull();
+    expect(hint).not.toHaveTextContent("sub_filter");
+    expect(screen.queryByRole("button", { name: /Snippet kopiëren/ })).toBeNull();
+    expect(
+      within(hint!).getByText(/Access List van de proxy host niet meer geldt/),
+    ).toBeInTheDocument();
     expect(
       screen.getByText(/injecteer ze niet in wachtwoordkluizen \(Vaultwarden, …\)/),
     ).toBeInTheDocument();
+
+    fireEvent.click(within(hint!).getByRole("link", { name: /Naar Hosts/ }));
+    await waitFor(() => expect(currentUrl(router)).toBe("/hosts"));
   });
 });
