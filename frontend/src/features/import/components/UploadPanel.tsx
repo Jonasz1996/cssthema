@@ -31,6 +31,7 @@ import {
   type ScriptNameIssue,
   shellWord,
 } from "../lib/scripts";
+import { checkScriptSyntax } from "../lib/script-syntax";
 import {
   ACCEPT,
   CONFLICT_CHOICES,
@@ -317,8 +318,18 @@ export function UploadPanel() {
   };
 
   const sendScript = async (file: File, customName: string | undefined): Promise<UploadResult> => {
-    const outcome = await uploadScript(file, { name: customName });
     const base = { id: nextResultId++, file: file.name };
+    // Eerst de syntax: een fout script legt in de bundel van een host ook de andere stil.
+    const syntax = checkScriptSyntax(await file.text());
+    if (syntax.ok === false) {
+      return {
+        ...base,
+        kind: "failed",
+        message: t("common.scriptSyntaxError", { message: syntax.message }),
+        issues: [],
+      };
+    }
+    const outcome = await uploadScript(file, { name: customName });
     if (outcome.status === "ok") {
       return { ...base, kind: "script", script: outcome.script, created: outcome.created };
     }

@@ -40,5 +40,6 @@
   "uploadUnchanged_one": "{count} file was the same as the latest version (unchanged).",
   "uploadUnchanged_other": "{count} files were the same as the latest version (unchanged).",
   "uploadNothingChanged_one": "Nothing changed: the file is the same as the latest version.",
-  "uploadNothingChanged_other": "Nothing changed: the {count} files are the same as their latest version."
+  "uploadNothingChanged_other": "Nothing changed: the {count} files are the same as their latest version.",
+  "scriptSyntaxError": "Syntax error: {message}. Not uploaded: in a host's bundle one broken script also stops the other scripts."
 }

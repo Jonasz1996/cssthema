@@ -40,5 +40,6 @@
   "uploadUnchanged_one": "{count} bestand was gelijk aan de laatste versie (ongewijzigd).",
   "uploadUnchanged_other": "{count} bestanden waren gelijk aan de laatste versie (ongewijzigd).",
   "uploadNothingChanged_one": "Niets veranderd: het bestand is gelijk aan de laatste versie.",
-  "uploadNothingChanged_other": "Niets veranderd: de {count} bestanden zijn gelijk aan hun laatste versie."
+  "uploadNothingChanged_other": "Niets veranderd: de {count} bestanden zijn gelijk aan hun laatste versie.",
+  "scriptSyntaxError": "Syntaxfout: {message}. Niet geüpload: in de bundel van een host houdt één fout script ook de andere scripts tegen."
 }

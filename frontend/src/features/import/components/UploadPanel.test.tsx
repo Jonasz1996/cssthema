@@ -181,3 +181,20 @@ describe("UploadPanel: ongewijzigd", () => {
     });
   });
 });
+
+describe("UploadPanel: syntax van scripts", () => {
+  it("een script met een syntaxfout wordt niet geüpload", async () => {
+    const api = server().on("POST", "/api/v1/scripts", () => json({}, { status: 500 }));
+    renderPage(<UploadPanel />, { path: "/import", server: api });
+    pick([new File(["const x = {a: 1,, b: 2};"], "kapot.js", { lastModified: 1 })]);
+    fireEvent.click(screen.getByRole("button", { name: "1 script uploaden" }));
+    const row = await resultRow("kapot.js");
+    expect(row.getByText("mislukt")).toBeInTheDocument();
+    expect(
+      row.getByText(/^Syntaxfout: .+\. Niet geüpload: in de bundel van een host/),
+    ).toBeInTheDocument();
+    expect(api.callsTo("POST", "/api/v1/scripts")).toHaveLength(0);
+    // Het bestand blijft in de lijst om te verbeteren.
+    expect(document.querySelector('[data-upload-file="kapot.js"]')).not.toBeNull();
+  });
+});
