@@ -80,3 +80,6 @@ export type PreviewStack = Schemas["PreviewStack"];
 export type StackPart = Schemas["StackPart"];
 /** Welke hosts een thema krijgen (`/preview/usage`). */
 export type ThemeUsage = Schemas["ThemeUsage"];
+/** Antwoord van `POST /themes/import`: het thema en wat er gebeurde (`outcome`). */
+export type UploadedTheme = Schemas["UploadedTheme"];
+export type ImportOutcome = UploadedTheme["outcome"];

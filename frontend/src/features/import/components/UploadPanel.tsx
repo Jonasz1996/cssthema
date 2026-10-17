@@ -1,7 +1,7 @@
-import { type DragEvent, useEffect, useId, useRef, useState } from "react";
+import { type DragEvent, useEffect, useId, useMemo, useRef, useState } from "react";
 import { lintIssuesOf } from "@/api/client";
-import { useImportTheme } from "@/api/queries/themes";
-import type { ImportConflict, LintIssue, ScriptFile, Theme } from "@/api/types";
+import { useImportTheme, useThemes } from "@/api/queries/themes";
+import type { ImportConflict, ImportOutcome, LintIssue, ScriptFile, Theme } from "@/api/types";
 import { useShellCommand } from "@/app/shell-command";
 import {
   Button,
@@ -48,10 +48,19 @@ import {
   uploadProblem,
   type UploadProblem,
 } from "../lib/upload";
+import { uploadDefaults } from "../lib/upload-defaults";
 import { LintIssueList } from "./LintIssueList";
 
 type UploadResult =
-  | { id: number; file: string; kind: "theme"; theme: Theme; created: boolean }
+  | {
+      id: number;
+      file: string;
+      kind: "theme";
+      theme: Theme;
+      created: boolean;
+      /** `unchanged`: gelijk aan de laatste versie, er is niets opgeslagen of gepubliceerd. */
+      outcome: ImportOutcome;
+    }
   | { id: number; file: string; kind: "script"; script: ScriptFile; created: boolean }
   /** Script met een bestaande naam, en de gebruiker koos om niet te vervangen. */
   | { id: number; file: string; kind: "kept"; name: string }
@@ -119,6 +128,12 @@ const KIND_LABELS: Record<UploadKind, MessageKey | null> = {
 
 let nextResultId = 1;
 
+/** Bestanden die de browser uit een gewone zip haalde (voor de standaardkeuzes). */
+const unpackedFiles = new WeakSet<File>();
+
+/** Zoveel bestaande thema's bekijken we voor de standaardkeuzes (één pagina, de API-limiet). */
+const KNOWN_THEMES_LIMIT = 200;
+
 /**
  * React-sleutel per `File`: twee bestanden uit één zip kunnen dezelfde naam, grootte en datum
  * hebben (`licht/thema.css` en `donker/thema.css`).
@@ -159,13 +174,24 @@ export function UploadPanel() {
     return () => pending.clear();
   }, []);
   const [dragging, setDragging] = useState(false);
-  const [conflict, setConflict] = useState<ImportConflict>("rename");
-  const [publish, setPublish] = useState<PublishChoice>("auto");
+  // `null` = de standaard voor deze bestanden (`uploadDefaults`); anders de eigen keuze.
+  const [conflictChoice, setConflict] = useState<ImportConflict | null>(null);
+  const [publishChoice, setPublish] = useState<PublishChoice | null>(null);
   const [name, setName] = useState("");
   const [running, setRunning] = useState(false);
   const [results, setResults] = useState<UploadResult[]>([]);
   const { mutateAsync } = useImportTheme();
   const { upload: uploadScript, dialog: conflictDialog } = useScriptUpload();
+
+  const hasCss = files.some((file) => uploadKind(file.name) === "css");
+  const known = useThemes({ limit: KNOWN_THEMES_LIMIT }, { enabled: hasCss });
+  const slugs = useMemo(
+    () => (known.data ? new Set(known.data.items.map((theme) => theme.slug)) : null),
+    [known.data],
+  );
+  const defaults = uploadDefaults(files, { unpacked: (file) => unpackedFiles.has(file), slugs });
+  const conflict = conflictChoice ?? defaults.conflict;
+  const publish = publishChoice ?? defaults.publish;
 
   const single = files.length === 1;
   /** Naam voor een script: het naamveld (alleen bij één bestand), anders de bestandsnaam. */
@@ -203,6 +229,7 @@ export function UploadPanel() {
     if (outcome.kind === "files") {
       // Alleen tegen de lijst ontdubbelen, niet onderling: bestanden uit verschillende mappen
       // mogen dezelfde naam, grootte en datum hebben.
+      for (const item of outcome.files) unpackedFiles.add(item);
       setFiles((current) => {
         const rest = current.filter((item) => item !== zip);
         const known = new Set(rest.map(fileKey));
@@ -263,14 +290,21 @@ export function UploadPanel() {
 
   const importTheme = async (file: File, customName: string | undefined) => {
     try {
-      const { data, created } = await mutateAsync({
+      const { data, created, outcome } = await mutateAsync({
         file,
         filename: file.name,
         onConflict: conflict,
         publish: publishParam(publish),
         name: customName,
       });
-      return { id: nextResultId++, file: file.name, kind: "theme", theme: data, created } as const;
+      return {
+        id: nextResultId++,
+        file: file.name,
+        kind: "theme",
+        theme: data,
+        created,
+        outcome,
+      } as const;
     } catch (error) {
       return {
         id: nextResultId++,
@@ -322,7 +356,12 @@ export function UploadPanel() {
       }
     });
 
-    const themes = batch.filter((result) => result.kind === "theme");
+    const themes = batch.filter(
+      (result) => result.kind === "theme" && result.outcome !== "unchanged",
+    ) as Extract<UploadResult, { kind: "theme" }>[];
+    const unchanged = batch.filter(
+      (result) => result.kind === "theme" && result.outcome === "unchanged",
+    ).length;
     const scripts = batch.filter((result) => result.kind === "script");
     const failed = batch.filter((result) => result.kind === "failed").length;
     const kept = batch.filter((result) => result.kind === "kept").length;
@@ -339,8 +378,12 @@ export function UploadPanel() {
     ].filter((part): part is string => part !== null);
     const imported = parts.join(", ");
     const [onlyScript] = scripts;
+    // Gelijk aan de laatste versie: niets veranderd, apart vermeld (review FEAT-9).
+    const note = unchanged ? ` ${tc("common.uploadUnchanged", unchanged)}` : "";
     if (failed) {
-      toast.mid(t("import.uploadDone", { imported, failed: tc("import.filesCount", failed) }));
+      toast.mid(
+        t("import.uploadDone", { imported, failed: tc("import.filesCount", failed) }) + note,
+      );
     } else if (onlyScript && batch.length === 1) {
       toast.ok(
         onlyScript.created
@@ -348,7 +391,9 @@ export function UploadPanel() {
           : t("import.scriptReplaced", { file: onlyScript.script.filename }),
       );
     } else if (themes.length || scripts.length) {
-      toast.ok(t("import.uploadDoneAll", { imported }));
+      toast.ok(t("import.uploadDoneAll", { imported }) + note);
+    } else if (unchanged) {
+      toast(tc("common.uploadNothingChanged", unchanged));
     } else if (kept) {
       toast(t("import.uploadNothing"));
     }
@@ -466,6 +511,16 @@ export function UploadPanel() {
           </p>
         ) : (
           <>
+            {defaults.reason && (conflictChoice === null || publishChoice === null) && (
+              <p
+                data-upload-defaults={defaults.reason}
+                className="m-0 mt-3.5 rounded-[10px] border border-line bg-white/3 px-3.5 py-2.5 text-[12px] leading-[1.6] text-muted sm:col-span-3"
+              >
+                {defaults.reason === "zip"
+                  ? t("common.uploadDefaultsZip")
+                  : tc("common.uploadDefaultsExisting", defaults.existing)}
+              </p>
+            )}
             <Field label={t("import.fieldConflict")} hint={t(CONFLICT_HINTS[conflict])}>
               <Select
                 value={conflict}
@@ -563,8 +618,14 @@ function UploadResultRow({ result }: { result: UploadResult }) {
       return (
         <ItemRow
           data-upload-result={result.file}
-          severity="ok"
-          label={result.created ? t("import.resultCreated") : t("import.resultNewVersion")}
+          severity={result.outcome === "unchanged" ? "default" : "ok"}
+          label={
+            result.outcome === "unchanged"
+              ? t("common.uploadResultUnchanged")
+              : result.created
+                ? t("import.resultCreated")
+                : t("import.resultNewVersion")
+          }
           title={result.theme.name}
           tags={<ThemeStatusTags theme={result.theme} />}
           meta={
@@ -581,7 +642,9 @@ function UploadResultRow({ result }: { result: UploadResult }) {
               ✎ {t("themes.actionOpen")}
             </ButtonLink>
           }
-        />
+        >
+          {result.outcome === "unchanged" ? t("common.uploadResultUnchangedText") : null}
+        </ItemRow>
       );
     case "script":
       return (

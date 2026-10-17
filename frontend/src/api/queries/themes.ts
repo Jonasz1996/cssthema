@@ -29,6 +29,7 @@ import type {
   DuplicateRequest,
   ExportFormat,
   ImportConflict,
+  ImportOutcome,
   LocalCssFile,
   LocalImportResult,
   Locked,
@@ -187,6 +188,11 @@ export interface ImportThemeInput {
 export type ImportThemeResult = Locked<Theme> & {
   /** `false`: nieuwe versie op een bestaand thema (`on_conflict=new_version`, HTTP 200). */
   created: boolean;
+  /**
+   * `unchanged`: gelijk aan de laatste versie; er is niets opgeslagen of gepubliceerd
+   * (`on_conflict=new_version`).
+   */
+  outcome: ImportOutcome;
 };
 
 type ImportBody = components["schemas"]["Body_themes_import"];
@@ -207,7 +213,8 @@ export async function importTheme({
       ...multipart<ImportBody>({ file: upload, on_conflict: onConflict, publish, name }),
     }),
   );
-  return { data, ...lockOf(response, data), created: response.status === 201 };
+  const { outcome, ...theme } = data;
+  return { data: theme, ...lockOf(response, theme), created: response.status === 201, outcome };
 }
 
 export async function fetchLocalFiles(signal?: AbortSignal): Promise<LocalCssFile[]> {
@@ -389,10 +396,12 @@ export function useImportTheme() {
   const queryClient = useQueryClient();
   return useMutation<ImportThemeResult, ApiError, ImportThemeInput>({
     mutationFn: importTheme,
-    onSuccess: ({ data, created }) => {
+    onSuccess: ({ data, created, outcome }) => {
+      if (outcome === "unchanged") return; // niets veranderd op de server
       putTheme(queryClient, data);
       if (!created) void invalidateThemeState(queryClient, data.id, { draft: true });
       void invalidateCollections(queryClient, { palettes: true, localFiles: true });
+      void invalidateHosts(queryClient);
     },
   });
 }

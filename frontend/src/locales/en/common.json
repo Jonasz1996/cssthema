@@ -30,5 +30,15 @@
   "staleTitle": "New version of cssthema",
   "staleHint": "cssthema was updated while this tab was open. Reload the page to load the new version.",
   "staleError": "Part of the previous version is no longer available",
-  "reload": "Reload"
+  "reload": "Reload",
+
+  "uploadDefaultsZip": "Unpacked zip: a new version when the name exists, published right away (like themes/ from the repo). Choose something else below if you do not want that.",
+  "uploadDefaultsExisting_one": "{count} file has the name of an existing theme: by default a new version that goes live right away, not a copy. Choose something else below if you do not want that.",
+  "uploadDefaultsExisting_other": "{count} files have the name of an existing theme: by default a new version that goes live right away, not a copy. Choose something else below if you do not want that.",
+  "uploadResultUnchanged": "unchanged",
+  "uploadResultUnchangedText": "Same as the latest version: nothing was saved or published.",
+  "uploadUnchanged_one": "{count} file was the same as the latest version (unchanged).",
+  "uploadUnchanged_other": "{count} files were the same as the latest version (unchanged).",
+  "uploadNothingChanged_one": "Nothing changed: the file is the same as the latest version.",
+  "uploadNothingChanged_other": "Nothing changed: the {count} files are the same as their latest version."
 }
