@@ -1,7 +1,14 @@
 import { type DragEvent, useEffect, useId, useMemo, useRef, useState } from "react";
 import { lintIssuesOf } from "@/api/client";
 import { useImportTheme, useThemes } from "@/api/queries/themes";
-import type { ImportConflict, ImportOutcome, LintIssue, ScriptFile, Theme } from "@/api/types";
+import type {
+  ImportConflict,
+  ImportOutcome,
+  LintIssue,
+  ScriptFile,
+  Theme,
+  ThemePage,
+} from "@/api/types";
 import { useShellCommand } from "@/app/shell-command";
 import {
   Button,
@@ -135,6 +142,11 @@ const unpackedFiles = new WeakSet<File>();
 /** Zoveel bestaande thema's bekijken we voor de standaardkeuzes (één pagina, de API-limiet). */
 const KNOWN_THEMES_LIMIT = 200;
 
+/** Slugs van de bestaande thema's, of `null` zolang de lijst er niet is. */
+function slugsOf(page: ThemePage | undefined): ReadonlySet<string> | null {
+  return page ? new Set(page.items.map((theme) => theme.slug)) : null;
+}
+
 /**
  * React-sleutel per `File`: twee bestanden uit één zip kunnen dezelfde naam, grootte en datum
  * hebben (`licht/thema.css` en `donker/thema.css`).
@@ -186,13 +198,15 @@ export function UploadPanel() {
 
   const hasCss = files.some((file) => uploadKind(file.name) === "css");
   const known = useThemes({ limit: KNOWN_THEMES_LIMIT }, { enabled: hasCss });
-  const slugs = useMemo(
-    () => (known.data ? new Set(known.data.items.map((theme) => theme.slug)) : null),
-    [known.data],
-  );
-  const defaults = uploadDefaults(files, { unpacked: (file) => unpackedFiles.has(file), slugs });
+  const slugs = useMemo(() => slugsOf(known.data), [known.data]);
+  const defaultsWith = (existing: ReadonlySet<string> | null) =>
+    uploadDefaults(files, { unpacked: (file) => unpackedFiles.has(file), slugs: existing });
+  const defaults = defaultsWith(slugs);
   const conflict = conflictChoice ?? defaults.conflict;
   const publish = publishChoice ?? defaults.publish;
+  // De standaard hangt nog af van de bestaande thema's (en er is geen eigen keuze voor beide).
+  const defaultsOpen = defaults.pending && (conflictChoice === null || publishChoice === null);
+  const awaitingDefaults = defaultsOpen && !known.isError;
 
   const single = files.length === 1;
   /** Naam voor een script: het naamveld (alleen bij één bestand), anders de bestandsnaam. */
@@ -289,13 +303,31 @@ export function UploadPanel() {
     if (!running) add(event.dataTransfer.files);
   };
 
-  const importTheme = async (file: File, customName: string | undefined) => {
+  /**
+   * De keuzes voor deze ronde. Is de lijst met thema's er nog niet, dan eerst die afwachten:
+   * met de gewone standaard werd een bestaand thema stil een kopie `alg-kern-2` als draft.
+   */
+  const choicesForRun = async () => {
+    if (!awaitingDefaults) return { conflict, publish };
+    const { data } = await known.refetch({ cancelRefetch: false });
+    const settled = defaultsWith(slugsOf(data));
+    return {
+      conflict: conflictChoice ?? settled.conflict,
+      publish: publishChoice ?? settled.publish,
+    };
+  };
+
+  const importTheme = async (
+    file: File,
+    customName: string | undefined,
+    choice: { conflict: ImportConflict; publish: PublishChoice },
+  ) => {
     try {
       const { data, created, outcome } = await mutateAsync({
         file,
         filename: file.name,
-        onConflict: conflict,
-        publish: publishParam(publish),
+        onConflict: choice.conflict,
+        publish: publishParam(choice.publish),
         name: customName,
       });
       return {
@@ -345,6 +377,7 @@ export function UploadPanel() {
   const run = async () => {
     if (!valid.length || running || reading.size) return;
     setRunning(true);
+    const choice = await choicesForRun();
     const batch: UploadResult[] = [];
     const done = new Set<File>();
     const customName = single && name.trim() ? name.trim() : undefined;
@@ -352,7 +385,7 @@ export function UploadPanel() {
       const result =
         uploadKind(file.name) === "script"
           ? await sendScript(file, customName)
-          : await importTheme(file, customName);
+          : await importTheme(file, customName, choice);
       batch.push(result);
       if (result.kind === "theme" || result.kind === "script") done.add(file);
     }
@@ -522,6 +555,17 @@ export function UploadPanel() {
           </p>
         ) : (
           <>
+            {defaultsOpen && (
+              <p
+                role="status"
+                data-upload-defaults={awaitingDefaults ? "loading" : "unknown"}
+                className="m-0 mt-3.5 rounded-[10px] border border-line bg-white/3 px-3.5 py-2.5 text-[12px] leading-[1.6] text-muted sm:col-span-3"
+              >
+                {awaitingDefaults
+                  ? t("common.uploadDefaultsLoading")
+                  : t("common.uploadDefaultsUnknown")}
+              </p>
+            )}
             {defaults.reason && (conflictChoice === null || publishChoice === null) && (
               <p
                 data-upload-defaults={defaults.reason}

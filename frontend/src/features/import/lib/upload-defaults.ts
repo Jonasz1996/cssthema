@@ -19,6 +19,11 @@ export interface UploadDefaults {
   reason: UploadDefaultsReason | null;
   /** Zoveel `.css`-bestanden hebben de naam van een bestaand thema. */
   existing: number;
+  /**
+   * De keuze hangt af van de bestaande thema's en die zijn nog niet bekend: niet importeren
+   * met de gewone standaard (anders stil een kopie als draft, review THM-2).
+   */
+  pending: boolean;
 }
 
 export const PLAIN_DEFAULTS = { conflict: "rename", publish: "auto" } as const;
@@ -46,10 +51,12 @@ export function uploadDefaults(
   const existing = css.filter(exists).length;
   const bundle = files.some((file) => uploadKind(file.name) === "bundle");
   const known = css.length > 0 && css.every((file) => unpacked(file) || exists(file));
-  if (bundle || !known) return { ...PLAIN_DEFAULTS, reason: null, existing };
+  const pending = !bundle && slugs === null && css.some((file) => !unpacked(file));
+  if (bundle || !known) return { ...PLAIN_DEFAULTS, reason: null, existing, pending };
   return {
     ...UPDATE_DEFAULTS,
     reason: css.some(unpacked) ? "zip" : "existing",
     existing,
+    pending,
   };
 }

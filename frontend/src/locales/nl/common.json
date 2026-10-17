@@ -44,5 +44,8 @@
   "scriptSyntaxError": "Syntaxfout: {message}. Niet geüpload: in de bundel van een host houdt één fout script ook de andere scripts tegen.",
 
   "sessionExpiredTitle": "Sessie verlopen",
-  "sessionExpiredText": "Je login is verlopen: laad de pagina opnieuw om opnieuw in te loggen. Wat je in de editor typte, staat veilig in deze browser en komt daarna terug."
+  "sessionExpiredText": "Je login is verlopen: laad de pagina opnieuw om opnieuw in te loggen. Wat je in de editor typte, staat veilig in deze browser en komt daarna terug.",
+
+  "uploadDefaultsLoading": "Bestaande thema's ophalen: of een bestand een nieuwe versie wordt, hangt ervan af of zijn naam al bestaat.",
+  "uploadDefaultsUnknown": "De bestaande thema's konden niet opgehaald worden, dus staat hieronder de gewone standaard (nieuw thema, niet publiceren). Is het een bestaand thema, kies dan zelf 'Nieuwe versie van het bestaande thema' en 'Ja, publiceren'."
 }

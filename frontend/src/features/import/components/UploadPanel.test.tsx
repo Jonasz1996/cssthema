@@ -135,6 +135,47 @@ describe("UploadPanel: standaardkeuzes", () => {
     expect(form.get("publish")).toBe("false");
   });
 
+  it("importeren wacht op de bestaande thema's: geen stille kopie als draft", async () => {
+    let release = () => {};
+    const listed = new Promise<void>((resolve) => {
+      release = resolve;
+    });
+    const api = server(["alg-kern"]).on("GET", "/api/v1/themes", async () => {
+      await listed;
+      return json({ items: [makeTheme({ slug: "alg-kern" })], next_cursor: null });
+    });
+    renderPage(<UploadPanel />, { path: "/import", server: api });
+    pick([cssFile("alg-kern.css")]);
+    expect(await screen.findByRole("status")).toHaveTextContent(/^Bestaande thema's ophalen/);
+    expect(defaultsHint()).toHaveAttribute("data-upload-defaults", "loading");
+    // Meteen geklikt: de import wacht op de lijst in plaats van de gewone standaard te nemen.
+    fireEvent.click(uploadButton(1));
+    expect(await screen.findByRole("button", { name: "Uploaden…" })).toBeDisabled();
+    await new Promise((resolve) => setTimeout(resolve, 20));
+    expect(api.callsTo("POST", "/api/v1/themes/import")).toHaveLength(0);
+    // Op dezelfde lijst gewacht, geen tweede verzoek.
+    expect(api.callsTo("GET", "/api/v1/themes")).toHaveLength(1);
+
+    release();
+    await resultRow("alg-kern.css");
+    const form = api.callsTo("POST", "/api/v1/themes/import")[0]!.body as FormData;
+    expect(form.get("on_conflict")).toBe("new_version");
+    expect(form.get("publish")).toBe("true");
+  });
+
+  it("een eigen keuze hoeft niet te wachten; zonder lijst een melding om zelf te kiezen", async () => {
+    const api = server().on("GET", "/api/v1/themes", () => json({}, { status: 500 }));
+    renderPage(<UploadPanel />, { path: "/import", server: api });
+    pick([cssFile("alg-kern.css")]);
+    await waitFor(() => expect(defaultsHint()).toHaveAttribute("data-upload-defaults", "unknown"));
+    expect(defaultsHint()).toHaveTextContent(/^De bestaande thema's konden niet opgehaald worden/);
+    expect(conflictSelect()).toHaveValue("rename");
+    expect(uploadButton(1)).toBeEnabled();
+    fireEvent.change(conflictSelect(), { target: { value: "new_version" } });
+    fireEvent.change(publishSelect(), { target: { value: "yes" } });
+    expect(defaultsHint()).toBeNull();
+  });
+
   it("een bundel in de lijst: geen andere standaard", async () => {
     renderPage(<UploadPanel />, { path: "/import", server: server(["proxmox"]) });
     pick([cssFile("proxmox.css"), new File(["PK"], "nord.cssthema.zip", { lastModified: 1 })]);

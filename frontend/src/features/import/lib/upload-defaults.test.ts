@@ -16,12 +16,24 @@ describe("uploadDefaults", () => {
     const slugs = new Set(["alg-kern", "algemeen"]);
     expect(
       uploadDefaults([file("alg-kern.css"), file("algemeen.css")], { unpacked, slugs }),
-    ).toEqual({ conflict: "new_version", publish: "yes", reason: "existing", existing: 2 });
+    ).toEqual({
+      conflict: "new_version",
+      publish: "yes",
+      reason: "existing",
+      existing: 2,
+      pending: false,
+    });
     const fromZip = file("alg-nieuw.css");
     zipped.add(fromZip);
     expect(
       uploadDefaults([fromZip, file("alg-kern.css"), file("x.js")], { unpacked, slugs }),
-    ).toEqual({ conflict: "new_version", publish: "yes", reason: "zip", existing: 1 });
+    ).toEqual({
+      conflict: "new_version",
+      publish: "yes",
+      reason: "zip",
+      existing: 1,
+      pending: false,
+    });
   });
 
   it("keeps the plain defaults otherwise", () => {
@@ -30,6 +42,7 @@ describe("uploadDefaults", () => {
     expect(uploadDefaults([file("alg-kern.css"), file("nieuw.css")], { unpacked, slugs })).toEqual({
       ...plain,
       existing: 1,
+      pending: false,
     });
     // Bundel erbij, alleen scripts, of de thema's zijn nog niet geladen.
     expect(
@@ -39,6 +52,24 @@ describe("uploadDefaults", () => {
     expect(uploadDefaults([file("alg-kern.css")], { unpacked, slugs: null })).toEqual({
       ...plain,
       existing: 0,
+      pending: true,
     });
+  });
+
+  it("is pending only while the existing themes matter and are not known yet", () => {
+    const fromZip = file("alg-kern.css");
+    zipped.add(fromZip);
+    // Uit een zip of met een bundel: de bestaande thema's veranderen de keuze niet.
+    expect(uploadDefaults([fromZip], { unpacked, slugs: null })).toMatchObject({
+      reason: "zip",
+      pending: false,
+    });
+    expect(
+      uploadDefaults([file("alg-kern.css"), file("nord.cssthema.zip")], { unpacked, slugs: null }),
+    ).toMatchObject({ pending: false });
+    expect(uploadDefaults([file("algemeen.js")], { unpacked, slugs: null }).pending).toBe(false);
+    expect(uploadDefaults([fromZip, file("nieuw.css")], { unpacked, slugs: null }).pending).toBe(
+      true,
+    );
   });
 });
