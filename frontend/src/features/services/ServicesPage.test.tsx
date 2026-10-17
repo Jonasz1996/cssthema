@@ -63,7 +63,13 @@ const grafana = makeServiceSummary({
   name: "Grafana",
   slug: "grafana",
   hostname: "grafana.example",
-  snapshots: [makeSnapshotSummary({ id: testId(31), status: "authentik-login" })],
+  snapshots: [
+    makeSnapshotSummary({
+      id: testId(31),
+      status: "authentik-login",
+      document_captured_at: "2026-10-06T11:38:07Z",
+    }),
+  ],
 });
 
 function server(services: ServiceSummary[] = [proxmox, vault, grafana]) {
@@ -147,7 +153,14 @@ describe("ServicesPage", () => {
     expect(second.getByText(/^Geïmporteerd/)).toBeInTheDocument();
     expect(second.queryByText(/pagina's/)).not.toBeInTheDocument();
 
-    expect(card("Grafana").getByText("authentik-login")).toHaveAttribute("data-tone", "default");
+    // De opname mislukte en de vorige snapshot bleef: zeg van wanneer die is.
+    const third = card("Grafana");
+    expect(third.getByText("authentik-login")).toHaveAttribute("data-tone", "default");
+    expect(third.getByText(/snapshot van 6 okt 2026/)).toHaveAttribute(
+      "title",
+      "De laatste opname mislukte: de snapshot en screenshots zijn van de vorige, goede opname.",
+    );
+    expect(first.queryByText(/snapshot van/)).not.toBeInTheDocument();
   });
 
   it("zoekt op naam en hostnaam en filtert op met of zonder snapshot", async () => {

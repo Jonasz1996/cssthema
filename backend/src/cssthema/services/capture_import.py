@@ -6,7 +6,8 @@ Een zip (of een deel ervan) bevat `vastgelegd/_css/<sha16>.css` en per dienst
 
 Per pagina komt er één snapshot; een nieuwe import van dezelfde pagina werkt die bij (zelfde
 id). Mislukte de nieuwe opname (de app was stuk of onbereikbaar) en was de vorige goed, dan
-blijft de vorige staan en krijgt ze alleen de nieuwe status en tijd (`kept_previous`).
+blijft de vorige staan en krijgt ze alleen de nieuwe status en tijd (`kept_previous`;
+zonder tijd in info.json die van de import).
 HTML, stylesheets en screenshots gaan naar storage (services/storage.py), de rest in de
 database. De zip wordt nooit uitgepakt op schijf: alles wordt in het geheugen gelezen, met
 limieten per bestand en in totaal. Imports lopen na elkaar (advisory lock in storage).
@@ -348,13 +349,14 @@ async def _import_pages(
         ):
             # De app was stuk of onbereikbaar: de goede snapshot (HTML en screenshots) blijft,
             # met de status en tijd van deze opname; `behouden` onthoudt die van het document.
-            # Een nieuwe goede opname vervangt alles.
+            # Bij fout, geen-html en authentik-login schrijft vastleggen.py geen tijd: dan die
+            # van de import. Een nieuwe goede opname vervangt alles.
             previous: dict[str, Any] = snapshot.capture_info or {}
             kept = previous.get("behouden")
             snapshot.capture_info = {
                 **previous,
                 "status": status,
-                "vastgelegd": captured_at or previous.get("vastgelegd"),
+                "vastgelegd": captured_at or imported_at.isoformat(timespec="seconds"),
                 "behouden": kept
                 if isinstance(kept, dict)
                 else {"status": previous.get("status"), "vastgelegd": previous.get("vastgelegd")},

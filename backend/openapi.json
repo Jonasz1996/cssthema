@@ -3445,7 +3445,7 @@
             },
             "type": "array",
             "title": "Kept Previous",
-            "description": "Pagina's (hostnaam, of `hostnaam/pagina`) waarvan de vorige snapshot bleef staan: de nieuwe opname mislukte (fout, geen html, Authentik-login of http-5xx) en kreeg alleen de nieuwe status en tijd."
+            "description": "Pagina's (hostnaam, of `hostnaam/pagina`) waarvan de vorige snapshot bleef staan: de nieuwe opname mislukte (fout, geen html, Authentik-login of http-5xx) en gaf alleen haar status en tijd (zonder tijd in info.json die van de import)."
           },
           "skipped": {
             "items": {
@@ -5310,7 +5310,21 @@
                 "type": "null"
               }
             ],
-            "title": "Captured At"
+            "title": "Captured At",
+            "description": "Tijd van de laatste opname."
+          },
+          "document_captured_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Document Captured At",
+            "description": "Alleen als een mislukte opname de vorige snapshot behield: wanneer het document en de screenshots vastgelegd zijn."
           },
           "imported_at": {
             "type": "string",

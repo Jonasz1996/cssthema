@@ -5,7 +5,7 @@ import io
 import json
 import uuid
 import zipfile
-from datetime import datetime
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
@@ -165,6 +165,7 @@ async def test_failed_recapture_keeps_the_previous_snapshot(api: Api, status: st
     if status == "http-502":
         info["vastgelegd"] = "2026-10-20 09:00:00"
     failed = capture_zip(name, info=info, pages=files, html_body="502 Bad Gateway")
+    started = datetime.now(UTC).replace(microsecond=0)
     response = await upload(api, failed)
     assert response.status_code == 200, response.text
     result = response.json()
@@ -178,10 +179,15 @@ async def test_failed_recapture_keeps_the_previous_snapshot(api: Api, status: st
     assert snapshot["has_document"] is True
     assert snapshot["screenshots"] == before["screenshots"]
     assert snapshot["title"] == "App"
+    # Status en tijd zijn die van de mislukte opname (zonder tijd in info.json: de import);
+    # de snapshot en screenshots zijn van de vorige.
     if status == "http-502":
         assert snapshot["captured_at"] == "2026-10-20T07:00:00Z"
     else:
-        assert snapshot["captured_at"] == before["captured_at"]
+        assert datetime.fromisoformat(snapshot["captured_at"]) >= started
+    assert before["document_captured_at"] is None
+    assert snapshot["document_captured_at"] == before["captured_at"]
+    assert snapshot["imported_at"] == before["imported_at"]
     document = (await api.client.get(f"/api/v1/snapshots/{snapshot['id']}/document")).json()
     assert "Hoi" in document["html"]
     assert (await api.client.get(snapshot["screenshots"]["origineel"])).status_code == 200
@@ -190,12 +196,15 @@ async def test_failed_recapture_keeps_the_previous_snapshot(api: Api, status: st
     # laatste status). Een goede opname vervangt hem weer.
     again = (await upload(api, failed)).json()
     assert again["kept_previous"] == [name]
+    snapshot = (await service_of(api, name))["snapshots"][0]
+    assert snapshot["document_captured_at"] == before["captured_at"]
     good = (await upload(api, capture_zip(name, html_body="Weer goed"))).json()
     assert good["kept_previous"] == []
     assert good["snapshots"] == 1
     snapshot = (await service_of(api, name))["snapshots"][0]
     assert snapshot["id"] == before["id"]
     assert snapshot["status"] == "inlogpagina"
+    assert snapshot["document_captured_at"] is None
     document = (await api.client.get(f"/api/v1/snapshots/{snapshot['id']}/document")).json()
     assert "Weer goed" in document["html"]
 

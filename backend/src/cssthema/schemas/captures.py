@@ -23,7 +23,7 @@ class CaptureImportResult(BaseModel):
         default_factory=list,
         description="Pagina's (hostnaam, of `hostnaam/pagina`) waarvan de vorige snapshot bleef "
         "staan: de nieuwe opname mislukte (fout, geen html, Authentik-login of http-5xx) en "
-        "kreeg alleen de nieuwe status en tijd.",
+        "gaf alleen haar status en tijd (zonder tijd in info.json die van de import).",
     )
     skipped: list[CaptureSkipped]
 
@@ -44,7 +44,12 @@ class SnapshotSummary(BaseModel):
     screenshots: dict[str, str] = Field(
         description="`origineel`, `met_thema`, `mobiel` → URL van de afbeelding."
     )
-    captured_at: datetime | None
+    captured_at: datetime | None = Field(description="Tijd van de laatste opname.")
+    document_captured_at: datetime | None = Field(
+        default=None,
+        description="Alleen als een mislukte opname de vorige snapshot behield: wanneer het "
+        "document en de screenshots vastgelegd zijn.",
+    )
     imported_at: datetime
 
 

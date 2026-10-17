@@ -36,8 +36,9 @@ export interface ServiceCardProps {
 
 /**
  * Eén service: naam, hostnaam (link naar de app), status van de laatste snapshot, frameworks,
- * wanneer vastgelegd en de screenshots origineel en met thema (klik = groot). Heeft de service
- * meer pagina's, dan staan die compact in een uitklapper.
+ * wanneer vastgelegd (en van wanneer een behouden snapshot is) en de screenshots origineel en
+ * met thema (klik = groot). Heeft de service meer pagina's, dan staan die compact in een
+ * uitklapper.
  */
 export function ServiceCard({ service, onZoom, onDelete }: ServiceCardProps) {
   const { t, tc, locale } = useI18n();
@@ -122,6 +123,14 @@ export function ServiceCard({ service, onZoom, onDelete }: ServiceCardProps) {
                   time: formatRelativeTime(time.iso, locale),
                 })}
               </time>
+              {latest?.document_captured_at && (
+                <span title={t("services.keptSnapshotHint")}>
+                  {" · "}
+                  {t("services.keptSnapshot", {
+                    time: formatDateTime(latest.document_captured_at, locale),
+                  })}
+                </span>
+              )}
               {meta.map((part) => (
                 <span key={part}> · {part}</span>
               ))}

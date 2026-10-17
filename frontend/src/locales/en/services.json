@@ -80,6 +80,8 @@
   "classCount_other": "{count} classes",
   "capturedAgo": "Captured {time}",
   "importedAgo": "Imported {time}",
+  "keptSnapshot": "snapshot from {time}",
+  "keptSnapshotHint": "The last capture failed: the snapshot and screenshots are from the previous, good capture.",
   "statusNone": "no status",
   "statusOk": "ok",
   "statusLogin": "login page",

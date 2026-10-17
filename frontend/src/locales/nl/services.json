@@ -80,6 +80,8 @@
   "classCount_other": "{count} classes",
   "capturedAgo": "Vastgelegd {time}",
   "importedAgo": "Geïmporteerd {time}",
+  "keptSnapshot": "snapshot van {time}",
+  "keptSnapshotHint": "De laatste opname mislukte: de snapshot en screenshots zijn van de vorige, goede opname.",
   "statusNone": "geen status",
   "statusOk": "ok",
   "statusLogin": "inlogpagina",

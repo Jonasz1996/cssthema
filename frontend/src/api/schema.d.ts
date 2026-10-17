@@ -778,7 +778,7 @@ export interface components {
             without_snapshot: string[];
             /**
              * Kept Previous
-             * @description Pagina's (hostnaam, of `hostnaam/pagina`) waarvan de vorige snapshot bleef staan: de nieuwe opname mislukte (fout, geen html, Authentik-login of http-5xx) en kreeg alleen de nieuwe status en tijd.
+             * @description Pagina's (hostnaam, of `hostnaam/pagina`) waarvan de vorige snapshot bleef staan: de nieuwe opname mislukte (fout, geen html, Authentik-login of http-5xx) en gaf alleen haar status en tijd (zonder tijd in info.json die van de import).
              */
             kept_previous?: string[];
             /** Skipped */
@@ -1571,8 +1571,16 @@ export interface components {
             screenshots: {
                 [key: string]: string;
             };
-            /** Captured At */
+            /**
+             * Captured At
+             * @description Tijd van de laatste opname.
+             */
             captured_at: string | null;
+            /**
+             * Document Captured At
+             * @description Alleen als een mislukte opname de vorige snapshot behield: wanneer het document en de screenshots vastgelegd zijn.
+             */
+            document_captured_at?: string | null;
             /**
              * Imported At
              * Format: date-time

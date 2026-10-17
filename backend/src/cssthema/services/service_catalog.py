@@ -28,9 +28,14 @@ def asset_url(asset_id: str) -> str:
     return f"/api/v1/assets/{asset_id}"
 
 
+def _moment(value: Any) -> datetime | None:
+    return datetime.fromisoformat(value) if isinstance(value, str) else None
+
+
 def _summary(snapshot: DomSnapshot) -> schemas.SnapshotSummary:
     info: dict[str, Any] = snapshot.capture_info or {}
-    captured = info.get("vastgelegd")
+    # Een mislukte opname behield de vorige snapshot: `behouden` heeft de tijd van het document.
+    kept = info.get("behouden")
     return schemas.SnapshotSummary(
         id=snapshot.id,
         page=str(info.get("pagina") or snapshot.page_kind),
@@ -45,7 +50,8 @@ def _summary(snapshot: DomSnapshot) -> schemas.SnapshotSummary:
         theme_links=[str(link) for link in info.get("thema_links") or []],
         csp_errors=int(info.get("csp_fouten") or 0),
         screenshots={k: asset_url(v) for k, v in (info.get("screenshots") or {}).items()},
-        captured_at=datetime.fromisoformat(captured) if isinstance(captured, str) else None,
+        captured_at=_moment(info.get("vastgelegd")),
+        document_captured_at=_moment(kept.get("vastgelegd")) if isinstance(kept, dict) else None,
         imported_at=snapshot.created_at,
     )
 
