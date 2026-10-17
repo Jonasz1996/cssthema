@@ -4,6 +4,7 @@ Routers blijven dun (docs/02 § 3.1): validatie via de schema's, het werk in de 
 Statische paden (`/import`, `/local-files`) staan vóór `/{theme_id}`.
 """
 
+import asyncio
 import uuid
 from typing import Annotated, Any
 
@@ -340,6 +341,20 @@ async def reset_draft(
     return draft
 
 
+async def client_gone(request: Request) -> bool:
+    """Is de client weg (de editor brak de lint af)?
+
+    Na een grote body (> 64 KB) leest uvicorn de socket niet meer tot de app weer `receive`
+    vraagt. De eerste `is_disconnected` zet het lezen dus pas weer aan en zegt nog `False`; het
+    einde van de verbinding komt een beurt van de event loop later binnen. Daarom: vragen, de
+    loop één beurt geven, en opnieuw vragen.
+    """
+    if await request.is_disconnected():
+        return True
+    await asyncio.sleep(0)
+    return await request.is_disconnected()
+
+
 @router.post(
     "/{theme_id}/lint",
     response_model=LintResult,
@@ -351,7 +366,7 @@ async def lint_theme(
 ) -> LintResult | Response:
     try:
         return await theme_service.lint_theme(
-            ctx, theme_id, data.css if data else None, skip_if=request.is_disconnected
+            ctx, theme_id, data.css if data else None, skip_if=lambda: client_gone(request)
         )
     except theme_service.LintSkippedError:
         # De editor brak de request af (er kwam al nieuwere tekst): niemand wacht op dit antwoord.
