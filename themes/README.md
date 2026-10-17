@@ -80,10 +80,11 @@ location ^~ /alg-thema/ {
 # /cssthema
 ```
 
-Weigert een app alleen scripts van een ander domein (Portainer, qBittorrent, Pi-hole) en wil je daar
-het netwerk, gebruik dan de variant *(eigen domein, CSS en script)* van de pagina *Hosts*: dezelfde
-regels, met in de `sub_filter` ook `<script src="/alg-thema/host/$host.js" defer></script>`. Nooit
-bij een wachtwoordkluis of een andere app waar je geheimen intypt.
+Wil je bij een app die scripts van een ander domein weigert toch het netwerk (Portainer, dat alleen
+het script weigert; ook qBittorrent en Pi-hole, die ook de stylesheet weigeren), gebruik dan de
+variant *(eigen domein, CSS en script)* van de pagina *Hosts*: dezelfde regels, met in de
+`sub_filter` ook `<script src="/alg-thema/host/$host.js" defer></script>`. Nooit bij een
+wachtwoordkluis of een andere app waar je geheimen intypt.
 
 ### Nooit de regel
 

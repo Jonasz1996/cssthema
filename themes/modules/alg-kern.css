@@ -30,9 +30,10 @@
      }
    en laat de sub_filter naar /alg-thema/host/$host.css wijzen. Standaard
    zonder script, zodat een kluis geen JavaScript van cssthema op haar eigen
-   domein krijgt; /alg-thema/host/$host.js alleen bij apps die enkel scripts
-   van een ander domein weigeren (Portainer, qBittorrent, Pi-hole). Wat van
-   hetzelfde domein komt valt onder 'self': de CSP hoeft niet open.
+   domein krijgt; /alg-thema/host/$host.js alleen als je het netwerk wilt bij
+   een app die scripts van een ander domein weigert (Portainer; ook
+   qBittorrent en Pi-hole, die ook stylesheets weigeren). Wat van hetzelfde
+   domein komt valt onder 'self': de CSP hoeft niet open.
    Uitzondering: een script-src met nonce en 'strict-dynamic' (Nextcloud)
    negeert 'self'; daar laadt zo alleen de stylesheet (thema zonder netwerk).
 
