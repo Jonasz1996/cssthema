@@ -7,7 +7,7 @@ Een zip (of een deel ervan) bevat `vastgelegd/_css/<sha16>.css` en per dienst
 Per pagina komt er één snapshot; een nieuwe import van dezelfde pagina vervangt de vorige.
 HTML, stylesheets en screenshots gaan naar storage (services/storage.py), de rest in de
 database. De zip wordt nooit uitgepakt op schijf: alles wordt in het geheugen gelezen, met
-limieten per bestand en in totaal.
+limieten per bestand en in totaal. Imports lopen na elkaar (advisory lock in storage).
 """
 
 import hashlib
@@ -218,6 +218,9 @@ async def import_zip(
                 "Geen vastgelegde pagina's gevonden (mappen met info.json). Is dit een zip "
                 "van vastleggen.py?"
             )
+        # Twee imports tegelijk (tweede tabblad, een retry) wachten op elkaar in plaats van
+        # te botsen op de unieke sha256/slug.
+        await storage.lock(ctx.session)
         return await _import_pages(ctx, archive, pages, css_files, filename)
 
 

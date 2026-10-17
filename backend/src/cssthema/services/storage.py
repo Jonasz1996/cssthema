@@ -2,6 +2,9 @@
 
 `<storage_dir>/assets/<eerste 2 hex>/<sha256 hex>`; de rij in `assets` bewaart type en
 grootte. Dezelfde inhoud wordt één keer opgeslagen, hoe vaak ze ook geïmporteerd wordt.
+
+Wat assets schrijft, neemt eerst `lock()`: twee imports tegelijk wachten zo op elkaar in
+plaats van te botsen op de unieke sha256.
 """
 
 import hashlib
@@ -9,11 +12,14 @@ import os
 import uuid
 from pathlib import Path
 
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from starlette.concurrency import run_in_threadpool
 
 from cssthema.db.models import Asset
+
+# Sleutel van de advisory lock (`ct-asset` als getal); vrij bij commit of rollback.
+LOCK_KEY = int.from_bytes(b"ct-asset", "big")
 
 
 def asset_path(storage_dir: Path, sha256: bytes) -> Path:
@@ -31,6 +37,11 @@ def _write(path: Path, data: bytes) -> None:
         handle.flush()
         os.fsync(handle.fileno())
     os.replace(tmp, path)
+
+
+async def lock(session: AsyncSession) -> None:
+    """Wacht tot geen andere transactie assets schrijft (tot commit of rollback)."""
+    await session.execute(select(func.pg_advisory_xact_lock(LOCK_KEY)))
 
 
 async def put(

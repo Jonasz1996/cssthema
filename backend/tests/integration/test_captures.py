@@ -1,5 +1,6 @@
 """Capture-zips van vastleggen.py importeren (/api/v1/captures) en de preview-documenten."""
 
+import asyncio
 import io
 import json
 import uuid
@@ -270,3 +271,13 @@ async def test_nul_characters_and_wrong_json_types_are_cleaned(api: Api) -> None
     assert row.http_status is None
     assert row.css_variables == {"--a": "xy"}
     assert row.colors == {"bg": ["#fff"]}
+
+
+async def test_two_imports_at_the_same_time_both_succeed(api: Api) -> None:
+    name = host()
+    data = capture_zip(name)
+    first, second = await asyncio.gather(upload(api, data), upload(api, data))
+    assert (first.status_code, second.status_code) == (200, 200), (first.text, second.text)
+    results = [first.json(), second.json()]
+    assert sorted(len(r["services_created"]) for r in results) == [0, 1]
+    assert len((await service_of(api, name))["snapshots"]) == 1
