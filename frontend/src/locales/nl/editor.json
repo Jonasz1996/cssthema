@@ -255,5 +255,11 @@
   "previewStackThis": "dit thema (live draft)",
   "previewStackNoBinding": "geen koppeling",
   "previewStackNotIn": "Dit thema zit niet in die koppeling: de draft staat achteraan.",
-  "previewStackFailed": "Stapel van de host niet geladen"
+  "previewStackFailed": "Stapel van de host niet geladen",
+  "publishHosts": "Gaat live op",
+  "publishHostsCount_one": "{count} host",
+  "publishHostsCount_other": "{count} hosts",
+  "publishHostsDefault": "elke host zonder eigen koppeling (*)",
+  "publishHostsNone": "nog geen host (niet gekoppeld, zie Hosts)",
+  "publishHostsShow": "Toon de hosts"
 }

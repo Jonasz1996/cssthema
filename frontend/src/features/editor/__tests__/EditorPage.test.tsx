@@ -676,6 +676,38 @@ describe("EditorPage", () => {
     );
   });
 
+  it("the publish dialog says on how many hosts the theme goes live", async () => {
+    const { server } = setup((mock) =>
+      mock
+        .on(
+          "GET",
+          "/api/v1/themes/:id",
+          json({ ...theme, draft_dirty: true }, { headers: etag(3) }),
+        )
+        .on("GET", "/api/v1/preview/usage", ({ url }) =>
+          json({
+            theme: url.searchParams.get("theme"),
+            hostnames: ["a.lan", "b.lan"],
+            default: true,
+            bound: ["a.lan", "b.lan", "c.lan"],
+          }),
+        ),
+    );
+    await editorTextarea();
+    act(() => {
+      fireEvent.keyDown(window, { key: "s", ctrlKey: true });
+    });
+    const dialog = await screen.findByRole("dialog", { name: "grafana-nord publiceren" });
+    expect(await within(dialog).findByText("Gaat live op")).toBeInTheDocument();
+    expect(dialog.querySelector("[data-publish-hosts]")).toHaveTextContent(
+      "2 hosts + elke host zonder eigen koppeling (*)",
+    );
+    fireEvent.click(within(dialog).getByText("Toon de hosts"));
+    expect(within(dialog).getByText("b.lan")).toBeInTheDocument();
+    const usage = server.callsTo("GET", "/api/v1/preview/usage");
+    expect(usage.at(-1)!.url.searchParams.get("theme")).toBe("grafana-nord");
+  });
+
   it("lints only after a pause, also for the first keystrokes", async () => {
     const { server } = setup();
     const textarea = await editorTextarea();

@@ -255,5 +255,11 @@
   "previewStackThis": "this theme (live draft)",
   "previewStackNoBinding": "no binding",
   "previewStackNotIn": "This theme is not in that binding: the draft comes last.",
-  "previewStackFailed": "Could not load the host stack"
+  "previewStackFailed": "Could not load the host stack",
+  "publishHosts": "Goes live on",
+  "publishHostsCount_one": "{count} host",
+  "publishHostsCount_other": "{count} hosts",
+  "publishHostsDefault": "every host without its own binding (*)",
+  "publishHostsNone": "no host yet (not bound, see Hosts)",
+  "publishHostsShow": "Show the hosts"
 }
