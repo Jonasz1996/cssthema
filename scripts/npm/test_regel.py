@@ -288,7 +288,28 @@ def test_meerdere_directives_op_een_regel() -> None:
     oud = "sub_filter_once on;  proxy_buffering off;\n" + OUD.replace("sub_filter_once on;\n", "")
     assert nieuw(oud).nieuw == HOOFDREGEL + "proxy_buffering off;\n"
     oud = "\tgzip off; sub_filter_once on;\n" + OUD.replace("sub_filter_once on;\n", "")
-    assert nieuw(oud).nieuw == HOOFDREGEL + "\tgzip off;\n"
+    assert nieuw(oud).nieuw == "\tgzip off;\n" + HOOFDREGEL
+
+
+def test_blok_nooit_binnen_een_location() -> None:
+    oud = "location /x {\n  proxy_pass http://a;\n} " + OUD
+    assert nieuw(oud).nieuw == "location /x {\n  proxy_pass http://a;\n}\n" + HOOFDREGEL
+    oud = "location /x {\n  proxy_pass http://a;\n} sub_filter_once on; location /y {\n}\n"
+    assert nieuw(oud).nieuw == (
+        "location /x {\n  proxy_pass http://a;\n}\n" + HOOFDREGEL + "location /y {\n}\n"
+    )
+
+
+def test_vangnet_als_een_tweede_keer_nog_iets_verandert(monkeypatch: pytest.MonkeyPatch) -> None:
+    echt = regel._vervangen
+
+    def binnen_location(oud: str, *args: Any) -> str:
+        nieuw = echt(oud, *args)
+        return nieuw if nieuw.startswith("location") else "location /x {\n" + nieuw + "}\n"
+
+    monkeypatch.setattr(regel, "_vervangen", binnen_location)
+    r = nieuw(OUD)
+    assert r.nieuw is None and "ongewone opmaak" in r.reden
 
 
 def test_commentaar_achter_een_oude_regel_gaat_mee() -> None:

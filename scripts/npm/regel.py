@@ -265,6 +265,21 @@ def nieuwe_config(
     Een host met een eigen `sub_filter` die niet van cssthema is, of met `sub_filter` binnen een
     eigen `location /`, krijgt `nieuw=None`: daar kan het script niet veilig kiezen.
     """
+    r = _nieuwe_config(oud, basis, oude_hosts, met_script=met_script)
+    # Vangnet voor ongewone opmaak: een tweede keer verandert er niets meer, anders staat het
+    # blok niet waar het hoort (bv. binnen een location).
+    if (
+        r.nieuw is not None
+        and r.nieuw != oud
+        and _nieuwe_config(r.nieuw, basis, oude_hosts, met_script=met_script).nieuw != r.nieuw
+    ):
+        return Resultaat(
+            None, "handmatig nakijken: ongewone opmaak (blok niet zeker op server-niveau)"
+        )
+    return r
+
+
+def _nieuwe_config(oud: str, basis: str, oude_hosts: set[str], *, met_script: bool) -> Resultaat:
     try:
         stellingen, commentaar = ontleden(oud)
     except ConfigError as e:
@@ -361,14 +376,12 @@ def _vervangen(
 ) -> str:
     """Haalt de stukken `weg` weg en zet `blok` waar de eerste stond (anders achteraan).
 
-    Een regel die daardoor leeg wordt (op commentaar na) verdwijnt helemaal.
+    Een regel die daardoor leeg wordt (op commentaar na) verdwijnt helemaal. Wat op die regel
+    vóór het eerste stuk staat (bv. de `}` van een location), blijft vóór het blok.
     """
+    nl = "\r\n" if "\r\n" in oud else "\n"
     if not weg:
-        return (
-            blok
-            if not oud.strip()
-            else oud.rstrip() + ("\r\n" if "\r\n" in oud else "\n") * 2 + blok
-        )
+        return blok if not oud.strip() else oud.rstrip() + nl * 2 + blok
     gemarkeerd = bytearray(len(oud))
     for b, e in weg:
         while e < len(oud) and oud[e] in " \t":  # de spaties erna horen erbij
@@ -387,6 +400,10 @@ def _vervangen(
             uit.append(regel)
             continue
         if not ingevoegd:
+            eerste = next(k for k in bereik if gemarkeerd[k])
+            if oud[bereik.start : eerste].strip():
+                uit.append(oud[bereik.start : eerste].rstrip() + nl)
+                bereik = range(eerste, bereik.stop)
             uit.append(blok)
             ingevoegd = True
         rest = "".join(oud[k] for k in bereik if not gemarkeerd[k] and not is_commentaar[k])

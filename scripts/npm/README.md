@@ -53,6 +53,7 @@ Erbij: de regel uit cssthema (pagina **Hosts**), op de plaats van de eerste oude
 | `uitgeschakeld in NPM`, `offline in NPM` | eerst de host in NPM in orde brengen, dan opnieuw |
 | `handmatig nakijken: sub_filter binnen een eigen location /` of `… location / met Authentik` | haal in die `location / { … }` de thema-regels weg (`sub_filter`, `sub_filter_once`, `proxy_set_header Accept-Encoding ""`) en draai het script opnieuw. Alleen als het het oude snippet uit *Import → Scripts* is (zonder Authentik), mag het hele blok weg: dan komt de `location /` van NPM terug, met de Access List |
 | `handmatig nakijken: sub_filter met andere links (theme-park.dev)` | een `sub_filter` die niet van cssthema is: zelf beslissen. Zijn het toch oude thema-links (bv. een IP van je oude CSS-server), geef dat domein mee met `--oud-domein 192.168.0.164:18358` |
+| `handmatig nakijken: ongewone opmaak …` | zelden: het script is niet zeker dat de regel op server-niveau komt. Zet de oude thema-regels elk op een eigen regel, buiten elke `location`, en draai het opnieuw, of pas *Advanced* met de hand aan |
 
 ## Opties
 
