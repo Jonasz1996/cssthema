@@ -1,15 +1,24 @@
 version: 2
+# Eén beheerder: per ecosysteem één maandelijkse PR met alle minor- en patchupdates; majors
+# komen apart. Dependabot opent PR's tegen de standaardbranch van de repo: zet die op main
+# (docs/ops/uitrol.md, stap 1).
 updates:
   - package-ecosystem: uv
     directory: /backend
-    schedule: { interval: weekly }
+    schedule: { interval: monthly }
+    groups:
+      backend:
+        update-types: [minor, patch]
     ignore:
       # arq 0.26 vereist redis-py < 6; pas bijwerken samen met arq.
       - dependency-name: redis
         update-types: ["version-update:semver-major"]
   - package-ecosystem: npm
     directory: /frontend
-    schedule: { interval: weekly }
+    schedule: { interval: monthly }
+    groups:
+      frontend:
+        update-types: [minor, patch]
     ignore:
       # Bewust vastgezet in fase 0 (zie frontend/package.json); majors apart oppakken.
       - dependency-name: react-router
@@ -20,7 +29,21 @@ updates:
         update-types: ["version-update:semver-major"]
   - package-ecosystem: github-actions
     directory: /
-    schedule: { interval: weekly }
+    schedule: { interval: monthly }
+    groups:
+      actions:
+        update-types: [minor, patch]
   - package-ecosystem: docker
     directory: /docker
-    schedule: { interval: weekly }
+    schedule: { interval: monthly }
+    groups:
+      docker:
+        update-types: [minor, patch]
+    ignore:
+      # Python 3.12 zoals in de Docker-image; pyproject.toml staat < 3.14 toe, en 3.12 ->
+      # 3.13/3.14 telt als minor. Een nieuwe Python-versie kies je samen met requires-python.
+      - dependency-name: python
+        update-types: ["version-update:semver-minor"]
+      # Node 22 zoals in deploy/debian/install.sh (NODE_MAJOR) en in CI.
+      - dependency-name: node
+        update-types: ["version-update:semver-major"]
