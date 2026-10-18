@@ -2918,6 +2918,57 @@
         }
       }
     },
+    "/api/v1/pages": {
+      "post": {
+        "tags": [
+          "services"
+        ],
+        "summary": "Een opgeslagen webpagina (.html of .zip met de bestanden) als snapshot",
+        "operationId": "pages_upload",
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/Body_pages_upload"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PageUploadResult"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Interne fout",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Geen bruikbare webpagina",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/services": {
       "get": {
         "tags": [
@@ -3522,6 +3573,47 @@
           "file"
         ],
         "title": "Body_captures_import"
+      },
+      "Body_pages_upload": {
+        "properties": {
+          "file": {
+            "type": "string",
+            "contentMediaType": "application/octet-stream",
+            "title": "File",
+            "description": "De pagina (.html), of een zip met de pagina en zijn map"
+          },
+          "hostname": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 300
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Hostname",
+            "description": "Host van de app; anders uit de pagina"
+          },
+          "page": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 100
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Page",
+            "description": "Naam van de pagina; anders de bestandsnaam"
+          }
+        },
+        "type": "object",
+        "required": [
+          "file"
+        ],
+        "title": "Body_pages_upload"
       },
       "Body_scripts_upload": {
         "properties": {
@@ -5145,6 +5237,78 @@
           "css_max_bytes"
         ],
         "title": "MetaInfo"
+      },
+      "PageUploadResult": {
+        "properties": {
+          "snapshot_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Snapshot Id",
+            "description": "De snapshot om in de editor tegen te previewen."
+          },
+          "service_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Service Id"
+          },
+          "hostname": {
+            "type": "string",
+            "title": "Hostname"
+          },
+          "page": {
+            "type": "string",
+            "title": "Page",
+            "description": "Naam van de pagina (uit het bestand, of opgegeven)."
+          },
+          "service_created": {
+            "type": "boolean",
+            "title": "Service Created",
+            "description": "Er is een nieuwe dienst voor de host gemaakt."
+          },
+          "stylesheets": {
+            "type": "integer",
+            "title": "Stylesheets",
+            "description": "Gelinkte stylesheets uit de upload."
+          },
+          "inlined_files": {
+            "type": "integer",
+            "title": "Inlined Files",
+            "description": "Afbeeldingen en fonts die in de pagina zijn gezet."
+          },
+          "missing_stylesheets": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Missing Stylesheets",
+            "description": "Gelinkte CSS die niet in de upload zat (de preview laadt niets van het netwerk); upload dan een zip met de map `<naam>_files`."
+          },
+          "detected_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Detected Url",
+            "description": "Adres van de pagina, als het erin staat."
+          }
+        },
+        "type": "object",
+        "required": [
+          "snapshot_id",
+          "service_id",
+          "hostname",
+          "page",
+          "service_created",
+          "stylesheets",
+          "inlined_files",
+          "missing_stylesheets",
+          "detected_url"
+        ],
+        "title": "PageUploadResult"
       },
       "Palette": {
         "properties": {

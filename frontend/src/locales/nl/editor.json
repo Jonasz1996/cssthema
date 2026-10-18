@@ -117,7 +117,7 @@
   "previewError_snapshotTooLarge": "De snapshot is te groot voor de preview ({size} MB, hoogstens {max} MB).",
   "previewSource": "Bron van de preview",
   "previewSourceDemo": "Demopagina",
-  "previewSourceNone": "Nog geen snapshots (importeer een capture)",
+  "previewSourceNone": "Nog geen snapshots (upload een pagina of capture)",
   "previewSourceSnapshot": "Snapshot",
   "snapshotLoading": "Snapshot laden…",
   "snapshotUnavailable": "De snapshot kon niet geladen worden",
@@ -278,5 +278,9 @@
   "settingsSlugChange": "Het bestand heet dan {slug}.css. {old}.css stuurt nog 90 dagen door, en host-koppelingen met {old} krijgen de nieuwe naam.",
   "settingsSave": "Opslaan",
   "settingsSaving": "Opslaan…",
-  "settingsSaved": "Instellingen opgeslagen."
+  "settingsSaved": "Instellingen opgeslagen.",
+
+  "previewUpload": "Pagina uploaden",
+  "previewUploadHint": "Een opgeslagen webpagina (.html of .zip) uploaden en het thema daarop zien",
+  "previewUploadTitle": "Eigen pagina als preview"
 }

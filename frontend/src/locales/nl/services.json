@@ -123,5 +123,19 @@
   "deleteConfirm": "Verwijderen",
   "deleted": "{name} verwijderd.",
   "errorInvalidZip": "Geen geldige zip van vastleggen.py.",
-  "errorNotFound": "Die service bestaat niet (meer)."
+  "errorNotFound": "Die service bestaat niet (meer).",
+
+  "pageTitle": "Webpagina uploaden (HTML)",
+  "pageIntro": "Wil je het thema zien op een echte pagina, met dezelfde layout en elementen? Open de app in je browser, kies Pagina opslaan als… > Webpagina, volledig, en zip het .html-bestand samen met de map <naam>_files. Upload die zip (of een losse .html, bv. van de extensie SingleFile). De pagina wordt een snapshot van die host; de CSS en afbeeldingen uit de zip komen mee, scripts niet.",
+  "pageChoose": ".html of .zip kiezen",
+  "pageNone": "Nog geen bestand gekozen.",
+  "pageTooLarge": "Groter dan 25 MB.",
+  "pageHost": "Host van de app (optioneel)",
+  "pageHostHint": "Leeg = uit de pagina zelf (Chrome en Edge zetten het adres erin).",
+  "pageName": "Naam van de pagina (optioneel)",
+  "pageNameHint": "Leeg = de bestandsnaam. Dezelfde naam opnieuw uploaden vervangt de snapshot.",
+  "pageUpload": "Pagina uploaden",
+  "pageDone": "Pagina {page} van {host} staat klaar als snapshot.",
+  "pageResult": "Snapshot {page} van {host}: {sheets} stylesheet(s) en {files} afbeelding(en)/font(s) meegenomen.",
+  "pageMissing": "Niet in de upload (de preview laadt niets van het netwerk, upload dan de zip met de map _files):"
 }

@@ -123,5 +123,19 @@
   "deleteConfirm": "Delete",
   "deleted": "{name} deleted.",
   "errorInvalidZip": "Not a valid zip from vastleggen.py.",
-  "errorNotFound": "That service does not exist (anymore)."
+  "errorNotFound": "That service does not exist (anymore).",
+
+  "pageTitle": "Upload a web page (HTML)",
+  "pageIntro": "Want to see the theme on a real page, with the same layout and elements? Open the app in your browser, choose Save page as… > Web page, complete, and zip the .html file together with its <name>_files folder. Upload that zip (or a single .html, e.g. from the SingleFile extension). The page becomes a snapshot of that host; the CSS and images in the zip come along, scripts do not.",
+  "pageChoose": "Choose .html or .zip",
+  "pageNone": "No file chosen yet.",
+  "pageTooLarge": "Larger than 25 MB.",
+  "pageHost": "App host (optional)",
+  "pageHostHint": "Empty = taken from the page itself (Chrome and Edge store the address).",
+  "pageName": "Page name (optional)",
+  "pageNameHint": "Empty = the file name. Uploading the same name again replaces the snapshot.",
+  "pageUpload": "Upload page",
+  "pageDone": "Page {page} of {host} is ready as a snapshot.",
+  "pageResult": "Snapshot {page} of {host}: {sheets} stylesheet(s) and {files} image(s)/font(s) included.",
+  "pageMissing": "Not in the upload (the preview loads nothing from the network; upload the zip with the _files folder):"
 }

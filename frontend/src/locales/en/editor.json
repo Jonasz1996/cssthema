@@ -117,7 +117,7 @@
   "previewError_snapshotTooLarge": "The snapshot is too large for the preview ({size} MB, at most {max} MB).",
   "previewSource": "Preview source",
   "previewSourceDemo": "Demo page",
-  "previewSourceNone": "No snapshots yet (import a capture)",
+  "previewSourceNone": "No snapshots yet (upload a page or capture)",
   "previewSourceSnapshot": "Snapshot",
   "snapshotLoading": "Loading snapshot…",
   "snapshotUnavailable": "The snapshot could not be loaded",
@@ -278,5 +278,9 @@
   "settingsSlugChange": "The file is then called {slug}.css. {old}.css keeps redirecting for 90 days, and host bindings with {old} get the new name.",
   "settingsSave": "Save",
   "settingsSaving": "Saving…",
-  "settingsSaved": "Settings saved."
+  "settingsSaved": "Settings saved.",
+
+  "previewUpload": "Upload page",
+  "previewUploadHint": "Upload a saved web page (.html or .zip) and see the theme on it",
+  "previewUploadTitle": "Your own page as preview"
 }

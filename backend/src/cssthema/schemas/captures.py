@@ -70,3 +70,18 @@ class SnapshotDocument(BaseModel):
     url: str
     html: str = Field(description="snapshot.html zoals vastgelegd (zonder scripts).")
     stylesheets: list[str] = Field(description="De CSS van de app, in de volgorde van de pagina.")
+
+
+class PageUploadResult(BaseModel):
+    snapshot_id: uuid.UUID = Field(description="De snapshot om in de editor tegen te previewen.")
+    service_id: uuid.UUID
+    hostname: str
+    page: str = Field(description="Naam van de pagina (uit het bestand, of opgegeven).")
+    service_created: bool = Field(description="Er is een nieuwe dienst voor de host gemaakt.")
+    stylesheets: int = Field(description="Gelinkte stylesheets uit de upload.")
+    inlined_files: int = Field(description="Afbeeldingen en fonts die in de pagina zijn gezet.")
+    missing_stylesheets: list[str] = Field(
+        description="Gelinkte CSS die niet in de upload zat (de preview laadt niets van het "
+        "netwerk); upload dan een zip met de map `<naam>_files`."
+    )
+    detected_url: str | None = Field(description="Adres van de pagina, als het erin staat.")

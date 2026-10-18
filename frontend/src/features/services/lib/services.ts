@@ -14,6 +14,9 @@ export const CAPTURE_MAX_BYTES = 25 * 1024 * 1024;
 
 export const CAPTURE_ACCEPT = ".zip,application/zip,application/x-zip-compressed";
 
+/** Een opgeslagen webpagina: `.html`, of een `.zip` met de pagina en haar map `<naam>_files`. */
+export const PAGE_ACCEPT = ".html,.htm,.xhtml,text/html,.zip,application/zip";
+
 // --- filteren -------------------------------------------------------------------------------
 
 export const SNAPSHOT_FILTERS = ["all", "with", "without"] as const;

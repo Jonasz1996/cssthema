@@ -4,6 +4,7 @@ import type { ServiceSummary } from "@/api/types";
 import {
   Button,
   Callout,
+  Category,
   ConfirmDialog,
   Empty,
   Input,
@@ -16,6 +17,7 @@ import { listOf } from "@/features/themes/lib/list";
 import { type MessageKey, useI18n } from "@/lib/i18n";
 import { CaptureHelp } from "./components/CaptureHelp";
 import { CaptureUpload } from "./components/CaptureUpload";
+import { PageUpload } from "./components/PageUpload";
 import { ScreenshotDialog, type ScreenshotTarget } from "./components/ScreenshotDialog";
 import { ServiceCard } from "./components/ServiceCard";
 import {
@@ -72,6 +74,12 @@ export function ServicesPage() {
     <div>
       <PageHeader title={t("services.title")} hint={t("services.hint")} />
       <Callout className="max-w-[90ch]">{t("services.intro")}</Callout>
+
+      <Category title={t("services.pageTitle")} storageKey="services.page" className="mb-4">
+        <div className="px-1 pt-1 pb-1">
+          <PageUpload />
+        </div>
+      </Category>
 
       <CaptureUpload showHelp={list.length > 0} />
 
