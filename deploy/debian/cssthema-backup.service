@@ -1,0 +1,10 @@
+[Unit]
+Description=cssthema back-up (database, css-files, configuratie)
+Documentation=https://github.com/Jonasz1996/cssthema/blob/main/docs/ops/installatie-debian.md
+After=postgresql.service
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/sbin/cssthema-backup maak auto
+Nice=10
+IOSchedulingClass=idle

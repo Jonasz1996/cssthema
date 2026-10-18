@@ -1,0 +1,153 @@
+/* ==========================================================================
+   alg-openspeedtest.css - OpenSpeedTest (self-hosted, svg-app)
+   Host: openspeedtest.jbogaert.be
+   Laadt na algemeen.css (sub_filter: eerst algemeen.css, dan dit bestand).
+
+   De hele app is één svg met symbolen; kleuren zitten in klassen van de
+   app, in stop-color-attributen van de verlopen en in inline fills. Dit
+   bestand werkt af:
+   - de blauwe verlopen worden grijs: #gradient (meterboog, grafieken,
+     pijlen) lichtgrijs naar grijs, #RadialGradient1 (startknop) grijs;
+   - de lichte resultaatkaarten (.Cards) worden donker glas met een rand;
+   - donkere teksten (snelheid, waarden, labels, IP) licht, hulpteksten
+     gedempt; meterspoor en voortgangsbalk grijs;
+   - het logo (donkergrijs + blauw, inline fills) tweekleurig grijs;
+   - monospace voor alle teksten; de labelsymbolen (DOWNLOAD, PING,
+     JITTER ...) knippen breder monospace-tekst af, dus overflow zichtbaar;
+   - credits, laadbolletjes en de dag/nacht-knop op de algemeen-tokens.
+
+   Beperkingen: alleen het beginscherm is vastgelegd (voor de test); de
+   meter tijdens een test en het mobiele (staande) scherm volgen dezelfde
+   klassen en verlopen maar zijn niet tijdens een meting getest. De eigen
+   nachtmodus van OpenSpeedTest is niet bekeken.
+   ========================================================================== */
+
+/* ---------- Verlopen: blauw naar grijs ----------------------------------- */
+#gradient stop:first-child {
+  stop-color: var(--alg-tekst);
+}
+
+#gradient stop:last-child {
+  stop-color: var(--alg-knop);
+}
+
+/* startknop: grijs zoals de knoppen in allow, met witte tekst */
+#RadialGradient1 stop:first-child {
+  stop-color: var(--alg-knop-hover);
+}
+
+#RadialGradient1 stop:last-child {
+  stop-color: var(--alg-knop);
+}
+
+/* ---------- Resultaatkaarten -------------------------------------------- */
+.Cards {
+  fill: var(--alg-rij);
+  stroke: var(--alg-rand-sterk);
+  stroke-width: 1px;
+}
+
+#resultCard rect,
+#resultCardMob rect {
+  rx: 8px;
+}
+
+/* ---------- Teksten ------------------------------------------------------ */
+.openSpeedtestApp text {
+  font-family: var(--alg-font);
+}
+
+.rtext,
+.rtextnum,
+.oDoLive-Speed,
+#ipMob,
+#ipDesk {
+  fill: var(--alg-tekst-sterk);
+}
+
+.rtextmbms,
+.jitter-Mob,
+.oDo-Meter,
+.oDoTop-Speed,
+.oDoLive-Status {
+  fill: var(--alg-gedempt);
+}
+
+#downloadRc1,
+#uploadRc2,
+#pingRc3,
+#jitterRc3 {
+  overflow: visible;
+}
+
+/* ---------- Meter, voortgang, symbolen ----------------------------------- */
+.main-Gaugebg,
+.progressbg {
+  stroke: var(--alg-rij-actief);
+}
+
+.intro-Progress,
+.progressElmstart {
+  stroke: var(--alg-accent-kleur);
+}
+
+.uiBg {
+  fill: var(--alg-gedempt);
+}
+
+#upSymbolDesk,
+#downSymbolDesk,
+#upSymbolMob,
+#downSymbolMob {
+  fill: var(--alg-accent-kleur);
+}
+
+#pingSymbol path {
+  fill: var(--alg-tekst) !important;
+}
+
+/* ---------- Logo (inline fills) ------------------------------------------ */
+#logo path[style*="4d4d4d"],
+#logo path[style*="7c7c7c"] {
+  fill: var(--alg-tekst) !important;
+}
+
+#logo path[style*="3da6ff"] {
+  fill: var(--alg-accent-kleur) !important;
+}
+
+/* ---------- Startknop ---------------------------------------------------- */
+.startButton,
+.Startsettings {
+  filter: drop-shadow(0 0 10px rgba(255, 255, 255, .22));
+}
+
+.buttonTxt {
+  fill: var(--alg-knop-tekst);
+}
+
+/* ---------- Dag/nacht-knop, credits, laden ------------------------------- */
+.darkmode {
+  fill: var(--alg-gedempt);
+}
+
+.darkmode:hover {
+  fill: var(--alg-tekst-sterk);
+}
+
+.Credits {
+  color: var(--alg-gedempt);
+  font-family: var(--alg-font);
+}
+
+.Credits a {
+  color: var(--alg-link);
+}
+
+.Credits a:hover {
+  color: var(--alg-link-hover);
+}
+
+.spinner > div {
+  background-color: var(--alg-accent-kleur);
+}

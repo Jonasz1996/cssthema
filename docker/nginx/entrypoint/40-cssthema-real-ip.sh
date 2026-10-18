@@ -5,8 +5,8 @@
 # of in een LXC, zet dan zijn IP erbij, bv. TRUSTED_PROXIES=172.16.0.0/12,192.168.1.10
 #
 # Daarnaast $ct_trusted_peer: 1 als de TCP-verbinding van zo'n proxy of van deze machine
-# zelf komt. cssthema.conf laat schrijven op /api/ alleen dan toe: wie poort 80 rechtstreeks
-# bereikt (het LAN, een andere container), omzeilt zo niet Authentik in NPM.
+# zelf komt. cssthema.conf laat /api/ (lezen en schrijven) alleen dan toe: wie poort 80
+# rechtstreeks bereikt (het LAN, een andere container), omzeilt zo niet Authentik in NPM.
 set -eu
 out=${CSSTHEMA_REAL_IP_CONF:-/etc/nginx/conf.d/00-real-ip.conf}
 proxies=$(printf %s "${TRUSTED_PROXIES:-172.16.0.0/12}" | tr ',' ' ')
@@ -30,6 +30,7 @@ geo=""
     echo
     # $realip_remote_addr: het adres van de verbinding zelf. $remote_addr is na real_ip al
     # de client uit X-Forwarded-For, en die kan iedereen verzinnen.
+    # shellcheck disable=SC2016 # nginx-variabelen, geen shell
     echo 'geo $realip_remote_addr $ct_trusted_peer {'
     echo "    default 0;"
     echo "    127.0.0.1 1;"

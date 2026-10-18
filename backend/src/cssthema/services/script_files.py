@@ -563,6 +563,7 @@ async def upload_script(
         },
     )
     await ctx.session.commit()
+    await ctx.delivery.refresh_hosts_using(scripts=[script])
     return _view(ctx.settings, entry), archived is None
 
 
@@ -589,4 +590,5 @@ async def delete_script(ctx: ServiceContext, name: str) -> str:
         changes={"name": name, "archived_as": archived},
     )
     await ctx.session.commit()
+    await ctx.delivery.refresh_hosts_using(scripts=[name])
     return archived

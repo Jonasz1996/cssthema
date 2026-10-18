@@ -1,5 +1,6 @@
+import { act, renderHook } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { ApiError, NETWORK_ERROR } from "@/api/client";
+import { ApiError, AUTH_EXPIRED, NETWORK_ERROR, sessionExpiredError } from "@/api/client";
 import { makeDraft } from "@/api/testing/fixtures";
 import type { Draft, Locked } from "@/api/types";
 import { createMemoryBuffer } from "../autosave/buffer";
@@ -10,7 +11,15 @@ import {
   type SaveDraftFn,
   type SessionEvent,
 } from "../autosave/draft-session";
-import { closeSession, ensureSession, peekSession, resetSessions } from "../autosave/sessions";
+import {
+  closeSession,
+  ensureSession,
+  peekSession,
+  resetSessions,
+  useDebouncedSessionCss,
+  useSessionValue,
+} from "../autosave/sessions";
+import { saveStatusView } from "../lib/save-status";
 
 const SERVER_TIME = "2026-10-05T10:00:00Z";
 
@@ -202,6 +211,25 @@ describe("DraftSession (autosave)", () => {
     });
     expect(session.getSnapshot().revision).toBe(before + 1);
     expect(buffer.entries.has("t1")).toBe(false);
+  });
+
+  it("an expired login is not offline: buffered, no retries, a state of its own", async () => {
+    const { session, save, buffer } = setup();
+    save.mockRejectedValue(sessionExpiredError(new Response(null, { status: 302 })));
+    session.edit("a{weg}");
+    await vi.advanceTimersByTimeAsync(1000);
+    expect(session.getSnapshot().state).toMatchObject({
+      kind: "error",
+      code: AUTH_EXPIRED,
+      status: 401,
+    });
+    expect(buffer.entries.get("t1")).toMatchObject({ css: "a{weg}" });
+    await vi.advanceTimersByTimeAsync(60_000);
+    expect(save).toHaveBeenCalledTimes(1);
+    expect(saveStatusView(session.getSnapshot().state, "nl")).toMatchObject({
+      tone: "err",
+      key: "editor.saveSessionExpired",
+    });
   });
 
   it("offline: buffers, retries with backoff and reports 'synced after offline'", async () => {
@@ -472,5 +500,51 @@ describe("sessions (open tabs)", () => {
     await closeSession("c");
     expect(save).toHaveBeenCalledTimes(1);
     expect(peekSession("c")).toBeUndefined();
+  });
+});
+
+describe("useDebouncedSessionCss", () => {
+  beforeEach(() => {
+    vi.useFakeTimers();
+  });
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  it("waits from the first keystroke, also when the component re-renders for something else", () => {
+    const { session } = setup();
+    const { result } = renderHook(() => {
+      // Zoals de editor: rendert bij elke toets opnieuw (status, grootte, ...).
+      useSessionValue(session, (snapshot) => snapshot.css, "");
+      return useDebouncedSessionCss(session, 400);
+    });
+    expect(result.current).toBe("a{}");
+    act(() => session.edit("a{b}"));
+    expect(result.current).toBe("a{}");
+    act(() => vi.advanceTimersByTime(300));
+    act(() => session.edit("a{bc}"));
+    act(() => vi.advanceTimersByTime(399));
+    expect(result.current).toBe("a{}");
+    act(() => vi.advanceTimersByTime(1));
+    expect(result.current).toBe("a{bc}");
+    session.dispose();
+  });
+
+  it("starts again at the text of the new session after a tab switch", () => {
+    const first = setup();
+    const second = setup({ css: "b{}" });
+    const { result, rerender } = renderHook(({ session }) => useDebouncedSessionCss(session, 400), {
+      initialProps: { session: first.session },
+    });
+    act(() => first.session.edit("a{1}"));
+    rerender({ session: second.session });
+    expect(result.current).toBe("b{}");
+    act(() => second.session.edit("b{2}"));
+    act(() => vi.advanceTimersByTime(399));
+    expect(result.current).toBe("b{}");
+    act(() => vi.advanceTimersByTime(1));
+    expect(result.current).toBe("b{2}");
+    first.session.dispose();
+    second.session.dispose();
   });
 });

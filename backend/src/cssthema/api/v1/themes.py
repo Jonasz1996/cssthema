@@ -4,10 +4,11 @@ Routers blijven dun (docs/02 § 3.1): validatie via de schema's, het werk in de 
 Statische paden (`/import`, `/local-files`) staan vóór `/{theme_id}`.
 """
 
+import asyncio
 import uuid
 from typing import Annotated, Any
 
-from fastapi import APIRouter, File, Form, Path, Query, Response, UploadFile, status
+from fastapi import APIRouter, File, Form, Path, Query, Request, Response, UploadFile, status
 
 from cssthema.api.deps import Ctx, IfMatch, OptionalIfMatch
 from cssthema.api.errors import Problem
@@ -41,6 +42,7 @@ from cssthema.schemas.themes import (
     ThemeCreate,
     ThemePage,
     ThemeUpdate,
+    UploadedTheme,
     Version,
     VersionDiff,
     VersionPage,
@@ -54,6 +56,8 @@ router = APIRouter(prefix="/themes", tags=["themes"])
 API_PREFIX = "/api/v1/themes"
 VERSIONS_SORT = "versions"
 DIFF_REF_PATTERN = r"^(draft|[1-9][0-9]{0,8})$"
+# Zoals nginx: de client sloot de verbinding voordat er een antwoord was.
+CLIENT_CLOSED_REQUEST = 499
 
 Responses = dict[int | str, dict[str, Any]]
 
@@ -141,11 +145,14 @@ async def create_theme(data: ThemeCreate, ctx: Ctx, response: Response) -> Theme
 
 @router.post(
     "/import",
-    response_model=Theme,
+    response_model=UploadedTheme,
     status_code=status.HTTP_201_CREATED,
     operation_id="themes_import",
     responses={
-        200: {"model": Theme, "description": "Nieuwe versie op een bestaand thema"},
+        200: {
+            "model": UploadedTheme,
+            "description": "Nieuwe versie op een bestaand thema, of ongewijzigd (`outcome`)",
+        },
         **_CONFLICT,
         **_TOO_LARGE,
         415: {"model": Problem, "description": "Geen .css of .cssthema.zip"},
@@ -161,7 +168,8 @@ async def import_theme(
         Form(
             description=(
                 "Slug bestaat al: `rename` (`-2`, `-3`, …), `new_version` (nieuwe draft en "
-                "versie op het bestaande thema) of `fail` (409)."
+                "versie op het bestaande thema; niets als de CSS gelijk is aan de laatste "
+                "versie) of `fail` (409)."
             )
         ),
     ] = "rename",
@@ -175,13 +183,13 @@ async def import_theme(
         ),
     ] = None,
     name: Annotated[str | None, Form(max_length=120, description="Naam (en slug).")] = None,
-) -> Theme:
+) -> UploadedTheme:
     data = await file.read(MAX_BUNDLE_BYTES + 1)
     if len(data) > MAX_BUNDLE_BYTES:
         raise PayloadTooLargeError(
             "Bestand is te groot", detail=f"De limiet is {MAX_BUNDLE_BYTES // (1024 * 1024)} MB."
         )
-    theme, created = await import_export.import_upload(
+    theme, outcome = await import_export.import_upload(
         ctx,
         filename=file.filename or "upload",
         data=data,
@@ -189,12 +197,12 @@ async def import_theme(
         publish=publish,
         name=name,
     )
-    if created:
+    if outcome == "created":
         response.headers["Location"] = _theme_location(theme.id)
     else:
         response.status_code = status.HTTP_200_OK
     _set_etag(response, theme.lock_version)
-    return theme
+    return UploadedTheme(**theme.model_dump(), outcome=outcome)
 
 
 @router.get(
@@ -333,14 +341,36 @@ async def reset_draft(
     return draft
 
 
+async def client_gone(request: Request) -> bool:
+    """Is de client weg (de editor brak de lint af)?
+
+    Na een grote body (> 64 KB) leest uvicorn de socket niet meer tot de app weer `receive`
+    vraagt. De eerste `is_disconnected` zet het lezen dus pas weer aan en zegt nog `False`; het
+    einde van de verbinding komt een beurt van de event loop later binnen. Daarom: vragen, de
+    loop één beurt geven, en opnieuw vragen.
+    """
+    if await request.is_disconnected():
+        return True
+    await asyncio.sleep(0)
+    return await request.is_disconnected()
+
+
 @router.post(
     "/{theme_id}/lint",
     response_model=LintResult,
     operation_id="themes_lint",
     responses=_NOT_FOUND,
 )
-async def lint_theme(theme_id: uuid.UUID, ctx: Ctx, data: LintRequest | None = None) -> LintResult:
-    return await theme_service.lint_theme(ctx, theme_id, data.css if data else None)
+async def lint_theme(
+    theme_id: uuid.UUID, ctx: Ctx, request: Request, data: LintRequest | None = None
+) -> LintResult | Response:
+    try:
+        return await theme_service.lint_theme(
+            ctx, theme_id, data.css if data else None, skip_if=lambda: client_gone(request)
+        )
+    except theme_service.LintSkippedError:
+        # De editor brak de request af (er kwam al nieuwere tekst): niemand wacht op dit antwoord.
+        return Response(status_code=CLIENT_CLOSED_REQUEST)
 
 
 # --- publiceren, versies, diff en rollback --------------------------------------------------

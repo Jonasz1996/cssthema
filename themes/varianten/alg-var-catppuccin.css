@@ -1,0 +1,53 @@
+/* alg-var-catppuccin.css: kleurvariant Catppuccin Mocha (catppuccin.com) van het algemene thema.
+ * Gemaakt met scripts/themes/varianten.py; pas dat script aan, niet dit bestand.
+ * Laad als laatste, na algemeen.css (of alg-kern + modules) en alg-<app>.css.
+ * Contrast (WCAG): tekst/vlak-2 8.7:1, knop 4.6:1, knop-hover 4.8:1, ok-vlak 4.8:1, fout-vlak 4.9:1, waarschuwing-vlak 14.9:1, info-vlak 12.1:1
+ */
+:root {
+  --alg-achtergrond: radial-gradient(circle, #313244, #1e1e2e, #181825, #11111b) center / cover no-repeat fixed;
+  --alg-achtergrond-kleur: #181825;
+  --alg-glas: rgba(30, 30, 46, 0.8);
+  --alg-glas-sterk: rgba(30, 30, 46, 0.95);
+  --alg-vlak: #1e1e2e;
+  --alg-vlak-2: #313244;
+  --alg-paneel: rgba(255, 255, 255, 0.04);
+  --alg-rij: rgba(255, 255, 255, 0.05);
+  --alg-rij-hover: rgba(255, 255, 255, 0.09);
+  --alg-rij-actief: rgba(203, 166, 247, 0.18);
+  --alg-zebra: rgba(255, 255, 255, 0.025);
+  --alg-veld: rgba(17, 17, 27, 0.85);
+  --alg-autofill: #181825;
+  --alg-rand: rgba(205, 214, 244, 0.1);
+  --alg-rand-sterk: rgba(205, 214, 244, 0.17);
+  --alg-rand-hover: rgba(203, 166, 247, 0.45);
+  --alg-tekst: #cdd6f4;
+  --alg-tekst-sterk: #ffffff;
+  --alg-gedempt: #a6adc8;
+  --alg-zwak: #7b8097;
+  --alg-placeholder: #a6adc8;
+  --alg-link: #89b4fa;
+  --alg-link-hover: #ffffff;
+  --alg-code: #89b4fa;
+  --alg-knop: #7f6aa8;
+  --alg-knop-hover: #7c6a9e;
+  --alg-gloed: 0 0 22px rgba(203, 166, 247, 0.3);
+  --alg-accent: 203, 166, 247;
+  --alg-focus-rand: #cba6f7;
+  --alg-ok: #a6e3a1;
+  --alg-fout: #f38ba8;
+  --alg-waarschuwing: #f9e2af;
+  --alg-info: #89dceb;
+  --alg-ok-vlak: #597b56;
+  --alg-fout-vlak: #a25c70;
+  --alg-waarschuwing-vlak: #f9e2af;
+  --alg-info-vlak: #89dceb;
+  --alg-ok-tint: rgba(166, 227, 161, 0.12);
+  --alg-fout-tint: rgba(243, 139, 168, 0.12);
+  --alg-waarschuwing-tint: rgba(249, 226, 175, 0.12);
+  --alg-info-tint: rgba(137, 220, 235, 0.12);
+  --alg-ok-rand: rgba(166, 227, 161, 0.35);
+  --alg-fout-rand: rgba(243, 139, 168, 0.35);
+  --alg-waarschuwing-rand: rgba(249, 226, 175, 0.35);
+  --alg-info-rand: rgba(137, 220, 235, 0.35);
+  --alg-scrollbar: #585b70;
+}

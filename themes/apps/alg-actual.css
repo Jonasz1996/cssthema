@@ -1,0 +1,270 @@
+/* ==========================================================================
+   alg-actual.css - Actual Budget (React + emotion, thema via --color-*)
+   Host: actualbudget.jbogaert.be
+   Laadt NA algemeen.css. Actual zet zijn hele thema als variabelen
+   (--color-pageBackground, --color-tableText, --color-buttonPrimary... ) op
+   :root, in een style-element dat later in het document staat dan deze
+   stylesheet. Hier krijgen al die variabelen de tokens van algemeen.css; dat
+   werkt in de hele app (budget, rekeningen, rapporten, menu's, dialogen,
+   mobiele weergave), ook in delen die niet vastgelegd zijn.
+
+   !important: Actual's style-element staat na de head en wint anders; het
+   eigen aangepaste thema (custom theme) gebruikt ook !important.
+
+   Wat het afwerkt:
+   - lichtblauwe achtergrond met golflijnen: doorzichtig (verloop zichtbaar,
+     geen strepen)
+   - kaarten, tabellen, zijbalk, menu's, dialogen, tooltips: glas
+   - paarse primaire knop en paarse/blauwe accenten: grijs
+   - status (melding, waarschuwing, fout, gepland) en bedragen: onze
+     ok/fout/waarschuwing/info-kleuren; grafiekkleuren blijven van Actual
+   - lettertype via Actual's eigen --font-family
+
+   Beperkingen: de vastlegging toont alleen het laadscherm met "Fatal Error"
+   (de app startte niet in de testbrowser). De variabelenlijst komt uit
+   Actual's eigen thema (meegeleverd), maar het budgetscherm zelf is niet
+   getest. CSP: style-src 'self' 'unsafe-inline' weigert css.jbogaert.be;
+   via /alg-thema/ laden.
+   ========================================================================== */
+
+:root {
+  --font-family: var(--alg-font) !important;
+
+  /* ---------- pagina en tekst ---------- */
+  --color-pageBackground: transparent !important;
+  --color-pageBackgroundModalActive: transparent !important;
+  --color-pageBackgroundTopLeft: transparent !important;
+  --color-pageBackgroundBottomRight: transparent !important;
+  --color-pageBackgroundLineTop: transparent !important;
+  --color-pageBackgroundLineMid: transparent !important;
+  --color-pageBackgroundLineBottom: transparent !important;
+  --color-mobilePageBackground: transparent !important;
+  --color-pageText: var(--alg-tekst) !important;
+  --color-pageTextLight: var(--alg-gedempt) !important;
+  --color-pageTextSubdued: var(--alg-placeholder) !important;
+  --color-pageTextDark: var(--alg-tekst-sterk) !important;
+  --color-pageTextPositive: var(--alg-ok) !important;
+  --color-pageTextLink: var(--alg-link) !important;
+  --color-pageTextLinkLight: var(--alg-link-hover) !important;
+
+  /* ---------- kaarten, dialogen, tooltips, overlay ---------- */
+  --color-cardBackground: var(--alg-glas) !important;
+  --color-cardBorder: var(--alg-rand) !important;
+  --color-cardShadow: var(--alg-overlay) !important;
+  --color-modalBackground: var(--alg-glas-sterk) !important;
+  --color-modalBorder: var(--alg-rand-sterk) !important;
+  --color-overlayBackground: var(--alg-overlay) !important;
+  --color-tooltipBackground: var(--alg-glas-sterk) !important;
+  --color-tooltipBorder: var(--alg-rand-sterk) !important;
+  --color-tooltipText: var(--alg-tekst) !important;
+  --color-floatingActionBarBackground: var(--alg-glas-sterk) !important;
+  --color-floatingActionBarBorder: var(--alg-rand-sterk) !important;
+  --color-floatingActionBarText: var(--alg-tekst-sterk) !important;
+
+  /* ---------- tabellen (koppen dekkend: ze plakken boven schuivende rijen) ---------- */
+  --color-tableBackground: var(--alg-glas) !important;
+  --color-tableRowBackgroundHover: var(--alg-rij-hover) !important;
+  --color-tableText: var(--alg-tekst) !important;
+  --color-tableTextLight: var(--alg-gedempt) !important;
+  --color-tableTextSubdued: var(--alg-zwak) !important;
+  --color-tableTextSelected: var(--alg-tekst-sterk) !important;
+  --color-tableTextHover: var(--alg-tekst-sterk) !important;
+  --color-tableTextInactive: var(--alg-gedempt) !important;
+  --color-tableHeaderText: var(--alg-gedempt) !important;
+  --color-tableHeaderBackground: var(--alg-vlak-2) !important;
+  --color-tableBorder: var(--alg-rand) !important;
+  --color-tableBorderSelected: var(--alg-accent-kleur) !important;
+  --color-tableBorderHover: var(--alg-rand-hover) !important;
+  --color-tableBorderSeparator: var(--alg-rand-sterk) !important;
+  --color-tableRowBackgroundHighlight: var(--alg-rij-actief) !important;
+  --color-tableRowBackgroundHighlightText: var(--alg-tekst-sterk) !important;
+  --color-tableRowHeaderBackground: var(--alg-vlak-2) !important;
+  --color-tableRowHeaderText: var(--alg-tekst-sterk) !important;
+
+  /* ---------- budget ---------- */
+  --color-budgetCurrentMonth: var(--alg-rij) !important;
+  --color-budgetOtherMonth: transparent !important;
+  --color-budgetHeaderCurrentMonth: var(--alg-vlak-2) !important;
+  --color-budgetHeaderOtherMonth: var(--alg-vlak) !important;
+  --color-budgetNumberNegative: var(--alg-fout) !important;
+  --color-budgetNumberNeutral: var(--alg-tekst) !important;
+  --color-budgetNumberPositive: var(--alg-tekst) !important;
+  --color-budgetNumberZero: var(--alg-zwak) !important;
+  --color-numberNegative: var(--alg-fout) !important;
+  --color-numberNeutral: var(--alg-gedempt) !important;
+  --color-numberPositive: var(--alg-ok) !important;
+  --color-toBudgetNegative: var(--alg-fout) !important;
+  --color-toBudgetPositive: var(--alg-ok) !important;
+  --color-toBudgetZero: var(--alg-ok) !important;
+  --color-templateNumberFunded: var(--alg-ok) !important;
+  --color-templateNumberUnderFunded: var(--alg-waarschuwing) !important;
+
+  /* ---------- zijbalk ---------- */
+  --color-sidebarBackground: var(--alg-glas) !important;
+  --color-sidebarBudgetName: var(--alg-tekst) !important;
+  --color-sidebarItemText: var(--alg-tekst) !important;
+  --color-sidebarItemTextSelected: var(--alg-tekst-sterk) !important;
+  --color-sidebarItemAccentSelected: var(--alg-accent-kleur) !important;
+  --color-sidebarItemBackgroundHover: var(--alg-rij-hover) !important;
+  --color-sidebarItemBackgroundPending: var(--alg-waarschuwing) !important;
+  --color-sidebarItemBackgroundPositive: var(--alg-ok) !important;
+  --color-sidebarItemBackgroundFailed: var(--alg-fout) !important;
+
+  /* ---------- menu's en autocomplete ---------- */
+  --color-menuBackground: var(--alg-glas-sterk) !important;
+  --color-menuItemBackground: transparent !important;
+  --color-menuItemBackgroundHover: var(--alg-rij-hover) !important;
+  --color-menuItemText: var(--alg-tekst) !important;
+  --color-menuItemTextHover: var(--alg-tekst-sterk) !important;
+  --color-menuItemTextSelected: var(--alg-tekst-sterk) !important;
+  --color-menuItemTextHeader: var(--alg-gedempt) !important;
+  --color-menuBorder: var(--alg-rand-sterk) !important;
+  --color-menuBorderHover: var(--alg-rand-hover) !important;
+  --color-menuKeybindingText: var(--alg-gedempt) !important;
+  --color-menuAutoCompleteBackground: var(--alg-glas-sterk) !important;
+  --color-menuAutoCompleteBackgroundHover: var(--alg-rij-hover) !important;
+  --color-menuAutoCompleteText: var(--alg-tekst) !important;
+  --color-menuAutoCompleteTextHover: var(--alg-tekst-sterk) !important;
+  --color-menuAutoCompleteTextHeader: var(--alg-gedempt) !important;
+  --color-menuAutoCompleteItemText: var(--alg-tekst) !important;
+  --color-menuAutoCompleteItemTextHover: var(--alg-tekst-sterk) !important;
+
+  /* ---------- knoppen ---------- */
+  --color-buttonPrimaryText: var(--alg-knop-tekst) !important;
+  --color-buttonPrimaryTextHover: var(--alg-knop-tekst-hover) !important;
+  --color-buttonPrimaryBackground: var(--alg-knop) !important;
+  --color-buttonPrimaryBackgroundHover: var(--alg-knop-hover) !important;
+  --color-buttonPrimaryBorder: var(--alg-knop) !important;
+  --color-buttonPrimaryShadow: var(--alg-overlay) !important;
+  --color-buttonPrimaryDisabledText: var(--alg-gedempt) !important;
+  --color-buttonPrimaryDisabledBackground: var(--alg-knop-zacht) !important;
+  --color-buttonPrimaryDisabledBorder: var(--alg-rand) !important;
+  --color-buttonNormalText: var(--alg-tekst) !important;
+  --color-buttonNormalTextHover: var(--alg-tekst-sterk) !important;
+  --color-buttonNormalBackground: var(--alg-knop-zacht) !important;
+  --color-buttonNormalBackgroundHover: var(--alg-knop-zacht-hover) !important;
+  --color-buttonNormalBorder: var(--alg-rand-sterk) !important;
+  --color-buttonNormalShadow: var(--alg-overlay) !important;
+  --color-buttonNormalSelectedText: var(--alg-knop-tekst) !important;
+  --color-buttonNormalSelectedBackground: var(--alg-knop-hover) !important;
+  --color-buttonNormalDisabledText: var(--alg-gedempt) !important;
+  --color-buttonNormalDisabledBackground: var(--alg-veld-uit) !important;
+  --color-buttonNormalDisabledBorder: var(--alg-rand) !important;
+  --color-buttonBareText: var(--alg-tekst) !important;
+  --color-buttonBareTextHover: var(--alg-tekst-sterk) !important;
+  --color-buttonBareBackground: transparent !important;
+  --color-buttonBareBackgroundHover: var(--alg-knop-zacht-hover) !important;
+  --color-buttonBareBackgroundActive: var(--alg-rij-actief) !important;
+  --color-buttonBareDisabledText: var(--alg-gedempt) !important;
+  --color-buttonBareDisabledBackground: transparent !important;
+  --color-buttonMenuText: var(--alg-tekst) !important;
+  --color-buttonMenuTextHover: var(--alg-tekst-sterk) !important;
+  --color-buttonMenuBackground: transparent !important;
+  --color-buttonMenuBackgroundHover: var(--alg-knop-zacht-hover) !important;
+  --color-buttonMenuBorder: var(--alg-rand-sterk) !important;
+  --color-buttonMenuSelectedText: var(--alg-tekst-sterk) !important;
+  --color-buttonMenuSelectedTextHover: var(--alg-tekst-sterk) !important;
+  --color-buttonMenuSelectedBackground: var(--alg-rij-actief) !important;
+  --color-buttonMenuSelectedBackgroundHover: var(--alg-knop-zacht-hover) !important;
+  --color-buttonMenuSelectedBorder: var(--alg-rand-hover) !important;
+
+  /* ---------- formulieren, vinkjes, pillen, notitielabels ---------- */
+  --color-formLabelText: var(--alg-gedempt) !important;
+  --color-formLabelBackground: var(--alg-paneel) !important;
+  --color-formInputBackground: var(--alg-veld) !important;
+  --color-formInputBackgroundSelected: var(--alg-veld) !important;
+  --color-formInputBackgroundSelection: var(--alg-rij-actief) !important;
+  --color-formInputBorder: var(--alg-rand-sterk) !important;
+  --color-formInputBorderSelected: var(--alg-accent-kleur) !important;
+  --color-formInputShadowSelected: var(--alg-rand-hover) !important;
+  --color-formInputText: var(--alg-tekst-sterk) !important;
+  --color-formInputTextSelected: var(--alg-tekst-sterk) !important;
+  --color-formInputTextPlaceholder: var(--alg-placeholder) !important;
+  --color-formInputTextPlaceholderSelected: var(--alg-placeholder) !important;
+  --color-formInputTextSelection: var(--alg-tekst-sterk) !important;
+  --color-formInputTextReadOnlySelection: var(--alg-paneel) !important;
+  --color-formInputTextHighlight: var(--alg-rij-actief) !important;
+  --color-checkboxText: var(--alg-donker-tekst) !important;
+  --color-checkboxBackgroundSelected: var(--alg-accent-kleur) !important;
+  --color-checkboxBorderSelected: var(--alg-accent-kleur) !important;
+  --color-checkboxShadowSelected: var(--alg-rand-hover) !important;
+  --color-checkboxToggleBackground: var(--alg-knop) !important;
+  --color-checkboxToggleBackgroundSelected: var(--alg-ok-vlak) !important;
+  --color-checkboxToggleDisabled: var(--alg-veld-uit) !important;
+  --color-pillBackground: var(--alg-knop-zacht) !important;
+  --color-pillBackgroundLight: var(--alg-paneel) !important;
+  --color-pillBackgroundSelected: var(--alg-rij-actief) !important;
+  --color-pillText: var(--alg-tekst) !important;
+  --color-pillTextHighlighted: var(--alg-tekst-sterk) !important;
+  --color-pillTextSelected: var(--alg-tekst-sterk) !important;
+  --color-pillTextSubdued: var(--alg-gedempt) !important;
+  --color-pillBorder: var(--alg-rand) !important;
+  --color-pillBorderDark: var(--alg-rand-sterk) !important;
+  --color-pillBorderSelected: var(--alg-rand-hover) !important;
+  --color-noteTagBackground: var(--alg-knop-zacht) !important;
+  --color-noteTagBackgroundHover: var(--alg-knop-zacht-hover) !important;
+  --color-noteTagDefault: var(--alg-knop-zacht) !important;
+  --color-noteTagText: var(--alg-tekst) !important;
+  --color-markdownNormal: var(--alg-rij-actief) !important;
+  --color-markdownDark: var(--alg-tekst-sterk) !important;
+  --color-markdownLight: var(--alg-paneel) !important;
+
+  /* ---------- kalender ---------- */
+  --color-calendarText: var(--alg-tekst) !important;
+  --color-calendarBackground: var(--alg-glas-sterk) !important;
+  --color-calendarItemText: var(--alg-tekst) !important;
+  --color-calendarItemBackground: var(--alg-rij) !important;
+  --color-calendarSelectedBackground: var(--alg-rij-actief) !important;
+  --color-calendarCellBackground: var(--alg-paneel) !important;
+
+  /* ---------- status ---------- */
+  --color-noticeBackground: var(--alg-ok-tint) !important;
+  --color-noticeBackgroundLight: var(--alg-ok-tint) !important;
+  --color-noticeBackgroundDark: var(--alg-ok-vlak) !important;
+  --color-noticeText: var(--alg-ok) !important;
+  --color-noticeTextLight: var(--alg-ok) !important;
+  --color-noticeTextDark: var(--alg-ok) !important;
+  --color-noticeTextMenu: var(--alg-ok) !important;
+  --color-noticeBorder: var(--alg-ok-rand) !important;
+  --color-warningBackground: var(--alg-waarschuwing-tint) !important;
+  --color-warningText: var(--alg-waarschuwing) !important;
+  --color-warningTextLight: var(--alg-waarschuwing) !important;
+  --color-warningTextDark: var(--alg-waarschuwing) !important;
+  --color-warningBorder: var(--alg-waarschuwing-rand) !important;
+  --color-errorBackground: var(--alg-fout-tint) !important;
+  --color-errorText: var(--alg-fout) !important;
+  --color-errorTextDark: var(--alg-fout) !important;
+  --color-errorTextDarker: var(--alg-fout) !important;
+  --color-errorTextMenu: var(--alg-fout) !important;
+  --color-errorBorder: var(--alg-fout-rand) !important;
+  --color-upcomingBackground: var(--alg-info-tint) !important;
+  --color-upcomingText: var(--alg-info) !important;
+  --color-upcomingBorder: var(--alg-info-rand) !important;
+
+  /* ---------- rapporten (grafiekkleuren chartQual* blijven van Actual) ---------- */
+  --color-reportsRed: var(--alg-fout) !important;
+  --color-reportsGreen: var(--alg-ok) !important;
+  --color-reportsBlue: var(--alg-info) !important;
+  --color-reportsGray: var(--alg-gedempt) !important;
+  --color-reportsLabel: var(--alg-tekst) !important;
+  --color-reportsInnerLabel: var(--alg-tekst-sterk) !important;
+  --color-reportsChartFill: var(--alg-ok) !important;
+  --color-reportsNumberNegative: var(--alg-fout) !important;
+  --color-reportsNumberNeutral: var(--alg-gedempt) !important;
+  --color-reportsNumberPositive: var(--alg-ok) !important;
+
+  /* ---------- mobiel ---------- */
+  --color-mobileHeaderBackground: var(--alg-vlak-2) !important;
+  --color-mobileHeaderText: var(--alg-tekst-sterk) !important;
+  --color-mobileHeaderTextSubdued: var(--alg-gedempt) !important;
+  --color-mobileHeaderTextHover: var(--alg-rij-hover) !important;
+  --color-mobileNavBackground: var(--alg-glas-sterk) !important;
+  --color-mobileNavItem: var(--alg-gedempt) !important;
+  --color-mobileNavItemSelected: var(--alg-tekst-sterk) !important;
+  --color-mobileAccountShadow: var(--alg-overlay) !important;
+  --color-mobileAccountText: var(--alg-tekst) !important;
+  --color-mobileTransactionSelected: var(--alg-accent-kleur) !important;
+  --color-mobileViewTheme: var(--alg-vlak-2) !important;
+  --color-mobileConfigServerViewTheme: var(--alg-vlak-2) !important;
+}
+

@@ -83,3 +83,103 @@ def test_api_writes_need_a_trusted_peer() -> None:
     assert guard < location.index("proxy_pass")
     assert '"code":"proxy_required"' in location
     assert "default_type application/problem+json;" in location
+
+
+DASHBOARD_SCRIPT = ROOT / "docker/nginx/entrypoint/41-cssthema-dashboard-host.sh"
+
+
+def run_dashboard_script(tmp_path: Path, hosts: str | None) -> subprocess.CompletedProcess[str]:
+    env = {
+        "PATH": os.environ.get("PATH", "/usr/bin:/bin"),
+        "CSSTHEMA_DASHBOARD_HOST_CONF": str(tmp_path / "dashboard-host.conf"),
+    }
+    if hosts is not None:
+        env["DASHBOARD_HOST"] = hosts
+    # Vast script uit de repo, geen invoer van buiten.
+    return subprocess.run(  # noqa: S603
+        ["/bin/sh", str(DASHBOARD_SCRIPT)], env=env, capture_output=True, text=True, check=False
+    )
+
+
+def map_entries(conf: str) -> list[str]:
+    match = re.search(r"map \$host \$ct_dashboard_host \{\n(.*?)\n\}", conf, re.S)
+    assert match, conf
+    return [line.strip() for line in match.group(1).splitlines()]
+
+
+def test_dashboard_hosts_map(tmp_path: Path) -> None:
+    result = run_dashboard_script(tmp_path, "Cssthema.Example.be, localhost localhost")
+    assert result.returncode == 0, result.stderr
+    entries = map_entries((tmp_path / "dashboard-host.conf").read_text())
+    assert entries == ["default 0;", "cssthema.example.be 1;", "localhost 1;"]
+
+
+def test_dashboard_host_defaults_to_localhost(tmp_path: Path) -> None:
+    for hosts in (None, ""):
+        result = run_dashboard_script(tmp_path, hosts)
+        assert result.returncode == 0, result.stderr
+        entries = map_entries((tmp_path / "dashboard-host.conf").read_text())
+        assert entries == ["default 0;", "localhost 1;"]
+
+
+def test_invalid_dashboard_host_is_refused(tmp_path: Path) -> None:
+    for hosts in ("https://x", "x:80", "default", "foo-.be", "-a.be", "a..b", f"{'a' * 64}.be"):
+        result = run_dashboard_script(tmp_path, hosts)
+        assert result.returncode == 1, hosts
+        assert "ongeldige hostnaam" in result.stderr
+    result = run_dashboard_script(tmp_path, " , ")
+    assert result.returncode == 1
+    assert "is leeg" in result.stderr
+
+
+def location_body(conf: str, header: str) -> str:
+    start = conf.index(f"\n    location {header} {{\n")
+    return conf[start : conf.index("\n    }\n", start)]
+
+
+def test_dashboard_only_locations() -> None:
+    # Alleen het eerste server-blok (poort 80); de interne refresh-server heeft geen SPA.
+    conf = CONF.read_text()
+    for header in ("/api/", "^~ /assets/", "= /preview-bridge.js", "/"):
+        assert "if ($ct_dashboard_host = 0) {" in location_body(conf, header), header
+    api = location_body(conf, "/api/")
+    trusted = api.index("if ($ct_trusted_peer = 0) {")
+    assert trusted < api.index("proxy_pass")
+    assert "return 403" in api[trusted : api.index("}", trusted)]
+
+
+INSTALL = ROOT / "deploy/debian/install.sh"
+SAMPLES = [
+    "cssthema.jbogaert.be",
+    "localhost",
+    "a-b.c0.be",
+    f"{'a' * 63}.be",
+    f"{'a' * 64}.be",
+    "foo-.be",
+    "-foo.be",
+    ".authentik.be",
+    "a..b",
+    "a_b.be",
+    "a.be.",
+]
+
+
+def test_install_and_nginx_refuse_what_the_backend_refuses(tmp_path: Path) -> None:
+    """install.sh en het 41-script moeten minstens alles weigeren wat Settings weigert: anders
+    legt een update na de back-up de api plat (migraties lezen dezelfde instellingen)."""
+    from cssthema.domain.hosts import HOSTNAME_RE
+
+    match = re.search(r"^HOSTNAAM_RE='([^']+)'$", INSTALL.read_text(), re.M)
+    assert match
+    for host in SAMPLES:
+        backend_ok = HOSTNAME_RE.fullmatch(host) is not None
+        # Vaste test-invoer, geen invoer van buiten.
+        install_ok = (
+            subprocess.run(  # noqa: S603
+                ["/bin/bash", "-c", "[[ $1 =~ $2 ]]", "_", host, match.group(1)], check=False
+            ).returncode
+            == 0
+        )
+        nginx_ok = run_dashboard_script(tmp_path, host).returncode == 0
+        assert install_ok == backend_ok, host
+        assert nginx_ok == backend_ok, host

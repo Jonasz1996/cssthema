@@ -17,7 +17,10 @@ async def test_readyz_checks_database_and_redis(settings: Settings) -> None:
     ):
         response = await c.get("/readyz")
     assert response.status_code == 200
-    assert response.json() == {"status": "ok", "checks": {"database": "ok", "redis": "ok"}}
+    assert response.json() == {
+        "status": "ok",
+        "checks": {"database": "ok", "database_encoding": "ok", "redis": "ok"},
+    }
 
 
 async def test_readyz_reports_unavailable_redis(settings: Settings) -> None:
@@ -30,7 +33,11 @@ async def test_readyz_reports_unavailable_redis(settings: Settings) -> None:
     ):
         response = await c.get("/readyz")
     assert response.status_code == 503
-    assert response.json()["checks"] == {"database": "ok", "redis": "error"}
+    assert response.json()["checks"] == {
+        "database": "ok",
+        "database_encoding": "ok",
+        "redis": "error",
+    }
 
 
 async def test_readyz_reports_hanging_redis(
@@ -56,4 +63,8 @@ async def test_readyz_reports_hanging_redis(
     finally:
         server.close()
     assert response.status_code == 503
-    assert response.json()["checks"] == {"database": "ok", "redis": "error"}
+    assert response.json()["checks"] == {
+        "database": "ok",
+        "database_encoding": "ok",
+        "redis": "error",
+    }

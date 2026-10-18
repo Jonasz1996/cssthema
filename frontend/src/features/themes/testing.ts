@@ -27,6 +27,7 @@ export function createServer(): FetchMock {
         version: "test",
         environment: "test",
         public_base_url: PUBLIC_BASE,
+        css_max_bytes: 1024 * 1024,
       }),
     )
     .on("GET", "/api/v1/themes", () => json({ items: [], next_cursor: null }))

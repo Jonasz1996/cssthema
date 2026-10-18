@@ -9,13 +9,15 @@ export interface NavItem {
 }
 
 /**
- * Navigatieknoppen bovenaan de app-kaart. Routes van latere fases (services, discovery, ai,
- * jobs, settings) bestaan wel, maar staan hier (nog) niet in.
+ * Navigatieknoppen bovenaan de app-kaart. Routes van latere fases (discovery, ai, jobs,
+ * settings) bestaan wel, maar staan hier (nog) niet in.
  */
 export const mainNav: readonly NavItem[] = [
   { to: "/", emoji: "📊", labelKey: "nav.dashboard" },
   { to: "/themes", emoji: "🎨", labelKey: "nav.themes", alsoActiveOn: ["/editor"] },
   { to: "/palettes", emoji: "🖌️", labelKey: "nav.palettes" },
+  { to: "/hosts", emoji: "🌐", labelKey: "nav.hosts" },
+  { to: "/services", emoji: "📸", labelKey: "nav.services" },
   { to: "/import", emoji: "📥", labelKey: "nav.import" },
 ];
 

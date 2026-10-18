@@ -30,6 +30,20 @@ export type LocalImportResult = Schemas["LocalImportResult"];
 export type ImportedTheme = Schemas["ImportedTheme"];
 export type SkippedFile = Schemas["SkippedFile"];
 export type ScriptFile = Schemas["ScriptFile"];
+export type HostBinding = Schemas["HostBinding"];
+export type HostBindingInput = Schemas["HostBindingInput"];
+export type HostOptions = Schemas["HostOptions"];
+export type HostImportRequest = Schemas["HostImportRequest"];
+export type HostImportResult = Schemas["HostImportResult"];
+export type HostHealthOverview = Schemas["HostHealthOverview"];
+export type HostHealth = Schemas["HostHealth"];
+export type HostCheck = Schemas["HostCheck"];
+export type HostCheckStarted = Schemas["HostCheckStarted"];
+export type HostHealthLevel = HostHealth["level"];
+export type ServiceSummary = Schemas["ServiceSummary"];
+export type SnapshotSummary = Schemas["SnapshotSummary"];
+export type SnapshotDocument = Schemas["SnapshotDocument"];
+export type CaptureImportResult = Schemas["CaptureImportResult"];
 export type UserRef = Schemas["UserRef"];
 export type EtagState = Schemas["EtagState"];
 export type Problem = Schemas["Problem"];
@@ -56,3 +70,16 @@ export interface Locked<T> {
   etag: string;
   lockVersion: number;
 }
+
+export type HostBulkRequest = Schemas["HostBulkRequest"];
+export type HostBulkAction = HostBulkRequest["action"];
+export type HostBulkResult = Schemas["HostBulkResult"];
+
+/** Preview in de editor: de stapel van een host rond het bewerkte thema (`/preview/stack`). */
+export type PreviewStack = Schemas["PreviewStack"];
+export type StackPart = Schemas["StackPart"];
+/** Welke hosts een thema krijgen (`/preview/usage`). */
+export type ThemeUsage = Schemas["ThemeUsage"];
+/** Antwoord van `POST /themes/import`: het thema en wat er gebeurde (`outcome`). */
+export type UploadedTheme = Schemas["UploadedTheme"];
+export type ImportOutcome = UploadedTheme["outcome"];

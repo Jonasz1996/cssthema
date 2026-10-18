@@ -1,5 +1,6 @@
 """Applicatie-instellingen uit omgevingsvariabelen (12-factor)."""
 
+import re
 from functools import lru_cache
 from pathlib import Path
 from typing import Annotated, Literal
@@ -8,6 +9,8 @@ from urllib.parse import urlsplit
 from pydantic import Field, PostgresDsn, RedisDsn, SecretStr, field_validator, model_validator
 from pydantic_settings import BaseSettings, NoDecode, SettingsConfigDict
 from sqlalchemy.engine import URL
+
+from cssthema.domain.hosts import DEFAULT_HOST, normalize_hostname
 
 LogLevel = Literal["CRITICAL", "ERROR", "WARNING", "INFO", "DEBUG"]
 
@@ -38,7 +41,7 @@ class Settings(BaseSettings):
     # CSS-levering en -validatie (fase 1). De standaardwaarden werken zonder extra
     # configuratie voor de installatie zonder Docker (deploy/debian); docker compose
     # zet CSS_REFRESH_URL op de nginx-container.
-    css_max_bytes: int = Field(default=512 * 1024, gt=0)
+    css_max_bytes: int = Field(default=1024 * 1024, gt=0)
     # Hosts die url()/@import in thema's mogen gebruiken (security-lint). Via de
     # omgeving komma-gescheiden: CSS_URL_ALLOWLIST=fonts.googleapis.com,fonts.gstatic.com
     # De host van PUBLIC_BASE_URL is altijd toegestaan (zie css_allowed_hosts).
@@ -51,6 +54,16 @@ class Settings(BaseSettings):
     # Handgemaakte CSS-bestanden die nginx vóór de api serveert (installatie zonder
     # Docker). Bestaat de map niet (Docker), dan zijn er gewoon geen lokale bestanden.
     css_files_dir: Path = Path("/var/lib/cssthema/css-files")
+    # Assets (snapshots, stylesheets en screenshots uit de capture-zips), content-addressed.
+    storage_dir: Path = Path("/var/lib/cssthema/storage")
+    # Grootte van één capture-zip (vastleggen.py maakt delen van hoogstens 24 MB).
+    capture_max_bytes: int = Field(default=25 * 1024 * 1024, gt=0)
+    # Hostnamen van het dashboard en de API (gescheiden door spaties of komma's), bv.
+    # DASHBOARD_HOST=cssthema.jbogaert.be. Mogen muteren (CSRF) en krijgen nooit een thema.
+    dashboard_host: Annotated[list[str], NoDecode] = Field(default_factory=list)
+    # Hosts die nooit iets krijgen via /host/, ook niet met een koppeling of via `*`
+    # (bv. Authentik en de NPM-beheerpagina). Zelfde notatie als DASHBOARD_HOST.
+    excluded_hosts: Annotated[list[str], NoDecode] = Field(default_factory=list)
 
     @field_validator("css_url_allowlist", mode="before")
     @classmethod
@@ -60,6 +73,16 @@ class Settings(BaseSettings):
         if isinstance(value, list | tuple):
             hosts = (str(host).strip().lower().rstrip(".") for host in value)
             return list(dict.fromkeys(host for host in hosts if host))
+        return value
+
+    @field_validator("dashboard_host", "excluded_hosts", mode="before")
+    @classmethod
+    def _split_hosts(cls, value: object) -> object:
+        if isinstance(value, str):
+            value = re.split(r"[\s,]+", value)
+        if isinstance(value, list | tuple):
+            hosts = (str(host).strip() for host in value)
+            return list(dict.fromkeys(_hostname(host) for host in hosts if host))
         return value
 
     @field_validator("css_refresh_url")
@@ -103,6 +126,29 @@ class Settings(BaseSettings):
     def public_base(self) -> str:
         """PUBLIC_BASE_URL zonder afsluitende slash, voor absolute CSS-URL's."""
         return self.public_base_url.rstrip("/")
+
+    @property
+    def public_host(self) -> str | None:
+        """De hostnaam van PUBLIC_BASE_URL (het CSS-domein), in kleine letters."""
+        host = urlsplit(self.public_base_url).hostname
+        return host.lower() if host else None
+
+    @property
+    def never_inject_hosts(self) -> frozenset[str]:
+        """Hosts die via /host/ nooit iets krijgen: het dashboard, het CSS-domein en
+        EXCLUDED_HOSTS. Een thema of script van cssthema hoort daar niet in te draaien."""
+        hosts = {*self.dashboard_host, *self.excluded_hosts}
+        if self.public_host:
+            hosts.add(self.public_host)
+        return frozenset(hosts)
+
+
+def _hostname(raw: str) -> str:
+    """`https://CssThema.x.be/` → `cssthema.x.be`; ValueError bij een ongeldige naam of `*`."""
+    name = normalize_hostname(raw)
+    if name == DEFAULT_HOST:
+        raise ValueError("* is geen hostnaam")
+    return name
 
 
 @lru_cache

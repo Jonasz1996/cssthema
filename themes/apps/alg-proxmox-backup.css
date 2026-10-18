@@ -1,0 +1,121 @@
+/* ==========================================================================
+   alg-proxmox-backup.css - Proxmox Backup Server (ExtJS 7 crisp +
+   proxmox-widget-toolkit)
+   Hosts: proxmoxbackup.jbogaert.be, piproxmoxbackup.jbogaert.be
+   Laadt NA algemeen.css.
+
+   algemeen.css (deel 40 EXTJS) is op PBS 4.2 getest en dekt de loginpagina
+   en het gros van het hoofdscherm. Dit bestand werkt af wat uit PBS' eigen
+   stylesheet (proxmox-backup-gui.css) en de widget-toolkit komt:
+   - grijze (#555) actie-iconen in rasters licht, status-iconen in de
+     statuskleuren (verify/sync/prune-resultaten);
+   - zwarte overlay-tekentjes van datastores (onderhoud, verwijderen) en het
+     "V."-label van verify-iconen;
+   - knopbadge (aantal taken), uitgeschakelde rijen, totaalrij-rand;
+   - logvakken (p.logs), journal/syslog-kleuren, markdown-notities.
+
+   Beperkingen: alleen de loginpagina is vastgelegd (en getest). De regels
+   voor het hoofdscherm komen uit de klassen in PBS' eigen CSS (die in de
+   vastlegging zat), maar zijn NIET getest op een ingelogd scherm.
+   Het vinkje "Save User name" is een sprite en ontbreekt in de testrender
+   (geen netwerk). CSP: alleen frame-ancestors, css.jbogaert.be laadt gewoon.
+   ========================================================================== */
+
+/* ---------- Rasters ------------------------------------------------------ */
+.x-body .x-action-col-icon::before {
+  color: var(--alg-tekst);
+}
+
+.x-body .x-action-col-icon.good::before {
+  color: var(--alg-ok);
+}
+
+.x-body .x-action-col-icon.warning::before {
+  color: var(--alg-waarschuwing);
+}
+
+.x-body .x-action-col-icon.critical::before {
+  color: var(--alg-fout);
+}
+
+/* uitgeschakelde rijen (sync/verify-jobs): PBS zet ze #cfcfcf, op donker is
+   dat juist fel; gedempt grijs zoals bedoeld */
+.x-body table:not(.x-grid-item-selected) tr.x-grid-row.disabled {
+  color: var(--alg-gedempt);
+}
+
+/* totaalrij onder datastore-gebruik: zwarte bovenrand */
+.x-body tr.x-grid-row-summary td.x-grid-cell {
+  border-top-color: var(--alg-rand-hover);
+}
+
+/* ---------- Datastore- en verify-iconen ---------------------------------- */
+.x-body .pmx-tree-icon-custom:is(.maintenance, .destroying)::after,
+.x-body .pve-icon-verify-lettering::after {
+  color: var(--alg-tekst);
+}
+
+.x-body .pmx-tree-icon-custom:is(.maintenance, .destroying, .unplugged)::before {
+  color: var(--alg-gedempt);
+}
+
+.x-body .pmx-tree-icon-custom::after {
+  text-shadow: none;
+}
+
+/* badge op knoppen (bv. aantal lopende taken) */
+.x-body .pmx-button-badge.active {
+  background-color: var(--alg-knop);
+  color: var(--alg-knop-tekst);
+}
+
+/* ---------- Logs en journal ---------------------------------------------- */
+.x-body p.logs {
+  background-color: var(--alg-pre-vlak);
+  border-color: var(--alg-rand-sterk);
+  color: var(--alg-code);
+}
+
+.x-body :is(.pmx-journal-prio-0, .pmx-journal-prio-1, .pmx-journal-prio-2, .pmx-journal-prio-3) {
+  color: var(--alg-fout);
+}
+
+.x-body .pmx-journal-prio-4 {
+  color: var(--alg-waarschuwing);
+}
+
+.x-body :is(.pmx-journal-prio-7, .pmx-journal-reboot) {
+  color: var(--alg-gedempt);
+}
+
+/* ---------- Statusklassen van de widget-toolkit -------------------------- */
+.x-body :is(i, span, div).good {
+  color: var(--alg-ok);
+}
+
+.x-body :is(i, span, div).warning:not(.x-progress) {
+  color: var(--alg-waarschuwing);
+}
+
+.x-body :is(i, span, div).critical:not(.x-progress) {
+  color: var(--alg-fout);
+}
+
+.x-body .info-blue {
+  color: var(--alg-info) !important;
+}
+
+/* ---------- Markdown-notities (datastore-notities) ----------------------- */
+.x-body .pmx-md pre code,
+.x-body .pmx-md blockquote {
+  border-left-color: var(--alg-rand-hover);
+}
+
+.x-body .pmx-md tbody td,
+.x-body .pmx-md tbody tr:last-of-type td {
+  border-bottom-color: var(--alg-rand-sterk);
+}
+
+.x-body .pmx-md tbody tr:hover td {
+  background-color: var(--alg-rij-hover);
+}

@@ -424,6 +424,314 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/hosts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Alle host-koppelingen (`*` eerst) */
+        get: operations["hosts_list"];
+        put?: never;
+        /** Koppeling aanmaken */
+        post: operations["hosts_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/hosts/options": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Te kiezen thema's en scripts, en de sub_filter-regel voor NPM */
+        get: operations["hosts_options"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/hosts/health": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Gezondheid per host: laatst geladen, ontbrekende onderdelen, laatste controle */
+        get: operations["hosts_health"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/hosts/check": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Elke host met een eigen koppeling controleren (op de achtergrond) */
+        post: operations["hosts_check"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/hosts/seen/{hostname}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Een host uit 'laatst geladen' halen */
+        delete: operations["hosts_forget_seen"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/hosts/seen": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Elke host zonder eigen koppeling uit 'laatst geladen' halen */
+        delete: operations["hosts_forget_all_seen"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/hosts/bulk": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Veel koppelingen tegelijk: een naam toevoegen, weghalen of vervangen, of aan/uit */
+        post: operations["hosts_bulk"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/hosts/import": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Koppelingen overnemen uit een NPM-config (`# <host>` boven elke sub_filter) */
+        post: operations["hosts_import"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/hosts/{binding_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Koppeling aanpassen */
+        put: operations["hosts_update"];
+        post?: never;
+        /** Koppeling verwijderen (de host volgt dan `*`) */
+        delete: operations["hosts_delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/captures": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Een zip van vastleggen.py importeren als diensten en snapshots */
+        post: operations["captures_import"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/services": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Diensten met hun snapshots (nieuwste eerst) */
+        get: operations["services_list"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/services/{service_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Dienst verwijderen (met zijn snapshots en hun bestanden) */
+        delete: operations["services_delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/snapshots/{snapshot_id}/document": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** HTML en stylesheets van een snapshot, voor de preview in de editor */
+        get: operations["snapshots_document"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/assets/{asset_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Een screenshot uit een capture */
+        get: operations["assets_image"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/preview/stack": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** De stapel van een host (eigen koppeling, anders `*`) vóór en na een thema */
+        get: operations["preview_stack"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/preview/usage": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Welke hosts een thema krijgen (eigen koppelingen en `*`) */
+        get: operations["preview_usage"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/host/{hostname}.css": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Samengevoegde CSS voor een proxy host (koppeling van de host, anders `*`) */
+        get: operations["public_host_css"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/host/{hostname}.js": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Samengevoegde thema-scripts voor een proxy host */
+        get: operations["public_host_js"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/{ref}.css": {
         parameters: {
             query?: never;
@@ -462,6 +770,14 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        /** Body_captures_import */
+        Body_captures_import: {
+            /**
+             * File
+             * @description Zip (of een deel) van vastleggen.py
+             */
+            file: string;
+        };
         /** Body_scripts_upload */
         Body_scripts_upload: {
             /**
@@ -490,7 +806,7 @@ export interface components {
             file: string;
             /**
              * On Conflict
-             * @description Slug bestaat al: `rename` (`-2`, `-3`, …), `new_version` (nieuwe draft en versie op het bestaande thema) of `fail` (409).
+             * @description Slug bestaat al: `rename` (`-2`, `-3`, …), `new_version` (nieuwe draft en versie op het bestaande thema; niets als de CSS gelijk is aan de laatste versie) of `fail` (409).
              * @default rename
              * @enum {string}
              */
@@ -505,6 +821,43 @@ export interface components {
              * @description Naam (en slug).
              */
             name?: string | null;
+        };
+        /** CaptureImportResult */
+        CaptureImportResult: {
+            /**
+             * Services Created
+             * @description Hostnamen van nieuwe diensten.
+             */
+            services_created: string[];
+            /**
+             * Services Updated
+             * @description Hostnamen van bestaande diensten.
+             */
+            services_updated: string[];
+            /**
+             * Snapshots
+             * @description Aantal pagina's met een snapshot.
+             */
+            snapshots: number;
+            /**
+             * Without Snapshot
+             * @description Hostnamen zonder snapshot.html (bv. de app antwoordde niet): alleen status en screenshots.
+             */
+            without_snapshot: string[];
+            /**
+             * Kept Previous
+             * @description Pagina's (hostnaam, of `hostnaam/pagina`) waarvan de vorige snapshot bleef staan: de nieuwe opname mislukte (fout, geen html, Authentik-login of http-5xx) en gaf alleen haar status en tijd (zonder tijd in info.json die van de import).
+             */
+            kept_previous?: string[];
+            /** Skipped */
+            skipped: components["schemas"]["CaptureSkipped"][];
+        };
+        /** CaptureSkipped */
+        CaptureSkipped: {
+            /** Path */
+            path: string;
+            /** Reason */
+            reason: string;
         };
         /** Dashboard */
         Dashboard: {
@@ -607,6 +960,317 @@ export interface components {
             checks: {
                 [key: string]: "ok" | "error";
             };
+        };
+        /** HostBinding */
+        HostBinding: {
+            /**
+             * Hostname
+             * @description Hostnaam van de proxy host, of `*` voor elke host zonder eigen koppeling.
+             * @example proxmox100.jbogaert.be
+             */
+            hostname: string;
+            /**
+             * Styles
+             * @description Thema-slugs of namen van bestanden in css-files (zonder `.css`), in laadvolgorde. Een bestand in css-files gaat voor op een thema met dezelfde naam, zoals in nginx.
+             * @example [
+             *       "algemeen",
+             *       "alg-proxmox"
+             *     ]
+             */
+            styles?: string[];
+            /**
+             * Scripts
+             * @description Thema-scripts (zonder `.js`), bv. leeg voor een wachtwoordkluis.
+             * @example [
+             *       "algemeen"
+             *     ]
+             */
+            scripts?: string[];
+            /**
+             * Enabled
+             * @description Uit: de host krijgt niets, ook niet `*`.
+             * @default true
+             */
+            enabled: boolean;
+            /** Note */
+            note?: string | null;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /**
+             * Css Url
+             * @description Publieke URL van de samengevoegde CSS van deze host.
+             * @example https://css.jbogaert.be/host/proxmox100.jbogaert.be.css
+             */
+            css_url: string;
+            /** Js Url */
+            js_url: string;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /**
+             * Updated At
+             * Format: date-time
+             */
+            updated_at: string;
+        };
+        /** HostBindingInput */
+        HostBindingInput: {
+            /**
+             * Hostname
+             * @description Hostnaam van de proxy host, of `*` voor elke host zonder eigen koppeling.
+             * @example proxmox100.jbogaert.be
+             */
+            hostname: string;
+            /**
+             * Styles
+             * @description Thema-slugs of namen van bestanden in css-files (zonder `.css`), in laadvolgorde. Een bestand in css-files gaat voor op een thema met dezelfde naam, zoals in nginx.
+             * @example [
+             *       "algemeen",
+             *       "alg-proxmox"
+             *     ]
+             */
+            styles?: string[];
+            /**
+             * Scripts
+             * @description Thema-scripts (zonder `.js`), bv. leeg voor een wachtwoordkluis.
+             * @example [
+             *       "algemeen"
+             *     ]
+             */
+            scripts?: string[];
+            /**
+             * Enabled
+             * @description Uit: de host krijgt niets, ook niet `*`.
+             * @default true
+             */
+            enabled: boolean;
+            /** Note */
+            note?: string | null;
+        };
+        /**
+         * HostBulkRequest
+         * @description Eén wijziging voor veel hosts tegelijk, bv. een kleurvariant overal toevoegen.
+         */
+        HostBulkRequest: {
+            /**
+             * Hostnames
+             * @description De koppelingen om aan te passen; null: alle (ook `*`).
+             * @example [
+             *       "proxmox100.jbogaert.be",
+             *       "*"
+             *     ]
+             */
+            hostnames?: string[] | null;
+            /**
+             * Action
+             * @description `add` (achteraan), `remove`, `replace` (`name` door `replacement`), `enable` of `disable`.
+             * @enum {string}
+             */
+            action: "add" | "remove" | "replace" | "enable" | "disable";
+            /**
+             * Kind
+             * @description Voor add/remove/replace: thema's of scripts.
+             * @default styles
+             * @enum {string}
+             */
+            kind: "styles" | "scripts";
+            /**
+             * Name
+             * @example alg-var-nord
+             */
+            name?: string | null;
+            /**
+             * Replacement
+             * @example alg-var-dracula
+             */
+            replacement?: string | null;
+        };
+        /** HostBulkResult */
+        HostBulkResult: {
+            /**
+             * Changed
+             * @description Aangepast; hun bundels zijn ververst.
+             */
+            changed: string[];
+            /**
+             * Unchanged
+             * @description Al zoals gevraagd (of de naam stond er niet in).
+             */
+            unchanged: string[];
+            /**
+             * Skipped
+             * @description Niet aangepast: geen koppeling, uitgesloten host of te veel namen.
+             */
+            skipped: components["schemas"]["HostBulkSkipped"][];
+        };
+        /** HostBulkSkipped */
+        HostBulkSkipped: {
+            /** Hostname */
+            hostname: string;
+            /** Reason */
+            reason: string;
+        };
+        /** HostCheck */
+        HostCheck: {
+            /**
+             * Level
+             * @enum {string}
+             */
+            level: "ok" | "warn" | "error" | "unknown";
+            /**
+             * Code
+             * @description rule_active, old_rule, no_rule, csp_blocked, login, not_html, http_error, unreachable
+             */
+            code: string;
+            /** Detail */
+            detail: string;
+            /** Http Status */
+            http_status: number | null;
+            /**
+             * Checked At
+             * Format: date-time
+             */
+            checked_at: string;
+            /**
+             * Content Encoding
+             * @description Alleen bij `no_rule` doordat de app haar HTML comprimeert (zonder compressie staat het thema er wel): de Content-Encoding van dat antwoord (bv. `gzip`); anders null.
+             */
+            content_encoding?: string | null;
+        };
+        /** HostCheckStarted */
+        HostCheckStarted: {
+            /**
+             * Started
+             * @description False als er al een controle loopt.
+             */
+            started: boolean;
+        };
+        /** HostHealth */
+        HostHealth: {
+            /** Hostname */
+            hostname: string;
+            /**
+             * Bound
+             * @description Heeft een eigen koppeling (anders volgt de host `*`).
+             */
+            bound: boolean;
+            /** Enabled */
+            enabled: boolean;
+            /**
+             * Level
+             * @description Samenvatting van ontbrekende onderdelen en controle.
+             * @enum {string}
+             */
+            level: "ok" | "warn" | "error" | "unknown";
+            /**
+             * Last Seen
+             * @description Wanneer een browser `/host/<host>.css` laatst ophaalde (± 1 minuut).
+             */
+            last_seen: string | null;
+            /** Missing Styles */
+            missing_styles: string[];
+            /** Missing Scripts */
+            missing_scripts: string[];
+            check: components["schemas"]["HostCheck"] | null;
+            /**
+             * Stale
+             * @description Eigen, ingeschakelde koppeling, maar nooit of al 14 dagen niet geladen (niveau minstens `warn`).
+             */
+            stale?: boolean;
+            /**
+             * Service
+             * @description Hostnaam van een geïmporteerde dienst: zonder eigen koppeling volgt hij `*` en wordt hij ook gecontroleerd.
+             */
+            service?: boolean;
+            /**
+             * Excluded
+             * @description Krijgt nooit iets (DASHBOARD_HOST, het CSS-domein of EXCLUDED_HOSTS).
+             */
+            excluded?: boolean;
+        };
+        /** HostHealthOverview */
+        HostHealthOverview: {
+            /**
+             * Hosts
+             * @description `*` eerst, dan eigen koppelingen, dan de rest.
+             */
+            hosts: components["schemas"]["HostHealth"][];
+            /** Check Running */
+            check_running: boolean;
+            /** Check Started At */
+            check_started_at: string | null;
+            /** Check Finished At */
+            check_finished_at: string | null;
+        };
+        /** HostImportRequest */
+        HostImportRequest: {
+            /**
+             * Text
+             * @description NPM-config met `# <hostnaam>` boven elke `sub_filter`-regel, bv. de inhoud van npm-sub_filter-per-dienst.conf.
+             */
+            text: string;
+            /**
+             * Replace
+             * @description Bestaande koppelingen overschrijven (thema's en scripts); anders overslaan.
+             * @default true
+             */
+            replace: boolean;
+        };
+        /** HostImportResult */
+        HostImportResult: {
+            /** Created */
+            created: string[];
+            /** Updated */
+            updated: string[];
+            /** Unchanged */
+            unchanged: string[];
+            /** Skipped */
+            skipped: components["schemas"]["HostImportSkipped"][];
+        };
+        /** HostImportSkipped */
+        HostImportSkipped: {
+            /** Line */
+            line: number;
+            /** Reason */
+            reason: string;
+        };
+        /** HostOptions */
+        HostOptions: {
+            /**
+             * Styles
+             * @description Gepubliceerde thema's en CSS-bestanden in css-files (zonder `.css`).
+             */
+            styles: string[];
+            /**
+             * Scripts
+             * @description Scripts in css-files (zonder `.js`).
+             */
+            scripts: string[];
+            /**
+             * Snippet
+             * @description Het blok voor Advanced (server-niveau) van elke proxy host in NPM, tussen `# cssthema…` en `# /cssthema`.
+             */
+            snippet: string;
+            /**
+             * Snippet Own Domain
+             * @description Variant via `/alg-thema/` op het eigen domein, alleen CSS, voor apps waarvan de CSP het CSS-domein weigert (met de `location ^~ /alg-thema/` erin).
+             */
+            snippet_own_domain: string;
+            /**
+             * Snippet Own Domain Script
+             * @description Dezelfde variant met het script erbij, voor apps die alleen scripts van een ander domein weigeren. Nooit voor een wachtwoordkluis: het script draait daar same-origin.
+             */
+            snippet_own_domain_script?: string;
+            /**
+             * Excluded Hosts
+             * @description Hosts die nooit iets krijgen (DASHBOARD_HOST, de host van PUBLIC_BASE_URL en EXCLUDED_HOSTS): de regel hoort daar niet.
+             */
+            excluded_hosts?: string[];
         };
         /** ImportedTheme */
         ImportedTheme: {
@@ -827,6 +1491,8 @@ export interface components {
             environment: string;
             /** Public Base Url */
             public_base_url: string;
+            /** Css Max Bytes */
+            css_max_bytes: number;
         };
         /** Palette */
         Palette: {
@@ -885,6 +1551,42 @@ export interface components {
                 [key: string]: unknown;
             }[] | null;
             current: components["schemas"]["EtagState"];
+        };
+        /** PreviewStack */
+        PreviewStack: {
+            /** Hostname */
+            hostname: string;
+            /**
+             * Binding
+             * @description De koppeling die voor de host geldt: de host zelf, `*`, of null (geen).
+             */
+            binding: string | null;
+            /**
+             * Enabled
+             * @description false: de koppeling staat uit, de host krijgt niets.
+             */
+            enabled: boolean;
+            /**
+             * Excluded
+             * @description De host krijgt nooit iets: het dashboard, de host van PUBLIC_BASE_URL of EXCLUDED_HOSTS (dan ook `enabled` false).
+             * @default false
+             */
+            excluded: boolean;
+            /**
+             * Contains Theme
+             * @description Het bewerkte thema staat in de stapel. Zo niet, dan hoort de draft na `before` (`after` is dan leeg).
+             */
+            contains_theme: boolean;
+            /**
+             * Before
+             * @description Onderdelen vóór het bewerkte thema.
+             */
+            before: components["schemas"]["StackPart"][];
+            /**
+             * After
+             * @description Onderdelen na het bewerkte thema (bv. framework-modules, een variant).
+             */
+            after: components["schemas"]["StackPart"][];
         };
         /** Problem */
         Problem: {
@@ -961,12 +1663,141 @@ export interface components {
              */
             world_readable: boolean;
         };
+        /** ServiceSummary */
+        ServiceSummary: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Slug */
+            slug: string;
+            /** Name */
+            name: string;
+            /** Hostname */
+            hostname: string;
+            /** Base Url */
+            base_url: string;
+            /**
+             * Snapshots
+             * @description Nieuwste eerst.
+             */
+            snapshots: components["schemas"]["SnapshotSummary"][];
+        };
         /** SkippedFile */
         SkippedFile: {
             /** Name */
             name: string;
             /** Reason */
             reason: string;
+        };
+        /** SnapshotDocument */
+        SnapshotDocument: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /**
+             * Service Id
+             * Format: uuid
+             */
+            service_id: string;
+            /** Hostname */
+            hostname: string;
+            /** Title */
+            title: string | null;
+            /** Url */
+            url: string;
+            /**
+             * Html
+             * @description snapshot.html zoals vastgelegd (zonder scripts).
+             */
+            html: string;
+            /**
+             * Stylesheets
+             * @description De CSS van de app, in de volgorde van de pagina.
+             */
+            stylesheets: string[];
+        };
+        /** SnapshotSummary */
+        SnapshotSummary: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /**
+             * Page
+             * @description Map in de zip: `start`, of de naam van een handmatige opname.
+             */
+            page: string;
+            /** Page Kind */
+            page_kind: string;
+            /** Title */
+            title: string | null;
+            /** Url */
+            url: string;
+            /**
+             * Status
+             * @description Uit vastleggen.py: ok, inlogpagina, http-502, …
+             */
+            status: string | null;
+            /**
+             * Has Document
+             * @description Er is een snapshot.html om tegen te previewen.
+             */
+            has_document: boolean;
+            /** Frameworks */
+            frameworks: string[];
+            /** Class Count */
+            class_count: number;
+            /** Has Shadow Dom */
+            has_shadow_dom: boolean;
+            /**
+             * Theme Links
+             * @description Thema-bestanden die de app toen laadde.
+             */
+            theme_links: string[];
+            /** Csp Errors */
+            csp_errors: number;
+            /**
+             * Screenshots
+             * @description `origineel`, `met_thema`, `mobiel` → URL van de afbeelding.
+             */
+            screenshots: {
+                [key: string]: string;
+            };
+            /**
+             * Captured At
+             * @description Tijd van de laatste opname.
+             */
+            captured_at: string | null;
+            /**
+             * Document Captured At
+             * @description Alleen als een mislukte opname de vorige snapshot behield: wanneer het document en de screenshots vastgelegd zijn.
+             */
+            document_captured_at?: string | null;
+            /**
+             * Imported At
+             * Format: date-time
+             */
+            imported_at: string;
+        };
+        /** StackPart */
+        StackPart: {
+            /** Name */
+            name: string;
+            /**
+             * Source
+             * @description `bestand`, `thema v<n>`, of leeg als het onderdeel niet gevonden is.
+             */
+            source: string;
+            /**
+             * Css
+             * @description De CSS zoals de bundel `/host/<host>.css` hem levert; null = niet gevonden.
+             */
+            css: string | null;
         };
         /** Theme */
         Theme: {
@@ -1102,6 +1933,94 @@ export interface components {
             palette_id?: string | null;
             /** Tags */
             tags?: string[] | null;
+        };
+        /** ThemeUsage */
+        ThemeUsage: {
+            /** Theme */
+            theme: string;
+            /**
+             * Hostnames
+             * @description Hosts met een eigen koppeling (aan) die het thema bevat, op naam.
+             */
+            hostnames: string[];
+            /**
+             * Default
+             * @description De koppeling `*` (aan) bevat het thema: elke host zonder eigen koppeling.
+             */
+            default: boolean;
+            /**
+             * Bound
+             * @description Alle hosts met een eigen koppeling, en de hosts die nooit iets krijgen (dashboard, CSS-domein, EXCLUDED_HOSTS); die vallen nooit terug op `*`.
+             */
+            bound: string[];
+        };
+        /** UploadedTheme */
+        UploadedTheme: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Slug */
+            slug: string;
+            /** Name */
+            name: string;
+            /** Description */
+            description: string | null;
+            /** Service Id */
+            service_id: string | null;
+            /** Palette Id */
+            palette_id: string | null;
+            status: components["schemas"]["ThemeStatus"];
+            /** Tags */
+            tags: string[];
+            published_version: components["schemas"]["VersionSummary"] | null;
+            /** Latest Version Number */
+            latest_version_number: number;
+            /**
+             * Lock Version
+             * @description Voor `If-Match: "lv-<n>"` bij de volgende wijziging.
+             */
+            lock_version: number;
+            /**
+             * Draft Dirty
+             * @description De draft (of het gekoppelde palet) verschilt van de live versie; zonder live versie: de draft is niet leeg.
+             */
+            draft_dirty: boolean;
+            /** Draft Size Bytes */
+            draft_size_bytes: number;
+            /** Draft Updated At */
+            draft_updated_at: string | null;
+            draft_updated_by: components["schemas"]["UserRef"] | null;
+            /**
+             * Public Url
+             * @example https://cssthema.domain.be/proxmox.css
+             */
+            public_url: string;
+            /**
+             * Shadowed By File
+             * @description Er staat een handgemaakt bestand `<slug>.css` in de css-files-map; nginx serveert dat in plaats van dit thema.
+             */
+            shadowed_by_file: boolean;
+            /** Deleted At */
+            deleted_at: string | null;
+            created_by: components["schemas"]["UserRef"] | null;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /**
+             * Updated At
+             * Format: date-time
+             */
+            updated_at: string;
+            /**
+             * Outcome
+             * @description `created`: nieuw thema (201). `new_version`: nieuwe draft en versie op het bestaande thema (200). `unchanged`: gelijk aan de laatste versie, er is niets veranderd (200).
+             * @enum {string}
+             */
+            outcome: "created" | "new_version" | "unchanged";
         };
         /** UserRef */
         UserRef: {
@@ -1482,13 +2401,13 @@ export interface operations {
             };
         };
         responses: {
-            /** @description Nieuwe versie op een bestaand thema */
+            /** @description Nieuwe versie op een bestaand thema, of ongewijzigd (`outcome`) */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["Theme"];
+                    "application/json": components["schemas"]["UploadedTheme"];
                 };
             };
             /** @description Successful Response */
@@ -1497,7 +2416,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["Theme"];
+                    "application/json": components["schemas"]["UploadedTheme"];
                 };
             };
             /** @description Conflict (slug of status) */
@@ -2895,6 +3814,832 @@ export interface operations {
             };
             /** @description `storage_unavailable`: CSS_FILES_DIR ontbreekt of is niet schrijfbaar */
             503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    hosts_list: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HostBinding"][];
+                };
+            };
+            /** @description Interne fout */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    hosts_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["HostBindingInput"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HostBinding"];
+                };
+            };
+            /** @description `host_conflict`: die hostnaam heeft al een koppeling */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+            /** @description Interne fout */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    hosts_options: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HostOptions"];
+                };
+            };
+            /** @description Interne fout */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    hosts_health: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HostHealthOverview"];
+                };
+            };
+            /** @description Interne fout */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    hosts_check: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HostCheckStarted"];
+                };
+            };
+            /** @description Interne fout */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    hosts_forget_seen: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                hostname: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+            /** @description Interne fout */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    hosts_forget_all_seen: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Interne fout */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    hosts_bulk: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["HostBulkRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HostBulkResult"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+            /** @description Interne fout */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    hosts_import: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["HostImportRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HostImportResult"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+            /** @description Interne fout */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    hosts_update: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                binding_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["HostBindingInput"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HostBinding"];
+                };
+            };
+            /** @description Koppeling niet gevonden */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description `host_conflict`: die hostnaam heeft al een koppeling */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+            /** @description Interne fout */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    hosts_delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                binding_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Koppeling niet gevonden */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+            /** @description Interne fout */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    captures_import: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": components["schemas"]["Body_captures_import"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CaptureImportResult"];
+                };
+            };
+            /** @description Geen geldige capture-zip */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Interne fout */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    services_list: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ServiceSummary"][];
+                };
+            };
+            /** @description Interne fout */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    services_delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                service_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Niet gevonden */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+            /** @description Interne fout */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    snapshots_document: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                snapshot_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SnapshotDocument"];
+                };
+            };
+            /** @description Niet gewijzigd (If-None-Match) */
+            304: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Niet gevonden */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+            /** @description Interne fout */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    assets_image: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                asset_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description De afbeelding */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "image/jpeg": unknown;
+                };
+            };
+            /** @description Niet gevonden */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+            /** @description Interne fout */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    preview_stack: {
+        parameters: {
+            query: {
+                /** @description Hostnaam van de snapshot. */
+                hostname: string;
+                /** @description Slug van het bewerkte thema. */
+                theme: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PreviewStack"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+            /** @description Interne fout */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    preview_usage: {
+        parameters: {
+            query: {
+                /** @description Slug van het bewerkte thema. */
+                theme: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ThemeUsage"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+            /** @description Interne fout */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    public_host_css: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                hostname: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description De CSS */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/css": string;
+                };
+            };
+            /** @description Niet gewijzigd (If-None-Match / If-Modified-Since) */
+            304: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+            /** @description Interne fout */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    public_host_js: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                hostname: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description JS */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/javascript": string;
+                };
+            };
+            /** @description Niet gewijzigd (If-None-Match / If-Modified-Since) */
+            304: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+            /** @description Interne fout */
+            500: {
                 headers: {
                     [name: string]: unknown;
                 };

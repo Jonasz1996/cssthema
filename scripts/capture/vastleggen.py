@@ -43,6 +43,7 @@ import time
 import urllib.error
 import urllib.request
 import zipfile
+from datetime import datetime
 from pathlib import Path
 from typing import Any
 from urllib.parse import urlsplit
@@ -744,7 +745,7 @@ async def pagina_vastleggen(
         **extra_info,
         "thema": {**thema, "csp_fouten": csp_fouten[:10]},
         "stats": data["stats"],
-        "vastgelegd": time.strftime("%Y-%m-%d %H:%M:%S"),
+        "vastgelegd": datetime.now().astimezone().isoformat(timespec="seconds"),
     }
     (doel / "info.json").write_text(json.dumps(info, indent=1, ensure_ascii=False), encoding="utf-8")
     return info

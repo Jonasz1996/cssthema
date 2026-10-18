@@ -1,0 +1,214 @@
+/* ==========================================================================
+   alg-proxmox-datacenter.css - Proxmox Datacenter Manager (Rust/Yew,
+   proxmox-yew-widget-toolkit "pwt", Material-achtige kleurrollen)
+   Host: proxmoxcluster.jbogaert.be
+   Laadt NA algemeen.css.
+
+   PDM is geen ExtJS: algemeen.css herkent er bijna niets van (de kopbalk en
+   het inlogvenster bleven wit, Roboto Flex viel terug op een schreeflettertype).
+   Dit bestand zet de kleurrollen van pwt (--pwt-color-primary, -neutral,
+   -surface, -border, ... en de statusrollen) op de --alg-tokens, in licht,
+   donker en automatisch thema; daarmee volgen ook de delen die niet zijn
+   vastgelegd (navigatiemenu, tabellen, kaarten, meters, tabbladen).
+   Daarna gericht: glazen dialoog en kopbalk, invoervelden zonder het dubbele
+   "pilletje" van algemeen.css, grijze knoppen met gloed, monospace i.p.v.
+   Roboto Flex, lichte kop- en sorteerteksten, Proxmox-logo leesbaar.
+
+   Beperkingen: alleen de loginpagina is vastgelegd en getest; het
+   hoofdscherm volgt via dezelfde variabelen en klassen uit pwt's eigen CSS,
+   maar is NIET getest. Iconen (Font Awesome) en het logo ontbreken in de
+   testrender (geen netwerk). CSP: alleen frame-ancestors, laadt gewoon.
+   ========================================================================== */
+
+/* ---------- Kleurrollen van pwt ------------------------------------------- */
+/* pwt zet ze op :root.pwt-dark-mode en op :root.pwt-light-mode/:root:not(...)
+   (0,2,0). PDM linkt zijn stylesheet in body, dus NA dit bestand: alle regels
+   hier hebben daarom een html-voorvoegsel (een element meer specificiteit). */
+html:root:is(.pwt-light-mode, .pwt-dark-mode),
+html:root:not(.pwt-dark-mode) {
+  color-scheme: dark;
+
+  --pwt-color-primary: var(--alg-knop);
+  --pwt-color-on-primary: var(--alg-knop-tekst);
+  --pwt-color-primary-container: var(--alg-rij-actief);
+  --pwt-color-on-primary-container: var(--alg-tekst-sterk);
+  --pwt-color-secondary: var(--alg-link);
+  --pwt-color-on-secondary: var(--alg-donker-tekst);
+  --pwt-color-secondary-container: var(--alg-rij-actief);
+  --pwt-color-on-secondary-container: var(--alg-tekst-sterk);
+  --pwt-color-tertiary: var(--alg-tekst);
+  --pwt-color-on-tertiary: var(--alg-donker-tekst);
+  --pwt-color-tertiary-container: var(--alg-rij-actief);
+  --pwt-color-on-tertiary-container: var(--alg-tekst-sterk);
+
+  --pwt-color-success: var(--alg-ok);
+  --pwt-color-on-success: var(--alg-donker-tekst);
+  --pwt-color-success-container: var(--alg-ok-tint);
+  --pwt-color-on-success-container: var(--alg-ok);
+  --pwt-color-error: var(--alg-fout);
+  --pwt-color-on-error: var(--alg-donker-tekst);
+  --pwt-color-error-container: var(--alg-fout-tint);
+  --pwt-color-on-error-container: var(--alg-fout);
+  --pwt-color-warning: var(--alg-waarschuwing);
+  --pwt-color-on-warning: var(--alg-donker-tekst);
+  --pwt-color-warning-container: var(--alg-waarschuwing-tint);
+  --pwt-color-on-warning-container: var(--alg-waarschuwing);
+
+  /* vlakken: neutral = panelen/dialogen/velden, surface = kop/voet/kaart,
+     neutral-alt = kopbalk, dark-surface = navigatiemenu */
+  --pwt-color-neutral: var(--alg-glas);
+  --pwt-color-on-neutral: var(--alg-tekst);
+  --pwt-color-neutral-container: var(--alg-vlak-2);
+  --pwt-color-on-neutral-container: var(--alg-tekst);
+  --pwt-color-surface: var(--alg-paneel);
+  --pwt-color-on-surface: var(--alg-tekst);
+  --pwt-color-surface-container: var(--alg-vlak-2);
+  --pwt-color-on-surface-container: var(--alg-tekst);
+  --pwt-color-inverse-surface: var(--alg-tekst);
+  --pwt-color-on-inverse-surface: var(--alg-donker-tekst);
+  --pwt-color-inverse-surface-container: var(--alg-tekst);
+  --pwt-color-on-inverse-surface-container: var(--alg-donker-tekst);
+  --pwt-color-dark-surface: var(--alg-glas);
+  --pwt-color-on-dark-surface: var(--alg-tekst);
+  --pwt-color-dark-surface-container: var(--alg-vlak);
+  --pwt-color-on-dark-surface-container: var(--alg-tekst-sterk);
+  --pwt-color-neutral-alt: var(--alg-glas);
+  --pwt-color-on-neutral-alt: var(--alg-tekst);
+  --pwt-color-neutral-alt-container: var(--alg-vlak-2);
+  --pwt-color-on-neutral-alt-container: var(--alg-tekst);
+
+  --pwt-color-border: var(--alg-rand-sterk);
+  --pwt-high-contrast-border: var(--alg-rand-hover);
+  --pwt-color-focus: var(--alg-focus-rand);
+  --pwt-color-surface-tint: var(--alg-accent-kleur);
+  --pwt-color-shadow: rgba(0, 0, 0, .55);
+  --pwt-backdrop-color: var(--alg-overlay);
+
+  /* rondingen in de maat van het thema */
+  --pwt-button-corner-shape: var(--alg-radius-klein);
+  --pwt-input-corner-shape: var(--alg-radius-klein);
+  --pwt-card-corner-shape: var(--alg-radius);
+  --pwt-dialog-corner-shape: var(--alg-radius-groot);
+}
+
+/* ---------- Lettertype ---------------------------------------------------- */
+/* pwt zet Roboto Flex per tekstklasse (soms met !important); iconen (.fa)
+   staan op aparte i-elementen en blijven buiten schot */
+:is(.pwt-font-display-large, .pwt-font-display-medium, .pwt-font-display-small,
+    .pwt-font-headline-large, .pwt-font-headline-medium, .pwt-font-headline-small,
+    .pwt-font-title-large, .pwt-font-title-medium, .pwt-font-title-small,
+    .pwt-font-label-large, .pwt-font-label-medium, .pwt-font-label-small,
+    .pwt-font-body-large, .pwt-font-body-medium, .pwt-font-body-small,
+    h1, h2, h3, h4, h5, h6, button, .pwt-button, input, .pwt-input-content, .pwt-dialog,
+    .pwt-datatable-content, .pwt-datatable-header-item, .pwt-datatable-group-header-item,
+    .pwt-date-panel-item, .pwt-date-panel-header, .pwt-date-panel-week-number,
+    .pwt-menubar-item, .pwt-menu-item, .pwt-meter, .pwt-segmented-bar, .pwt-nav-link,
+    .pwt-panel-header-text, .pwt-progress, .pwt-slidable-action, .pwt-snackbar,
+    .pwt-tooltip):not(.fa) {
+  font-family: var(--alg-font) !important;
+  font-variation-settings: normal !important;
+}
+
+/* ---------- Kopbalk ------------------------------------------------------- */
+/* Proxmox-logo: zwarte letters op donker; zelfde regel als algemeen.css voor
+   PVE/PBS (oranje X blijft). Alleen het donkere-tekstlogo, niet een witte variant. */
+[role="banner"] img[src$="/proxmox_logo.svg"] {
+  filter: invert(1) hue-rotate(180deg);
+}
+
+.pwt-viewport > [role="banner"] {
+  -webkit-backdrop-filter: var(--alg-blur);
+  backdrop-filter: var(--alg-blur);
+}
+
+/* ---------- Dialogen, keuzelijsten, tooltips ------------------------------ */
+/* het buitenste dialog-element krijgt van algemeen.css al schaduw en blur */
+div.pwt-dialog {
+  background: var(--alg-glas-sterk);
+  border-color: var(--alg-rand-sterk) !important;
+  box-shadow: none;
+  color: var(--alg-tekst);
+}
+
+html .pwt-dialog .pwt-panel {
+  background-color: transparent;
+}
+
+html .pwt-panel-header {
+  background: var(--alg-paneel);
+}
+
+html .pwt-panel-header-text {
+  color: var(--alg-tekst-sterk);
+}
+
+html .pwt-dropdown,
+html ul.pwt-menu {
+  background-color: var(--alg-glas-sterk);
+  -webkit-backdrop-filter: var(--alg-blur);
+  backdrop-filter: var(--alg-blur);
+}
+
+html .pwt-tooltip,
+html .pwt-snackbar {
+  --pwt-color-background: var(--alg-glas-sterk);
+  --pwt-color: var(--alg-tekst);
+}
+
+/* ---------- Invoervelden -------------------------------------------------- */
+/* het kader is het veld; het input-element erin wordt doorzichtig (anders
+   tekent algemeen.css er een tweede, afgerond veld in) */
+div.pwt-input {
+  --pwt-color-background: var(--alg-veld);
+  --pwt-color: var(--alg-tekst-sterk);
+}
+
+.pwt-input :is(input, .pwt-input-content) {
+  background-color: transparent !important;
+  border-radius: 0;
+  box-shadow: none !important;
+}
+
+/* de focusrand staat al op het kader (.pwt-input:focus-within) */
+.pwt-input :is(input, .pwt-input-content):focus-visible {
+  outline: 0 !important;
+}
+
+div.pwt-input.is-invalid:not(.disabled):not(:disabled):not([aria-disabled="true"]) {
+  border-color: var(--alg-fout-rand) !important;
+  outline-color: var(--alg-fout-rand) !important;
+}
+
+/* ---------- Knoppen ------------------------------------------------------- */
+/* standaardknop (zonder kleurschema) grijs zoals elders in het thema */
+html .pwt-button:not(.pwt-button-text, .pwt-button-outline, .pwt-fab, [class*="pwt-scheme-"]) {
+  --pwt-color-background: var(--alg-knop);
+  --pwt-color: var(--alg-knop-tekst);
+}
+
+.pwt-button:not(.pwt-button-text, :disabled, .disabled, [aria-disabled="true"]):hover {
+  box-shadow: var(--alg-gloed) !important;
+}
+
+/* ---------- Tabellen, tabbladen, meters (hoofdscherm, niet getest) -------- */
+html .pwt-datatable-header-item.sorted,
+html .pwt-tab-material .pwt-nav-link.active {
+  color: var(--alg-tekst-sterk);
+}
+
+html .pwt-tab-material .pwt-tab-active-indicator {
+  background-color: var(--alg-accent-kleur);
+}
+
+html .pwt-meter {
+  --pwt-accent-color-background: var(--alg-knop);
+  --pwt-accent-color: var(--alg-knop-tekst);
+}
+
+html .pwt-meter .pwt-meter-bar.pwt-meter-distance-1 {
+  background: var(--alg-waarschuwing-vlak);
+}
+
+html .pwt-meter .pwt-meter-bar.pwt-meter-distance-2 {
+  background: var(--alg-fout-vlak);
+}

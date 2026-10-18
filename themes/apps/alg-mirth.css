@@ -1,0 +1,150 @@
+/* ==========================================================================
+   alg-mirth.css - Mirth Connect Administrator, webpagina (webadmin;
+   Bootstrap 3 + eigen main.css van NextGen)
+   Host: mirth.jbogaert.be
+   Laadt NA algemeen.css.
+
+   Loginpagina (Index.action): het witte vak met dikke blauwe rand
+   (#centerWrapper) wordt een glazen kaart met zachte rand; blauwe titels
+   met tekstschaduw worden wit; de groene (Launch/Sign in) en cyaan
+   (Download) verloopknoppen worden grijze knoppen met gloed; tandwielknop en
+   kolomscheiding in stijl.
+   Layout-herstel: met monospace past "Launch Mirth Connect Administrator" +
+   tandwiel niet meer naast elkaar en liep de uitlegtekst over het volgende
+   blok (vaste hoogte 150px). Knoptekst iets kleiner, blokhoogte automatisch.
+
+   Beperkingen: alleen de loginpagina is vastgelegd en getest. Het
+   NextGen/Mirth-logo is een afbeelding met donkerpaarse letters: op donker
+   minder leesbaar, maar afbeeldingen filteren we niet. Het dashboard na
+   inloggen (#bodyWrapper, .logoBar, tabellen) komt uit dezelfde main.css,
+   maar is NIET getest. CSP: alleen frame-ancestors, laadt gewoon.
+   ========================================================================== */
+
+/* ---------- Kaart -------------------------------------------------------- */
+body.subpage #centerWrapper {
+  background-color: var(--alg-glas);
+  background-image: none;
+  border: 1px solid var(--alg-rand-sterk);
+  border-radius: var(--alg-radius-groot);
+  box-shadow: var(--alg-schaduw-midden);
+  padding: 24px;
+  -webkit-backdrop-filter: var(--alg-blur);
+  backdrop-filter: var(--alg-blur);
+}
+
+body.subpage #webdashboardsignin {
+  border-left-color: var(--alg-rand-sterk);
+}
+
+/* titels: blauw met !important en tekstschaduw in main.css */
+body :is(h1, h2, h3, h4, h5, h6, span.h4) {
+  color: var(--alg-tekst-sterk) !important;
+  text-shadow: none;
+}
+
+/* labels staan in main.css op #333, velden hebben een lichte rand (#ccc) */
+body label {
+  color: var(--alg-tekst);
+}
+
+body :is(input, textarea, select) {
+  border-color: var(--alg-rand-sterk);
+}
+
+body :is(input, textarea, select):focus {
+  border-color: var(--alg-accent-kleur);
+}
+
+body .help-block,
+body .dropdown-warning {
+  color: var(--alg-gedempt);
+}
+
+#smallSubPage {
+  color: var(--alg-gedempt);
+}
+
+/* ---------- Knoppen ------------------------------------------------------ */
+body .btn:is(.btn-themebutton, .btn-downloadbutton) {
+  background-color: var(--alg-knop);
+  background-image: none;
+  border-color: rgba(255, 255, 255, .12);
+  color: var(--alg-knop-tekst);
+  text-shadow: none;
+}
+
+body .btn:is(.btn-themebutton, .btn-downloadbutton):is(:hover, :focus, :active, .active) {
+  background-color: var(--alg-knop-hover);
+  color: var(--alg-knop-tekst);
+  box-shadow: var(--alg-gloed);
+}
+
+/* tandwielknop naast de grote knoppen */
+body .opt-button {
+  background-color: var(--alg-knop-zacht);
+  color: var(--alg-tekst);
+}
+
+body .opt-button:hover {
+  background-color: var(--alg-knop-zacht-hover);
+  border-color: var(--alg-rand-hover);
+}
+
+/* ---------- Layout-herstel (monospace is breder) ------------------------- */
+body.subpage #centerWrapper .btn-md {
+  font-size: 12px;
+}
+
+#launchbuttoncontainer {
+  height: auto;
+  min-height: 150px;
+}
+
+/* ---------- Dashboard na inloggen (niet getest) -------------------------- */
+#bodyWrapper {
+  background-color: var(--alg-glas);
+  border-color: var(--alg-rand-sterk);
+}
+
+.logoBar,
+#listTop {
+  background-color: var(--alg-paneel);
+  border-color: var(--alg-rand-sterk);
+  box-shadow: none;
+}
+
+section#mainContent,
+#sectionWrap,
+#resultsTop,
+#resultsFooter,
+.searchResultRow,
+.nameHeader,
+.fancy-block,
+.resultsTable {
+  border-color: var(--alg-rand-sterk);
+}
+
+.fancy-block:hover {
+  background-color: var(--alg-rij-hover);
+  box-shadow: none;
+  color: var(--alg-tekst-sterk);
+}
+
+div.paging a {
+  border-color: var(--alg-rand-sterk);
+  color: var(--alg-tekst);
+}
+
+div.paging a:hover {
+  background-color: var(--alg-knop);
+  color: var(--alg-knop-tekst);
+}
+
+#timeout-popup {
+  background-color: var(--alg-glas-sterk);
+  border-color: var(--alg-rand-sterk);
+}
+
+body footer {
+  color: var(--alg-gedempt);
+}

@@ -1,7 +1,7 @@
 import { useIsFetching } from "@tanstack/react-query";
 import { useRef, useState } from "react";
 import { isApiError, isNetworkError, lintIssuesOf } from "@/api/client";
-import { useDiff, useLint, usePublishTheme } from "@/api/queries/editor";
+import { useDiff, useLint, usePublishTheme, useThemeUsage } from "@/api/queries/editor";
 import { themeKeys } from "@/api/queries/keys";
 import type { LintIssue, Theme, Version } from "@/api/types";
 import { Button, Code, Details, Dialog, Field, Loading, Textarea, toast } from "@/components/ui";
@@ -47,6 +47,7 @@ function PublishDialogContent({ onClose, theme, session, onPublished }: PublishD
   const nextVersion = theme.latest_version_number + 1;
   const lint = useLint(theme.id, snapshot?.css);
   const diff = useDiff(theme.id, live, "draft", { enabled: synced && live !== null });
+  const usage = useThemeUsage(theme.slug);
   const errors = lint.data?.errors ?? [];
   const warnings = lint.data?.warnings ?? [];
   const checks = publishChecks(errors);
@@ -164,6 +165,34 @@ function PublishDialogContent({ onClose, theme, session, onPublished }: PublishD
             label={t("editor.publishDiffLabel", { n: live })}
           />
         </Details>
+      )}
+      {usage.data && (
+        <>
+          <dl className="m-0 mt-1.5 grid grid-cols-[auto_1fr] gap-x-4">
+            <dt className="text-muted">{t("editor.publishHosts")}</dt>
+            <dd className="m-0" data-publish-hosts="">
+              {[
+                usage.data.hostnames.length
+                  ? tc("editor.publishHostsCount", usage.data.hostnames.length)
+                  : null,
+                usage.data.default ? t("editor.publishHostsDefault") : null,
+              ]
+                .filter(Boolean)
+                .join(" + ") || <span className="text-dim">{t("editor.publishHostsNone")}</span>}
+            </dd>
+          </dl>
+          {usage.data.hostnames.length > 0 && (
+            <Details summary={t("editor.publishHostsShow")} className="mt-1">
+              <ul className="m-0 list-none columns-2 p-0 text-[12px] text-muted">
+                {usage.data.hostnames.map((host) => (
+                  <li key={host} className="break-all">
+                    {host}
+                  </li>
+                ))}
+              </ul>
+            </Details>
+          )}
+        </>
       )}
 
       <Field label={t("editor.publishMessage")} hint={t("editor.publishMessageHint")}>

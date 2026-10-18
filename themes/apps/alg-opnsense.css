@@ -1,0 +1,145 @@
+/* ==========================================================================
+   alg-opnsense.css - OPNsense (thema opnsense-dark, Bootstrap 3)
+   Host: firewall.jbogaert.be
+   Laadt NA algemeen.css.
+
+   Loginpagina: het witte kader rond het inlogvak wordt een glazen kaart met
+   zachte rand en ronding, de marineblauwe logokop een paneelstrook, de
+   pagina doorzichtig (radiale achtergrond).
+   Hoofdscherm (uit de klassen van opnsense-dark, NIET getest): kopbalk,
+   zijmenu (oranje streepje en actief item grijs), inhoudsvlakken
+   (page-content, content-box, page-content-head), witte randen van
+   content-box/tabs/modals, oranje voortgangsbalk en primaire elementen.
+   algemeen.css doet de Bootstrap-knoppen, velden, tabellen en menu's al.
+
+   Beperkingen: alleen de loginpagina is vastgelegd en getest. Het logo is
+   een afbeelding en ontbreekt in de testrender (geen netwerk).
+   CSP: default-src 'self'; style-src 'self' 'unsafe-inline' weigert
+   css.jbogaert.be: gebruik de /alg-thema/-omweg in NPM.
+   ========================================================================== */
+
+/* ---------- Loginpagina -------------------------------------------------- */
+body.page-login .login-modal-container {
+  background-color: var(--alg-glas);
+  border-color: var(--alg-rand-sterk);
+  border-radius: var(--alg-radius-groot);
+  box-shadow: var(--alg-schaduw-midden);
+  overflow: hidden;
+  -webkit-backdrop-filter: var(--alg-blur);
+  backdrop-filter: var(--alg-blur);
+}
+
+body.page-login .login-modal-head {
+  background: var(--alg-paneel);
+  border-bottom: 1px solid var(--alg-rand);
+}
+
+.login-foot {
+  color: var(--alg-gedempt);
+}
+
+/* ---------- Velden (login en hoofdscherm) -------------------------------- */
+/* opnsense-dark geeft velden per type een lichte rand (#ccc) en een blauwe
+   focusgloed; dit selector-paar weegt net zwaarder */
+body :is(select, textarea, input[type="text"], input[type="password"], input[type="number"],
+         input[type="email"], input[type="url"], input[type="search"], input[type="tel"]) {
+  border-color: var(--alg-rand-sterk);
+}
+
+body :is(select, textarea, input[type="text"], input[type="password"], input[type="number"],
+         input[type="email"], input[type="url"], input[type="search"], input[type="tel"]):focus {
+  border-color: var(--alg-accent-kleur);
+  box-shadow: var(--alg-focus-ring);
+}
+
+/* ---------- Hoofdscherm (niet getest) ------------------------------------ */
+/* inhoudsvlakken van opnsense-dark (#1a1d27) doorzichtig */
+.page-content,
+.page-content-main {
+  background: transparent;
+}
+
+.page-content-head,
+.content-box-head {
+  border-top-color: var(--alg-rand);
+}
+
+.page-side {
+  background-color: var(--alg-glas);
+  border-right-color: var(--alg-rand);
+}
+
+/* inhoudskaders: witte rand (#e5e5e5) wordt glas met zachte rand */
+.content-box,
+div.tab-content.content-box {
+  background-color: var(--alg-glas);
+  border-color: var(--alg-rand-sterk);
+}
+
+/* zijmenu: oranje streepje links van het actieve/zwevende item */
+.list-group-item::before,
+a.list-group-item:hover::before,
+a.list-group-item:focus::before,
+.list-group-item.active::before {
+  background: var(--alg-accent-kleur);
+}
+
+a.list-group-item:hover,
+a.list-group-item:focus {
+  color: var(--alg-tekst-sterk);
+}
+
+.active-menu-title,
+.active-menu a {
+  background-color: var(--alg-rij);
+}
+
+.active-menu-title.active,
+.active-menu a.active {
+  background-color: var(--alg-rij-actief);
+}
+
+.active-menu-title > span.fa,
+.active-menu a > span.fa {
+  color: var(--alg-tekst-sterk);
+}
+
+/* witte scheidingslijnen in tabs, modals en menu's */
+.nav-tabs,
+.modal-header,
+.modal-footer {
+  border-color: var(--alg-rand-sterk);
+}
+
+.dropdown-menu .divider,
+.nav .nav-divider {
+  background-color: var(--alg-rand-sterk);
+}
+
+/* oranje accenten (primaire tekst/vlakken, voortgang, paginering) */
+.text-primary {
+  color: var(--alg-tekst-sterk);
+}
+
+.bg-primary,
+.label-primary,
+.progress-bar {
+  background-color: var(--alg-knop);
+}
+
+.panel-primary {
+  border-color: var(--alg-rand-sterk);
+}
+
+.panel-primary > .panel-heading {
+  background-color: var(--alg-paneel);
+  border-color: var(--alg-rand-sterk);
+}
+
+.pagination > .active > a,
+.pagination > .active > a:hover,
+.pagination > .active > a:focus {
+  background-color: var(--alg-knop);
+  border-color: var(--alg-knop);
+  color: var(--alg-knop-tekst);
+}

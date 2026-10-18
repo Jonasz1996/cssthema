@@ -77,23 +77,41 @@ def require_same_origin(request: Request, settings: AppSettings) -> None:
     de Authentik-cookie), een script vervangen dat daarna in elke app draait. Browsers sturen
     `Sec-Fetch-Site` (alleen naar https en localhost) en bij een POST altijd `Origin`; curl en
     scripts sturen geen van beide en mogen door (nginx laat schrijven alleen via de proxy toe).
+
+    Een `Origin` moet altijd de eigen host zijn, ook bij `Sec-Fetch-Site: same-origin`: een app
+    met een `location /alg-thema/` naar cssthema is voor de browser zelf de origin (SEC-3).
     """
     if request.method in SAFE_METHODS:
         return
-    site = request.headers.get("sec-fetch-site")
-    if site is not None:
-        if site.strip().lower() in _OWN_SITES:
-            return
+    site = (request.headers.get("sec-fetch-site") or "").strip().lower()
+    if site and site not in _OWN_SITES:
         raise _csrf_failed()
     origin = request.headers.get("origin")
     if origin is None:
         return
-    # Zonder Fetch Metadata (gewone http naar een IP): de Origin moet de eigen host zijn, zoals
-    # de browser hem aansprak (Host) of zoals hij in PUBLIC_BASE_URL staat.
-    own = {_netloc(settings.public_base_url), request.headers.get("host", "").strip().lower()}
+    # De host zoals de browser hem aansprak (Host), zoals hij in PUBLIC_BASE_URL staat, of een
+    # van de DASHBOARD_HOST-namen (standaardpoort).
+    host = request.headers.get("host", "").strip().lower()
+    own = {_netloc(settings.public_base_url), host, *settings.dashboard_host}
     origin_netloc = _netloc(origin)
-    if origin_netloc is None or origin_netloc not in own:
+    if origin_netloc is None:
         raise _csrf_failed()
+    if origin_netloc in own:
+        return
+    # Een proxy die alleen de poort in Host verandert (de Vite-devserver): de browser zegt
+    # same-origin en de hostnaam klopt. Een andere app via /alg-thema/ heeft een andere naam.
+    origin_host = _hostname(origin_netloc)
+    if site == "same-origin" and origin_host is not None and origin_host == _hostname(host):
+        return
+    raise _csrf_failed()
+
+
+def _hostname(netloc: str) -> str | None:
+    """`css.example.be:8443` → `css.example.be`."""
+    try:
+        return urlsplit(f"//{netloc}").hostname
+    except ValueError:
+        return None
 
 
 def _csrf_failed() -> ProblemError:

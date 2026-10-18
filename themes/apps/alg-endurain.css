@@ -1,0 +1,95 @@
+/* ==========================================================================
+   alg-endurain.css - Endurain (Vue 3 + Bootstrap 5.3, Leaflet, Notivue)
+   Host: endurain.jbogaert.be
+   Laadt NA algemeen.css.
+
+   Bootstrap 5.3 (navbar, kaarten, formulieren, tabellen, lijsten) doet
+   algemeen.css al via de --bs-variabelen. Dit bestand werkt af wat daar
+   buiten valt: de Leaflet-kaart van een activiteit (witte zoomknoppen,
+   attributie, popups, lichtgrijze kaartachtergrond tijdens het laden), de
+   Notivue-meldingen (wit met merkkleuren).
+
+   Beperkingen: de vastgelegde pagina is leeg (de Vue-app startte niet bij
+   het vastleggen); alles hieronder komt uit kennis van Endurain, Leaflet en
+   Notivue en is NIET getest. De kaarttegels zelf zijn afbeeldingen: zet in
+   Endurain het thema op donker, dan kiest de app zelf donkere tegels.
+   CSP: style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net weigert
+   css.jbogaert.be; gebruik de /alg-thema/-omweg in NPM.
+   ========================================================================== */
+
+/* ---------- Leaflet ---------------------------------------------------- */
+.leaflet-container {
+  background: var(--alg-vlak);
+  font-family: var(--alg-font);
+  border-radius: var(--alg-radius);
+}
+.leaflet-container a {
+  color: var(--alg-link);
+}
+.leaflet-bar {
+  border: 1px solid var(--alg-rand-sterk);
+  box-shadow: var(--alg-schaduw-klein);
+}
+.leaflet-bar a,
+.leaflet-touch .leaflet-bar a {
+  background-color: var(--alg-glas-sterk);
+  border-bottom-color: var(--alg-rand);
+  color: var(--alg-tekst);
+}
+.leaflet-bar a:hover,
+.leaflet-bar a:focus {
+  background-color: var(--alg-knop-hover);
+  color: var(--alg-knop-tekst);
+}
+.leaflet-bar a.leaflet-disabled {
+  background-color: var(--alg-vlak-2);
+  color: var(--alg-zwak);
+}
+.leaflet-control-attribution,
+.leaflet-control-scale-line {
+  background: var(--alg-glas) !important;
+  color: var(--alg-gedempt);
+  border-color: var(--alg-rand-sterk);
+}
+.leaflet-control-layers,
+.leaflet-popup-content-wrapper,
+.leaflet-popup-tip {
+  background: var(--alg-glas-sterk);
+  color: var(--alg-tekst);
+  border: 1px solid var(--alg-rand-sterk);
+  box-shadow: var(--alg-schaduw-midden);
+}
+.leaflet-container a.leaflet-popup-close-button {
+  color: var(--alg-gedempt);
+}
+
+/* ---------- Notivue-meldingen ------------------------------------------ */
+.Notivue__notification {
+  --nv-global-bg: var(--alg-glas-sterk);
+  --nv-global-fg: var(--alg-tekst);
+  --nv-global-border: var(--alg-rand-sterk);
+  --nv-global-accent: var(--alg-accent-kleur);
+  --nv-shadow: var(--alg-schaduw-midden);
+  --nv-success-bg: var(--alg-glas-sterk);
+  --nv-success-fg: var(--alg-tekst);
+  --nv-success-border: var(--alg-ok-rand);
+  --nv-success-accent: var(--alg-ok);
+  --nv-error-bg: var(--alg-glas-sterk);
+  --nv-error-fg: var(--alg-tekst);
+  --nv-error-border: var(--alg-fout-rand);
+  --nv-error-accent: var(--alg-fout);
+  --nv-warning-bg: var(--alg-glas-sterk);
+  --nv-warning-fg: var(--alg-tekst);
+  --nv-warning-border: var(--alg-waarschuwing-rand);
+  --nv-warning-accent: var(--alg-waarschuwing);
+  --nv-info-bg: var(--alg-glas-sterk);
+  --nv-info-fg: var(--alg-tekst);
+  --nv-info-border: var(--alg-info-rand);
+  --nv-info-accent: var(--alg-info);
+  --nv-promise-bg: var(--alg-glas-sterk);
+  --nv-promise-fg: var(--alg-tekst);
+  --nv-promise-border: var(--alg-rand-sterk);
+  --nv-promise-accent: var(--alg-accent-kleur);
+  font-family: var(--alg-font);
+  backdrop-filter: var(--alg-blur);
+}

@@ -1,0 +1,41 @@
+/* ==========================================================================
+   alg-syncthing.css - Syncthing (v2, AngularJS 1 + Bootstrap 3)
+   Host: syncthing.jbogaert.be
+   Laadt NA algemeen.css (dat al een Syncthing-deel heeft: lettertype,
+   identicons, lijsten, verbindingsicoon). Hier wat daarna nog niet klopte.
+
+   Wat het afwerkt:
+   - dialoogkoppen: Syncthing gebruikt .modal-header.alert.alert-info voor
+     gewone dialogen (instellingen, apparaat toevoegen, gebruiksrapport; paars
+     in het origineel). algemeen.css maakte daar een blauwe infotint van; hier
+     een neutrale paneelkop. Waarschuwing/fout/succes-koppen blijven getint.
+   - kop van een dialoog volgt de grote radius van het glazen venster
+   - bovenbalk: glas met vervaging en alleen een lijn onderaan (geen kader)
+
+   Beperkingen: getest op het hoofdscherm met de dialoog "Allow Anonymous
+   Usage Reporting?" open. Andere dialogen gebruiken dezelfde klassen.
+   ========================================================================== */
+
+/* ---------- Dialoogkoppen ------------------------------------------------ */
+html[ng-app="syncthing"] .modal-header.alert {
+  border-radius: var(--alg-radius-groot) var(--alg-radius-groot) 0 0 !important;
+}
+
+html[ng-app="syncthing"] .modal-header.alert-info {
+  background-color: var(--alg-paneel) !important;
+  background-image: none !important;
+  border-color: transparent transparent var(--alg-rand) !important;
+  color: var(--alg-tekst-sterk) !important;
+}
+
+html[ng-app="syncthing"] .modal-header.alert-info .modal-title {
+  color: var(--alg-tekst-sterk) !important;
+}
+
+/* ---------- Bovenbalk ---------------------------------------------------- */
+html[ng-app="syncthing"] .navbar-top.navbar-default {
+  border-color: transparent transparent var(--alg-rand) !important;
+  border-radius: 0;
+  -webkit-backdrop-filter: var(--alg-blur);
+  backdrop-filter: var(--alg-blur);
+}

@@ -1,0 +1,122 @@
+/* ==========================================================================
+   alg-juiceshop.css - OWASP Juice Shop (Angular 19+, Angular Material M3)
+   Host: juiceshop.jbogaert.be
+   Laadt NA algemeen.css.
+
+   Juice Shop zet zijn kleuren per thema op de body-klasse (standaard
+   .bluegrey-lightgreen-theme): --theme-primary/-accent, de --mat-sys-*-set
+   en vaste kleuren voor knoppen, werkbalk en links. Die body-waarden winnen
+   van wat algemeen.css op :root zet. Dit bestand zet ze op body (elk
+   *-theme) op de --alg-tokens. Werkt af: blauwgrijze knoppen (Add to
+   Basket, Dismiss) en de groene strook met het mandje naar grijs, de
+   blauwgrijze werkbalk naar glas, felgroene links naar de linkkleur, het
+   groene "Only 1 left"-lint, de lichtblauwe rand rond productfoto's en de
+   blauwe cookiemelding (glas, grijze knop).
+
+   Beperkingen: getest op de productpagina met het welkomstvenster; andere
+   pagina's (mandje, score board, login) volgen via dezelfde variabelen
+   maar zijn niet getest. CSP: alleen frame-ancestors, blokkeert
+   css.jbogaert.be niet.
+   ========================================================================== */
+
+html body[class*="-theme"] {
+  --theme-primary: var(--alg-knop);
+  --theme-primary-lighter: var(--alg-knop-hover);
+  --theme-primary-light: var(--alg-knop-hover);
+  --theme-primary-darker: var(--alg-knop);
+  --theme-primary-dark: var(--alg-knop);
+  --theme-primary-fade-10: var(--alg-knop);
+  --theme-primary-fade-20: var(--alg-knop);
+  --theme-primary-fade-30: var(--alg-knop);
+  --theme-primary-fade-40: var(--alg-knop);
+  --theme-primary-fade-50: var(--alg-knop);
+  --theme-accent: var(--alg-knop-hover);
+  --theme-accent-lighter: var(--alg-knop-hover);
+  --theme-accent-light: var(--alg-knop-hover);
+  --theme-accent-darker: var(--alg-knop);
+  --theme-accent-dark: var(--alg-knop);
+  --theme-accent-fade-10: var(--alg-knop-hover);
+  --theme-accent-fade-20: var(--alg-knop-hover);
+  --theme-accent-fade-30: var(--alg-knop-hover);
+  --theme-accent-fade-40: var(--alg-knop-hover);
+  --theme-accent-fade-50: var(--alg-knop-hover);
+  --theme-warn: var(--alg-fout-vlak);
+  --theme-thumbnail-border: 1px solid var(--alg-rand);
+  --mat-sys-primary: var(--alg-accent-kleur);
+  --mat-sys-on-primary: var(--alg-donker-tekst);
+  --mat-sys-primary-container: var(--alg-vlak-2);
+  --mat-sys-on-primary-container: var(--alg-tekst-sterk);
+  --mat-sys-tertiary: var(--alg-accent-kleur);
+  --mat-sys-on-tertiary-container: var(--alg-tekst-sterk);
+  --mat-sys-background: var(--alg-achtergrond-kleur);
+  --mat-sys-surface: var(--alg-vlak);
+  --mat-sys-on-surface: var(--alg-tekst);
+  --mat-sys-on-surface-variant: var(--alg-gedempt);
+  --mat-sys-outline: var(--alg-rand-hover);
+  --mat-sys-outline-variant: var(--alg-rand-sterk);
+}
+
+/* werkbalk bovenaan: glas i.p.v. blauwgrijs (algemeen.css maakt een
+   .mat-primary-werkbalk een grijs knopvlak, met !important) */
+html body[class*="-theme"] .navbar-toolbar.mat-toolbar.mat-primary {
+  background-color: var(--alg-glas) !important;
+}
+html body[class*="-theme"] :is(.mat-mdc-toolbar, mat-toolbar) {
+  --mat-toolbar-container-background-color: var(--alg-glas);
+  --mat-toolbar-container-text-color: var(--alg-tekst-sterk);
+  -webkit-backdrop-filter: var(--alg-blur);
+  backdrop-filter: var(--alg-blur);
+  border-bottom: 1px solid var(--alg-rand);
+}
+
+/* gevulde knoppen (Add to Basket, Dismiss, Help getting started) */
+html body[class*="-theme"] :is(.mat-mdc-raised-button, .mat-mdc-unelevated-button).mat-primary {
+  --mdc-filled-button-container-color: var(--alg-knop);
+  --mdc-protected-button-container-color: var(--alg-knop);
+  background-color: var(--alg-knop);
+  color: var(--alg-knop-tekst);
+}
+html body[class*="-theme"] :is(.mat-mdc-raised-button, .mat-mdc-unelevated-button).mat-primary:hover {
+  background-color: var(--alg-knop-hover);
+  box-shadow: var(--alg-gloed);
+}
+
+/* links: niet felgroen */
+html body[class*="-theme"] a:is(:link, :visited):not([class*="mat-mdc"], .cc-btn) {
+  color: var(--alg-link);
+}
+html body[class*="-theme"] a:is(:hover, :focus):not([class*="mat-mdc"], .cc-btn) {
+  color: var(--alg-link-hover);
+}
+
+/* "Only x left"-lint: waarschuwing i.p.v. merkgroen */
+html body[class*="-theme"] .ribbon:not(.ribbon-sold) {
+  background-color: var(--alg-waarschuwing-vlak);
+  color: var(--alg-donker-tekst);
+  text-shadow: none;
+}
+
+/* cookiemelding (cookieconsent) */
+html .cc-window[class*="cc-color-override"] {
+  background-color: var(--alg-glas-sterk);
+  color: var(--alg-tekst);
+  border: 1px solid var(--alg-rand-sterk);
+  border-radius: var(--alg-radius);
+  box-shadow: var(--alg-schaduw-midden);
+  font-family: var(--alg-font);
+  -webkit-backdrop-filter: var(--alg-blur);
+  backdrop-filter: var(--alg-blur);
+}
+html .cc-window[class*="cc-color-override"] .cc-btn {
+  background-color: var(--alg-knop);
+  border-color: var(--alg-rand-sterk);
+  border-radius: var(--alg-radius-midden);
+  color: var(--alg-knop-tekst);
+}
+html .cc-window[class*="cc-color-override"] .cc-btn:hover {
+  background-color: var(--alg-knop-hover);
+  box-shadow: var(--alg-gloed);
+}
+html .cc-window[class*="cc-color-override"] .cc-link {
+  color: var(--alg-link);
+}

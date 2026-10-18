@@ -2,7 +2,13 @@ import { afterEach, describe, expect, it, onTestFinished, vi } from "vitest";
 import {
   api,
   ApiError,
+  AUTH_EXPIRED,
+  fetchHealth,
   fieldErrorsOf,
+  HealthError,
+  isAuthExpired,
+  isSessionExpired,
+  resetSessionExpired,
   filenameFromContentDisposition,
   ifMatch,
   isAbortError,
@@ -331,5 +337,71 @@ describe("downloads", () => {
     expect(revokeObjectURL).not.toHaveBeenCalled();
     vi.advanceTimersByTime(1_000);
     expect(revokeObjectURL).toHaveBeenCalledWith("blob:test/1");
+  });
+});
+
+describe("expired session (login of the reverse proxy)", () => {
+  afterEach(() => {
+    vi.unstubAllGlobals();
+    resetSessionExpired();
+  });
+
+  const reply = (response: Response) => {
+    const fetchMock = vi.fn<(request: Request) => Promise<Response>>(() =>
+      Promise.resolve(response),
+    );
+    vi.stubGlobal("fetch", fetchMock);
+    return fetchMock;
+  };
+
+  it("does not follow redirects and reports a redirect to the login as auth_expired", async () => {
+    const fetchMock = reply(
+      new Response(null, {
+        status: 302,
+        headers: { Location: "https://auth.example.org/application/o/authorize/" },
+      }),
+    );
+    const error = await send(api.GET("/api/v1/dashboard")).catch((e: unknown) => e);
+    expect(fetchMock.mock.calls[0]![0].redirect).toBe("manual");
+    expect(isAuthExpired(error)).toBe(true);
+    expect(error).toMatchObject({ status: 401, code: AUTH_EXPIRED, title: "Sessie verlopen" });
+    // Geen netwerkfout: de editor gaat dan niet "offline" en blijft niet opnieuw proberen.
+    expect(isNetworkError(error)).toBe(false);
+    expect(shouldRetry(0, error)).toBe(false);
+    expect(isSessionExpired()).toBe(true);
+  });
+
+  it("also recognises the login page itself and a 401 from the proxy", async () => {
+    reply(
+      new Response("<!doctype html><title>Authentik</title>", {
+        headers: { "Content-Type": "text/html; charset=utf-8" },
+      }),
+    );
+    expect(isAuthExpired(await send(api.GET("/api/v1/dashboard")).catch((e: unknown) => e))).toBe(
+      true,
+    );
+    reply(new Response("Unauthorized", { status: 401, headers: { "Content-Type": "text/plain" } }));
+    expect(isAuthExpired(await send(api.GET("/api/v1/dashboard")).catch((e: unknown) => e))).toBe(
+      true,
+    );
+  });
+
+  it("leaves normal answers and Problem errors alone", async () => {
+    reply(problem(401, "unauthorized", { title: "Niet ingelogd" }));
+    const error = await send(api.GET("/api/v1/dashboard")).catch((e: unknown) => e);
+    expect(error).toMatchObject({ code: "unauthorized" });
+    reply(json({ name: "cssthema" }));
+    await expect(send(api.GET("/api/v1/meta"))).resolves.toMatchObject({
+      data: { name: "cssthema" },
+    });
+    expect(isSessionExpired()).toBe(false);
+  });
+
+  it("the health check notices it too", async () => {
+    reply(
+      new Response(null, { status: 302, headers: { Location: "/outpost.goauthentik.io/start" } }),
+    );
+    await expect(fetchHealth("/readyz")).rejects.toBeInstanceOf(HealthError);
+    expect(isSessionExpired()).toBe(true);
   });
 });

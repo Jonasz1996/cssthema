@@ -37,6 +37,10 @@ class DomSnapshot(UUIDPrimaryKeyMixin, CreatedAtMixin, Base):
     class_count: Mapped[int] = mapped_column(Integer, default=0)
     id_count: Mapped[int] = mapped_column(Integer, default=0)
     has_shadow_dom: Mapped[bool] = mapped_column(default=False)
+    # Uit de capture-zip: status, screenshots (asset-id's), thema-links, CSP-fouten, tijdstip.
+    capture_info: Mapped[dict[str, Any]] = mapped_column(
+        JSONB, default=dict, server_default=text("'{}'::jsonb")
+    )
     job_id: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("jobs.id", ondelete="SET NULL"))
 
 

@@ -3,6 +3,7 @@ import { act, renderHook, waitFor } from "@testing-library/react";
 import { describe, expect, it, onTestFinished, vi } from "vitest";
 import { isNetworkError, isPreconditionFailed, lintIssuesOf, type ApiError } from "@/api/client";
 import {
+  previewKeys,
   useDiff,
   useDraft,
   useLint,
@@ -13,7 +14,7 @@ import {
   useVersion,
   useVersionsInfinite,
 } from "@/api/queries/editor";
-import { themeKeys } from "@/api/queries/keys";
+import { hostKeys, themeKeys } from "@/api/queries/keys";
 import { flattenPages } from "@/api/queries/options";
 import { createFetchMock, etag, json, problem } from "@/api/testing/fetch-mock";
 import {
@@ -157,6 +158,43 @@ describe("lint", () => {
     await waitFor(() => expect(result.current.data?.ok).toBe(true));
     expect(server.calls[1]!.body).toEqual({});
   });
+
+  it("keeps the previous result while relinting the same theme, not after a theme switch", async () => {
+    const { server, wrapper } = setup();
+    const pending: Array<() => void> = [];
+    server.on("POST", "/api/v1/themes/:id/lint", ({ params, body }) => {
+      const css = (body as { css: string }).css;
+      const reply = json(makeLintResult({ ok: false, errors: [], warnings: [] }));
+      if (params.id === THEME_ID && css === "a{1}") {
+        return json(
+          makeLintResult({
+            ok: false,
+            errors: [
+              { line: 1, column: 1, rule: "parse", severity: "error", message: "Fout in A" },
+            ],
+          }),
+        );
+      }
+      return new Promise<Response>((resolve) => pending.push(() => resolve(reply)));
+    });
+    const { result, rerender } = renderHook(({ id, css }) => useLint(id, css), {
+      wrapper,
+      initialProps: { id: THEME_ID, css: "a{1}" },
+    });
+    await waitFor(() => expect(result.current.data?.errors).toHaveLength(1));
+
+    // Zelfde thema, nieuwe tekst: het oude resultaat blijft staan tot het nieuwe er is.
+    rerender({ id: THEME_ID, css: "a{2}" });
+    expect(result.current.isPlaceholderData).toBe(true);
+    expect(result.current.data?.errors).toHaveLength(1);
+
+    // Ander thema: geen markers of tellers van het vorige.
+    rerender({ id: "ander-thema", css: "b{}" });
+    expect(result.current.data).toBeUndefined();
+    await waitFor(() => expect(pending.length).toBeGreaterThan(0));
+    act(() => pending.forEach((resolve) => resolve()));
+    await waitFor(() => expect(result.current.data?.errors).toEqual([]));
+  });
 });
 
 describe("publish and rollback", () => {
@@ -170,6 +208,8 @@ describe("publish and rollback", () => {
     );
     queryClient.setQueryData(themeKeys.draft(THEME_ID), makeDraft({ lock_version: 4 }));
     queryClient.setQueryData(themeKeys.detail(THEME_ID), theme);
+    queryClient.setQueryData(hostKeys.list(), []);
+    queryClient.setQueryData(previewKeys.stack("a.lan", theme.slug), null);
 
     const { result } = renderHook(() => usePublishTheme(), { wrapper });
     const locked = await act(() =>
@@ -188,6 +228,11 @@ describe("publish and rollback", () => {
     });
     expect(queryClient.getQueryData<Draft>(themeKeys.draft(THEME_ID))?.lock_version).toBe(5);
     expect(queryClient.getQueryState(themeKeys.detail(THEME_ID))?.isInvalidated).toBe(true);
+    // Hosts (bron, gezondheid) en de stapel in de preview tonen de nieuwe versie (review FE-6).
+    expect(queryClient.getQueryState(hostKeys.list())?.isInvalidated).toBe(true);
+    expect(queryClient.getQueryState(previewKeys.stack("a.lan", theme.slug))?.isInvalidated).toBe(
+      true,
+    );
   });
 
   it("publish reads the lock from the theme when the ETag is missing", async () => {

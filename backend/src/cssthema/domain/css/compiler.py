@@ -9,9 +9,10 @@ Stappen:
    hash van de geminificeerde body;
 4. `sha256` over het eindresultaat (UTF-8) → ETag.
 
-Wordt alleen aangeroepen voor CSS die door de linter komt (geen `<`, ook niet
-ge-escapet). Voor de zekerheid wordt een eventuele `<` in het resultaat toch ge-escapet,
-zodat de CSS nooit uit een `<style>`-blok kan breken.
+Wordt alleen aangeroepen voor CSS die door de linter komt (geen `</` buiten strings en
+`url()`). Elke `</` in het resultaat wordt ge-escapet als `\\3c /` (in strings en `url()`
+betekent dat hetzelfde), zodat de CSS nooit uit een `<style>`-blok kan breken. Een losse
+`<`, zoals in `@media (width < 600px)`, blijft staan.
 """
 
 import hashlib
@@ -49,7 +50,7 @@ def compile_css(
         head, tail = split_leading_statements(source)
         parts = (head, palette_to_css_vars(palette_tokens), tail)
         source = "\n".join(part for part in parts if part)
-    body = minify(source).replace("<", "\\3c ")
+    body = minify(source).replace("</", "\\3c /")
     body_hash = hashlib.sha256(body.encode("utf-8")).hexdigest()[:12]
     stamp = _utc(published_at).strftime("%Y-%m-%dT%H:%MZ")
     header = f"/*! cssthema · {slug} · v{version_number} · {stamp} · sha256:{body_hash} */\n"

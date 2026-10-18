@@ -42,7 +42,7 @@ def test_css_defaults_work_without_extra_environment(monkeypatch: pytest.MonkeyP
     for name in ("CSS_MAX_BYTES", "CSS_URL_ALLOWLIST", "CSS_REFRESH_URL", "CSS_FILES_DIR"):
         monkeypatch.delenv(name, raising=False)
     settings = Settings(_env_file=None)
-    assert settings.css_max_bytes == 512 * 1024
+    assert settings.css_max_bytes == 1024 * 1024
     assert settings.css_url_allowlist == ["fonts.googleapis.com", "fonts.gstatic.com"]
     assert settings.css_refresh_url == "http://127.0.0.1:8081"
     assert str(settings.css_files_dir) == "/var/lib/cssthema/css-files"
@@ -70,3 +70,33 @@ def test_empty_refresh_url_disables_refresh(monkeypatch: pytest.MonkeyPatch) -> 
 def test_css_max_bytes_must_be_positive() -> None:
     with pytest.raises(ValidationError, match="css_max_bytes"):
         Settings(_env_file=None, css_max_bytes=0)
+
+
+def test_dashboard_and_excluded_hosts_are_split_and_normalised(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setenv("DASHBOARD_HOST", "CssThema.jbogaert.be, https://beheer.jbogaert.be/")
+    monkeypatch.setenv("EXCLUDED_HOSTS", "auth.jbogaert.be  nginx.jbogaert.be,auth.jbogaert.be")
+    settings = Settings(_env_file=None, public_base_url="https://css.jbogaert.be/")
+    assert settings.dashboard_host == ["cssthema.jbogaert.be", "beheer.jbogaert.be"]
+    assert settings.excluded_hosts == ["auth.jbogaert.be", "nginx.jbogaert.be"]
+    assert settings.public_host == "css.jbogaert.be"
+    assert settings.never_inject_hosts == {
+        "cssthema.jbogaert.be",
+        "beheer.jbogaert.be",
+        "auth.jbogaert.be",
+        "nginx.jbogaert.be",
+        "css.jbogaert.be",
+    }
+
+
+def test_without_settings_only_the_css_domain_is_never_injected() -> None:
+    settings = Settings(_env_file=None, public_base_url="https://css.jbogaert.be")
+    assert settings.dashboard_host == []
+    assert settings.never_inject_hosts == {"css.jbogaert.be"}
+
+
+@pytest.mark.parametrize("value", ["*", "a..b", "niet geldig!"])
+def test_invalid_excluded_host_is_rejected(value: str) -> None:
+    with pytest.raises(ValidationError, match="excluded_hosts"):
+        Settings(_env_file=None, excluded_hosts=value)

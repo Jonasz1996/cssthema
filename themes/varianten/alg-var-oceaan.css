@@ -1,0 +1,53 @@
+/* alg-var-oceaan.css: kleurvariant Oceaan (donkerblauw met cyaan accent) van het algemene thema.
+ * Gemaakt met scripts/themes/varianten.py; pas dat script aan, niet dit bestand.
+ * Laad als laatste, na algemeen.css (of alg-kern + modules) en alg-<app>.css.
+ * Contrast (WCAG): tekst/vlak-2 10.4:1, knop 5.5:1, knop-hover 4.7:1, ok-vlak 4.9:1, fout-vlak 4.9:1, waarschuwing-vlak 11.7:1, info-vlak 10.1:1
+ */
+:root {
+  --alg-achtergrond: radial-gradient(circle, #16304a, #102033, #0b1726, #050b14) center / cover no-repeat fixed;
+  --alg-achtergrond-kleur: #0b1726;
+  --alg-glas: rgba(16, 32, 51, 0.8);
+  --alg-glas-sterk: rgba(16, 32, 51, 0.95);
+  --alg-vlak: #102033;
+  --alg-vlak-2: #16304a;
+  --alg-paneel: rgba(255, 255, 255, 0.04);
+  --alg-rij: rgba(255, 255, 255, 0.05);
+  --alg-rij-hover: rgba(255, 255, 255, 0.09);
+  --alg-rij-actief: rgba(56, 189, 248, 0.18);
+  --alg-zebra: rgba(255, 255, 255, 0.025);
+  --alg-veld: rgba(5, 11, 20, 0.85);
+  --alg-autofill: #0b1726;
+  --alg-rand: rgba(212, 228, 242, 0.1);
+  --alg-rand-sterk: rgba(212, 228, 242, 0.17);
+  --alg-rand-hover: rgba(56, 189, 248, 0.45);
+  --alg-tekst: #d4e4f2;
+  --alg-tekst-sterk: #ffffff;
+  --alg-gedempt: #93abc2;
+  --alg-zwak: #6a7f93;
+  --alg-placeholder: #93abc2;
+  --alg-link: #6fd3ff;
+  --alg-link-hover: #ffffff;
+  --alg-code: #6fd3ff;
+  --alg-knop: #1f6f99;
+  --alg-knop-hover: #317ba1;
+  --alg-gloed: 0 0 22px rgba(56, 189, 248, 0.3);
+  --alg-accent: 56, 189, 248;
+  --alg-focus-rand: #38bdf8;
+  --alg-ok: #6ee7a8;
+  --alg-fout: #f78c8c;
+  --alg-waarschuwing: #f5c46b;
+  --alg-info: #7cc4ff;
+  --alg-ok-vlak: #3c7d5b;
+  --alg-fout-vlak: #a35d5d;
+  --alg-waarschuwing-vlak: #f5c46b;
+  --alg-info-vlak: #7cc4ff;
+  --alg-ok-tint: rgba(110, 231, 168, 0.12);
+  --alg-fout-tint: rgba(247, 140, 140, 0.12);
+  --alg-waarschuwing-tint: rgba(245, 196, 107, 0.12);
+  --alg-info-tint: rgba(124, 196, 255, 0.12);
+  --alg-ok-rand: rgba(110, 231, 168, 0.35);
+  --alg-fout-rand: rgba(247, 140, 140, 0.35);
+  --alg-waarschuwing-rand: rgba(245, 196, 107, 0.35);
+  --alg-info-rand: rgba(124, 196, 255, 0.35);
+  --alg-scrollbar: #465d74;
+}

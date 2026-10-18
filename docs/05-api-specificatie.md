@@ -11,7 +11,7 @@
 | Versiebeheer | Major in pad (`/v1`). Additieve wijzigingen zonder nieuwe versie; breaking → `/v2` met 6 maanden overlap. |
 | Authenticatie | Sessiecookie `cssthema_session` (browser) **of** `Authorization: Bearer ct_…` (API-key). |
 | CSRF | Op `POST/PUT/PATCH/DELETE` weigert de api verzoeken van een andere pagina: `Sec-Fetch-Site` anders dan `same-origin`/`none`, of (zonder Fetch Metadata, bv. gewone http naar een IP) een `Origin` die niet de eigen host is (`Host` of `PUBLIC_BASE_URL`) → `403 csrf_failed`. Zonder beide headers (curl, scripts) gaat het door. Vanaf fase 3 bij cookie-auth bovendien header `X-CSRF-Token` verplicht (waarde uit cookie `cssthema_csrf`). |
-| Schrijven via de proxy | nginx van cssthema aanvaardt `POST/PUT/PATCH/DELETE` op `/api/` alleen van `TRUSTED_PROXIES` (Nginx Proxy Manager) en van de machine zelf; anders `403 proxy_required` (zie docs/ops/installatie-debian.md § 4). |
+| Toegang via de proxy | nginx van cssthema serveert `/api/` (en het dashboard) alleen voor de hostnamen in `DASHBOARD_HOST`; een andere `Host` krijgt `404 not_found`. Daar aanvaardt nginx elk verzoek op `/api/`, lezen en schrijven, alleen van `TRUSTED_PROXIES` (Nginx Proxy Manager) en van de machine zelf; anders `403 proxy_required` (zie docs/ops/installatie-debian.md § 4, *Wie mag de api gebruiken*). De publieke endpoints (§ 4.11) staan op elke host. |
 | Content-Type | `application/json; charset=utf-8`, uploads `multipart/form-data`. |
 | Namen | JSON-velden `snake_case`; ID's als UUID-strings; tijden ISO 8601 UTC (`2026-10-05T12:00:00Z`). |
 | Paginering | Cursor-gebaseerd: `?limit=50&cursor=<opaque>` → `{ "items": [...], "next_cursor": "…" | null }`. Max. `limit` 200. |
@@ -48,11 +48,12 @@
 | 401 | `unauthenticated` | Geen/ongeldige sessie of key |
 | 403 | `forbidden` | Rol/scope onvoldoende |
 | 403 | `csrf_failed` | Verzoek van een andere pagina (`Sec-Fetch-Site`/`Origin`, § 1); vanaf fase 3 ook: CSRF-token ontbreekt/onjuist |
-| 403 | `proxy_required` | Schrijfactie die niet via de reverse proxy komt (nginx, bron niet in `TRUSTED_PROXIES`) |
-| 404 | `not_found` | Resource bestaat niet (of is soft-deleted voor niet-admins) |
+| 403 | `proxy_required` | Verzoek op `/api/` (lezen of schrijven) dat niet via de reverse proxy komt (nginx, bron niet in `TRUSTED_PROXIES`) |
+| 404 | `not_found` | Resource bestaat niet (of is soft-deleted voor niet-admins); van nginx: `/api/` op een host die niet in `DASHBOARD_HOST` staat |
 | 409 | `slug_conflict` | Slug al in gebruik |
 | 409 | `state_conflict` | Actie niet mogelijk in huidige status (bv. rollback naar live versie) |
 | 409 | `script_conflict` | Script met die naam bestaat al (upload zonder `replace`) |
+| 409 | `host_conflict` | Die hostnaam heeft al een koppeling (§ 4.6b) |
 | 412 | `precondition_failed` | `If-Match` komt niet overeen (iemand anders heeft gewijzigd) — body bevat huidige `etag` en `updated_by` |
 | 413 | `payload_too_large` | CSS > limiet, script > 512 KB, upload > 25 MB |
 | 415 | `unsupported_media_type` | Verkeerd uploadformaat |
@@ -155,6 +156,8 @@ Legenda kolom **Rol**: V = Viewer, E = Editor, A = Admin (en hoger); P = publiek
 
 ### 4.3 Services
 
+> Fase 1 heeft hiervan alleen `GET /services` en `DELETE /services/{id}`, gevuld uit de zips van `vastleggen.py`: zie § 4.6c. De rest is ontwerp.
+
 | Methode | Pad | Rol | Beschrijving | Responses |
 |---|---|---|---|---|
 | GET | `/services?q=&type=&tag=` | V | Lijst | 200 `Page<Service>` |
@@ -170,6 +173,8 @@ Legenda kolom **Rol**: V = Viewer, E = Editor, A = Admin (en hoger); P = publiek
 | POST | `/services/{id}/injection/test` | E | `{ theme_id }` — controleert live injectie | 202 `Job` |
 
 ### 4.4 Import en snapshots
+
+> Fase 1 importeert snapshots alleen uit de zips van `vastleggen.py` (`POST /captures`) en heeft `GET /snapshots/{id}/document` in een eigen vorm: zie § 4.6c. De rest is ontwerp.
 
 | Methode | Pad | Rol | Beschrijving | Responses |
 |---|---|---|---|---|
@@ -247,6 +252,48 @@ ScriptFile: { name, filename, size_bytes, modified_at, url,   # url = PUBLIC_BAS
 - Bestanden worden atomisch geschreven (tijdelijk bestand, fsync, rename) met modus `0644`, ongeacht de umask. Vervangen kopieert de vorige versie eerst naar `.scripts-archief/<naam>.<YYYYMMDDTHHMMSSZ>.js`. Een symlink of map met dezelfde naam wordt nooit overschreven (409 `state_conflict`).
 - Audit-log: `script.upload` (`{name, file, size_bytes, sha256, replaced, archived_as}`) en `script.delete` (`{name, archived_as}`), met `entity_type: script`.
 
+### 4.6b Host-koppelingen (pagina Hosts)
+
+Elke proxy host in NPM laadt met dezelfde regel `PUBLIC_BASE_URL/host/$host.css` en `.js` (docs/ops/installatie-debian.md § 4). Een koppeling zegt welke thema's (`styles`, in volgorde) en scripts een hostnaam krijgt; `*` geldt voor elke host zonder eigen koppeling.
+
+| Methode | Pad | Rol | Beschrijving | Responses |
+|---|---|---|---|---|
+| GET | `/hosts` | V | Alle koppelingen, `*` eerst: `[HostBinding]` | 200 |
+| POST | `/hosts` | E | `HostBindingInput` | 201 `HostBinding`, 409 `host_conflict`, 422 |
+| PUT | `/hosts/{id}` | E | `HostBindingInput` (alles vervangen) | 200 `HostBinding`, 404, 409 `host_conflict`, 422 |
+| DELETE | `/hosts/{id}` | E | Koppeling weg; de host volgt dan `*` | 204, 404 |
+| GET | `/hosts/options` | V | Te kiezen thema's en scripts, en de NPM-regel ingevuld met `PUBLIC_BASE_URL`: `{ styles, scripts, snippet, snippet_own_domain, … }` | 200 |
+| POST | `/hosts/import` | E | `{ text, replace: false }`: een NPM-config met `# <host>` boven elke `sub_filter` (zoals `themes/hosts-modules.conf`) | 200 `{ created, updated, unchanged: [hostname], skipped: [{line, reason}] }` |
+| GET | `/hosts/health` | V | Per host: laatst geladen, ontbrekende thema's of scripts, laatste controle | 200 `{ hosts: [HostHealth], check_running, check_started_at, check_finished_at }` |
+| POST | `/hosts/check` | E | Elke host met een eigen koppeling controleren (op de achtergrond; ook elke dag om 06:15 door de worker) | 202 `{ started }` |
+| DELETE | `/hosts/seen/{hostname}` | E | Host uit *laatst geladen* halen | 204 |
+
+```yaml
+HostBindingInput: { hostname,            # kleine letters, of "*"
+                    styles: [slug], scripts: [naam], enabled: true, note? }
+HostBinding:      HostBindingInput + { id, css_url, js_url, created_at, updated_at }
+HostHealth:       { hostname, bound, enabled, level: ok|warn|error|unknown, last_seen?,
+                    missing_styles, missing_scripts,
+                    check?: { level, code, detail, http_status?, checked_at } }
+```
+
+### 4.6c Diensten en snapshots uit vastleggen.py (fase 1)
+
+| Methode | Pad | Rol | Beschrijving | Responses |
+|---|---|---|---|---|
+| POST | `/captures` | E | multipart `file`: een zip (of een deel) van `vastleggen.py`, ≤ 25 MB. Elke app wordt een dienst met zijn snapshots, CSS en screenshots in storage | 200 `{ services_created: [hostname], services_updated: [hostname], snapshots, without_snapshot, skipped: [{path, reason}] }`, 413 (nginx), 422 `validation_error` (geen geldige capture-zip, of groter dan 25 MB) |
+| GET | `/services` | V | Diensten met hun snapshots, nieuwste eerst | 200 `[ServiceSummary]` |
+| DELETE | `/services/{id}` | E | Dienst verwijderen (met zijn snapshots uit de lijst) | 204, 404 |
+| GET | `/snapshots/{id}/document` | V | HTML en stylesheets van een snapshot voor de preview in de editor (JSON) | 200 `{ id, service_id, hostname, title?, url, html, stylesheets: [string] }`, 404 |
+| GET | `/assets/{id}` | V | Een screenshot uit een capture (`Cache-Control: private, max-age=86400, immutable`, `Content-Security-Policy: default-src 'none'; sandbox`) | 200 `image/*`, 404 |
+
+```yaml
+ServiceSummary:  { id, slug, name, hostname, base_url, snapshots: [SnapshotSummary] }
+SnapshotSummary: { id, page, page_kind, title?, url, status?, has_document, frameworks,
+                   class_count, has_shadow_dom, theme_links, csp_errors,
+                   screenshots: {soort: url}, captured_at?, imported_at }
+```
+
 ### 4.7 Paletten
 
 | Methode | Pad | Rol | Beschrijving | Responses |
@@ -296,6 +343,8 @@ ScriptFile: { name, filename, size_bytes, modified_at, url,   # url = PUBLIC_BAS
 | GET/HEAD | `/{slug}.css` | Gepubliceerde versie | `Content-Type: text/css; charset=utf-8`, `ETag`, `Last-Modified`, `Cache-Control: public, max-age=60, stale-while-revalidate=600, stale-if-error=86400`, `Access-Control-Allow-Origin: *`, `X-Cssthema-Version` |
 | GET/HEAD | `/themes/{slug}.css` | Idem | idem |
 | GET/HEAD | `/themes/{slug}@{n}.css` | Vaste versie | `Cache-Control: public, max-age=31536000, immutable` |
+| GET/HEAD | `/host/{hostname}.css` | Alle thema's van de koppeling van die host, samengevoegd (§ 4.6b). Zonder eigen koppeling: `302` naar `*.css` (relatief, dus ook via `/alg-thema/host/`). Lege bundel als de koppeling uit staat, en altijd voor `DASHBOARD_HOST`, de host van `PUBLIC_BASE_URL` en `EXCLUDED_HOSTS` | `text/css`, `ETag`, `Cache-Control` zoals `/{slug}.css`, ook op de redirect |
+| GET/HEAD | `/host/{hostname}.js` | Idem voor de scripts | `text/javascript` |
 | GET | `/themes/{slug}.user.css` | Stylus UserCSS (met `@updateURL`, `@-moz-document domain(...)` op basis van service-URL) | `text/css` |
 | GET | `/themes/{slug}.user.js` | Userscript (`@match` op service-URL, injecteert in document + shadow roots, haalt CSS met `?v=`) | `application/javascript` |
 | GET | `/themes/{slug}.ha.yaml` | Home Assistant theme-YAML (variabelen) | `application/yaml` |
@@ -306,6 +355,8 @@ ScriptFile: { name, filename, size_bytes, modified_at, url,   # url = PUBLIC_BAS
 
 Gedrag:
 - `If-None-Match` met huidige ETag → `304 Not Modified` (zonder body).
+- De `Cache-Control` hierboven is wat de api stuurt; de nginx-microcache gebruikt die. Browsers krijgen voor `/{slug}.css`, `/themes/{slug}.css` en `/host/…` van nginx `Cache-Control: public, no-cache, stale-if-error=86400` (bij `200` en `304`): ze vragen bij elke paginalaad na. `@{n}`, `404` en de redirect houden hun eigen header.
+- `/host/{hostname}` met een ongeldige hostnaam → `404` (`/* cssthema: ongeldige hostnaam */`). Een aanvraag van `/host/<host>.css` die de api bereikt (door de microcache van nginx hooguit eens per minuut per host) telt als *laatst geladen* (§ 4.6b, `/hosts/health`).
 - Onbekende/ongepubliceerde slug → `404`, body `/* cssthema: theme "x" not found */`, `Cache-Control: public, max-age=10`.
 - Oude slug na hernoemen → `301` naar nieuwe slug (90 dagen).
 - Query `?v=…` wordt genegeerd voor de inhoud maar maakt de URL uniek (cache-busting).

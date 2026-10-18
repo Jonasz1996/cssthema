@@ -1,0 +1,589 @@
+/* alg-fw-material.css - gegenereerd uit algemeen.css door scripts/themes/modules.py;
+   niet met de hand aanpassen. Laadt na alg-kern.css (zie themes/README.md). */
+/* ==========================================================================
+   33 MATERIAL - MUI (React, v4-v7) en Angular Material (MDC, v15+)
+   MUI injecteert zijn CSS na de onze (emotion), dus kleuren met !important.
+   Iconen zijn bij beide meestal svg (kleur via currentColor); bij ligatuur-
+   iconen (.material-icons, .mat-icon) wordt het lettertype nooit aangeraakt.
+   ========================================================================== */
+
+/* ==========================================================================
+   MUI
+   ========================================================================== */
+/* MUI v6/v7 met CSS-variabelen (--mui-) */
+:root,
+[data-mui-color-scheme],
+.mui-light,
+.mui-dark {
+  --mui-palette-background-default: var(--alg-achtergrond-kleur) !important;
+  --mui-palette-background-defaultChannel: 20 20 20 !important;
+  --mui-palette-background-paper: var(--alg-vlak) !important;
+  --mui-palette-text-primary: var(--alg-tekst) !important;
+  --mui-palette-text-primaryChannel: 221 221 221 !important;
+  --mui-palette-text-secondary: var(--alg-gedempt) !important;
+  --mui-palette-text-secondaryChannel: 153 153 153 !important;
+  --mui-palette-text-disabled: #777 !important;
+  --mui-palette-divider: rgba(255, 255, 255, .12) !important;
+  --mui-palette-dividerChannel: 255 255 255 !important;
+  --mui-palette-primary-main: var(--alg-accent-kleur) !important;
+  --mui-palette-primary-mainChannel: 170 170 170 !important;
+  --mui-palette-primary-contrastText: var(--alg-donker-tekst) !important;
+  --mui-palette-action-active: rgba(255, 255, 255, .7) !important;
+  --mui-palette-action-hover: rgba(255, 255, 255, .08) !important;
+  --mui-palette-action-selected: rgba(255, 255, 255, .14) !important;
+  --mui-palette-action-disabled: rgba(255, 255, 255, .3) !important;
+  --mui-palette-action-disabledBackground: rgba(255, 255, 255, .12) !important;
+  --mui-palette-action-activeChannel: 255 255 255 !important;
+  --mui-palette-action-selectedChannel: 255 255 255 !important;
+  --mui-palette-AppBar-defaultBg: #121212 !important;
+  --mui-palette-Tooltip-bg: #1c1c1c !important;
+  --mui-font-family: var(--alg-font) !important;
+}
+
+/* lettertype: alleen tekstcomponenten, nooit iconen */
+:is(.MuiTypography-root, .MuiButtonBase-root, .MuiButton-root, .MuiInputBase-root, .MuiFormLabel-root,
+    .MuiInputLabel-root, .MuiTableCell-root, .MuiChip-root, .MuiTooltip-tooltip, .MuiMenuItem-root,
+    .MuiTab-root, .MuiListItemText-primary, .MuiListItemText-secondary, .MuiAlert-message,
+    .MuiFormHelperText-root, .MuiSnackbarContent-root, .MuiDataGrid-root):not(.material-icons, [class*="material-symbols"], .MuiIcon-root) {
+  font-family: var(--alg-font) !important;
+}
+
+/* oppervlakken */
+.MuiPaper-root:not(.MuiAppBar-root, .MuiAlert-root, .MuiSnackbarContent-root) {
+  background-color: var(--alg-glas-sterk) !important;
+  color: var(--alg-tekst) !important;
+}
+
+.MuiCard-root {
+  background-color: var(--alg-glas) !important;
+  border-radius: var(--alg-radius-groot) !important;
+}
+
+/* vervaging alleen op wat boven de pagina zweeft: dialogen en uitschuifladen;
+   vaste zijmenu's (MuiDrawer-docked) krijgen geen vervaging */
+.MuiDialog-paper,
+.MuiDrawer-modal .MuiDrawer-paper {
+  -webkit-backdrop-filter: var(--alg-blur);
+  backdrop-filter: var(--alg-blur);
+}
+
+.MuiDialog-paper {
+  border: 1px solid var(--alg-rand-sterk);
+  border-radius: var(--alg-radius-groot) !important;
+  box-shadow: var(--alg-schaduw) !important;
+}
+
+.MuiMenu-paper,
+.MuiPopover-paper,
+.MuiAutocomplete-paper,
+.MuiAutocomplete-listbox {
+  background-color: var(--alg-glas-sterk) !important;
+  border: 1px solid var(--alg-rand-sterk);
+  border-radius: var(--alg-radius) !important;
+  -webkit-backdrop-filter: var(--alg-blur);
+  backdrop-filter: var(--alg-blur);
+}
+
+.MuiAppBar-root:is(.MuiAppBar-colorPrimary, .MuiAppBar-colorDefault, .MuiAppBar-colorSecondary) {
+  background-color: rgba(10, 10, 10, .6) !important;
+  background-image: none !important;
+  color: var(--alg-tekst-sterk) !important;
+  -webkit-backdrop-filter: var(--alg-blur);
+  backdrop-filter: var(--alg-blur);
+}
+
+.MuiDivider-root {
+  border-color: rgba(255, 255, 255, .12) !important;
+}
+
+.MuiBackdrop-root:not(.MuiBackdrop-invisible) {
+  background-color: var(--alg-overlay) !important;
+}
+
+/* tekstkleuren (v4-klassen en vaste klassen) */
+.MuiTypography-colorTextSecondary,
+.MuiDialogContentText-root,
+.MuiListItemText-secondary,
+.MuiCardHeader-subheader,
+.MuiFormHelperText-root:not(.Mui-error),
+.MuiInputLabel-root:not(.Mui-error, .Mui-focused),
+.MuiFormLabel-root:not(.Mui-error, .Mui-focused) {
+  color: var(--alg-gedempt) !important;
+}
+
+.MuiTypography-colorTextPrimary,
+.MuiListItemText-primary {
+  color: var(--alg-tekst) !important;
+}
+
+.MuiTypography-colorPrimary,
+.MuiFormLabel-root.Mui-focused:not(.Mui-error) {
+  color: #ccc !important;
+}
+
+/* iconen in lichte modus zijn bijna zwart: lichter maken (alleen de kleur) */
+.MuiListItemIcon-root,
+.MuiIconButton-root:not(.MuiIconButton-colorPrimary, .MuiIconButton-colorSecondary, .MuiIconButton-colorError,
+  .MuiIconButton-colorSuccess, .MuiIconButton-colorWarning, .MuiIconButton-colorInfo, .MuiIconButton-colorInherit),
+.MuiSelect-icon,
+.MuiAutocomplete-popupIndicator,
+.MuiAutocomplete-clearIndicator,
+.MuiCheckbox-root:not(.Mui-checked, .MuiCheckbox-indeterminate),
+.MuiRadio-root:not(.Mui-checked),
+.MuiTableSortLabel-icon {
+  color: rgba(255, 255, 255, .72) !important;
+}
+
+.MuiCheckbox-root.Mui-checked,
+.MuiCheckbox-root.MuiCheckbox-indeterminate,
+.MuiRadio-root.Mui-checked {
+  color: #ccc !important;
+}
+
+/* lijsten en menu's */
+.MuiListItem-button:hover,
+.MuiListItemButton-root:hover,
+.MuiMenuItem-root:hover {
+  background-color: var(--alg-rij-hover) !important;
+}
+
+.MuiListItem-root.Mui-selected,
+.MuiListItemButton-root.Mui-selected,
+.MuiMenuItem-root.Mui-selected {
+  background-color: var(--alg-rij-actief) !important;
+}
+
+/* kopjes in lijsten (sticky): bijna dekkend, anders schuift de lijst erdoor */
+.MuiListSubheader-root {
+  background-color: var(--alg-glas-sterk) !important;
+  color: var(--alg-gedempt) !important;
+}
+
+/* links: grijs zoals in allow (de standaard primaire kleur is blauw of groen
+   en haalt op donker geen 4.5:1) */
+.MuiLink-root {
+  color: var(--alg-link) !important;
+  text-decoration-color: currentColor !important;
+}
+
+.MuiLink-root:hover {
+  color: var(--alg-link-hover) !important;
+}
+
+/* knoppen */
+.MuiButton-root {
+  border-radius: var(--alg-radius) !important;
+}
+
+.MuiButton-containedPrimary,
+.MuiButton-contained:not([class*="MuiButton-contained"][class*="Secondary"], .MuiButton-containedError, .MuiButton-containedSuccess, .MuiButton-containedWarning, .MuiButton-containedInfo) {
+  background-color: var(--alg-knop) !important;
+  color: #fff !important;
+  font-weight: 700;
+}
+
+.MuiButton-containedPrimary:hover,
+.MuiButton-contained:not([class*="MuiButton-contained"][class*="Secondary"], .MuiButton-containedError, .MuiButton-containedSuccess, .MuiButton-containedWarning, .MuiButton-containedInfo):hover {
+  background-color: var(--alg-knop-hover) !important;
+  box-shadow: var(--alg-gloed) !important;
+}
+
+.MuiButton-textPrimary,
+.MuiButton-outlinedPrimary,
+.MuiButton-text:not([class*="MuiButton-text"][class*="Secondary"], .MuiButton-textError, .MuiButton-textSuccess, .MuiButton-textWarning, .MuiButton-textInfo, .MuiButton-colorInherit) {
+  color: #ccc !important;
+}
+
+.MuiButton-outlinedPrimary,
+.MuiButton-outlined:not(.MuiButton-outlinedError, .MuiButton-outlinedSuccess, .MuiButton-outlinedWarning, .MuiButton-outlinedInfo) {
+  border-color: var(--alg-rand-hover) !important;
+}
+
+/* uitgeschakeld: zwakker dan de regels hierboven (die hebben :not() met
+   twee attributen, dus 0,3,0); [class] tilt dit naar 0,4,0 */
+.MuiButtonBase-root.MuiButton-root.Mui-disabled[class] {
+  color: rgba(255, 255, 255, .35) !important;
+}
+
+.MuiButtonBase-root.MuiButton-contained.Mui-disabled[class] {
+  background-color: rgba(255, 255, 255, .12) !important;
+  box-shadow: none !important;
+}
+
+/* invoervelden: het buitenste vak draagt de kleur, het echte veld is doorzichtig */
+.MuiInputBase-root {
+  color: var(--alg-tekst-sterk) !important;
+}
+
+.MuiInputBase-input,
+.MuiInputBase-inputMultiline,
+.MuiAutocomplete-input,
+.MuiSelect-select {
+  background-color: transparent !important;
+  color: var(--alg-tekst-sterk) !important;
+}
+
+.MuiInputBase-input:focus,
+.MuiInputBase-input:focus-visible {
+  box-shadow: none !important;
+  outline: 0 !important;
+}
+
+.MuiOutlinedInput-root {
+  background-color: var(--alg-veld) !important;
+  border-radius: var(--alg-radius) !important;
+}
+
+.MuiOutlinedInput-notchedOutline {
+  border-color: var(--alg-rand-sterk) !important;
+  border-radius: var(--alg-radius) !important;
+}
+
+.MuiOutlinedInput-root:hover:not(.Mui-error) .MuiOutlinedInput-notchedOutline {
+  border-color: var(--alg-rand-hover) !important;
+}
+
+.MuiOutlinedInput-root.Mui-focused:not(.Mui-error) .MuiOutlinedInput-notchedOutline {
+  border-color: var(--alg-accent-kleur) !important;
+}
+
+.MuiFilledInput-root {
+  background-color: rgba(255, 255, 255, .06) !important;
+}
+
+.MuiInput-underline::before,
+.MuiFilledInput-underline::before {
+  border-bottom-color: rgba(255, 255, 255, .3) !important;
+}
+
+.MuiInput-underline:not(.Mui-error)::after,
+.MuiFilledInput-underline:not(.Mui-error)::after {
+  border-bottom-color: #bbb !important;
+}
+
+/* tabellen */
+.MuiTableCell-root {
+  border-bottom-color: var(--alg-rand) !important;
+  color: var(--alg-tekst) !important;
+}
+
+.MuiTableCell-head {
+  color: var(--alg-tekst-sterk) !important;
+}
+
+/* koppen van datatabellen zijn vaak sticky met de papierkleur (wit in licht):
+   bijna dekkend donker, zodat rijen er bij scrollen niet door schijnen */
+.MuiTableHead-root .MuiTableCell-head {
+  background-color: rgba(26, 26, 26, .96) !important;
+}
+
+/* paginering onder tabellen (v4 zet tekst.primary vast in JSS) */
+.MuiTablePagination-root {
+  color: var(--alg-tekst) !important;
+}
+
+:is(.MuiTablePagination-caption, .MuiTablePagination-selectLabel, .MuiTablePagination-displayedRows) {
+  color: inherit !important;
+}
+
+/* uitgeschakelde labels van vinkjes en schakelaars */
+.MuiFormControlLabel-label.Mui-disabled {
+  color: rgba(255, 255, 255, .4) !important;
+}
+
+.MuiTableRow-hover:hover {
+  background-color: rgba(255, 255, 255, .05) !important;
+}
+
+.MuiTableRow-root.Mui-selected {
+  background-color: var(--alg-rij-actief) !important;
+}
+
+.MuiDataGrid-root {
+  border-color: var(--alg-rand) !important;
+  color: var(--alg-tekst) !important;
+}
+
+.MuiDataGrid-columnHeaders,
+.MuiDataGrid-columnHeader,
+.MuiDataGrid-cell,
+.MuiDataGrid-footerContainer,
+.MuiDataGrid-withBorderColor {
+  border-color: var(--alg-rand) !important;
+}
+
+.MuiDataGrid-row:hover {
+  background-color: rgba(255, 255, 255, .05) !important;
+}
+
+/* tabs, chips, tooltips, schakelaars */
+.MuiTab-root:not(.Mui-selected) {
+  color: var(--alg-gedempt) !important;
+}
+
+.MuiTab-root.Mui-selected {
+  color: var(--alg-tekst-sterk) !important;
+}
+
+.MuiTabs-indicator {
+  background-color: #bbb !important;
+}
+
+/* standaardchip: v5+ heeft .MuiChip-colorDefault, v4 heeft geen kleurklasse */
+.MuiChip-root:not(.MuiChip-colorPrimary, .MuiChip-colorSecondary, .MuiChip-colorError, .MuiChip-colorSuccess,
+  .MuiChip-colorWarning, .MuiChip-colorInfo, .MuiChip-outlined) {
+  background-color: rgba(255, 255, 255, .1) !important;
+  color: var(--alg-tekst) !important;
+}
+
+.MuiChip-outlined:not(.MuiChip-colorPrimary, .MuiChip-colorSecondary, .MuiChip-colorError, .MuiChip-colorSuccess,
+  .MuiChip-colorWarning, .MuiChip-colorInfo, .MuiChip-outlinedPrimary, .MuiChip-outlinedSecondary) {
+  border-color: var(--alg-rand-sterk) !important;
+  color: var(--alg-tekst) !important;
+}
+
+.MuiChip-root .MuiChip-label {
+  color: inherit !important;
+}
+
+.MuiTooltip-tooltip {
+  background-color: #1c1c1c !important;
+  border: 1px solid var(--alg-rand-sterk);
+  color: var(--alg-tekst-sterk) !important;
+}
+
+/* sterren (Rating): lege sterren zijn in licht rgba(0,0,0,.26) */
+.MuiRating-iconEmpty {
+  color: rgba(255, 255, 255, .3) !important;
+}
+
+.MuiSwitch-track {
+  background-color: #fff !important;
+  opacity: .25 !important;
+}
+
+.MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track {
+  background-color: #bbb !important;
+  opacity: .6 !important;
+}
+
+/* meldingen (standaardvariant is een licht vlak; v7 kent alleen nog
+   .MuiAlert-standard met .MuiAlert-colorX) */
+:is(.MuiAlert-standardSuccess, .MuiAlert-standard.MuiAlert-colorSuccess) { background-color: var(--alg-ok-tint) !important; color: var(--alg-ok) !important; }
+:is(.MuiAlert-standardError, .MuiAlert-standard.MuiAlert-colorError) { background-color: var(--alg-fout-tint) !important; color: var(--alg-fout) !important; }
+:is(.MuiAlert-standardWarning, .MuiAlert-standard.MuiAlert-colorWarning) { background-color: var(--alg-waarschuwing-tint) !important; color: var(--alg-waarschuwing) !important; }
+:is(.MuiAlert-standardInfo, .MuiAlert-standard.MuiAlert-colorInfo) { background-color: var(--alg-info-tint) !important; color: var(--alg-info) !important; }
+.MuiAlert-standard .MuiAlert-message a { color: inherit !important; }
+
+/* react-admin (op MUI): werkbalk voor bulkacties ligt over de tabelkop en
+   is standaard primary.light (blauwgrijs, lichte tekst haalt 4.5:1 niet) */
+[data-test="bulk-actions-toolbar"] {
+  background-color: #2a2a2a !important;
+  color: var(--alg-tekst-sterk) !important;
+}
+
+/* notistack (meldingen rechts- of linksonder, v2 en v3): donker glas met
+   een gekleurde rand en tekst, zoals de meldingen in allow */
+:is(.notistack-MuiContent, .SnackbarContent-root, [class*="SnackbarItem-variant"]) {
+  background-color: var(--alg-glas-sterk) !important;
+  border: 1px solid var(--alg-rand-sterk);
+  color: var(--alg-tekst-sterk) !important;
+  -webkit-backdrop-filter: var(--alg-blur);
+  backdrop-filter: var(--alg-blur);
+}
+
+:is(.notistack-MuiContent-info, [class*="SnackbarItem-variantInfo"]) { border-color: var(--alg-info-rand); color: var(--alg-info) !important; }
+:is(.notistack-MuiContent-success, [class*="SnackbarItem-variantSuccess"]) { border-color: var(--alg-ok-rand); color: var(--alg-ok) !important; }
+:is(.notistack-MuiContent-error, [class*="SnackbarItem-variantError"]) { border-color: var(--alg-fout-rand); color: var(--alg-fout) !important; }
+:is(.notistack-MuiContent-warning, [class*="SnackbarItem-variantWarning"]) { border-color: var(--alg-waarschuwing-rand); color: var(--alg-waarschuwing) !important; }
+
+/* ==========================================================================
+   ANGULAR MATERIAL (MDC, v15+)
+   Systeemtokens (v19+, --mat-sys-) en de belangrijkste componenttokens; die
+   namen zijn uniek voor Angular Material. Plus directe regels als vangnet.
+   ========================================================================== */
+:root:where(html),
+.mat-app-background,
+.mat-typography {
+  --mat-sys-background: var(--alg-achtergrond-kleur) !important;
+  --mat-sys-on-background: var(--alg-tekst) !important;
+  --mat-sys-surface: var(--alg-vlak) !important;
+  --mat-sys-on-surface: var(--alg-tekst) !important;
+  --mat-sys-on-surface-variant: var(--alg-gedempt) !important;
+  --mat-sys-surface-container-lowest: #101010 !important;
+  --mat-sys-surface-container-low: #161616 !important;
+  --mat-sys-surface-container: #1a1a1a !important;
+  --mat-sys-surface-container-high: #1f1f1f !important;
+  --mat-sys-surface-container-highest: #262626 !important;
+  --mat-sys-surface-variant: #2a2a2a !important;
+  --mat-sys-outline: rgba(255, 255, 255, .3) !important;
+  --mat-sys-outline-variant: var(--alg-rand-sterk) !important;
+  --mat-sys-primary: var(--alg-accent-kleur) !important;
+  --mat-sys-on-primary: var(--alg-donker-tekst) !important;
+  --mat-sys-primary-container: #3a3a3a !important;
+  --mat-sys-on-primary-container: #eee !important;
+  --mat-sys-secondary-container: #333 !important;
+  --mat-sys-on-secondary-container: #eee !important;
+  --mat-sys-inverse-surface: #e0e0e0 !important;
+  --mat-sys-inverse-on-surface: #1a1a1a !important;
+  --mat-sys-body-large-font: var(--alg-font) !important;
+  --mat-sys-body-medium-font: var(--alg-font) !important;
+  --mat-sys-body-small-font: var(--alg-font) !important;
+  --mat-sys-label-large-font: var(--alg-font) !important;
+  --mat-sys-label-medium-font: var(--alg-font) !important;
+  --mat-sys-label-small-font: var(--alg-font) !important;
+  --mat-sys-title-large-font: var(--alg-font) !important;
+  --mat-sys-title-medium-font: var(--alg-font) !important;
+  --mat-sys-title-small-font: var(--alg-font) !important;
+  --mat-sys-headline-small-font: var(--alg-font) !important;
+
+  --mdc-filled-text-field-container-color: rgba(255, 255, 255, .06) !important;
+  --mdc-filled-text-field-input-text-color: var(--alg-tekst-sterk) !important;
+  --mdc-filled-text-field-label-text-color: var(--alg-gedempt) !important;
+  --mdc-outlined-text-field-input-text-color: var(--alg-tekst-sterk) !important;
+  --mdc-outlined-text-field-label-text-color: var(--alg-gedempt) !important;
+  --mdc-outlined-text-field-outline-color: var(--alg-rand-sterk) !important;
+  --mdc-outlined-text-field-hover-outline-color: var(--alg-rand-hover) !important;
+  --mdc-outlined-text-field-focus-outline-color: var(--alg-accent-kleur) !important;
+  --mat-select-trigger-text-color: var(--alg-tekst-sterk) !important;
+  --mat-select-enabled-arrow-color: rgba(255, 255, 255, .7) !important;
+  --mat-select-panel-background-color: var(--alg-glas-sterk) !important;
+  --mat-option-label-text-color: var(--alg-tekst) !important;
+  --mat-option-hover-state-layer-color: var(--alg-rij-hover) !important;
+  --mat-option-selected-state-layer-color: var(--alg-rij-actief) !important;
+  --mat-menu-container-color: var(--alg-glas-sterk) !important;
+  --mat-menu-item-label-text-color: var(--alg-tekst) !important;
+  --mat-menu-item-icon-color: rgba(255, 255, 255, .7) !important;
+  --mdc-dialog-container-color: var(--alg-glas-sterk) !important;
+  --mdc-dialog-subhead-color: var(--alg-tekst-sterk) !important;
+  --mdc-dialog-supporting-text-color: var(--alg-tekst) !important;
+  --mat-dialog-container-color: var(--alg-glas-sterk) !important;
+  --mat-dialog-subhead-color: var(--alg-tekst-sterk) !important;
+  --mat-dialog-supporting-text-color: var(--alg-tekst) !important;
+  --mdc-elevated-card-container-color: var(--alg-glas) !important;
+  --mdc-outlined-card-container-color: var(--alg-glas) !important;
+  --mdc-outlined-card-outline-color: var(--alg-rand) !important;
+  --mat-card-subtitle-text-color: var(--alg-gedempt) !important;
+  --mat-table-background-color: transparent !important;
+  --mat-table-header-headline-color: var(--alg-tekst-sterk) !important;
+  --mat-table-row-item-label-text-color: var(--alg-tekst) !important;
+  --mat-table-row-item-outline-color: var(--alg-rand) !important;
+  --mat-toolbar-container-background-color: rgba(10, 10, 10, .6) !important;
+  --mat-toolbar-container-text-color: var(--alg-tekst-sterk) !important;
+  --mat-sidenav-container-background-color: var(--alg-glas-sterk) !important;
+  --mat-sidenav-content-background-color: transparent !important;
+  --mat-sidenav-container-text-color: var(--alg-tekst) !important;
+  --mat-sidenav-content-text-color: var(--alg-tekst) !important;
+  --mat-expansion-container-background-color: var(--alg-glas) !important;
+  --mat-expansion-container-text-color: var(--alg-tekst) !important;
+  --mat-expansion-header-text-color: var(--alg-tekst-sterk) !important;
+  --mdc-plain-tooltip-container-color: #1c1c1c !important;
+  --mdc-plain-tooltip-supporting-text-color: var(--alg-tekst-sterk) !important;
+  --mat-paginator-container-background-color: transparent !important;
+  --mat-paginator-container-text-color: var(--alg-tekst) !important;
+  --mdc-protected-button-container-color: var(--alg-knop) !important;
+  --mdc-protected-button-label-text-color: #fff !important;
+  --mdc-filled-button-container-color: var(--alg-knop) !important;
+  --mdc-filled-button-label-text-color: #fff !important;
+  --mdc-text-button-label-text-color: #ccc !important;
+  --mdc-outlined-button-label-text-color: #ccc !important;
+  --mdc-outlined-button-outline-color: var(--alg-rand-hover) !important;
+  --mat-divider-color: rgba(255, 255, 255, .12) !important;
+  --mdc-checkbox-unselected-icon-color: rgba(255, 255, 255, .6) !important;
+  --mdc-checkbox-selected-icon-color: #bbb !important;
+  --mdc-checkbox-selected-checkmark-color: #111 !important;
+  --mdc-radio-unselected-icon-color: rgba(255, 255, 255, .6) !important;
+  --mdc-radio-selected-icon-color: #bbb !important;
+}
+
+.mat-app-background,
+.mat-drawer-container,
+.mat-sidenav-container,
+.mat-drawer-content {
+  background-color: transparent !important;
+  color: var(--alg-tekst) !important;
+}
+
+.mat-mdc-card,
+.mat-card {
+  background-color: var(--alg-glas) !important;
+  color: var(--alg-tekst) !important;
+  border-radius: var(--alg-radius-groot) !important;
+}
+
+.mat-toolbar:not(.mat-primary, .mat-accent, .mat-warn) {
+  background-color: rgba(10, 10, 10, .6) !important;
+  color: var(--alg-tekst-sterk) !important;
+}
+
+.mat-toolbar.mat-primary {
+  background-color: var(--alg-knop) !important;
+  color: #fff !important;
+}
+
+.mat-drawer,
+.mat-sidenav {
+  background-color: var(--alg-glas-sterk) !important;
+  color: var(--alg-tekst) !important;
+}
+
+.mat-mdc-dialog-surface,
+.mat-dialog-container {
+  background-color: var(--alg-glas-sterk) !important;
+  color: var(--alg-tekst) !important;
+  border-radius: var(--alg-radius-groot) !important;
+  -webkit-backdrop-filter: var(--alg-blur);
+  backdrop-filter: var(--alg-blur);
+}
+
+.mat-mdc-menu-panel,
+.mat-mdc-select-panel,
+.mat-mdc-autocomplete-panel,
+.mat-menu-panel,
+.mat-select-panel,
+.mat-autocomplete-panel {
+  background-color: var(--alg-glas-sterk) !important;
+  color: var(--alg-tekst) !important;
+  -webkit-backdrop-filter: var(--alg-blur);
+  backdrop-filter: var(--alg-blur);
+}
+
+.mat-mdc-table,
+.mat-table {
+  background-color: transparent !important;
+}
+
+.mat-mdc-header-cell,
+.mat-header-cell {
+  color: var(--alg-tekst-sterk) !important;
+}
+
+.mat-mdc-cell,
+.mat-cell,
+.mat-mdc-header-cell,
+.mat-header-cell,
+.mat-mdc-footer-cell {
+  border-bottom-color: var(--alg-rand) !important;
+  color: var(--alg-tekst);
+}
+
+/* het echte invoerveld in een mat-form-field is doorzichtig */
+.mat-mdc-input-element,
+.mat-input-element,
+.mat-mdc-form-field-input-control {
+  background-color: transparent !important;
+  color: var(--alg-tekst-sterk) !important;
+}
+
+.mat-mdc-input-element:focus,
+.mat-input-element:focus {
+  box-shadow: none !important;
+  outline: 0 !important;
+}
+
+.mat-mdc-form-field-subscript-wrapper,
+.mat-mdc-form-field-hint,
+.mat-hint {
+  color: var(--alg-gedempt) !important;
+}
+

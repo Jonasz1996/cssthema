@@ -30,5 +30,22 @@
   "staleTitle": "Nieuwe versie van cssthema",
   "staleHint": "cssthema is bijgewerkt terwijl dit tabblad openstond. Herlaad de pagina om de nieuwe versie te laden.",
   "staleError": "Onderdeel van de vorige versie niet meer beschikbaar",
-  "reload": "Herladen"
+  "reload": "Herladen",
+
+  "uploadDefaultsZip": "Uitgepakte zip: bij een bestaande naam een nieuwe versie, en meteen publiceren (zoals themes/ uit de repo). Kies hieronder iets anders als je dat niet wilt.",
+  "uploadDefaultsExisting_one": "{count} bestand heeft de naam van een bestaand thema: standaard een nieuwe versie die meteen live gaat, geen kopie. Kies hieronder iets anders als je dat niet wilt.",
+  "uploadDefaultsExisting_other": "{count} bestanden hebben de naam van een bestaand thema: standaard een nieuwe versie die meteen live gaat, geen kopie. Kies hieronder iets anders als je dat niet wilt.",
+  "uploadResultUnchanged": "ongewijzigd",
+  "uploadResultUnchangedText": "Gelijk aan de laatste versie: er is niets opgeslagen of gepubliceerd.",
+  "uploadUnchanged_one": "{count} bestand was gelijk aan de laatste versie (ongewijzigd).",
+  "uploadUnchanged_other": "{count} bestanden waren gelijk aan de laatste versie (ongewijzigd).",
+  "uploadNothingChanged_one": "Niets veranderd: het bestand is gelijk aan de laatste versie.",
+  "uploadNothingChanged_other": "Niets veranderd: de {count} bestanden zijn gelijk aan hun laatste versie.",
+  "scriptSyntaxError": "Syntaxfout: {message}. Niet geüpload: in de bundel van een host houdt één fout script ook de andere scripts tegen.",
+
+  "sessionExpiredTitle": "Sessie verlopen",
+  "sessionExpiredText": "Je login is verlopen: laad de pagina opnieuw om opnieuw in te loggen. Wat je in de editor typte, staat veilig in deze browser en komt daarna terug.",
+
+  "uploadDefaultsLoading": "Bestaande thema's ophalen: of een bestand een nieuwe versie wordt, hangt ervan af of zijn naam al bestaat.",
+  "uploadDefaultsUnknown": "De bestaande thema's konden niet opgehaald worden, dus staat hieronder de gewone standaard (nieuw thema, niet publiceren). Is het een bestaand thema, kies dan zelf 'Nieuwe versie van het bestaande thema' en 'Ja, publiceren'."
 }

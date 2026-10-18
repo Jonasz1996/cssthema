@@ -270,6 +270,19 @@ class ImportedTheme(Theme):
     )
 
 
+ImportOutcome = Literal["created", "new_version", "unchanged"]
+
+
+class UploadedTheme(Theme):
+    outcome: ImportOutcome = Field(
+        description=(
+            "`created`: nieuw thema (201). `new_version`: nieuwe draft en versie op het "
+            "bestaande thema (200). `unchanged`: gelijk aan de laatste versie, er is niets "
+            "veranderd (200)."
+        )
+    )
+
+
 class SkippedFile(BaseModel):
     name: str
     reason: str

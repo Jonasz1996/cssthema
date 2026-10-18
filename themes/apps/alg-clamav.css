@@ -1,0 +1,77 @@
+/* ==========================================================================
+   alg-clamav.css - ClamAV-databankspiegel (Apache-mapweergave "Index of /")
+   Host: clamav.jbogaert.be (cvdupdate achter Apache 2.4, mod_autoindex)
+   Laadt na algemeen.css (sub_filter in NPM, zelfde map op css.jbogaert.be).
+
+   WAT HET AFWERKT
+   algemeen.css maakt de kale pagina al donker. Hier krijgt de bestandslijst
+   een glaspaneel met afgeronde hoeken, een gedempte kopregel, een
+   hover-markering per rij, grijze scheidingslijnen en een gedempte
+   servervoettekst. De zwarte Apache-pictogrammen (gif) worden licht.
+
+   BEPERKINGEN
+   - Werkt voor de standaard (FancyIndexing-)tabel van mod_autoindex; een
+     eigen HeaderName/ReadmeName of IndexStyleSheet in Apache wint niet van
+     deze regels maar kan er anders uitzien.
+   - De pictogrammen (/icons/*.gif) waren in de render niet bereikbaar: het
+     lichter maken ervan is niet getest.
+   ========================================================================== */
+
+body > table {
+  background: var(--alg-glas);
+  border: 1px solid var(--alg-rand);
+  border-radius: var(--alg-radius);
+  border-collapse: separate;
+  box-shadow: var(--alg-schaduw-klein);
+  padding: 6px 10px;
+  -webkit-backdrop-filter: var(--alg-blur);
+  backdrop-filter: var(--alg-blur);
+}
+
+body > table th {
+  color: var(--alg-gedempt);
+  font-weight: 600;
+  text-align: left;
+}
+
+body > table th a {
+  color: var(--alg-tekst-sterk);
+  text-decoration: none;
+}
+
+body > table th a:hover {
+  text-decoration: underline;
+}
+
+body > table td {
+  padding-right: 12px;
+}
+
+body > table tr:has(> td):hover {
+  background-color: var(--alg-rij-hover);
+}
+
+body > table hr {
+  border: 0;
+  border-top: 1px solid var(--alg-rand-sterk);
+}
+
+body > table td a {
+  color: var(--alg-tekst);
+  text-decoration: none;
+}
+
+body > table td a:hover {
+  color: var(--alg-link-hover);
+  text-decoration: underline;
+}
+
+/* zwarte Apache-pictogrammen licht maken op de donkere achtergrond */
+body > table img {
+  filter: invert(1);
+  opacity: .75;
+}
+
+address {
+  color: var(--alg-gedempt);
+}

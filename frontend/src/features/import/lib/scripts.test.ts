@@ -2,14 +2,12 @@ import { describe, expect, it } from "vitest";
 import { ApiError } from "@/api/client";
 import type { Problem } from "@/api/types";
 import {
-  injectionSnippet,
   isScriptConflict,
   normalizeScriptName,
   problemScriptName,
   scriptTarget,
   shellWord,
   shortHash,
-  siblingCssUrl,
 } from "./scripts";
 
 function conflict(extra: Record<string, unknown> = {}) {
@@ -81,15 +79,6 @@ describe("hulpjes", () => {
     expect(shellWord("it's.js")).toBe("'it'\\''s.js'");
   });
 
-  it("siblingCssUrl: dezelfde basis als het script", () => {
-    expect(siblingCssUrl("https://css.jbogaert.be/algemeen.js", "nord")).toBe(
-      "https://css.jbogaert.be/nord.css",
-    );
-    expect(siblingCssUrl("http://localhost:8080/sub/x.js", "algemeen")).toBe(
-      "http://localhost:8080/sub/algemeen.css",
-    );
-  });
-
   it("herkent een 409 script_conflict en leest de naam uit de Problem", () => {
     expect(isScriptConflict(conflict())).toBe(true);
     expect(problemScriptName(conflict({ name: "algemeen" }))).toBe("algemeen");
@@ -97,46 +86,5 @@ describe("hulpjes", () => {
     const other = new ApiError({ status: 409, code: "state_conflict", title: "x" });
     expect(isScriptConflict(other)).toBe(false);
     expect(isScriptConflict(new Error("x"))).toBe(false);
-  });
-});
-
-describe("injectionSnippet", () => {
-  const comments = { head: "kop", accessList: "access", websockets: "ws" };
-
-  it("zet thema en script (defer) vóór </head>, met Accept-Encoding en sub_filter_once", () => {
-    const snippet = injectionSnippet({
-      cssUrl: "https://css.jbogaert.be/algemeen.css",
-      scriptUrl: "https://css.jbogaert.be/algemeen.js",
-      comments,
-    });
-    expect(snippet).toContain(
-      `sub_filter '</head>' '<link rel="stylesheet" href="https://css.jbogaert.be/algemeen.css">` +
-        `<script src="https://css.jbogaert.be/algemeen.js" defer></script></head>';`,
-    );
-    expect(snippet).toContain('proxy_set_header Accept-Encoding "";');
-    expect(snippet).toContain("sub_filter_once on;");
-    expect(snippet).toContain("include conf.d/include/proxy.conf;");
-    expect(snippet).toContain("proxy_set_header Upgrade $http_upgrade;");
-    expect(snippet.startsWith("# kop\nlocation / {\n")).toBe(true);
-    expect(snippet).toContain("    # ws\n");
-  });
-
-  it("waarschuwt in de location zelf dat een Access List van NPM er niet meer geldt", () => {
-    // NPM zet de Access List (auth_basic, allow/deny) alleen in zijn eigen `location /`, en die
-    // laat NPM weg zodra Advanced er een bevat: de app zou dan zonder slot openstaan.
-    const snippet = injectionSnippet({ cssUrl: null, scriptUrl: "https://x/a.js", comments });
-    expect(snippet.startsWith("# kop\nlocation / {\n    # access\n")).toBe(true);
-  });
-
-  it("zonder thema alleen het script; enkele aanhalingstekens worden ontsnapt", () => {
-    const snippet = injectionSnippet({
-      cssUrl: null,
-      scriptUrl: "https://x.example/it's.js",
-      comments,
-    });
-    expect(snippet).not.toContain("<link");
-    expect(snippet).toContain(
-      `sub_filter '</head>' '<script src="https://x.example/it\\'s.js" defer></script></head>';`,
-    );
   });
 });
