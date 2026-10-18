@@ -2,7 +2,8 @@ import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { isApiError } from "@/api/client";
 import { usePreviewStack } from "@/api/queries/editor";
 import type { PreviewStack } from "@/api/types";
-import { Button, Callout, Input, Loading, Select } from "@/components/ui";
+import { Button, Callout, Dialog, Input, Loading, Select } from "@/components/ui";
+import { PageUpload } from "@/features/services/components/PageUpload";
 import { errorText } from "@/features/themes/lib/errors";
 import { type I18n, useI18n } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
@@ -88,6 +89,7 @@ export function PreviewPane({
   const stageRef = useRef<HTMLDivElement>(null);
   const channelRef = useRef<PreviewChannel | null>(null);
   const [frameKey, setFrameKey] = useState(0);
+  const [uploadOpen, setUploadOpen] = useState(false);
   const [available, setAvailable] = useState(0);
   const [availableHeight, setAvailableHeight] = useState(0);
 
@@ -261,6 +263,16 @@ export function PreviewPane({
           {t("editor.previewTitle")}
         </span>
         {theme && <SourcePicker source={source} />}
+        {theme && (
+          <Button
+            variant="mini"
+            onClick={() => setUploadOpen(true)}
+            title={t("editor.previewUploadHint")}
+            data-testid="preview-upload"
+          >
+            📄 {t("editor.previewUpload")}
+          </Button>
+        )}
         {source.snapshotId && stack && <StackInfo stack={stack} />}
         <div role="group" aria-label={t("editor.viewportLabel")} className="flex flex-wrap gap-1">
           {PRESETS.map((preset) => (
@@ -424,6 +436,20 @@ export function PreviewPane({
           </div>
         )}
       </div>
+      <Dialog
+        open={uploadOpen}
+        onClose={() => setUploadOpen(false)}
+        size="md"
+        title={t("editor.previewUploadTitle")}
+        command="cssthema pages upload"
+      >
+        <PageUpload
+          onUploaded={(result) => {
+            source.select(result.snapshot_id);
+            setUploadOpen(false);
+          }}
+        />
+      </Dialog>
     </section>
   );
 }

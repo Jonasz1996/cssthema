@@ -44,6 +44,7 @@ export type ServiceSummary = Schemas["ServiceSummary"];
 export type SnapshotSummary = Schemas["SnapshotSummary"];
 export type SnapshotDocument = Schemas["SnapshotDocument"];
 export type CaptureImportResult = Schemas["CaptureImportResult"];
+export type PageUploadResult = Schemas["PageUploadResult"];
 export type UserRef = Schemas["UserRef"];
 export type EtagState = Schemas["EtagState"];
 export type Problem = Schemas["Problem"];

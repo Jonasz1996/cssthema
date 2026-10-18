@@ -1,6 +1,11 @@
 import { queryOptions, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { api, multipart, send, shouldRetry, type ApiError } from "../client";
-import type { CaptureImportResult, ServiceSummary, SnapshotDocument } from "../types";
+import type {
+  CaptureImportResult,
+  PageUploadResult,
+  ServiceSummary,
+  SnapshotDocument,
+} from "../types";
 import { serviceKeys } from "./keys";
 import type { QueryHookOptions } from "./options";
 
@@ -34,6 +39,32 @@ export async function importCapture(file: File): Promise<CaptureImportResult> {
   const { data } = await send(
     api.POST("/api/v1/captures", {
       ...multipart<{ file: string }>({ file }),
+    }),
+  );
+  return data;
+}
+
+/** Een opgeslagen webpagina: `.html`, of een `.zip` met de pagina en zijn map `<naam>_files`. */
+export interface PageUploadInput {
+  file: File;
+  /** Host van de app; leeg = uit de pagina zelf ("saved from url", canonical, …). */
+  hostname?: string;
+  /** Naam van de pagina; leeg = de bestandsnaam. */
+  page?: string;
+}
+
+export async function uploadPage({
+  file,
+  hostname,
+  page,
+}: PageUploadInput): Promise<PageUploadResult> {
+  const { data } = await send(
+    api.POST("/api/v1/pages", {
+      ...multipart<{ file: string; hostname?: string | null; page?: string | null }>({
+        file,
+        hostname: hostname?.trim() || null,
+        page: page?.trim() || null,
+      }),
     }),
   );
   return data;
@@ -81,6 +112,15 @@ export function useImportCapture() {
   return useMutation<CaptureImportResult, ApiError, File>({
     mutationFn: importCapture,
     // Ook de documenten: een nieuwe import werkt bestaande snapshots bij onder hetzelfde id.
+    onSettled: () => queryClient.invalidateQueries({ queryKey: serviceKeys.all }),
+  });
+}
+
+export function useUploadPage() {
+  const queryClient = useQueryClient();
+  return useMutation<PageUploadResult, ApiError, PageUploadInput>({
+    mutationFn: uploadPage,
+    // Dezelfde pagina opnieuw: zelfde snapshot-id, nieuwe inhoud.
     onSettled: () => queryClient.invalidateQueries({ queryKey: serviceKeys.all }),
   });
 }

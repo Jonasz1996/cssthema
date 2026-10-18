@@ -233,7 +233,7 @@ describe("PreviewPane: bron van de preview", () => {
     const theme = makeTheme({ slug: "kaal", service_id: null });
     renderPane(<PreviewPane session={undefined} paletteTokens={null} theme={theme} />);
     const hint = await screen.findByRole("option", {
-      name: "Nog geen snapshots (importeer een capture)",
+      name: "Nog geen snapshots (upload een pagina of capture)",
     });
     expect(hint).toBeDisabled();
     expect(picker()).toHaveValue("demo");

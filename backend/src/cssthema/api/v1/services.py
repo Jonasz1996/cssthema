@@ -4,12 +4,17 @@ import hashlib
 import uuid
 from typing import Annotated, Any
 
-from fastapi import APIRouter, File, Request, Response, UploadFile, status
+from fastapi import APIRouter, File, Form, Request, Response, UploadFile, status
 
 from cssthema.api.deps import Ctx
 from cssthema.api.errors import Problem
-from cssthema.schemas.captures import CaptureImportResult, ServiceSummary, SnapshotDocument
-from cssthema.services import capture_import, service_catalog
+from cssthema.schemas.captures import (
+    CaptureImportResult,
+    PageUploadResult,
+    ServiceSummary,
+    SnapshotDocument,
+)
+from cssthema.services import capture_import, page_upload, service_catalog
 
 router = APIRouter(tags=["services"])
 
@@ -30,6 +35,31 @@ async def import_capture(
 ) -> CaptureImportResult:
     data = await file.read(ctx.settings.capture_max_bytes + 1)
     return await capture_import.import_zip(ctx, file.filename or "capture.zip", data)
+
+
+@router.post(
+    "/pages",
+    response_model=PageUploadResult,
+    operation_id="pages_upload",
+    summary="Een opgeslagen webpagina (.html of .zip met de bestanden) als snapshot",
+    responses={422: {"model": Problem, "description": "Geen bruikbare webpagina"}},
+)
+async def upload_page(
+    ctx: Ctx,
+    file: Annotated[
+        UploadFile, File(description="De pagina (.html), of een zip met de pagina en zijn map")
+    ],
+    hostname: Annotated[
+        str | None, Form(max_length=300, description="Host van de app; anders uit de pagina")
+    ] = None,
+    page: Annotated[
+        str | None, Form(max_length=100, description="Naam van de pagina; anders de bestandsnaam")
+    ] = None,
+) -> PageUploadResult:
+    data = await file.read(ctx.settings.capture_max_bytes + 1)
+    return await page_upload.import_page(
+        ctx, file.filename or "pagina.html", data, hostname or None, page or None
+    )
 
 
 @router.get(

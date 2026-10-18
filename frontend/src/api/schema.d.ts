@@ -596,6 +596,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/pages": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Een opgeslagen webpagina (.html of .zip met de bestanden) als snapshot */
+        post: operations["pages_upload"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/services": {
         parameters: {
             query?: never;
@@ -777,6 +794,24 @@ export interface components {
              * @description Zip (of een deel) van vastleggen.py
              */
             file: string;
+        };
+        /** Body_pages_upload */
+        Body_pages_upload: {
+            /**
+             * File
+             * @description De pagina (.html), of een zip met de pagina en zijn map
+             */
+            file: string;
+            /**
+             * Hostname
+             * @description Host van de app; anders uit de pagina
+             */
+            hostname?: string | null;
+            /**
+             * Page
+             * @description Naam van de pagina; anders de bestandsnaam
+             */
+            page?: string | null;
         };
         /** Body_scripts_upload */
         Body_scripts_upload: {
@@ -1493,6 +1528,52 @@ export interface components {
             public_base_url: string;
             /** Css Max Bytes */
             css_max_bytes: number;
+        };
+        /** PageUploadResult */
+        PageUploadResult: {
+            /**
+             * Snapshot Id
+             * Format: uuid
+             * @description De snapshot om in de editor tegen te previewen.
+             */
+            snapshot_id: string;
+            /**
+             * Service Id
+             * Format: uuid
+             */
+            service_id: string;
+            /** Hostname */
+            hostname: string;
+            /**
+             * Page
+             * @description Naam van de pagina (uit het bestand, of opgegeven).
+             */
+            page: string;
+            /**
+             * Service Created
+             * @description Er is een nieuwe dienst voor de host gemaakt.
+             */
+            service_created: boolean;
+            /**
+             * Stylesheets
+             * @description Gelinkte stylesheets uit de upload.
+             */
+            stylesheets: number;
+            /**
+             * Inlined Files
+             * @description Afbeeldingen en fonts die in de pagina zijn gezet.
+             */
+            inlined_files: number;
+            /**
+             * Missing Stylesheets
+             * @description Gelinkte CSS die niet in de upload zat (de preview laadt niets van het netwerk); upload dan een zip met de map `<naam>_files`.
+             */
+            missing_stylesheets: string[];
+            /**
+             * Detected Url
+             * @description Adres van de pagina, als het erin staat.
+             */
+            detected_url: string | null;
         };
         /** Palette */
         Palette: {
@@ -4271,6 +4352,48 @@ export interface operations {
                 };
             };
             /** @description Geen geldige capture-zip */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Interne fout */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    pages_upload: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": components["schemas"]["Body_pages_upload"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PageUploadResult"];
+                };
+            };
+            /** @description Geen bruikbare webpagina */
             422: {
                 headers: {
                     [name: string]: unknown;
