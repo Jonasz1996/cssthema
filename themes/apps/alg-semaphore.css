@@ -1,0 +1,73 @@
+/* ==========================================================================
+   alg-semaphore.css - Semaphore UI (Vue 2 + Vuetify 2)
+   Host: semaphore.jbogaert.be
+   Laadt NA algemeen.css.
+
+   Vuetify 2 (kaarten, velden, knoppen, tabellen, dialogen) doet
+   algemeen.css al. Dit bestand werkt af: de loginpagina (.auth) heeft een
+   vaste petrolkleur met kleurrijke SVG-achtergrond; die maakt plaats voor
+   de radiale achtergrond, en de loginkaart wordt glas met rand.
+   Hoofdscherm (uit de CSS van de app, niet getest): het takenlog
+   (zwart vlak), de serverstatus en de schemavinkjes (fel groen/rood) naar
+   de statustokens, de premiumknop (roze) en de donkere-modusschakelaar
+   naar grijs.
+
+   Beperkingen: alleen de loginpagina is vastgelegd. Het logo is een
+   achtergrondafbeelding van de app en ontbreekt in de testrender (geen
+   netwerk). CSP: alleen frame-ancestors, blokkeert css.jbogaert.be niet.
+   ========================================================================== */
+
+/* ---------- Login -------------------------------------------------------- */
+.v-application .auth {
+  background: transparent;
+}
+.v-application .auth .v-card {
+  background-color: var(--alg-glas) !important;
+  border: 1px solid var(--alg-rand);
+  box-shadow: var(--alg-schaduw) !important;
+  -webkit-backdrop-filter: var(--alg-blur);
+  backdrop-filter: var(--alg-blur);
+}
+.v-application .auth h2 {
+  color: var(--alg-tekst-sterk);
+}
+
+/* ---------- Hoofdscherm (niet getest) ------------------------------------ */
+/* takenlog: codeblok i.p.v. hard zwart */
+.v-application .task-log-records {
+  background: var(--alg-pre-vlak);
+  color: var(--alg-code);
+  font-family: var(--alg-font);
+  border: 1px solid var(--alg-rand);
+  border-radius: var(--alg-radius-midden);
+}
+
+/* Ansible-serverstatus */
+.AnsibleServerStatus--ok {
+  background-color: var(--alg-ok-vlak);
+}
+.AnsibleServerStatus--bad {
+  background-color: var(--alg-fout-vlak);
+}
+
+/* schema-vinkjes (cron) */
+.ScheduleCheckbox .v-input__slot {
+  background: var(--alg-knop-zacht) !important;
+}
+.ScheduleCheckbox--active .v-input__slot {
+  background: var(--alg-knop) !important;
+}
+
+/* premium- en modusknoppen: geen merkkleur */
+.ActivatePremiumSubscriptionButton {
+  background: var(--alg-knop);
+}
+.DarkModeSwitch .v-input__append-outer .v-icon {
+  color: var(--alg-tekst) !important;
+}
+a.task-link-with-tooltip:hover {
+  text-decoration-color: var(--alg-link-hover) !important;
+}
+.SingleLineEditable__editable {
+  background-color: var(--alg-veld) !important;
+}

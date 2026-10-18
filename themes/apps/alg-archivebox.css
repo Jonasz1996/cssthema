@@ -1,0 +1,251 @@
+/* ==========================================================================
+   alg-archivebox.css - ArchiveBox v0.7 (Django-admin + eigen index)
+   Host: archivebox.jbogaert.be
+   Laadt na algemeen.css (sub_filter in NPM, zelfde map op css.jbogaert.be).
+
+   WAT HET AFWERKT
+   De magenta kopbalk wordt glas, menulinks grijs; zoekbalk en knoppen
+   (Search, verversen) grijze knoppen met gloed; de tabelkop een paneel i.p.v.
+   wit, rijen doorzichtig met zebra en hover; tags, laadspinner. Voor de
+   Django-admin (snapshotlijst, filters, formulieren) ook: kruimelpad,
+   modulekoppen, object-tools, de gekleurde actieknoppen (met statuskleur:
+   overschrijven = waarschuwing, verwijderen = fout), meldingen en fouten.
+
+   BEPERKINGEN
+   - Alleen de publieke index (/public/, nog leeg) is vastgelegd. De regels
+     voor de admin en voor tabelrijen met snapshots zijn uit de CSS van
+     ArchiveBox 0.7.4 en Django-admin 3.x afgeleid, niet getest.
+   - Het logo en de favicons van gearchiveerde sites zijn afbeeldingen en
+     blijven zoals ze zijn.
+   ========================================================================== */
+
+/* ---------- Kopbalk ----------------------------------------------------- */
+#header {
+  background: var(--alg-glas-sterk);
+  border-bottom: 1px solid var(--alg-rand);
+  color: var(--alg-tekst);
+  -webkit-backdrop-filter: var(--alg-blur);
+  backdrop-filter: var(--alg-blur);
+}
+
+#branding h1,
+#branding h1 a:link,
+#branding h1 a:visited {
+  color: var(--alg-tekst-sterk);
+}
+
+#header a:link,
+#header a:visited,
+#user-tools a {
+  color: var(--alg-link);
+  border-bottom-color: var(--alg-rand-sterk);
+}
+
+#header a:hover,
+#user-tools a:focus,
+#user-tools a:hover {
+  color: var(--alg-link-hover);
+  border-bottom-color: var(--alg-rand-hover);
+}
+
+div.breadcrumbs {
+  background: var(--alg-paneel);
+  border-bottom: 1px solid var(--alg-rand);
+  color: var(--alg-gedempt);
+}
+
+div.breadcrumbs a {
+  color: var(--alg-link);
+}
+
+/* ---------- Knoppen ----------------------------------------------------- */
+/* Django-admin kleurt ze blauw; de verversknop heeft een inline kleur */
+.button,
+a.button,
+input[type="submit"],
+input[type="button"],
+.submit-row input,
+#content #changelist #toolbar form input[type="submit"] {
+  background: var(--alg-knop);
+  border-color: transparent;
+  border-radius: var(--alg-radius);
+  color: var(--alg-knop-tekst);
+}
+
+.button:hover,
+a.button:hover,
+input[type="submit"]:hover,
+input[type="button"]:hover,
+.submit-row input:hover {
+  background: var(--alg-knop-hover);
+  box-shadow: var(--alg-gloed);
+}
+
+.button.default,
+input[type="submit"].default,
+.submit-row input.default {
+  background: var(--alg-knop-hover);
+}
+
+#toolbar input[type="button"] {
+  background-color: var(--alg-knop) !important;
+}
+
+.object-tools a:link,
+.object-tools a:visited,
+#content .object-tools a:link,
+#content .object-tools a:visited {
+  background: var(--alg-knop);
+  border-radius: var(--alg-radius-midden);
+  color: var(--alg-knop-tekst);
+}
+
+.object-tools a:focus,
+.object-tools a:hover,
+#content .object-tools a:hover {
+  background: var(--alg-knop-hover);
+  box-shadow: var(--alg-gloed);
+}
+
+/* actieknoppen onder de snapshotlijst: grijs, alleen status houdt kleur */
+#content #changelist .actions .button {
+  background-color: var(--alg-knop);
+  border-color: var(--alg-rand-sterk);
+  border-radius: var(--alg-radius-klein);
+  color: var(--alg-knop-tekst);
+}
+
+#content #changelist .actions .button:hover {
+  border-color: var(--alg-rand-hover);
+  box-shadow: var(--alg-gloed);
+}
+
+#content #changelist .actions :is(.button[name="verify_snapshots"], .button[name="update_titles"], .button[name="add_tags"], .button[name="remove_tags"]) {
+  background-color: var(--alg-knop-zacht-hover);
+  color: var(--alg-tekst);
+}
+
+#content #changelist .actions .button[name="overwrite_snapshots"] {
+  background-color: var(--alg-waarschuwing-vlak);
+  color: var(--alg-donker-tekst);
+}
+
+#content #changelist .actions .button[name="delete_snapshots"],
+.delete-confirmation form input[type="submit"] {
+  background-color: var(--alg-fout-vlak);
+  color: var(--alg-knop-tekst);
+}
+
+.delete-confirmation form .cancel-link {
+  background: var(--alg-knop-zacht-hover);
+  color: var(--alg-tekst);
+}
+
+/* ---------- Tabellen ---------------------------------------------------- */
+td,
+th,
+thead th,
+tfoot td {
+  border-color: var(--alg-rand);
+}
+
+thead th,
+thead th.sorted,
+tfoot td {
+  background: var(--alg-paneel);
+  color: var(--alg-gedempt);
+}
+
+thead th a:link,
+thead th a:visited {
+  color: var(--alg-gedempt);
+}
+
+table thead th .text a:hover,
+table thead th .text a:focus {
+  background: var(--alg-rij-hover);
+}
+
+tr:nth-child(2n+1),
+.row-form-errors,
+tr.alt,
+.table td,
+.table th {
+  background: transparent !important;
+}
+
+tr:nth-child(2n) {
+  background: var(--alg-zebra);
+}
+
+tbody tr:hover {
+  background: var(--alg-rij-hover);
+}
+
+.tag {
+  background-color: var(--alg-rij-actief);
+  border-radius: var(--alg-radius-klein);
+  color: var(--alg-tekst);
+}
+
+#result_list tbody td.field-cmd_str pre,
+#result_list tbody td.field-output_str pre {
+  background-color: var(--alg-pre-vlak);
+}
+
+/* ---------- Admin: modules, filters, meldingen -------------------------- */
+.module,
+#content-related,
+#changelist-filter {
+  background: var(--alg-glas);
+  border-color: var(--alg-rand);
+  border-radius: var(--alg-radius);
+}
+
+.module h2,
+.module caption,
+.inline-group h2,
+#changelist-filter h2 {
+  background: var(--alg-vlak-2);
+  color: var(--alg-tekst-sterk);
+}
+
+#content-related h3,
+#content-related .module h2 {
+  border-bottom-color: var(--alg-rand);
+  color: var(--alg-tekst);
+}
+
+#content #changelist-filter li.selected a {
+  color: var(--alg-tekst-sterk);
+}
+
+ul.messagelist li {
+  background-color: var(--alg-ok-tint);
+  color: var(--alg-tekst);
+}
+
+ul.messagelist li.warning {
+  background-color: var(--alg-waarschuwing-tint);
+}
+
+ul.messagelist li.error {
+  background-color: var(--alg-fout-tint);
+}
+
+.errornote,
+ul.errorlist {
+  background-color: var(--alg-fout-tint);
+  border-color: var(--alg-fout-rand);
+  color: var(--alg-fout);
+}
+
+a.deletelink:link,
+a.deletelink:visited {
+  color: var(--alg-fout);
+}
+
+/* ---------- Laadspinner ------------------------------------------------- */
+.loader {
+  border-color: var(--alg-tekst) var(--alg-rand-sterk) var(--alg-rand-sterk);
+}

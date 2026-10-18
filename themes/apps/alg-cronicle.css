@@ -1,0 +1,186 @@
+/* ==========================================================================
+   alg-cronicle.css - Cronicle 0.9 (taakplanner, eigen pixl-UI)
+   Host: cronicle.jbogaert.be
+   Laadt na algemeen.css (sub_filter in NPM, zelfde map op css.jbogaert.be).
+
+   WAT HET AFWERKT
+   Cronicle kleurt via variabelen op body (licht) en body.dark (donker);
+   beide worden hier op de tokens van algemeen.css gezet. Loginpagina:
+   het witte hoofdvlak wordt glas, het loginvenster een glazen dialoog met
+   paneelkop, labels en titel grijs i.p.v. blauw, velden en knoppen in stijl
+   (knop met gloed), voettekst gedempt.
+
+   BEPERKINGEN
+   - Alleen de loginpagina is vastgelegd. Voor het hoofdscherm staan hier
+     alleen regels op bekende klassen van Cronicle (tabs, .data_table,
+     fieldset, meldingen, voortgangsbalk, kleurlabels), niet getest.
+   - Kleurlabels van events (rood/groen/blauw ...) en de kleuren van
+     rijen per categorie blijven: die zijn betekenisvol.
+   - Het klokpictogram (logo) in de kop is een afbeelding.
+   ========================================================================== */
+
+/* ---------- Variabelen (licht en donker gelijk) ------------------------- */
+body,
+body.dark {
+  --body-background-color: transparent;
+  --background-color: var(--alg-glas);
+  --dialog-background-color: var(--alg-glas-sterk);
+  --box-background-color: var(--alg-paneel);
+  --border-color: var(--alg-rand-sterk);
+  --header-text-color: var(--alg-tekst);
+  --body-text-color: var(--alg-tekst);
+  --label-color: var(--alg-gedempt);
+  --highlight-color: var(--alg-tekst-sterk);
+}
+
+/* ---------- Hoofdvlak en dialogen: glas --------------------------------- */
+.main,
+.dialog_simple {
+  -webkit-backdrop-filter: var(--alg-blur);
+  backdrop-filter: var(--alg-blur);
+}
+
+.main {
+  border-radius: 0 var(--alg-radius) var(--alg-radius) var(--alg-radius);
+}
+
+.inline_dialog_container {
+  border-radius: var(--alg-radius);
+  box-shadow: var(--alg-schaduw-midden);
+}
+
+.dialog_title {
+  background: var(--alg-vlak-2);
+  border-radius: var(--alg-radius) var(--alg-radius) 0 0;
+  color: var(--alg-tekst-sterk);
+}
+
+.dialog_buttons {
+  background: var(--alg-glas-sterk);
+  border-radius: 0 0 var(--alg-radius) var(--alg-radius);
+}
+
+#d_footer {
+  color: var(--alg-gedempt);
+}
+
+#dialog_overlay {
+  background-color: var(--alg-overlay);
+}
+
+/* ---------- Knoppen ----------------------------------------------------- */
+/* Cronicle-knoppen hebben een vaste breedte en hoogte (18px); monospace is
+   breder dan Lato en liep over twee regels ("Forgot Password..."): op één
+   regel houden, iets kleiner en krapper gezet. */
+.button {
+  background: var(--alg-knop-zacht);
+  border-color: var(--alg-rand-sterk);
+  border-radius: var(--alg-radius-midden);
+  color: var(--alg-tekst);
+  font-size: 9pt;
+  letter-spacing: -.04em;
+  white-space: nowrap;
+}
+
+.button:hover,
+.button.hover {
+  background: var(--alg-knop-zacht-hover);
+  border-color: var(--alg-rand-hover);
+  box-shadow: var(--alg-gloed);
+  color: var(--alg-tekst-sterk);
+}
+
+.button:active,
+.button.active {
+  background: var(--alg-knop);
+  color: var(--alg-knop-tekst);
+}
+
+/* ---------- Velden: Cronicle zet vaste breedte via size, alleen kleuren -- */
+body.dark input,
+body.dark textarea,
+body.dark select {
+  background-color: var(--alg-veld);
+}
+
+.link,
+a,
+a:visited {
+  color: var(--alg-link);
+}
+
+a:hover,
+.link:hover {
+  color: var(--alg-link-hover);
+}
+
+/* ---------- Hoofdscherm (uit kennis van Cronicle, niet getest) ---------- */
+.tab.inactive {
+  background: var(--alg-paneel);
+}
+
+.tab.inactive:hover {
+  background: var(--alg-rij-hover);
+}
+
+.tab .content .badge {
+  background-color: var(--alg-fout-vlak);
+  color: var(--alg-knop-tekst);
+}
+
+.data_table tr:hover td {
+  background: var(--alg-rij-hover);
+}
+
+#d_scroll_time,
+.subtitle_menu {
+  background: var(--alg-glas-sterk);
+  border-color: var(--alg-rand-sterk);
+  color: var(--alg-tekst);
+}
+
+.subtitle_menu:hover,
+div.timing_details_label,
+div.plugin_params_label,
+div.pie-title,
+div.graph-title,
+div.schedule_group_button_container > i.selected,
+div.schedule_group_button_container > i.selected:hover {
+  color: var(--alg-tekst-sterk) !important;
+}
+
+div.timing_details_content,
+div.plugin_params_content,
+.fieldset_params_table label {
+  color: var(--alg-tekst);
+}
+
+div.message.success {
+  background-color: var(--alg-ok-tint);
+  color: var(--alg-ok);
+}
+
+div.message.warning {
+  background-color: var(--alg-waarschuwing-tint);
+  color: var(--alg-waarschuwing);
+}
+
+div.message.error {
+  background-color: var(--alg-fout-tint);
+  color: var(--alg-fout);
+}
+
+div.progress_bar_inner {
+  background-color: var(--alg-knop-hover);
+  background-image: none;
+  box-shadow: var(--alg-gloed);
+}
+
+span.color_label.checkbox {
+  background: var(--alg-knop-zacht);
+}
+
+span.color_label.checkbox.checked,
+span.color_label.checkbox.checked:hover {
+  background: var(--alg-knop);
+}

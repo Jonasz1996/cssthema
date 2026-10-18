@@ -1,0 +1,65 @@
+/* ==========================================================================
+   alg-plex.css - Plex Web (4.x, React met gehashte CSS-module-klassen)
+   Host: plex.jbogaert.be
+   Laadt NA algemeen.css.
+
+   Belangrijk: zonder sessie stuurt plex.jbogaert.be (HTTP 401) meteen door
+   naar app.plex.tv/auth, de aanmeldpagina van Plex zelf. Die staat niet
+   achter NPM en krijgt dus nooit algemeen.css of dit bestand; het
+   inlogformulier is daarbovenop een iframe van een ander domein. Dit bestand
+   werkt alleen in Plex Web zelf (plex.jbogaert.be/web, na aanmelden).
+
+   Plex Web heeft geen eigen CSS-variabelen en gehashte klassen in de vorm
+   Component-klasse-xxxxx. Daarom deelselectors [class*="Component-klasse"]:
+   die overleven een nieuwe build; matcht er een niet, dan gebeurt er niets.
+
+   Wat het afwerkt (niet getest):
+   - kopbalk en zijbalk: glas met vervaging
+   - menu's en dialogen: sterk glas met rand en schaduw
+   - primaire knoppen (Plex-oranje): knopgrijs met gloed
+   - de pagina zelf blijft Plex' achtergrond (hoesafbeelding) tonen
+
+   Beperkingen: niets van Plex Web vastgelegd (alleen de doorverwijzing naar
+   app.plex.tv); alle regels uit kennis van Plex Web en theme.park, niet
+   getest. Volledigere route: theme.park's plex-base.css na algemeen.css
+   laden; algemeen.css levert al de theme.park-variabelen (--main-bg-color,
+   --button-color, ...) die dat bestand gebruikt.
+   ========================================================================== */
+
+/* ---------- Kopbalk en zijbalk ------------------------------------------ */
+[class*="NavBar-container"] {
+  background-color: var(--alg-glas) !important;
+  border-bottom: 1px solid var(--alg-rand);
+  -webkit-backdrop-filter: var(--alg-blur);
+  backdrop-filter: var(--alg-blur);
+}
+
+[class*="SourceSidebar-container"] {
+  background-color: var(--alg-glas) !important;
+  border-right: 1px solid var(--alg-rand);
+}
+
+/* ---------- Menu's en dialogen ------------------------------------------ */
+[class*="Menu-menuPortal"] [class*="Menu-menu-"],
+[class*="ModalContent-modalContent"] {
+  background-color: var(--alg-glas-sterk) !important;
+  border: 1px solid var(--alg-rand-sterk);
+  border-radius: var(--alg-radius-groot);
+  box-shadow: var(--alg-schaduw);
+  -webkit-backdrop-filter: var(--alg-blur);
+  backdrop-filter: var(--alg-blur);
+}
+
+/* ---------- Primaire knoppen: grijs in plaats van Plex-oranje ----------- */
+button[class*="Button-primary"],
+a[class*="Button-primary"] {
+  background-color: var(--alg-knop) !important;
+  border-color: var(--alg-knop) !important;
+  color: var(--alg-knop-tekst) !important;
+}
+
+button[class*="Button-primary"]:hover:not(:disabled),
+a[class*="Button-primary"]:hover {
+  background-color: var(--alg-knop-hover) !important;
+  box-shadow: var(--alg-gloed);
+}

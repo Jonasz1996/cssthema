@@ -1,0 +1,856 @@
+/* alg-fw-extjs.css - gegenereerd uit algemeen.css door scripts/themes/modules.py;
+   niet met de hand aanpassen. Laadt na alg-kern.css (zie themes/README.md). */
+/* ==========================================================================
+   40 EXTJS - Proxmox VE, Backup Server en Mail Gateway (ExtJS 7 crisp)
+   Vertrekt van Jonas' Proxmox-thema (reference/proxmox-voorbeeld-jonas.css),
+   in de nieuwe stijl. Selectorlijst afgetoetst aan het eigen donkere thema van
+   Proxmox (theme-proxmox-dark.css). Getest op Proxmox Backup Server 4.2 en op
+   de echte Proxmox VE 9.2-webinterface (lab, met nagebootste API), zowel met
+   crisp als met Proxmox' eigen donkere thema eronder.
+   Algemene Proxmox-klassen (.usage, tr.blocked, ...) staan onder .x-body
+   (de body-klasse van ExtJS), zodat ze in andere apps niets raken.
+
+   LET OP, twee valkuilen van ExtJS:
+   - ExtJS leest font-family van verborgen *-frameInfo-elementen om de layout
+     te berekenen. Daarom nooit font-family op brede selectors (zoals
+     ".x-body *"), alleen op de tekstklassen hieronder.
+   - Iconen zijn Font Awesome via .fa/.x-fa op aparte elementen
+     (.x-btn-icon-el, .x-tree-icon, .x-action-col-icon): die krijgen hooguit
+     een kleur, nooit een lettertype.
+   ========================================================================== */
+
+/* ---------- Pagina en lettertype ---------------------------------------- */
+/* de verloopachtergrond staat op html (x-viewport); body en de buitenste
+   layoutcontainer worden doorzichtig */
+body.x-body,
+div.x-border-layout-ct,
+.x-viewport > .x-body {
+  background: transparent !important;
+  color: var(--alg-tekst) !important;
+  font-family: var(--alg-font) !important;
+}
+
+/* tekstklassen van crisp (elk met een eigen font-declaratie) */
+:is(.x-panel-body-default, .x-window-body-default, .x-panel-header-title-default, .x-window-header-title-default,
+    .x-btn-inner-default-small, .x-btn-inner-default-medium, .x-btn-inner-default-large,
+    .x-btn-inner-default-toolbar-small, .x-btn-inner-default-toolbar-medium, .x-btn-inner-default-toolbar-large,
+    .x-btn-inner-plain-toolbar-small, .x-btn-inner-plain-toolbar-medium, .x-btn-inner-grid-cell-small,
+    .x-toolbar-text-default, .x-form-item-label-default, .x-form-text-default, .x-form-cb-label-default,
+    .x-form-display-field-default, .x-form-invalid-under-default, .x-fieldset-header-text, .x-boundlist-item,
+    .x-grid-item, .x-grid-empty, .x-column-header, .x-grid-group-title, .x-grid-rowbody, .x-menu-item-text-default,
+    .x-tab-inner-default, .x-mask-msg-inner, .x-datepicker-date, .x-datepicker-column-header, .x-monthpicker-item,
+    .x-tagfield-input-field, .x-treelist-item-text, .x-tip-body-default, .x-tip-body-form-invalid, .x-dd-drag-proxy,
+    .x-progress-text, .x-menu-header, .x-legend-item):not(.fa, .x-fa, .fas, .far, [class*=" fa-"]) {
+  font-family: var(--alg-font);
+}
+
+/* ---------- Panelen ------------------------------------------------------ */
+/* Alleen het buitenste paneel is glas; geneste panelen zijn doorzichtig,
+   anders stapelt het glas zich op tot zwart. */
+.x-panel-body-default {
+  background-color: var(--alg-glas) !important;
+  border-color: var(--alg-rand) !important;
+  color: var(--alg-tekst) !important;
+}
+
+:is(.x-panel-body, .x-window-body, .x-tabpanel-child) .x-panel-body-default {
+  background-color: transparent !important;
+}
+
+.x-panel-default,
+.x-panel-default-framed {
+  border-color: var(--alg-rand) !important;
+}
+
+/* omkaderd paneel (frame: true) heeft in crisp zelf een wit vlak */
+.x-panel-default-framed {
+  background-color: var(--alg-glas) !important;
+}
+
+/* accordeon-indeling */
+.x-accordion-layout-ct {
+  background-color: transparent !important;
+}
+
+.x-accordion-item .x-accordion-hd {
+  background-color: rgba(255, 255, 255, .05) !important;
+  border-color: var(--alg-rand) !important;
+}
+
+.x-accordion-hd .x-tool-tool-el {
+  background-color: transparent !important;
+}
+
+/* greepjes om panelen en vensters te vergroten (alleen zichtbaar als vast) */
+.x-resizable-handle {
+  background-color: #555 !important;
+}
+
+.x-panel-header-default {
+  background-color: rgba(255, 255, 255, .05) !important;
+  background-image: none !important;
+  border-color: var(--alg-rand) !important;
+}
+
+.x-panel-header-title-default,
+.x-panel-header-default .x-title-text {
+  color: var(--alg-tekst-sterk) !important;
+}
+
+/* gereedschapsknopjes in koppen (sprite): vlak zoals de kop, glyph lichter */
+.x-tool-img,
+.x-tool-tool-el {
+  background-color: transparent !important;
+}
+
+.x-tool-img {
+  filter: grayscale(1) brightness(175%);
+}
+
+.x-tool-over .x-tool-img {
+  filter: grayscale(1) brightness(220%);
+}
+
+.x-tool-tool-el {
+  color: #ccc !important;
+}
+
+/* lege vlakken (bv. het middengebied achter het inlogvenster van PBS) worden
+   doorzichtig, zodat het netwerk zichtbaar is; er staat niets op om te lezen */
+.x-panel-body-default:has(> .x-autocontainer-outerCt > .x-autocontainer-innerCt:empty) {
+  background-color: transparent !important;
+}
+
+/* ---------- Vensters (ook het inlogvenster) ----------------------------- */
+.x-window-default {
+  background-color: var(--alg-glas-sterk) !important;
+  border-color: var(--alg-rand-sterk) !important;
+  border-radius: var(--alg-radius) !important;
+  -webkit-backdrop-filter: var(--alg-blur);
+  backdrop-filter: var(--alg-blur);
+}
+
+.x-window-header-default {
+  background-color: transparent !important;
+  border-color: var(--alg-rand) !important;
+}
+
+.x-window-header-title-default,
+.x-window-header-default .x-title-text {
+  color: var(--alg-tekst-sterk) !important;
+}
+
+.x-window-body-default,
+.x-message-box .x-window-body {
+  background-color: transparent !important;
+  border-color: var(--alg-rand) !important;
+  color: var(--alg-tekst) !important;
+}
+
+.x-css-shadow {
+  border-radius: var(--alg-radius) !important;
+  box-shadow: var(--alg-schaduw) !important;
+}
+
+.x-window-ghost {
+  background-color: var(--alg-glas-sterk) !important;
+}
+
+/* ---------- Werkbalken -------------------------------------------------- */
+.x-toolbar-default {
+  background-color: rgba(255, 255, 255, .03) !important;
+  background-image: none !important;
+  border-color: var(--alg-rand) !important;
+}
+
+/* voettekstbalk (knoppen onderaan vensters en formulieren) */
+.x-toolbar-footer {
+  background-color: rgba(255, 255, 255, .04) !important;
+  background-image: none !important;
+  border-color: var(--alg-rand) !important;
+}
+
+.x-toolbar-text-footer {
+  color: var(--alg-gedempt) !important;
+}
+
+/* werkbalk in een venster: het glas van het venster */
+.x-window :is(.x-toolbar-default, .x-toolbar-footer) {
+  background-color: transparent !important;
+}
+
+.x-toolbar-text-default {
+  color: var(--alg-gedempt) !important;
+}
+
+.x-toolbar-default .x-toolbar-separator,
+.x-toolbar-separator-horizontal {
+  border-color: var(--alg-rand-sterk) !important;
+}
+
+/* ---------- Knoppen ----------------------------------------------------- */
+.x-btn[class*="x-btn-default-"] {
+  background-color: var(--alg-knop) !important;
+  background-image: none !important;
+  border-color: rgba(255, 255, 255, .12) !important;
+}
+
+.x-btn[class*="x-btn-default-"].x-btn-over,
+.x-keyboard-mode .x-btn[class*="x-btn-default-"].x-btn-focus {
+  background-color: var(--alg-knop-hover) !important;
+  border-color: rgba(255, 255, 255, .2) !important;
+  box-shadow: var(--alg-gloed);
+}
+
+.x-btn[class*="x-btn-default-"].x-btn-pressed,
+.x-btn[class*="x-btn-default-"].x-btn-menu-active {
+  background-color: #555 !important;
+  border-color: rgba(255, 255, 255, .25) !important;
+}
+
+.x-btn[class*="x-btn-default-"] .x-btn-inner,
+.x-btn[class*="x-btn-default-"] .x-btn-icon-el {
+  color: var(--alg-knop-tekst) !important;
+}
+
+/* knoppen zonder kader (plain): alleen tekst- en zweefkleur */
+.x-btn[class*="x-btn-plain-"] .x-btn-inner,
+.x-btn[class*="x-btn-plain-"] .x-btn-icon-el {
+  color: var(--alg-tekst) !important;
+}
+
+.x-btn[class*="x-btn-plain-"].x-btn-over {
+  background-color: var(--alg-rij-hover) !important;
+  border-color: var(--alg-rand-sterk) !important;
+}
+
+/* pijltjes van menu- en splitknoppen (sprite) lichter */
+.x-btn-wrap[class*="x-btn-arrow-"]::after,
+.x-btn-wrap[class*="x-btn-split-"]::after {
+  filter: brightness(200%);
+}
+
+/* ---------- Tabbladen --------------------------------------------------- */
+.x-tab-bar-default {
+  background-color: transparent !important;
+  border-color: var(--alg-rand) !important;
+}
+
+.x-tab-default {
+  background-color: rgba(255, 255, 255, .04) !important;
+  background-image: none !important;
+  border-color: var(--alg-rand) !important;
+}
+
+.x-tab-default .x-tab-inner-default,
+.x-tab-default .x-tab-icon-el-default {
+  color: #bbb !important;
+}
+
+.x-tab-default.x-tab-over {
+  background-color: var(--alg-rij-hover) !important;
+}
+
+.x-tab-default.x-tab-over .x-tab-inner-default {
+  color: var(--alg-tekst-sterk) !important;
+}
+
+.x-tab-default.x-tab-active {
+  background-color: var(--alg-knop) !important;
+  border-color: var(--alg-knop) !important;
+}
+
+.x-tab-default.x-tab-active .x-tab-inner-default,
+.x-tab-default.x-tab-active .x-tab-icon-el-default {
+  color: var(--alg-knop-tekst) !important;
+}
+
+.x-box-scroller-tab-bar-default {
+  background-color: transparent !important;
+}
+
+.x-tab-bar-strip-default {
+  background-color: var(--alg-rand-sterk) !important;
+  border-color: var(--alg-rand-sterk) !important;
+}
+
+/* ---------- Navigatieboom links (Proxmox treelist) ---------------------- */
+.x-treelist-pve-nav,
+.x-treelist-nav {
+  background-color: rgba(10, 10, 10, .45) !important;
+  border-color: var(--alg-rand) !important;
+}
+
+.x-treelist-item,
+.x-treelist-row {
+  background-color: transparent !important;
+}
+
+.x-treelist-item-text,
+.x-treelist-item-icon,
+.x-treelist-item-expander {
+  color: var(--alg-tekst) !important;
+}
+
+.x-treelist-row-over {
+  background-color: var(--alg-rij-hover) !important;
+}
+
+.x-treelist-item-selected > .x-treelist-row {
+  background-color: var(--alg-knop) !important;
+}
+
+.x-treelist-item-selected > .x-treelist-row .x-treelist-item-text,
+.x-treelist-item-selected > .x-treelist-row .x-treelist-item-icon {
+  color: var(--alg-knop-tekst) !important;
+}
+
+/* ---------- Rasters (grids) en bomen ------------------------------------ */
+.x-grid-header-ct {
+  background-color: rgba(255, 255, 255, .05) !important;
+  border-color: var(--alg-rand) !important;
+}
+
+.x-column-header {
+  background-color: transparent !important;
+  background-image: none !important;
+  border-color: var(--alg-rand) !important;
+  color: var(--alg-tekst-sterk) !important;
+}
+
+.x-column-header-over,
+.x-column-header-open,
+.x-column-header-sort-ASC,
+.x-column-header-sort-DESC {
+  background-color: var(--alg-rij-hover) !important;
+}
+
+.x-column-header-trigger {
+  background-color: rgba(255, 255, 255, .08) !important;
+  border-color: var(--alg-rand-sterk) !important;
+}
+
+.x-grid-body {
+  border-color: var(--alg-rand) !important;
+}
+
+/* rastervlakken die crisp zelf wit maakt (vergrendelde kolommen, gebufferd) */
+.x-grid-scroll-container,
+.x-grid-scrollbar-clipper > :is(.x-grid-view, .x-tree-view) {
+  background-color: transparent !important;
+}
+
+.x-grid-item {
+  background-color: transparent !important;
+  color: var(--alg-tekst) !important;
+}
+
+.x-grid-item-alt {
+  background-color: var(--alg-zebra) !important;
+}
+
+.x-grid-with-row-lines .x-grid-item,
+.x-grid-with-row-lines .x-grid-item:first-child,
+.x-grid-with-row-lines .x-grid-item-selected + .x-grid-item,
+.x-grid-with-row-lines .x-grid-item-over + .x-grid-item {
+  border-color: rgba(255, 255, 255, .06) !important;
+}
+
+.x-grid-item-over,
+.x-grid-with-row-lines .x-grid-item.x-grid-item-over {
+  background-color: var(--alg-rij-hover) !important;
+}
+
+.x-grid-item-selected,
+.x-grid-with-row-lines .x-grid-item.x-grid-item-selected,
+.x-keyboard-mode .x-grid-item-focused {
+  background-color: var(--alg-rij-actief) !important;
+  color: var(--alg-tekst-sterk) !important;
+}
+
+.x-grid-with-col-lines .x-grid-cell,
+.x-grid-cell-special {
+  border-color: var(--alg-rand) !important;
+}
+
+.x-grid-cell-row-numberer,
+.x-grid-cell-special {
+  background-color: rgba(255, 255, 255, .03) !important;
+}
+
+.x-grid-empty {
+  background-color: transparent !important;
+  color: var(--alg-gedempt) !important;
+}
+
+.x-grid-group-hd {
+  background-color: rgba(255, 255, 255, .05) !important;
+  border-color: var(--alg-rand) !important;
+}
+
+.x-grid-group-title {
+  color: var(--alg-tekst-sterk) !important;
+}
+
+.x-grid-row-summary .x-grid-cell,
+.x-grid-row-summary .x-grid-rowwrap,
+.x-grid-row-summary .x-grid-cell-rowbody {
+  background-color: var(--alg-rij) !important;
+  border-color: var(--alg-rand) !important;
+}
+
+/* vastgezette totaalrij onderaan */
+.x-docked-summary,
+.x-docked-summary > :first-child {
+  background: #1c1c1c !important;
+  border-color: var(--alg-rand) !important;
+}
+
+/* celselectie (cellmodel) */
+.x-grid-row .x-grid-cell-selected {
+  background-color: var(--alg-rij-actief) !important;
+  color: var(--alg-tekst-sterk) !important;
+}
+
+/* rij-editor (RowEditing): balk en knoppenvak */
+.x-grid-row-editor .x-panel-body,
+[class*="x-grid-row-editor-buttons-default-"] {
+  background-color: #1c1c1c !important;
+  border-color: var(--alg-rand-sterk) !important;
+}
+
+/* toetsenbordfocus op een rij: grijze in plaats van blauwe rand */
+.x-keyboard-mode .x-grid-item-focused .x-grid-cell-inner::before {
+  border-color: rgba(var(--alg-accent), .8) !important;
+}
+
+/* uitklappijltjes van bomen (sprite) lichter */
+.x-tree-arrows .x-tree-expander,
+.x-tree-elbow-img {
+  filter: brightness(200%);
+}
+
+/* boomiconen (Font Awesome): alleen de kleur. Lopende gasten krijgen in
+   Proxmox zwart (.running), gestopte lichtgrijs: hier omgekeerd licht/grijs. */
+:is(.x-tree-icon-custom, .x-grid-icon-custom):not(.stopped, .offline),
+.x-body .fa.black {
+  color: #e6e6e6;
+}
+
+:is(.x-tree-icon-custom, .x-grid-icon-custom):is(.stopped, .offline) {
+  color: #8c8c8c;
+}
+
+/* kleine statusicoontjes (play, vinkje, slot): donkere i.p.v. witte gloed */
+.x-tree-icon-custom::after,
+.x-grid-icon-custom::after {
+  text-shadow: -1px 0 1px #1c1c1c;
+}
+
+/* standaardiconen van bomen en grijze UI-iconen als afbeelding (sprite/svg):
+   licht maken zoals Proxmox' eigen donkere thema doet (alleen UI-glyphs op
+   lege elementen, geen inhoudsafbeeldingen) */
+.x-tree-icon-leaf:not(.x-tree-icon-custom),
+.x-tree-icon-parent:not(.x-tree-icon-custom),
+.x-tree-icon-parent-expanded:not(.x-tree-icon-custom),
+.x-tree-node-computer,
+.x-tree-node-harddisk,
+.x-box-scroller-toolbar-default.x-box-scroller,
+.pve-itype-treelist-item-icon-cdrom,
+:is(.x-treelist-item-icon, .x-tree-icon, i):is(.pbs-icon-tape, .pbs-icon-tape-drive),
+i:is(.pmx-itype-icon-processor, .pmx-itype-icon-memory),
+.x-body :is(.fa-ceph, .fa-sdn, .fa-network-wired)::before {
+  filter: invert(90%);
+}
+
+/* Hardware- en resourcerasters: het icoon is de achtergrond van de cel zelf.
+   De cel wordt omgekeerd (zoals in Proxmox' donkere thema), dus de tekst erin
+   zwart zetten: na het omkeren is die #e6e6e6. */
+td:is(.pve-itype-icon-cpu, .pve-itype-icon-cdrom, .pve-itype-icon-memory, .pve-itype-icon-pci,
+      .pve-itype-icon-serial, .pve-itype-icon-die, .pmx-itype-icon-processor, .pmx-itype-icon-memory,
+      .pve-itype-icon-storage) {
+  filter: invert(90%);
+}
+
+td:is(.pve-itype-icon-cpu, .pve-itype-icon-cdrom, .pve-itype-icon-memory, .pve-itype-icon-pci,
+      .pve-itype-icon-serial, .pve-itype-icon-die, .pmx-itype-icon-processor, .pmx-itype-icon-memory,
+      .pve-itype-icon-storage) .x-grid-cell-inner {
+  color: #000 !important;
+}
+
+/* statusbadges van VM's en containers: achtergrond zoals de rij */
+.x-tree-icon-custom:is(.lxc, .qemu)::after,
+.x-grid-icon-custom:is(.lxc, .qemu)::after,
+.x-treelist-item-icon:is(.lxc, .qemu)::after {
+  background-color: #1c1c1c !important;
+  color: #ddd;
+}
+
+/* ---------- Formulieren ------------------------------------------------- */
+.x-form-item-label-default,
+.x-form-cb-label-default,
+.x-form-display-field-default {
+  color: var(--alg-tekst) !important;
+}
+
+/* het tekstveld vult zijn kader: vierkant, zoals het kader zelf */
+.x-form-text-default,
+.x-form-textarea-default {
+  background-color: var(--alg-veld) !important;
+  border-radius: 0 !important;
+  color: var(--alg-tekst-sterk) !important;
+}
+
+.x-form-trigger-wrap-default,
+.x-form-text-wrap-default {
+  border-color: var(--alg-rand-sterk) !important;
+}
+
+.x-form-trigger-wrap-default.x-form-trigger-wrap-focus {
+  border-color: var(--alg-accent-kleur) !important;
+  box-shadow: var(--alg-focus-ring);
+}
+
+.x-form-invalid .x-form-trigger-wrap-default,
+.x-form-trigger-wrap-default.x-form-trigger-wrap-invalid {
+  border-color: var(--alg-fout) !important;
+}
+
+/* knopjes in het veld (pijltje, wissen, spinner): alleen de vlakkleur,
+   het pijltje zelf is een sprite en blijft */
+.x-form-trigger-default,
+.x-form-spinner-default {
+  background-color: rgba(255, 255, 255, .1) !important;
+}
+
+.x-form-trigger-default.x-form-trigger-over {
+  background-color: rgba(255, 255, 255, .18) !important;
+}
+
+/* veld zonder bewerking (readonly/disabled) */
+.x-item-disabled .x-form-text-default,
+.x-form-readonly .x-form-text-default {
+  background-color: rgba(255, 255, 255, .04) !important;
+}
+
+.x-fieldset-default {
+  border-color: var(--alg-rand-sterk) !important;
+}
+
+.x-fieldset-header-default > .x-fieldset-header-text,
+.x-fieldset-header-text {
+  color: var(--alg-tekst-sterk) !important;
+}
+
+.x-form-invalid-under-default,
+.x-form-error-msg {
+  color: var(--alg-fout) !important;
+}
+
+/* vinkjes en keuzerondjes zijn sprites (wit vak): omkeren naar donker vak
+   met lichte rand en licht vinkje (naar Proxmox' donkere thema) */
+.x-form-checkbox-default,
+.x-form-radio-default,
+.x-column-header-checkbox .x-column-header-checkbox::after,
+.x-grid-checkcolumn::after,
+.x-menu-item-icon-default.x-menu-item-checkbox {
+  filter: invert(90%) hue-rotate(180deg) brightness(125%);
+}
+
+/* gekozen waarden in een tagfield (meerkeuzeveld) */
+.x-form-text-default .x-tagfield-item {
+  background-color: var(--alg-rij-actief) !important;
+  border-color: var(--alg-rand-hover) !important;
+  color: var(--alg-tekst-sterk) !important;
+}
+
+.x-form-text-default .x-tagfield-item:hover,
+.x-form-text-default .x-tagfield-item.x-tagfield-item-selected {
+  background-color: var(--alg-knop) !important;
+}
+
+/* kleurkiezer: het vak donker, de kleurstalen zelf blijven */
+.x-color-picker,
+.x-color-picker-item {
+  background-color: #1c1c1c !important;
+  border-color: #1c1c1c !important;
+}
+
+.x-color-picker-selected {
+  background-color: var(--alg-knop) !important;
+  border-color: var(--alg-accent-kleur) !important;
+}
+
+/* zwevende panelen (bv. de rasterkeuzelijst van Proxmox' ComboGrid) hebben
+   zelf geen vlak: zonder dit schijnt het formulier door de kolomkoppen */
+.x-panel.x-layer {
+  background-color: var(--alg-glas-sterk) !important;
+  border-color: var(--alg-rand-sterk) !important;
+  -webkit-backdrop-filter: var(--alg-blur);
+  backdrop-filter: var(--alg-blur);
+}
+
+/* keuzelijst van comboboxen */
+.x-boundlist {
+  background-color: var(--alg-glas-sterk) !important;
+  border-color: var(--alg-rand-sterk) !important;
+  -webkit-backdrop-filter: var(--alg-blur);
+  backdrop-filter: var(--alg-blur);
+}
+
+.x-boundlist-item {
+  background-color: transparent !important;
+  border-color: transparent !important;
+  color: var(--alg-tekst) !important;
+}
+
+.x-boundlist-item-over {
+  background-color: var(--alg-rij-hover) !important;
+  color: var(--alg-tekst-sterk) !important;
+}
+
+.x-boundlist-selected {
+  background-color: var(--alg-rij-actief) !important;
+  color: var(--alg-tekst-sterk) !important;
+}
+
+/* ---------- Menu's ------------------------------------------------------ */
+.x-menu-default {
+  background-color: var(--alg-glas-sterk) !important;
+  border-color: var(--alg-rand-sterk) !important;
+  -webkit-backdrop-filter: var(--alg-blur);
+  backdrop-filter: var(--alg-blur);
+}
+
+.x-menu-body-default {
+  background: transparent !important;
+}
+
+.x-menu-item-text-default,
+.x-menu-item-default .x-menu-item-text {
+  color: var(--alg-tekst) !important;
+}
+
+.x-menu-item-icon-default,
+.x-menu-item-default .x-menu-item-arrow {
+  color: #ccc !important;
+}
+
+.x-menu-item-default.x-menu-item-active,
+.x-menu-item-default.x-menu-item-focus {
+  background-color: var(--alg-rij-hover) !important;
+  background-image: none !important;
+}
+
+.x-menu-item-default.x-menu-item-active .x-menu-item-text-default {
+  color: var(--alg-tekst-sterk) !important;
+}
+
+.x-menu-item-default.x-menu-item-separator,
+.x-menu-icon-separator-default {
+  background-color: transparent !important;
+  border-color: var(--alg-rand-sterk) !important;
+}
+
+.x-menu-header {
+  background-color: var(--alg-knop) !important;
+}
+
+/* ---------- Tooltips, maskers, slepen ----------------------------------- */
+.x-tip-default,
+.x-tip-form-invalid {
+  background-color: #1c1c1c !important;
+  border-color: var(--alg-rand-sterk) !important;
+}
+
+.x-tip-body-default,
+.x-tip-body-form-invalid,
+.x-tip-header-title-default {
+  color: var(--alg-tekst) !important;
+}
+
+.x-mask {
+  background-color: rgba(0, 0, 0, .45) !important;
+}
+
+.x-window-header-default .x-mask,
+.x-tool .x-mask {
+  background-color: rgba(20, 20, 20, .6) !important;
+}
+
+.x-mask-msg {
+  background-color: var(--alg-glas-sterk) !important;
+  border-color: var(--alg-rand-sterk) !important;
+}
+
+.x-mask-msg-inner {
+  background-color: transparent !important;
+  color: var(--alg-tekst) !important;
+}
+
+.x-mask-msg-text {
+  color: var(--alg-tekst) !important;
+}
+
+.x-dd-drag-proxy {
+  background-color: #1c1c1c !important;
+  border-color: var(--alg-rand-sterk) !important;
+  color: var(--alg-tekst) !important;
+}
+
+/* ---------- Voortgangsbalken, splitsers, statusbalk --------------------- */
+.x-progress-default {
+  background-color: rgba(255, 255, 255, .08) !important;
+  border-color: var(--alg-rand-sterk) !important;
+}
+
+.x-progress-default .x-progress-bar-default {
+  background-color: var(--alg-knop) !important;
+  background-image: none !important;
+}
+
+.x-progress-default .x-progress-text {
+  color: var(--alg-tekst-sterk) !important;
+}
+
+.x-progress.warning .x-progress-bar {
+  background-color: var(--alg-waarschuwing) !important;
+}
+
+.x-progress.critical .x-progress-bar {
+  background-color: var(--alg-fout) !important;
+}
+
+.x-splitter {
+  background-color: transparent !important;
+}
+
+.x-splitter-active,
+.x-splitter-over {
+  background-color: rgba(255, 255, 255, .1) !important;
+}
+
+/* ---------- Datumkiezer ------------------------------------------------- */
+.x-datepicker,
+.x-monthpicker {
+  background-color: var(--alg-glas-sterk) !important;
+  border-color: var(--alg-rand-sterk) !important;
+  color: var(--alg-tekst) !important;
+}
+
+.x-datepicker-header,
+.x-datepicker-footer,
+.x-monthpicker-buttons {
+  background-color: rgba(255, 255, 255, .05) !important;
+}
+
+.x-datepicker-column-header {
+  background-color: transparent !important;
+  color: var(--alg-gedempt) !important;
+}
+
+.x-datepicker-date,
+.x-monthpicker-item-inner {
+  color: var(--alg-tekst) !important;
+}
+
+.x-datepicker-prevday .x-datepicker-date,
+.x-datepicker-nextday .x-datepicker-date {
+  color: var(--alg-zwak) !important;
+}
+
+.x-datepicker-selected div.x-datepicker-date,
+.x-monthpicker-item a.x-monthpicker-selected,
+div.x-datepicker-date:hover,
+a.x-monthpicker-item-inner:hover {
+  background-color: var(--alg-knop) !important;
+  color: #fff !important;
+}
+
+/* ---------- Proxmox-specifiek (proxmox-widget-toolkit) ------------------ */
+/* eigen variabelen van Proxmox voor grafieken en meters (de scripts lezen ze
+   bij het tekenen): achtergrond in de mengkleur van glas op de verloop-
+   achtergrond (doorzichtig geeft in ExtJS-grafieken een grijs vlak), assen en
+   rasterlijnen zichtbaar op donker, meterboog grijs zoals de voortgangsbalken
+   (waarschuwings- en kritieke kleuren blijven die van Proxmox) */
+:root:where(html.x-viewport, html.x-border-box) {
+  --pwt-panel-background: #161616;
+  --pwt-text-color: #ddd;
+  --pwt-chart-primary: #777;
+  --pwt-chart-grid-stroke: #444;
+  --pwt-gauge-default: #9b9b9b;
+  --pwt-gauge-back: #333;
+}
+
+/* gele hints en gekleurde rijen: als tint, met leesbare tekst */
+.x-body .pmx-hint {
+  background-color: var(--alg-waarschuwing-tint) !important;
+  border-color: var(--alg-waarschuwing-rand) !important;
+  color: var(--alg-tekst) !important;
+}
+
+.x-body .pmx-hint a {
+  color: var(--alg-waarschuwing) !important;
+}
+
+.proxmox-invalid-row,
+.x-body tr.blocked {
+  background-color: rgba(229, 139, 139, .16) !important;
+}
+
+.proxmox-warning-row,
+.x-body tr.bounced {
+  background-color: rgba(230, 181, 107, .14) !important;
+}
+
+.proxmox-disabled-row td {
+  color: var(--alg-gedempt) !important;
+}
+
+.x-body .usage-wrapper {
+  border-color: var(--alg-rand-sterk) !important;
+}
+
+.x-body .usage {
+  background-color: #8a8a8a !important;
+}
+
+/* legenda van grafieken (ExtJS charts): wit vak wordt donker */
+.x-legend,
+.x-legend-container {
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+.x-legend-item {
+  background-color: #1c1c1c !important;
+  border-color: var(--alg-rand-sterk) !important;
+  color: var(--alg-tekst) !important;
+}
+
+/* Proxmox-logo: zwarte letters op donker zijn onzichtbaar. Enige uitzondering
+   op "afbeeldingen niet filteren": exact de regel van Proxmox' eigen donkere
+   thema, alleen voor het logo-element van de widget-toolkit (oranje X blijft). */
+img[id^="proxmoxlogo-"][id$="-img"],
+img[id^="proxmoxLogoSvg-"][id$="-img"] {
+  filter: invert(1) hue-rotate(180deg);
+}
+
+/* markdown-notities */
+.pmx-md code {
+  background-color: rgba(255, 255, 255, .09) !important;
+}
+
+.pmx-md a {
+  color: var(--alg-link) !important;
+}
+
+.pmx-md tbody tr:nth-of-type(2n) {
+  background-color: var(--alg-zebra) !important;
+}
+
+/* labels (tags) van VM's: eigen kleuren blijven, alleen een rand */
+.proxmox-tags-full :is(.proxmox-tag-light, .proxmox-tag-dark) {
+  outline: 1px solid rgba(255, 255, 255, .15);
+}
+

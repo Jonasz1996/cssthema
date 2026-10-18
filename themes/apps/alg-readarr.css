@@ -1,0 +1,36 @@
+/* ==========================================================================
+   alg-readarr.css - Readarr (v0.4, React, *arr-codebasis)
+   Host: readarr.jbogaert.be
+   Laadt NA algemeen.css.
+
+   Het *arr-deel van algemeen.css (herkenning via meta description
+   "Readarr") doet vlakken, knoppen, velden, meldingen en dialogen al.
+   Readarr gebruikt voor zijn accenten echter eigen rode variabelen die
+   Sonarr niet heeft (daar blauw): actief menu-item en zijn linkerrand,
+   hover in zijbalk en werkbalk (--themeRed, --themeAlternateRed,
+   --toobarButtonHoverColor), het donate-hartje in de kop en de
+   knoppenbalk op een auteursposter (--readarrRed). Die worden hier grijs.
+   De *arr-apps zetten hun thema inline op html, dus !important.
+
+   Beperkingen: vastgelegd is het hoofdscherm met de dialoog
+   "Authentication Required" (geen aparte loginpagina); bibliotheek,
+   kalender en posters zijn niet getest. CSP: alleen frame-ancestors,
+   blokkeert css.jbogaert.be niet.
+   ========================================================================== */
+
+html {
+  --themeRed: var(--alg-tekst-sterk) !important;
+  --themeAlternateRed: var(--alg-tekst-sterk) !important;
+  --themeDarkRed: var(--alg-vlak-2) !important;
+  --readarrRed: var(--alg-knop) !important;
+  --toobarButtonHoverColor: var(--alg-tekst-sterk) !important;
+  --toobarButtonSelectedColor: var(--alg-tekst-sterk) !important;
+}
+
+/* donate-hartje in de kop: gedempt i.p.v. rood */
+html [class*="PageHeader-donate"] {
+  color: var(--alg-gedempt);
+}
+html [class*="PageHeader-donate"]:hover {
+  color: var(--alg-tekst-sterk);
+}

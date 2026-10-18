@@ -1,0 +1,18 @@
+[Unit]
+Description=cssthema worker (arq)
+Documentation=https://github.com/Jonasz1996/cssthema/blob/main/docs/ops/installatie-debian.md
+After=network-online.target redis-server.service valkey-server.service cssthema-api.service
+Wants=network-online.target
+
+[Service]
+User=cssthema
+Group=cssthema
+WorkingDirectory=@APP_DIR@/backend
+EnvironmentFile=/etc/cssthema/cssthema.env
+ExecStart=@VENV@/bin/arq cssthema.worker.WorkerSettings
+Restart=on-failure
+RestartSec=3
+NoNewPrivileges=yes
+
+[Install]
+WantedBy=multi-user.target

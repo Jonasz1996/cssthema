@@ -1,0 +1,1087 @@
+/* alg-fw-bootstrap.css - gegenereerd uit algemeen.css door scripts/themes/modules.py;
+   niet met de hand aanpassen. Laadt na alg-kern.css (zie themes/README.md). */
+/* ==========================================================================
+   30 BOOTSTRAP - versie 3, 4 en 5 (incl. 5.3 --bs-* en data-bs-theme)
+   5.3 werkt grotendeels via variabelen; 3, 4 en 5.0-5.2 hebben vaste kleuren
+   en krijgen daarom ook directe regels op de componentklassen.
+   ========================================================================== */
+
+/* ---------- 5.3: globale variabelen ------------------------------------- */
+:root,
+[data-bs-theme] {
+  color-scheme: dark;
+  --bs-body-color: var(--alg-tekst) !important;
+  --bs-body-color-rgb: 221, 221, 221 !important;
+  --bs-body-bg: var(--alg-vlak) !important;
+  --bs-body-bg-rgb: 24, 24, 24 !important;
+  --bs-body-font-family: var(--alg-font) !important;
+  --bs-font-sans-serif: var(--alg-font) !important;
+  --bs-emphasis-color: var(--alg-tekst-sterk) !important;
+  --bs-emphasis-color-rgb: 255, 255, 255 !important;
+  --bs-secondary-color: var(--alg-gedempt) !important;
+  --bs-secondary-color-rgb: 153, 153, 153 !important;
+  --bs-secondary-bg: #262626 !important;
+  --bs-secondary-bg-rgb: 38, 38, 38 !important;
+  --bs-tertiary-color: #8a8a8a !important;
+  --bs-tertiary-color-rgb: 138, 138, 138 !important;
+  --bs-tertiary-bg: #1e1e1e !important;
+  --bs-tertiary-bg-rgb: 30, 30, 30 !important;
+  --bs-heading-color: var(--alg-tekst-sterk) !important;
+  --bs-link-color: var(--alg-link) !important;
+  --bs-link-color-rgb: 181, 181, 181 !important;
+  --bs-link-hover-color: var(--alg-link-hover) !important;
+  --bs-link-hover-color-rgb: 255, 255, 255 !important;
+  --bs-code-color: var(--alg-code) !important;
+  --bs-highlight-color: var(--alg-tekst-sterk) !important;
+  --bs-highlight-bg: rgba(230, 181, 107, .35) !important;
+  --bs-border-color: var(--alg-rand-sterk) !important;
+  --bs-border-color-translucent: var(--alg-rand) !important;
+  --bs-border-radius: var(--alg-radius) !important;
+  --bs-border-radius-sm: var(--alg-radius-midden) !important;
+  --bs-border-radius-lg: 12px !important;
+  --bs-border-radius-xl: var(--alg-radius-groot) !important;
+  --bs-box-shadow: var(--alg-schaduw-midden) !important;
+  --bs-box-shadow-sm: var(--alg-schaduw-klein) !important;
+  --bs-box-shadow-lg: var(--alg-schaduw) !important;
+  --bs-focus-ring-color: rgba(var(--alg-accent), .25) !important;
+  --bs-form-valid-color: var(--alg-ok) !important;
+  --bs-form-valid-border-color: var(--alg-ok) !important;
+  --bs-form-invalid-color: var(--alg-fout) !important;
+  --bs-form-invalid-border-color: var(--alg-fout) !important;
+
+  --bs-primary: var(--alg-knop) !important;
+  --bs-primary-rgb: 106, 106, 106 !important;
+  --bs-secondary: #555 !important;
+  --bs-secondary-rgb: 85, 85, 85 !important;
+  --bs-success: var(--alg-ok-vlak) !important;
+  --bs-success-rgb: 61, 122, 80 !important;
+  --bs-danger: var(--alg-fout-vlak) !important;
+  --bs-danger-rgb: 168, 74, 74 !important;
+  --bs-warning: var(--alg-waarschuwing-vlak) !important;
+  --bs-warning-rgb: 230, 181, 107 !important;
+  --bs-info: var(--alg-info-vlak) !important;
+  --bs-info-rgb: 156, 201, 255 !important;
+
+  --bs-primary-text-emphasis: var(--alg-tekst) !important;
+  --bs-secondary-text-emphasis: #bbb !important;
+  --bs-success-text-emphasis: var(--alg-ok) !important;
+  --bs-info-text-emphasis: var(--alg-info) !important;
+  --bs-warning-text-emphasis: var(--alg-waarschuwing) !important;
+  --bs-danger-text-emphasis: var(--alg-fout) !important;
+  --bs-light-text-emphasis: #eee !important;
+  --bs-dark-text-emphasis: var(--alg-tekst) !important;
+  --bs-primary-bg-subtle: rgba(255, 255, 255, .07) !important;
+  --bs-secondary-bg-subtle: rgba(255, 255, 255, .04) !important;
+  --bs-success-bg-subtle: var(--alg-ok-tint) !important;
+  --bs-info-bg-subtle: var(--alg-info-tint) !important;
+  --bs-warning-bg-subtle: var(--alg-waarschuwing-tint) !important;
+  --bs-danger-bg-subtle: var(--alg-fout-tint) !important;
+  --bs-light-bg-subtle: rgba(255, 255, 255, .06) !important;
+  --bs-dark-bg-subtle: rgba(0, 0, 0, .3) !important;
+  --bs-primary-border-subtle: var(--alg-rand-hover) !important;
+  --bs-secondary-border-subtle: var(--alg-rand-sterk) !important;
+  --bs-success-border-subtle: var(--alg-ok-rand) !important;
+  --bs-info-border-subtle: var(--alg-info-rand) !important;
+  --bs-warning-border-subtle: var(--alg-waarschuwing-rand) !important;
+  --bs-danger-border-subtle: var(--alg-fout-rand) !important;
+  --bs-light-border-subtle: var(--alg-rand-sterk) !important;
+  --bs-dark-border-subtle: var(--alg-rand) !important;
+  --bs-btn-close-filter: invert(1) grayscale(100%) brightness(200%) !important;
+}
+
+/* ---------- Tekstkleuren ------------------------------------------------ */
+.text-muted,
+.text-body-secondary,
+.text-secondary,
+.help-block,
+.form-text {
+  color: var(--alg-gedempt) !important;
+}
+
+.text-body,
+.text-body-emphasis {
+  color: var(--alg-tekst) !important;
+}
+
+.text-primary { color: var(--alg-accent-kleur) !important; }
+.text-success { color: var(--alg-ok) !important; }
+.text-danger { color: var(--alg-fout) !important; }
+.text-warning { color: var(--alg-waarschuwing) !important; }
+.text-info { color: var(--alg-info) !important; }
+
+/* tekst-dark is alleen fout op een donker vlak; op geel/blauw blijft hij.
+   Niet op de tekstklassen van Ubiquiti's bibliotheek (UniFi): daar betekent
+   "text-dark" tekst voor een donker vlak (met een eigen kleur per staat). */
+.text-dark:not(.badge, .bg-warning, .bg-info, .text-bg-warning, .text-bg-info, .btn-warning, .btn-info, .bg-light, .bg-white, [class*="text-base__"]),
+.text-black-50:not(.badge) {
+  color: var(--alg-tekst) !important;
+}
+
+/* links: BS3 en BS4 kleuren a:hover en a:focus donkerblauw (#23527c,
+   #0056b3), onleesbaar op donker. Zelfde specificiteit als die regel, dus
+   componentregels (.btn, .nav > li > a, .dropdown-item ...) winnen nog. */
+a:hover,
+a:focus {
+  color: var(--alg-link-hover);
+}
+
+/* BS3 .page-header: lichte lijn onder de paginatitel */
+.page-header {
+  border-bottom-color: var(--alg-rand-sterk) !important;
+}
+
+/* koppen met small (BS3: #777) */
+:is(h1, h2, h3, h4, h5, h6, .h1, .h2, .h3, .h4, .h5, .h6) :is(small, .small) {
+  color: var(--alg-gedempt) !important;
+}
+
+/* validatie: tekst in de statuskleuren */
+.has-error :is(.control-label, .help-block, .checkbox, .radio, label),
+.invalid-feedback {
+  color: var(--alg-fout) !important;
+}
+
+.has-success :is(.control-label, .help-block, .checkbox, .radio, label),
+.valid-feedback {
+  color: var(--alg-ok) !important;
+}
+
+.has-warning :is(.control-label, .help-block, .checkbox, .radio, label) {
+  color: var(--alg-waarschuwing) !important;
+}
+
+/* ---------- bootstrap-theme.css (BS3): verlopen en tekstschaduw weg ----- */
+/* Die verlopen liggen als afbeelding boven onze achtergrondkleur. Meldingen
+   (.alert) staan bij "Meldingen" (eigen tint als verloop). .thumbnail met een
+   inline achtergrond is geen BS3-kader maar een voorbeeldafbeelding (bv. de
+   previews van Nextcloud): die blijft. */
+:is(.btn-default, .btn-primary, .btn-success, .btn-info, .btn-warning, .btn-danger,
+    .well, .progress, .list-group-item.active, .dropdown-menu > li > a,
+    .dropdown-menu > .active > a, .panel-heading, .navbar-default .navbar-nav > .active > a,
+    .navbar-default .navbar-nav > .open > a, .thumbnail:not([style*="background"])) {
+  background-image: none !important;
+  text-shadow: none !important;
+}
+
+.progress-bar:not(.progress-bar-striped, .progress-bar-animated) {
+  background-image: none !important;
+}
+
+/* ---------- Achtergrondklassen ------------------------------------------ */
+.bg-primary { background-color: var(--alg-knop) !important; }
+.bg-success { background-color: var(--alg-ok-vlak) !important; }
+.bg-danger { background-color: var(--alg-fout-vlak) !important; }
+.bg-secondary { background-color: #555 !important; }
+
+/* tekst op die vlakken: wit, tenzij de app zelf een tekstkleur kiest */
+:is(.bg-primary, .bg-success, .bg-danger, .bg-secondary):not([class*="text-"]) {
+  color: #fff;
+}
+
+/* BS3 kleurt .bg-info/.bg-warning pastel (#d9edf7, #fcf8e3), BS5 fel: altijd
+   een licht vlak met donkere tekst (AdminLTE-boxen hebben eigen regels in 32) */
+:is(.bg-warning, .bg-info):not(.small-box, .label, .badge, .progress-bar) {
+  background-color: var(--alg-info-vlak) !important;
+  color: var(--alg-donker-tekst) !important;
+}
+
+.bg-warning:not(.small-box, .label, .badge, .progress-bar) {
+  background-color: var(--alg-waarschuwing-vlak) !important;
+}
+
+/* randhulpklassen: BS4 en 5.0-5.1 hebben een vaste lichte kleur (#dee2e6).
+   Gekleurde randen (.border-primary ...) blijven; een kale .border zonder
+   kleurklasse ook in Tailwind (lichtgrijs). Alleen de kleur, nooit de dikte. */
+.border:not([class*="border-"]),
+:is(.border-top, .border-bottom, .border-start, .border-end, .border-left, .border-right):not([class*="border-primary"], [class*="border-secondary"], [class*="border-success"], [class*="border-danger"], [class*="border-warning"], [class*="border-info"], [class*="border-dark"], [class*="border-light"], [class*="border-white"], [class*="border-black"]) {
+  border-color: var(--alg-rand-sterk) !important;
+}
+
+/* ---------- Navigatiebalk ----------------------------------------------- */
+.navbar {
+  --bs-navbar-color: rgba(221, 221, 221, .8) !important;
+  --bs-navbar-hover-color: var(--alg-tekst-sterk) !important;
+  --bs-navbar-active-color: var(--alg-tekst-sterk) !important;
+  --bs-navbar-brand-color: var(--alg-tekst-sterk) !important;
+  --bs-navbar-brand-hover-color: var(--alg-tekst-sterk) !important;
+  --bs-navbar-disabled-color: rgba(255, 255, 255, .3) !important;
+  --bs-navbar-toggler-border-color: var(--alg-rand-sterk) !important;
+}
+
+.navbar:is(.navbar-default, .navbar-light, .bg-light, .bg-white, .bg-body-tertiary, .bg-body) {
+  background-color: rgba(10, 10, 10, .55) !important;
+  background-image: none !important;
+  border-color: var(--alg-rand) !important;
+  color: var(--alg-tekst);
+}
+
+/* Bootstrap 3 en 4: vaste linkkleuren in lichte navbars */
+.navbar-default .navbar-brand,
+.navbar-default .navbar-text,
+.navbar-default .navbar-nav > li > a,
+.navbar-light .navbar-brand,
+.navbar-light .navbar-text,
+.navbar-light .navbar-nav .nav-link {
+  color: rgba(221, 221, 221, .8) !important;
+  text-shadow: none !important;
+}
+
+.navbar-default .navbar-nav > li > a:hover,
+.navbar-default .navbar-nav > .active > a,
+.navbar-default .navbar-nav > .open > a,
+.navbar-default .navbar-brand:hover,
+.navbar-light .navbar-nav .nav-link:hover,
+.navbar-light .navbar-nav .nav-link.active,
+.navbar-light .navbar-nav .active > .nav-link,
+.navbar-light .navbar-nav .show > .nav-link,
+.navbar-light .navbar-brand:hover {
+  color: var(--alg-tekst-sterk) !important;
+  background-color: var(--alg-rij-hover) !important;
+  background-image: none !important;
+  box-shadow: none !important;
+}
+
+/* hamburger-icoon: donkere streepjes licht maken (achtergrondafbeelding) */
+.navbar:not(.navbar-dark, [data-bs-theme="dark"], [data-bs-theme="dark"] *) .navbar-toggler-icon {
+  filter: invert(1) grayscale(100%) brightness(200%);
+}
+
+.navbar-default .navbar-toggle {
+  border-color: var(--alg-rand-sterk) !important;
+}
+
+.navbar-default .navbar-toggle .icon-bar {
+  background-color: var(--alg-tekst) !important;
+}
+
+/* ---------- Knoppen ----------------------------------------------------- */
+.btn {
+  border-radius: var(--alg-radius);
+  font-weight: 700;
+}
+
+.btn-primary,
+.btn-check:checked + .btn-primary {
+  background-color: var(--alg-knop) !important;
+  border-color: transparent !important;
+  color: var(--alg-knop-tekst) !important;
+}
+
+.btn-primary:hover,
+.btn-primary:focus-visible,
+.btn-primary:active,
+.btn-primary.active {
+  background-color: var(--alg-knop-hover) !important;
+  color: var(--alg-knop-tekst-hover) !important;
+  box-shadow: var(--alg-gloed) !important;
+}
+
+.btn-default,
+.btn-secondary,
+.btn-light,
+.btn-outline-primary,
+.btn-outline-secondary,
+.btn-outline-light,
+.btn-outline-dark,
+.btn-outline-default {
+  background-color: var(--alg-knop-zacht) !important;
+  border-color: var(--alg-rand-sterk) !important;
+  color: var(--alg-tekst) !important;
+}
+
+:is(.btn-default, .btn-secondary, .btn-light, .btn-outline-primary, .btn-outline-secondary,
+    .btn-outline-light, .btn-outline-dark, .btn-outline-default):is(:hover, :active, .active, :focus-visible),
+.btn-check:checked + :is(.btn-secondary, .btn-outline-primary, .btn-outline-secondary, .btn-light),
+.open > .dropdown-toggle.btn-default,
+.show > .dropdown-toggle:is(.btn-secondary, .btn-light) {
+  background-color: var(--alg-knop-zacht-hover) !important;
+  border-color: var(--alg-rand-hover) !important;
+  color: var(--alg-tekst-sterk) !important;
+}
+
+.btn-success {
+  background-color: var(--alg-ok-vlak) !important;
+  border-color: transparent !important;
+  color: #fff !important;
+}
+
+.btn-danger {
+  background-color: var(--alg-fout-vlak) !important;
+  border-color: transparent !important;
+  color: #fff !important;
+}
+
+/* waarschuwing en info: geen fel geel/lichtblauw vlak, maar een tint met
+   de statuskleur als tekst (zoals de statusteksten in allow) */
+.btn-warning {
+  background-color: rgba(230, 181, 107, .16) !important;
+  border-color: var(--alg-waarschuwing-rand) !important;
+  color: var(--alg-waarschuwing) !important;
+}
+
+.btn-info {
+  background-color: rgba(156, 201, 255, .16) !important;
+  border-color: var(--alg-info-rand) !important;
+  color: var(--alg-info) !important;
+}
+
+.btn-dark {
+  background-color: #111 !important;
+  border-color: var(--alg-rand-sterk) !important;
+  color: var(--alg-tekst) !important;
+}
+
+:is(.btn-success, .btn-danger, .btn-warning, .btn-info, .btn-dark):is(:hover, :active, .active, :focus-visible) {
+  filter: brightness(1.12);
+  box-shadow: var(--alg-gloed) !important;
+}
+
+.btn-outline-success { color: var(--alg-ok) !important; border-color: var(--alg-ok-rand) !important; background-color: transparent !important; }
+.btn-outline-danger { color: var(--alg-fout) !important; border-color: var(--alg-fout-rand) !important; background-color: transparent !important; }
+.btn-outline-warning { color: var(--alg-waarschuwing) !important; border-color: var(--alg-waarschuwing-rand) !important; background-color: transparent !important; }
+.btn-outline-info { color: var(--alg-info) !important; border-color: var(--alg-info-rand) !important; background-color: transparent !important; }
+.btn-outline-success:hover { background-color: var(--alg-ok-tint) !important; }
+.btn-outline-danger:hover { background-color: var(--alg-fout-tint) !important; }
+.btn-outline-warning:hover { background-color: var(--alg-waarschuwing-tint) !important; }
+.btn-outline-info:hover { background-color: var(--alg-info-tint) !important; }
+
+.btn-link {
+  color: var(--alg-link) !important;
+}
+
+.btn-link:hover {
+  color: var(--alg-link-hover) !important;
+}
+
+/* sluitkruisje: BS5 tekent een zwart kruis als achtergrondafbeelding; de
+   filter maakt het wit. Tabler 1.x tekent het als masker in
+   --tblr-btn-close-color (currentColor, bij ons licht: na de filter donker
+   op donker). Zwart als kleur geeft na de filter ook wit, en wat sterker
+   dan Tablers .4. Zonder masker (Bootstrap) doen die variabelen niets. */
+.btn-close {
+  --tblr-btn-close-color: #000 !important;
+  --tblr-btn-close-opacity: .7 !important;
+  filter: invert(1) grayscale(100%) brightness(200%) !important;
+}
+
+/* BS3/4: × als tekst */
+.close {
+  color: var(--alg-tekst-sterk) !important;
+  text-shadow: none !important;
+}
+
+/* ---------- Formulieren ------------------------------------------------- */
+.form-control,
+.form-select,
+.custom-select {
+  border-color: var(--alg-rand-sterk);
+  border-radius: var(--alg-radius);
+}
+
+/* .form-control op een houder (bv. de div van bootstrap-select) of een
+   alleen-lezen weergave: BS3/4 geeft die een witte achtergrond. Niet op een
+   knop met .form-control (Pi-hole: aanmeldknop .btn.btn-primary.form-control),
+   die houdt zijn knopkleur. */
+.form-control:not(input, select, textarea, button, .btn) {
+  background-color: var(--alg-veld) !important;
+  color: var(--alg-tekst-sterk) !important;
+}
+
+:is(.form-control, .form-select, .custom-select):focus:not(.is-invalid, .is-valid) {
+  border-color: var(--alg-accent-kleur) !important;
+  box-shadow: var(--alg-focus-ring) !important;
+}
+
+.form-control:disabled,
+.form-control[readonly],
+.form-select:disabled {
+  background-color: rgba(255, 255, 255, .04) !important;
+}
+
+/* pijltje van de keuzelijst: getekend met verlopen (geen afbeelding nodig) */
+.form-select:not([multiple], [size]),
+.custom-select:not([multiple], [size]) {
+  background-image:
+    linear-gradient(45deg, transparent 50%, #bbb 50%),
+    linear-gradient(135deg, #bbb 50%, transparent 50%) !important;
+  background-position: calc(100% - 17px) 55%, calc(100% - 12px) 55% !important;
+  background-size: 5px 5px, 5px 5px !important;
+  background-repeat: no-repeat !important;
+}
+
+.input-group-text,
+.input-group-addon {
+  background-color: rgba(255, 255, 255, .06) !important;
+  border-color: var(--alg-rand-sterk) !important;
+  color: var(--alg-tekst) !important;
+}
+
+.form-check-input {
+  background-color: var(--alg-veld) !important;
+  border-color: rgba(255, 255, 255, .3) !important;
+}
+
+.form-check-input:checked,
+.form-check-input:indeterminate {
+  background-color: var(--alg-knop) !important;
+  border-color: #8a8a8a !important;
+}
+
+.form-check-input:focus {
+  border-color: var(--alg-accent-kleur) !important;
+  box-shadow: var(--alg-focus-ring) !important;
+}
+
+/* schakelaar: het bolletje opnieuw tekenen, de standaard is donkergrijs */
+.form-switch .form-check-input {
+  background-image: radial-gradient(circle .38em at .5em 50%, rgba(255, 255, 255, .55) 96%, transparent 100%) !important;
+  background-size: auto !important;
+  background-position: 0 0 !important;
+  background-repeat: no-repeat !important;
+}
+
+.form-switch .form-check-input:checked {
+  background-image: radial-gradient(circle .38em at calc(100% - .5em) 50%, #fff 96%, transparent 100%) !important;
+}
+
+/* BS4 custom controls */
+.custom-control-label::before {
+  background-color: var(--alg-veld) !important;
+  border-color: rgba(255, 255, 255, .3) !important;
+}
+
+.custom-control-input:checked ~ .custom-control-label::before {
+  background-color: var(--alg-knop) !important;
+  border-color: #8a8a8a !important;
+}
+
+.custom-file-label {
+  background-color: var(--alg-veld) !important;
+  border-color: var(--alg-rand-sterk) !important;
+  color: var(--alg-tekst) !important;
+}
+
+.custom-file-label::after {
+  background-color: rgba(255, 255, 255, .06) !important;
+  color: var(--alg-tekst) !important;
+}
+
+/* bootstrap-toggle (jQuery-plugin): het uit-label ligt verborgen naast het
+   aan-label; een eigen vlak, anders telt zijn tekst op het groen. De knop
+   ertussen licht, zoals bij een schakelaar. */
+.toggle.btn > .toggle-group > .toggle-off.btn-default {
+  background-color: #333 !important;
+  color: var(--alg-tekst) !important;
+}
+
+.toggle.btn > .toggle-group > .toggle-handle {
+  background-color: #bbb !important;
+  border-color: transparent !important;
+}
+
+/* icheck-bootstrap: vierkantjes en rondjes als ::before op het label */
+[class*="icheck-"] > input:first-child + label::before,
+[class*="icheck-"] > input:first-child + input[type="hidden"] + label::before {
+  background-color: var(--alg-veld) !important;
+  border-color: rgba(255, 255, 255, .3) !important;
+}
+
+[class*="icheck-"] > input:first-child:checked + label::before,
+[class*="icheck-"] > input:first-child:checked + input[type="hidden"] + label::before {
+  background-color: var(--alg-knop) !important;
+  border-color: #8a8a8a !important;
+}
+
+.form-range::-webkit-slider-thumb { background-color: #bbb !important; }
+.form-range::-moz-range-thumb { background-color: #bbb !important; }
+.form-range::-webkit-slider-runnable-track { background-color: rgba(255, 255, 255, .12) !important; }
+.form-range::-moz-range-track { background-color: rgba(255, 255, 255, .12) !important; }
+
+/* ---------- Kaarten, panelen, wells ------------------------------------- */
+.card {
+  --bs-card-bg: var(--alg-glas) !important;
+  --bs-card-color: var(--alg-tekst) !important;
+  --bs-card-border-color: var(--alg-rand) !important;
+  --bs-card-border-radius: var(--alg-radius-groot) !important;
+  --bs-card-inner-border-radius: calc(var(--alg-radius-groot) - 1px) !important;
+  --bs-card-cap-bg: var(--alg-paneel) !important;
+  --bs-card-cap-color: var(--alg-tekst-sterk) !important;
+  --bs-card-title-color: var(--alg-tekst-sterk) !important;
+  --bs-card-subtitle-color: var(--alg-gedempt) !important;
+  background-color: var(--alg-glas) !important;
+  border-color: var(--alg-rand) !important;
+  color: var(--alg-tekst);
+  border-radius: var(--alg-radius-groot);
+  box-shadow: var(--alg-schaduw-klein);
+}
+
+.card-header:not([class*="bg-"]),
+.card-footer:not([class*="bg-"]) {
+  background-color: var(--alg-paneel) !important;
+  border-color: var(--alg-rand) !important;
+}
+
+.card-title {
+  color: var(--alg-tekst-sterk);
+}
+
+.panel {
+  background-color: var(--alg-glas) !important;
+  border-color: var(--alg-rand) !important;
+  color: var(--alg-tekst);
+  border-radius: var(--alg-radius-groot);
+}
+
+.panel-default > .panel-heading,
+.panel-footer {
+  background-color: var(--alg-paneel) !important;
+  border-color: var(--alg-rand) !important;
+  color: var(--alg-tekst-sterk) !important;
+}
+
+/* BS3: lichte lijn tussen kop en uitklapbare inhoud (#ddd) */
+.panel-heading + .panel-collapse > :is(.panel-body, .list-group),
+.panel-footer + .panel-collapse .panel-body,
+.panel > :is(.panel-body + .table, .panel-body + .table-responsive, .table + .panel-body, .table-responsive + .panel-body) {
+  border-color: var(--alg-rand) !important;
+}
+
+.panel-primary > .panel-heading {
+  background-color: var(--alg-knop) !important;
+  border-color: var(--alg-knop) !important;
+  color: #fff !important;
+}
+
+.panel-primary { border-color: var(--alg-knop) !important; }
+.panel-success > .panel-heading { background-color: var(--alg-ok-tint) !important; color: var(--alg-ok) !important; border-color: var(--alg-ok-rand) !important; }
+.panel-danger > .panel-heading { background-color: var(--alg-fout-tint) !important; color: var(--alg-fout) !important; border-color: var(--alg-fout-rand) !important; }
+.panel-warning > .panel-heading { background-color: var(--alg-waarschuwing-tint) !important; color: var(--alg-waarschuwing) !important; border-color: var(--alg-waarschuwing-rand) !important; }
+.panel-info > .panel-heading { background-color: var(--alg-info-tint) !important; color: var(--alg-info) !important; border-color: var(--alg-info-rand) !important; }
+
+.well,
+.jumbotron,
+.thumbnail:not([style*="background"]) {
+  background-color: var(--alg-rij) !important;
+  border-color: var(--alg-rand) !important;
+  color: var(--alg-tekst);
+}
+
+/* ---------- Lijsten ----------------------------------------------------- */
+.list-group {
+  --bs-list-group-bg: transparent !important;
+  --bs-list-group-color: var(--alg-tekst) !important;
+  --bs-list-group-border-color: var(--alg-rand) !important;
+  --bs-list-group-action-hover-bg: var(--alg-rij-hover) !important;
+  --bs-list-group-action-hover-color: var(--alg-tekst-sterk) !important;
+  --bs-list-group-action-active-bg: var(--alg-rij-actief) !important;
+  --bs-list-group-action-color: var(--alg-tekst) !important;
+}
+
+.list-group-item:not([class*="list-group-item-"]),
+.list-group-item.list-group-item-action {
+  background-color: rgba(255, 255, 255, .03) !important;
+  border-color: var(--alg-rand) !important;
+  color: var(--alg-tekst) !important;
+}
+
+a.list-group-item:hover,
+button.list-group-item:hover,
+.list-group-item-action:hover {
+  background-color: var(--alg-rij-hover) !important;
+  color: var(--alg-tekst-sterk) !important;
+}
+
+.list-group-item-success { background-color: var(--alg-ok-tint) !important; color: var(--alg-ok) !important; border-color: var(--alg-rand) !important; }
+.list-group-item-danger { background-color: var(--alg-fout-tint) !important; color: var(--alg-fout) !important; border-color: var(--alg-rand) !important; }
+.list-group-item-warning { background-color: var(--alg-waarschuwing-tint) !important; color: var(--alg-waarschuwing) !important; border-color: var(--alg-rand) !important; }
+.list-group-item-info { background-color: var(--alg-info-tint) !important; color: var(--alg-info) !important; border-color: var(--alg-rand) !important; }
+
+.list-group-item.active {
+  background-color: var(--alg-knop) !important;
+  border-color: var(--alg-knop) !important;
+  color: #fff !important;
+}
+
+/* ---------- Tabbladen en pillen ----------------------------------------- */
+/* losse .nav-link (BS4, 5.0-5.2): vaste blauwe of (Uptime Kuma) bijna zwarte
+   kleur. Zonder !important: navbars, tabs en pillen hebben eigen regels. */
+.nav-link {
+  color: var(--alg-link);
+}
+
+.nav-link:is(:hover, :focus) {
+  color: var(--alg-link-hover);
+}
+
+.nav-tabs {
+  --bs-nav-tabs-border-color: var(--alg-rand-sterk) !important;
+  --bs-nav-tabs-link-hover-border-color: var(--alg-rand) var(--alg-rand) var(--alg-rand-sterk) !important;
+  --bs-nav-tabs-link-active-color: var(--alg-tekst-sterk) !important;
+  --bs-nav-tabs-link-active-bg: rgba(255, 255, 255, .06) !important;
+  --bs-nav-tabs-link-active-border-color: var(--alg-rand-sterk) var(--alg-rand-sterk) transparent !important;
+  border-bottom-color: var(--alg-rand-sterk) !important;
+}
+
+.nav-tabs .nav-link,
+.nav-tabs > li > a {
+  color: var(--alg-gedempt);
+}
+
+.nav-tabs .nav-link:hover,
+.nav-tabs > li > a:hover {
+  background-color: rgba(255, 255, 255, .04) !important;
+  border-color: var(--alg-rand) var(--alg-rand) var(--alg-rand-sterk) !important;
+  color: var(--alg-tekst-sterk) !important;
+}
+
+.nav-tabs .nav-link.active,
+.nav-tabs .nav-item.show .nav-link,
+.nav-tabs > li.active > a,
+.nav-tabs > li.active > a:hover,
+.nav-tabs > li.active > a:focus {
+  background-color: rgba(255, 255, 255, .06) !important;
+  border-color: var(--alg-rand-sterk) var(--alg-rand-sterk) transparent !important;
+  color: var(--alg-tekst-sterk) !important;
+}
+
+.nav > li > a:hover,
+.nav > li > a:focus {
+  background-color: var(--alg-rij-hover);
+}
+
+.nav-pills .nav-link.active,
+.nav-pills .show > .nav-link,
+.nav-pills > li.active > a,
+.nav-pills > li.active > a:hover {
+  background-color: var(--alg-knop) !important;
+  color: #fff !important;
+}
+
+/* ---------- Uitklapmenu's (glas) ---------------------------------------- */
+.dropdown-menu {
+  --bs-dropdown-bg: var(--alg-glas-sterk) !important;
+  --bs-dropdown-color: var(--alg-tekst) !important;
+  --bs-dropdown-border-color: var(--alg-rand-sterk) !important;
+  --bs-dropdown-link-color: var(--alg-tekst) !important;
+  --bs-dropdown-link-hover-color: var(--alg-tekst-sterk) !important;
+  --bs-dropdown-link-hover-bg: var(--alg-rij-hover) !important;
+  --bs-dropdown-link-active-color: var(--alg-tekst-sterk) !important;
+  --bs-dropdown-link-active-bg: var(--alg-rij-actief) !important;
+  --bs-dropdown-divider-bg: var(--alg-rand-sterk) !important;
+  --bs-dropdown-header-color: var(--alg-gedempt) !important;
+  background-color: var(--alg-glas-sterk) !important;
+  border-color: var(--alg-rand-sterk) !important;
+  color: var(--alg-tekst) !important;
+  border-radius: var(--alg-radius);
+  box-shadow: var(--alg-schaduw-midden);
+  -webkit-backdrop-filter: var(--alg-blur);
+  backdrop-filter: var(--alg-blur);
+}
+
+.dropdown-item,
+.dropdown-menu > li > a {
+  color: var(--alg-tekst) !important;
+}
+
+.dropdown-item:hover,
+.dropdown-item:focus,
+.dropdown-menu > li > a:hover,
+.dropdown-menu > li > a:focus {
+  background-color: var(--alg-rij-hover) !important;
+  color: var(--alg-tekst-sterk) !important;
+}
+
+.dropdown-item.active,
+.dropdown-item:active,
+.dropdown-menu > .active > a {
+  background-color: var(--alg-rij-actief) !important;
+  color: var(--alg-tekst-sterk) !important;
+}
+
+.dropdown-divider,
+.dropdown-menu .divider {
+  border-color: var(--alg-rand-sterk) !important;
+  background-color: var(--alg-rand-sterk) !important;
+}
+
+.dropdown-header {
+  color: var(--alg-gedempt) !important;
+}
+
+/* ---------- Dialogen (glas) --------------------------------------------- */
+.modal-content {
+  --bs-modal-bg: var(--alg-glas-sterk) !important;
+  --bs-modal-color: var(--alg-tekst) !important;
+  --bs-modal-border-color: var(--alg-rand-sterk) !important;
+  --bs-modal-header-border-color: var(--alg-rand) !important;
+  --bs-modal-footer-border-color: var(--alg-rand) !important;
+  background-color: var(--alg-glas-sterk) !important;
+  border-color: var(--alg-rand-sterk) !important;
+  color: var(--alg-tekst) !important;
+  border-radius: var(--alg-radius-groot);
+  box-shadow: var(--alg-schaduw) !important;
+  -webkit-backdrop-filter: var(--alg-blur);
+  backdrop-filter: var(--alg-blur);
+}
+
+.modal-header,
+.modal-footer {
+  border-color: var(--alg-rand) !important;
+}
+
+.modal-title {
+  color: var(--alg-tekst-sterk) !important;
+}
+
+.modal-backdrop {
+  --bs-backdrop-bg: #000 !important;
+  background-color: #000 !important;
+}
+
+.offcanvas {
+  --bs-offcanvas-bg: var(--alg-glas-sterk) !important;
+  --bs-offcanvas-color: var(--alg-tekst) !important;
+  --bs-offcanvas-border-color: var(--alg-rand-sterk) !important;
+  background-color: var(--alg-glas-sterk) !important;
+  color: var(--alg-tekst) !important;
+  -webkit-backdrop-filter: var(--alg-blur);
+  backdrop-filter: var(--alg-blur);
+}
+
+/* ---------- Popovers, tooltips, toasts ---------------------------------- */
+.popover {
+  --bs-popover-bg: var(--alg-glas-sterk) !important;
+  --bs-popover-border-color: var(--alg-rand-sterk) !important;
+  --bs-popover-header-bg: var(--alg-paneel) !important;
+  --bs-popover-header-color: var(--alg-tekst-sterk) !important;
+  --bs-popover-body-color: var(--alg-tekst) !important;
+  --bs-popover-arrow-border: var(--alg-rand-sterk) !important;
+  background-color: var(--alg-glas-sterk) !important;
+  border-color: var(--alg-rand-sterk) !important;
+  color: var(--alg-tekst) !important;
+  font-family: var(--alg-font) !important;
+  border-radius: var(--alg-radius);
+  -webkit-backdrop-filter: var(--alg-blur);
+  backdrop-filter: var(--alg-blur);
+}
+
+/* pijltjes van BS3/BS4 (BS5 gebruikt de variabelen hierboven) */
+.popover.top > .arrow::after, .bs-popover-top .arrow::after, .bs-popover-auto[x-placement^="top"] .arrow::after { border-top-color: #141414 !important; }
+.popover.bottom > .arrow::after, .bs-popover-bottom .arrow::after, .bs-popover-auto[x-placement^="bottom"] .arrow::after { border-bottom-color: #141414 !important; }
+.popover.left > .arrow::after, .bs-popover-left .arrow::after, .bs-popover-auto[x-placement^="left"] .arrow::after { border-left-color: #141414 !important; }
+.popover.right > .arrow::after, .bs-popover-right .arrow::after, .bs-popover-auto[x-placement^="right"] .arrow::after { border-right-color: #141414 !important; }
+.popover.top > .arrow, .bs-popover-top .arrow::before { border-top-color: var(--alg-rand-sterk) !important; }
+.popover.bottom > .arrow, .bs-popover-bottom .arrow::before { border-bottom-color: var(--alg-rand-sterk) !important; }
+.popover.left > .arrow, .bs-popover-left .arrow::before { border-left-color: var(--alg-rand-sterk) !important; }
+.popover.right > .arrow, .bs-popover-right .arrow::before { border-right-color: var(--alg-rand-sterk) !important; }
+
+.popover-header,
+.popover-title {
+  background-color: var(--alg-paneel) !important;
+  border-color: var(--alg-rand) !important;
+  color: var(--alg-tekst-sterk) !important;
+}
+
+.popover-body,
+.popover-content {
+  color: var(--alg-tekst) !important;
+}
+
+.tooltip {
+  --bs-tooltip-bg: #1c1c1c !important;
+  --bs-tooltip-color: var(--alg-tekst-sterk) !important;
+  --bs-tooltip-opacity: 1 !important;
+  font-family: var(--alg-font) !important;
+}
+
+/* zichtbare tooltip dekkend (BS3/4: .9), anders schijnt tekst erdoor */
+.tooltip.in,
+.tooltip.show {
+  opacity: 1 !important;
+}
+
+/* pijltjes in de kleur van de tooltip */
+.tooltip.top .tooltip-arrow, .bs-tooltip-top .arrow::before { border-top-color: #1c1c1c !important; }
+.tooltip.bottom .tooltip-arrow, .bs-tooltip-bottom .arrow::before { border-bottom-color: #1c1c1c !important; }
+.tooltip.left .tooltip-arrow, .bs-tooltip-left .arrow::before { border-left-color: #1c1c1c !important; }
+.tooltip.right .tooltip-arrow, .bs-tooltip-right .arrow::before { border-right-color: #1c1c1c !important; }
+
+.tooltip-inner {
+  background-color: #1c1c1c !important;
+  color: var(--alg-tekst-sterk) !important;
+  border: 0 solid var(--alg-rand-sterk);
+  border-radius: var(--alg-radius-midden);
+}
+
+.toast {
+  --bs-toast-bg: var(--alg-glas-sterk) !important;
+  --bs-toast-color: var(--alg-tekst) !important;
+  --bs-toast-border-color: var(--alg-rand-sterk) !important;
+  --bs-toast-header-bg: var(--alg-paneel) !important;
+  --bs-toast-header-color: var(--alg-tekst-sterk) !important;
+  background-color: var(--alg-glas-sterk) !important;
+  border-color: var(--alg-rand-sterk) !important;
+  color: var(--alg-tekst) !important;
+  -webkit-backdrop-filter: var(--alg-blur);
+  backdrop-filter: var(--alg-blur);
+}
+
+.toast-header {
+  background-color: var(--alg-paneel) !important;
+  border-color: var(--alg-rand) !important;
+  color: var(--alg-tekst-sterk) !important;
+}
+
+/* ---------- Meldingen --------------------------------------------------- */
+/* glas als ondergrond met de statustint als verloop erover: zo lopen de
+   lijnen van het netwerk niet scherp door de meldingstekst. Het verloop
+   vervangt ook de BS3-verlopen van bootstrap-theme. */
+.alert {
+  text-shadow: none !important;
+}
+
+.alert-success { background-color: var(--alg-glas) !important; background-image: linear-gradient(var(--alg-ok-tint), var(--alg-ok-tint)) !important; border-color: var(--alg-ok-rand) !important; color: var(--alg-ok) !important; }
+.alert-danger,
+.alert-error { background-color: var(--alg-glas) !important; background-image: linear-gradient(var(--alg-fout-tint), var(--alg-fout-tint)) !important; border-color: var(--alg-fout-rand) !important; color: var(--alg-fout) !important; }
+.alert-warning { background-color: var(--alg-glas) !important; background-image: linear-gradient(var(--alg-waarschuwing-tint), var(--alg-waarschuwing-tint)) !important; border-color: var(--alg-waarschuwing-rand) !important; color: var(--alg-waarschuwing) !important; }
+.alert-info { background-color: var(--alg-glas) !important; background-image: linear-gradient(var(--alg-info-tint), var(--alg-info-tint)) !important; border-color: var(--alg-info-rand) !important; color: var(--alg-info) !important; }
+.alert-primary,
+.alert-secondary,
+.alert-light,
+.alert-dark { background-color: var(--alg-glas) !important; background-image: linear-gradient(rgba(255, 255, 255, .05), rgba(255, 255, 255, .05)) !important; border-color: var(--alg-rand-sterk) !important; color: var(--alg-tekst) !important; }
+
+.alert .alert-link,
+.alert a {
+  color: inherit !important;
+}
+
+/* ---------- Badges en labels -------------------------------------------- */
+.badge:not([class*="bg-"], [class*="badge-"], [class*="text-bg-"]),
+.label-default,
+.badge-secondary,
+.badge-light {
+  background-color: #555 !important;
+  color: #fff !important;
+}
+
+.badge-primary,
+.label-primary { background-color: var(--alg-knop) !important; color: #fff !important; }
+.badge-success,
+.label-success { background-color: var(--alg-ok-vlak) !important; color: #fff !important; }
+.badge-danger,
+.label-danger { background-color: var(--alg-fout-vlak) !important; color: #fff !important; }
+.badge-warning,
+.label-warning { background-color: var(--alg-waarschuwing-vlak) !important; color: var(--alg-donker-tekst) !important; }
+.badge-info,
+.label-info { background-color: var(--alg-info-vlak) !important; color: var(--alg-donker-tekst) !important; }
+
+.text-bg-primary { background-color: var(--alg-knop) !important; color: #fff !important; }
+.text-bg-success { background-color: var(--alg-ok-vlak) !important; color: #fff !important; }
+.text-bg-danger { background-color: var(--alg-fout-vlak) !important; color: #fff !important; }
+.text-bg-secondary { background-color: #555 !important; color: #fff !important; }
+
+/* ---------- Tabellen ---------------------------------------------------- */
+.table {
+  --bs-table-color: var(--alg-tekst) !important;
+  --bs-table-bg: transparent !important;
+  --bs-table-border-color: var(--alg-rand) !important;
+  --bs-table-striped-color: var(--alg-tekst) !important;
+  --bs-table-striped-bg: var(--alg-zebra) !important;
+  --bs-table-active-color: var(--alg-tekst-sterk) !important;
+  --bs-table-active-bg: var(--alg-rij-actief) !important;
+  --bs-table-hover-color: var(--alg-tekst-sterk) !important;
+  --bs-table-hover-bg: rgba(255, 255, 255, .05) !important;
+  --bs-table-accent-bg: transparent !important;
+  color: var(--alg-tekst) !important;
+  border-color: var(--alg-rand) !important;
+}
+
+/* lichte koppen/rijen van BS4/5 en de tabelvariant .table-light */
+.table-light,
+.thead-light th,
+.table .thead-light th {
+  --bs-table-color: var(--alg-tekst-sterk) !important;
+  --bs-table-bg: rgba(255, 255, 255, .05) !important;
+  --bs-table-border-color: var(--alg-rand) !important;
+  background-color: rgba(255, 255, 255, .05) !important;
+  border-color: var(--alg-rand) !important;
+  color: var(--alg-tekst-sterk) !important;
+}
+
+.table > :not(caption) > * > *,
+.table > thead > tr > th,
+.table > tbody > tr > td,
+.table > tbody > tr > th,
+.table td,
+.table th {
+  border-color: var(--alg-rand) !important;
+}
+
+.table > thead th,
+.table thead th {
+  color: var(--alg-tekst-sterk);
+}
+
+/* BS3/4: vaste zebra- en hoverkleuren */
+.table-striped > tbody > tr:nth-of-type(odd) {
+  background-color: var(--alg-zebra);
+}
+
+.table-hover > tbody > tr:hover {
+  background-color: rgba(255, 255, 255, .05);
+  color: var(--alg-tekst-sterk);
+}
+
+.table-bordered,
+.table-bordered > * > tr > * {
+  border-color: var(--alg-rand) !important;
+}
+
+/* gekleurde rijen: tint in plaats van een licht vlak (ook de zebra-, hover-
+   en actief-variabelen, anders tekent BS5.3 er toch een licht vlak over) */
+.table-success,
+.table-success > :is(td, th),
+.table > tbody > tr.success > td,
+.table > tbody > tr > td.success {
+  --bs-table-color: var(--alg-ok) !important; --bs-table-bg: var(--alg-ok-tint) !important;
+  --bs-table-striped-color: var(--alg-ok) !important; --bs-table-striped-bg: var(--alg-ok-tint) !important;
+  --bs-table-hover-color: var(--alg-ok) !important; --bs-table-hover-bg: var(--alg-ok-tint) !important;
+  --bs-table-active-color: var(--alg-ok) !important; --bs-table-active-bg: var(--alg-ok-tint) !important;
+  --bs-table-border-color: var(--alg-rand) !important;
+  background-color: var(--alg-ok-tint) !important; color: var(--alg-ok) !important;
+}
+.table-danger,
+.table-danger > :is(td, th),
+.table > tbody > tr.danger > td,
+.table > tbody > tr > td.danger {
+  --bs-table-color: var(--alg-fout) !important; --bs-table-bg: var(--alg-fout-tint) !important;
+  --bs-table-striped-color: var(--alg-fout) !important; --bs-table-striped-bg: var(--alg-fout-tint) !important;
+  --bs-table-hover-color: var(--alg-fout) !important; --bs-table-hover-bg: var(--alg-fout-tint) !important;
+  --bs-table-active-color: var(--alg-fout) !important; --bs-table-active-bg: var(--alg-fout-tint) !important;
+  --bs-table-border-color: var(--alg-rand) !important;
+  background-color: var(--alg-fout-tint) !important; color: var(--alg-fout) !important;
+}
+.table-warning,
+.table-warning > :is(td, th),
+.table > tbody > tr.warning > td,
+.table > tbody > tr > td.warning {
+  --bs-table-color: var(--alg-waarschuwing) !important; --bs-table-bg: var(--alg-waarschuwing-tint) !important;
+  --bs-table-striped-color: var(--alg-waarschuwing) !important; --bs-table-striped-bg: var(--alg-waarschuwing-tint) !important;
+  --bs-table-hover-color: var(--alg-waarschuwing) !important; --bs-table-hover-bg: var(--alg-waarschuwing-tint) !important;
+  --bs-table-active-color: var(--alg-waarschuwing) !important; --bs-table-active-bg: var(--alg-waarschuwing-tint) !important;
+  --bs-table-border-color: var(--alg-rand) !important;
+  background-color: var(--alg-waarschuwing-tint) !important; color: var(--alg-waarschuwing) !important;
+}
+.table-info,
+.table-info > :is(td, th),
+.table > tbody > tr.info > td,
+.table > tbody > tr > td.info {
+  --bs-table-color: var(--alg-info) !important; --bs-table-bg: var(--alg-info-tint) !important;
+  --bs-table-striped-color: var(--alg-info) !important; --bs-table-striped-bg: var(--alg-info-tint) !important;
+  --bs-table-hover-color: var(--alg-info) !important; --bs-table-hover-bg: var(--alg-info-tint) !important;
+  --bs-table-active-color: var(--alg-info) !important; --bs-table-active-bg: var(--alg-info-tint) !important;
+  --bs-table-border-color: var(--alg-rand) !important;
+  background-color: var(--alg-info-tint) !important; color: var(--alg-info) !important;
+}
+.table-primary,
+.table-secondary,
+.table-active,
+:is(.table-primary, .table-secondary, .table-active) > :is(td, th),
+.table > tbody > tr.active > td {
+  --bs-table-color: var(--alg-tekst-sterk) !important; --bs-table-bg: rgba(255, 255, 255, .08) !important;
+  --bs-table-striped-color: var(--alg-tekst-sterk) !important; --bs-table-striped-bg: rgba(255, 255, 255, .08) !important;
+  --bs-table-hover-color: var(--alg-tekst-sterk) !important; --bs-table-hover-bg: rgba(255, 255, 255, .08) !important;
+  --bs-table-active-color: var(--alg-tekst-sterk) !important; --bs-table-active-bg: rgba(255, 255, 255, .08) !important;
+  --bs-table-border-color: var(--alg-rand) !important;
+  background-color: rgba(255, 255, 255, .08) !important; color: var(--alg-tekst-sterk) !important;
+}
+
+/* ---------- Paginering, kruimelpad -------------------------------------- */
+.pagination {
+  --bs-pagination-bg: rgba(255, 255, 255, .04) !important;
+  --bs-pagination-color: var(--alg-tekst) !important;
+  --bs-pagination-border-color: var(--alg-rand-sterk) !important;
+  --bs-pagination-hover-bg: var(--alg-rij-hover) !important;
+  --bs-pagination-hover-color: var(--alg-tekst-sterk) !important;
+  --bs-pagination-hover-border-color: var(--alg-rand-hover) !important;
+  --bs-pagination-active-bg: var(--alg-knop) !important;
+  --bs-pagination-active-color: #fff !important;
+  --bs-pagination-active-border-color: var(--alg-knop) !important;
+  --bs-pagination-disabled-bg: transparent !important;
+  --bs-pagination-disabled-color: #8a8a8a !important;
+  --bs-pagination-disabled-border-color: var(--alg-rand) !important;
+}
+
+.page-link,
+.pagination > li > a,
+.pagination > li > span,
+.pager li > a,
+.pager li > span {
+  background-color: rgba(255, 255, 255, .04) !important;
+  border-color: var(--alg-rand-sterk) !important;
+  color: var(--alg-tekst) !important;
+}
+
+.page-link:hover,
+.pagination > li > a:hover,
+.pager li > a:hover {
+  background-color: var(--alg-rij-hover) !important;
+  color: var(--alg-tekst-sterk) !important;
+}
+
+.page-item.active .page-link,
+.pagination > .active > a,
+.pagination > .active > span {
+  background-color: var(--alg-knop) !important;
+  border-color: var(--alg-knop) !important;
+  color: #fff !important;
+}
+
+.page-item.disabled .page-link,
+.pagination > .disabled > a,
+.pagination > .disabled > span {
+  background-color: transparent !important;
+  color: #8a8a8a !important;
+}
+
+.breadcrumb {
+  --bs-breadcrumb-divider-color: var(--alg-zwak) !important;
+  --bs-breadcrumb-item-active-color: var(--alg-gedempt) !important;
+  background-color: transparent !important;
+}
+
+.breadcrumb-item.active,
+.breadcrumb > .active {
+  color: var(--alg-gedempt) !important;
+}
+
+/* ---------- Voortgang, accordeon ---------------------------------------- */
+.progress,
+.progress-stacked {
+  --bs-progress-bg: rgba(255, 255, 255, .08) !important;
+  --bs-progress-bar-bg: #9a9a9a !important;
+  background-color: rgba(255, 255, 255, .08) !important;
+  border-radius: 99px;
+}
+
+.progress-bar:not([class*="bg-"], [class*="progress-bar-"]) {
+  background-color: #9a9a9a !important;
+  color: var(--alg-donker-tekst) !important;
+}
+
+.accordion {
+  --bs-accordion-color: var(--alg-tekst) !important;
+  --bs-accordion-bg: transparent !important;
+  --bs-accordion-border-color: var(--alg-rand) !important;
+  --bs-accordion-btn-color: var(--alg-tekst) !important;
+  --bs-accordion-btn-bg: rgba(255, 255, 255, .03) !important;
+  --bs-accordion-active-color: var(--alg-tekst-sterk) !important;
+  --bs-accordion-active-bg: rgba(255, 255, 255, .07) !important;
+  --bs-accordion-btn-focus-box-shadow: var(--alg-focus-ring) !important;
+}
+
+/* pijltje van het accordeon is een donkere achtergrondafbeelding */
+.accordion-button:not([data-bs-theme="dark"] *)::after {
+  filter: invert(1) grayscale(100%) brightness(200%);
+}
+

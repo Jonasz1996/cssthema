@@ -1,0 +1,21 @@
+[Unit]
+Description=cssthema api (FastAPI)
+Documentation=https://github.com/Jonasz1996/cssthema/blob/main/docs/ops/installatie-debian.md
+After=network-online.target postgresql.service redis-server.service valkey-server.service
+Wants=network-online.target
+
+[Service]
+User=cssthema
+Group=cssthema
+WorkingDirectory=@APP_DIR@/backend
+EnvironmentFile=/etc/cssthema/cssthema.env
+# Migraties draaien onder een advisory lock (migrations/env.py) en zijn idempotent.
+ExecStartPre=@VENV@/bin/alembic upgrade head
+# Alleen nginx op dezelfde machine praat met de api; die stuurt het echte client-IP mee.
+ExecStart=@VENV@/bin/uvicorn cssthema.main:app --host 127.0.0.1 --port 8000 --proxy-headers --forwarded-allow-ips 127.0.0.1 --no-access-log
+Restart=on-failure
+RestartSec=3
+NoNewPrivileges=yes
+
+[Install]
+WantedBy=multi-user.target

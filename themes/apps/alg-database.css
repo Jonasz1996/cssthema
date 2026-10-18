@@ -1,0 +1,197 @@
+/* ==========================================================================
+   alg-database.css - Database Cluster Dashboard (eigen pagina)
+   Host: database.jbogaert.be
+   Laadt na algemeen.css (sub_filter: eerst algemeen.css, dan dit bestand).
+
+   Werkt af: de eigen theme.park-variabelen van de pagina (--panel-bg,
+   --border-color ...) op de algemeen-tokens, kopbalk en node-panelen als
+   glas in allow-stijl, knoppen grijs met gloed, statuskleuren (neon groen,
+   rood, geel) naar de zachte ok/fout/waarschuwing-tokens, restore-knoppen
+   als gedempte foutknop, het actievenster (#action-panel) als glazen dialoog.
+   Herstel: met monospace past de pagina niet meer in 1440 px (ook zonder
+   thema stond node 3 al deels naast het scherm). De kopbalk mag afbreken en
+   lange statusregels lopen door op een tweede regel, zodat de drie panelen
+   in beeld blijven.
+
+   Beperkingen: het actievenster (databases, herstarten) is niet vastgelegd;
+   die regels zijn niet getest. CPU/RAM/schijf-velden (.nh-stat) waren leeg.
+   ========================================================================== */
+
+/* ---------- Eigen variabelen van de pagina ------------------------------- */
+:root {
+  --main-bg-color: var(--alg-achtergrond);
+  --panel-bg: var(--alg-glas);
+  --panel-header-bg: var(--alg-glas-sterk);
+  --button-color: var(--alg-knop);
+  --button-color-hover: var(--alg-knop-hover);
+  --button-text: var(--alg-knop-tekst);
+  --button-text-hover: var(--alg-knop-tekst-hover);
+  --text: var(--alg-tekst);
+  --text-hover: var(--alg-tekst-sterk);
+  --text-muted: var(--alg-gedempt);
+  --border-color: var(--alg-rand);
+  --border-light: var(--alg-rand-sterk);
+  --link-color: var(--alg-link);
+  --link-color-hover: var(--alg-link-hover);
+  --table-row: transparent;
+  --table-row-alt: var(--alg-zebra);
+  --table-row-hover: var(--alg-rij-hover);
+  /* gebruikt door .status-ok/-warn/-err maar nergens gedefinieerd */
+  --success: var(--alg-ok);
+  --warning: var(--alg-waarschuwing);
+  --danger: var(--alg-fout);
+}
+
+/* ---------- Kopbalk ------------------------------------------------------ */
+body > .x-panel-header {
+  flex-wrap: wrap;
+  gap: 10px 24px;
+  border-bottom-color: var(--alg-rand-sterk) !important;
+  box-shadow: var(--alg-schaduw-klein);
+  -webkit-backdrop-filter: var(--alg-blur);
+  backdrop-filter: var(--alg-blur);
+}
+
+body > .x-panel-header h2 {
+  color: var(--alg-tekst-sterk);
+  white-space: nowrap;
+}
+
+#be-time {
+  white-space: nowrap;
+}
+
+.top-btn {
+  background: var(--alg-knop-zacht);
+  color: var(--alg-tekst);
+  border-color: var(--alg-rand-sterk);
+  border-radius: var(--alg-radius-midden);
+  white-space: nowrap;
+}
+
+.top-btn:hover {
+  background: var(--alg-knop-zacht-hover);
+  color: var(--alg-tekst-sterk);
+  border-color: var(--alg-rand-hover);
+  box-shadow: var(--alg-gloed);
+}
+
+/* ---------- Panelen ------------------------------------------------------ */
+.x-panel.node-panel,
+body > .x-panel:not(.x-panel-header) {
+  border-color: var(--alg-rand-sterk) !important;
+  border-radius: var(--alg-radius-groot);
+  box-shadow: var(--alg-schaduw-midden);
+  -webkit-backdrop-filter: var(--alg-blur);
+  backdrop-filter: var(--alg-blur);
+}
+
+/* herstel: panelen mogen smaller worden dan hun langste statusregel */
+.node-panel {
+  min-width: 0;
+}
+
+.node-header-compact {
+  border-bottom-color: var(--alg-rand-sterk);
+}
+
+.nh-title {
+  color: var(--alg-tekst-sterk);
+}
+
+.nh-ip {
+  color: var(--alg-gedempt);
+}
+
+/* ---------- Statusregels ------------------------------------------------- */
+.status-item {
+  border-bottom-color: var(--alg-rand);
+  white-space: normal;
+}
+
+.status-item:hover {
+  background-color: var(--alg-rij-hover);
+}
+
+.status-item strong {
+  font-family: var(--alg-font);
+  white-space: normal;
+  text-align: right;
+}
+
+.status-item strong.status-ok { color: var(--alg-ok) !important; }
+.status-item strong.status-warn { color: var(--alg-waarschuwing) !important; }
+.status-item strong.status-err { color: var(--alg-fout) !important; }
+.status-item strong.status-unknown { color: var(--alg-gedempt) !important; }
+
+/* ---------- Back-ups ----------------------------------------------------- */
+.folder-entry {
+  font-family: var(--alg-font);
+  color: var(--alg-tekst);
+}
+
+.folder-icon {
+  color: var(--alg-gedempt);
+}
+
+.file-icon {
+  color: var(--alg-tekst);
+}
+
+.restore-btn {
+  background: var(--alg-fout-vlak);
+  color: var(--alg-knop-tekst);
+  border-radius: var(--alg-radius-klein);
+}
+
+.restore-btn:hover {
+  background: var(--alg-fout-vlak);
+  box-shadow: 0 0 16px var(--alg-fout-rand);
+}
+
+/* knoppen "Full Backup" / "Incremental Backup" (zonder klasse) */
+.x-panel button:not([class]) {
+  padding: 6px 14px;
+  border: 1px solid var(--alg-rand-hover);
+  border-radius: var(--alg-radius-midden);
+}
+
+.timer-label {
+  color: var(--alg-gedempt);
+}
+
+/* ---------- Actievenster (niet vastgelegd) ------------------------------- */
+#action-panel {
+  background: var(--alg-overlay);
+}
+
+#action-content,
+#action-panel .panel-content {
+  background: var(--alg-glas-sterk);
+  color: var(--alg-tekst);
+  border-color: var(--alg-rand-sterk);
+  border-radius: var(--alg-radius-groot);
+  box-shadow: var(--alg-schaduw);
+  -webkit-backdrop-filter: var(--alg-blur);
+  backdrop-filter: var(--alg-blur);
+}
+
+/* ---------- Smal scherm -------------------------------------------------- */
+/* Herstel: ook zonder thema liep de pagina op een telefoon ver naast het
+   scherm. Hier stapelen kopknoppen, node-panelen en back-upkolommen. */
+@media (max-width: 900px) {
+  body > .x-panel-header > div,
+  body > div:has(> .node-panel),
+  body > .x-panel:not(.x-panel-header) > div {
+    flex-wrap: wrap;
+  }
+
+  .node-panel,
+  body > .x-panel:not(.x-panel-header) > div > div {
+    flex-basis: 100% !important;
+  }
+
+  .status-item strong {
+    overflow-wrap: anywhere;
+  }
+}

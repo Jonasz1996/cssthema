@@ -1,0 +1,85 @@
+import type { components, operations } from "./schema";
+
+/**
+ * Korte namen voor de gegenereerde API-types (bron: `schema.d.ts`, niet met de hand wijzigen).
+ * Velden blijven `snake_case`, precies zoals de API ze stuurt.
+ */
+type Schemas = components["schemas"];
+
+export type Theme = Schemas["Theme"];
+export type ThemePage = Schemas["ThemePage"];
+export type ThemeStatus = Schemas["ThemeStatus"];
+export type ThemeCreate = Schemas["ThemeCreate"];
+export type ThemeUpdate = Schemas["ThemeUpdate"];
+export type ThemeTemplate = Schemas["ThemeTemplate"];
+export type DuplicateRequest = Schemas["DuplicateRequest"];
+export type Draft = Schemas["Draft"];
+export type LintResult = Schemas["LintResult"];
+export type LintIssue = Schemas["LintIssueOut"];
+export type Version = Schemas["Version"];
+export type VersionSummary = Schemas["VersionSummary"];
+export type VersionPage = Schemas["VersionPage"];
+export type VersionSource = Schemas["VersionSource"];
+export type VersionDiff = Schemas["VersionDiff"];
+export type Palette = Schemas["Palette"];
+export type Dashboard = Schemas["Dashboard"];
+export type LocalCssFile = Schemas["LocalCssFile"];
+export type LocalFilesSummary = Schemas["LocalFilesSummary"];
+export type LocalImportRequest = Schemas["LocalImportRequest"];
+export type LocalImportResult = Schemas["LocalImportResult"];
+export type ImportedTheme = Schemas["ImportedTheme"];
+export type SkippedFile = Schemas["SkippedFile"];
+export type ScriptFile = Schemas["ScriptFile"];
+export type HostBinding = Schemas["HostBinding"];
+export type HostBindingInput = Schemas["HostBindingInput"];
+export type HostOptions = Schemas["HostOptions"];
+export type HostImportRequest = Schemas["HostImportRequest"];
+export type HostImportResult = Schemas["HostImportResult"];
+export type HostHealthOverview = Schemas["HostHealthOverview"];
+export type HostHealth = Schemas["HostHealth"];
+export type HostCheck = Schemas["HostCheck"];
+export type HostCheckStarted = Schemas["HostCheckStarted"];
+export type HostHealthLevel = HostHealth["level"];
+export type ServiceSummary = Schemas["ServiceSummary"];
+export type SnapshotSummary = Schemas["SnapshotSummary"];
+export type SnapshotDocument = Schemas["SnapshotDocument"];
+export type CaptureImportResult = Schemas["CaptureImportResult"];
+export type UserRef = Schemas["UserRef"];
+export type EtagState = Schemas["EtagState"];
+export type Problem = Schemas["Problem"];
+
+type ThemesListQuery = NonNullable<operations["themes_list"]["parameters"]["query"]>;
+
+/** Filters van `GET /themes` (zonder `cursor`; die beheert de infinite query). */
+export type ThemeListFilters = Omit<ThemesListQuery, "cursor">;
+export type ThemeSort = NonNullable<ThemesListQuery["sort"]>;
+
+/** Eén kant van een diff: een versienummer of de huidige draft. */
+export type DiffRef = number | "draft";
+
+export type ExportFormat = "css" | "bundle";
+export type ImportConflict = Schemas["Body_themes_import"]["on_conflict"];
+
+/**
+ * Antwoord van een muterende call samen met de nieuwe lock-toestand van het thema
+ * (`ETag: "lv-<n>"`). Bewaar `lockVersion` en stuur hem mee bij de volgende wijziging.
+ */
+export interface Locked<T> {
+  data: T;
+  /** Zoals de server hem stuurde, bv. `"lv-13"` (met aanhalingstekens). */
+  etag: string;
+  lockVersion: number;
+}
+
+export type HostBulkRequest = Schemas["HostBulkRequest"];
+export type HostBulkAction = HostBulkRequest["action"];
+export type HostBulkResult = Schemas["HostBulkResult"];
+
+/** Preview in de editor: de stapel van een host rond het bewerkte thema (`/preview/stack`). */
+export type PreviewStack = Schemas["PreviewStack"];
+export type StackPart = Schemas["StackPart"];
+/** Welke hosts een thema krijgen (`/preview/usage`). */
+export type ThemeUsage = Schemas["ThemeUsage"];
+/** Antwoord van `POST /themes/import`: het thema en wat er gebeurde (`outcome`). */
+export type UploadedTheme = Schemas["UploadedTheme"];
+export type ImportOutcome = UploadedTheme["outcome"];

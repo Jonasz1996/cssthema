@@ -1,0 +1,11 @@
+node_modules/
+dist/
+coverage/
+*.tsbuildinfo
+*.local
+.vite/
+test-results/
+playwright-report/
+blob-report/
+dist.nieuw
+dist.oud

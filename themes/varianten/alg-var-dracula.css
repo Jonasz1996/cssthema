@@ -1,0 +1,53 @@
+/* alg-var-dracula.css: kleurvariant Dracula (draculatheme.com) van het algemene thema.
+ * Gemaakt met scripts/themes/varianten.py; pas dat script aan, niet dit bestand.
+ * Laad als laatste, na algemeen.css (of alg-kern + modules) en alg-<app>.css.
+ * Contrast (WCAG): tekst/vlak-2 11.1:1, knop 4.7:1, knop-hover 4.8:1, ok-vlak 4.5:1, fout-vlak 4.6:1, waarschuwing-vlak 16.9:1, info-vlak 13.6:1
+ */
+:root {
+  --alg-achtergrond: radial-gradient(circle, #343746, #282a36, #21222c, #191a21) center / cover no-repeat fixed;
+  --alg-achtergrond-kleur: #21222c;
+  --alg-glas: rgba(40, 42, 54, 0.8);
+  --alg-glas-sterk: rgba(40, 42, 54, 0.95);
+  --alg-vlak: #282a36;
+  --alg-vlak-2: #343746;
+  --alg-paneel: rgba(255, 255, 255, 0.04);
+  --alg-rij: rgba(255, 255, 255, 0.05);
+  --alg-rij-hover: rgba(255, 255, 255, 0.09);
+  --alg-rij-actief: rgba(189, 147, 249, 0.18);
+  --alg-zebra: rgba(255, 255, 255, 0.025);
+  --alg-veld: rgba(25, 26, 33, 0.85);
+  --alg-autofill: #21222c;
+  --alg-rand: rgba(248, 248, 242, 0.1);
+  --alg-rand-sterk: rgba(248, 248, 242, 0.17);
+  --alg-rand-hover: rgba(189, 147, 249, 0.45);
+  --alg-tekst: #f8f8f2;
+  --alg-tekst-sterk: #ffffff;
+  --alg-gedempt: #b2b8d6;
+  --alg-zwak: #868ba3;
+  --alg-placeholder: #b2b8d6;
+  --alg-link: #bd93f9;
+  --alg-link-hover: #ffffff;
+  --alg-code: #bd93f9;
+  --alg-knop: #6272a4;
+  --alg-knop-hover: #64719a;
+  --alg-gloed: 0 0 22px rgba(189, 147, 249, 0.3);
+  --alg-accent: 189, 147, 249;
+  --alg-focus-rand: #bd93f9;
+  --alg-ok: #50fa7b;
+  --alg-fout: #ff7a7a;
+  --alg-waarschuwing: #f1fa8c;
+  --alg-info: #8be9fd;
+  --alg-ok-vlak: #2c8742;
+  --alg-fout-vlak: #cf4545;
+  --alg-waarschuwing-vlak: #f1fa8c;
+  --alg-info-vlak: #8be9fd;
+  --alg-ok-tint: rgba(80, 250, 123, 0.12);
+  --alg-fout-tint: rgba(255, 85, 85, 0.12);
+  --alg-waarschuwing-tint: rgba(241, 250, 140, 0.12);
+  --alg-info-tint: rgba(139, 233, 253, 0.12);
+  --alg-ok-rand: rgba(80, 250, 123, 0.35);
+  --alg-fout-rand: rgba(255, 85, 85, 0.35);
+  --alg-waarschuwing-rand: rgba(241, 250, 140, 0.35);
+  --alg-info-rand: rgba(139, 233, 253, 0.35);
+  --alg-scrollbar: #656771;
+}

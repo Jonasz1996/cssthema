@@ -1,0 +1,14 @@
+{
+  "label": "Hoofdnavigatie",
+  "dashboard": "Dashboard",
+  "themes": "Thema's",
+  "palettes": "Paletten",
+  "hosts": "Hosts",
+  "import": "Import",
+  "editor": "Editor",
+  "services": "Services",
+  "discovery": "Discovery",
+  "ai": "AI Studio",
+  "jobs": "Jobs",
+  "settings": "Instellingen"
+}

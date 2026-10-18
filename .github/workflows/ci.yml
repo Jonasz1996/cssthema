@@ -1,0 +1,428 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  backend:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        # 3.12 zoals in de Docker-image, 3.13 zoals in Debian 13 (deploy/debian).
+        python: ["3.12", "3.13"]
+    defaults:
+      run:
+        working-directory: backend
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: cssthema
+          POSTGRES_PASSWORD: cssthema
+          POSTGRES_DB: cssthema
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U cssthema" --health-interval 5s
+          --health-timeout 3s --health-retries 10
+      redis:
+        image: redis:7-alpine
+        ports: ["6379:6379"]
+        options: >-
+          --health-cmd "redis-cli ping" --health-interval 5s
+          --health-timeout 3s --health-retries 10
+    env:
+      DATABASE_URL: postgresql+asyncpg://cssthema:cssthema@localhost:5432/cssthema
+      REDIS_URL: redis://localhost:6379/0
+      UV_PYTHON: ${{ matrix.python }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+      - run: uv python install
+      - run: uv sync --frozen
+      - name: Lint
+        run: |
+          uv run ruff check . ../scripts/npm ../scripts/themes
+          uv run ruff format --check . ../scripts/npm ../scripts/themes
+      - name: Typecheck
+        run: uv run mypy
+      - name: Migraties up → down → up, en geen ontbrekende migraties
+        run: |
+          uv run alembic upgrade head
+          uv run alembic downgrade base
+          uv run alembic upgrade head
+          uv run alembic check
+      - name: Tests
+        run: uv run pytest
+      - name: Tests van scripts/npm (regel.py)
+        run: uv run pytest ../scripts/npm -q
+      - name: OpenAPI is up-to-date
+        run: |
+          uv run python -m cssthema.openapi openapi.json
+          git diff --exit-code openapi.json || (echo "::error::backend/openapi.json is verouderd: draai 'make openapi'" && exit 1)
+      - name: Thema-modules en kleurvarianten zijn up-to-date
+        run: |
+          uv run python ../scripts/themes/modules.py --check
+          uv run python ../scripts/themes/varianten.py --check
+      - uses: actions/upload-artifact@v4
+        if: matrix.python == '3.12'
+        with:
+          name: openapi
+          path: backend/openapi.json
+
+  frontend:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          # pnpm-versie uit "packageManager" in frontend/package.json (niet de repo-root).
+          package_json_file: frontend/package.json
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+          cache-dependency-path: frontend/pnpm-lock.yaml
+      - run: pnpm install --frozen-lockfile
+      - name: API-types zijn up-to-date met backend/openapi.json
+        run: |
+          pnpm openapi
+          pnpm exec prettier --write src/api/schema.d.ts
+          git diff --exit-code src/api/schema.d.ts || (echo "::error::frontend/src/api/schema.d.ts is verouderd: draai 'make openapi'" && exit 1)
+      - run: pnpm lint
+      - run: pnpm exec prettier --check .
+      - run: pnpm typecheck
+      - run: pnpm test
+      - run: pnpm build
+
+  e2e:
+    name: E2E (Playwright)
+    # Parallel met backend/frontend: de suite start zelf de api (:8020) en `vite preview`
+    # (:4173) tegen de productiebuild (frontend/playwright.config.ts).
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: cssthema
+          POSTGRES_PASSWORD: cssthema
+          POSTGRES_DB: cssthema
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U cssthema" --health-interval 5s
+          --health-timeout 3s --health-retries 10
+      redis:
+        image: redis:7-alpine
+        ports: ["6379:6379"]
+        options: >-
+          --health-cmd "redis-cli ping" --health-interval 5s
+          --health-timeout 3s --health-retries 10
+    env:
+      DATABASE_URL: postgresql+asyncpg://cssthema:cssthema@localhost:5432/cssthema
+      REDIS_URL: redis://localhost:6379/0
+      UV_PYTHON: "3.12"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+      - name: Backend-afhankelijkheden
+        working-directory: backend
+        run: uv python install && uv sync --frozen
+      - uses: pnpm/action-setup@v4
+        with:
+          package_json_file: frontend/package.json
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+          cache-dependency-path: frontend/pnpm-lock.yaml
+      - name: Frontend-afhankelijkheden en Chromium
+        working-directory: frontend
+        run: |
+          pnpm install --frozen-lockfile
+          pnpm exec playwright install --with-deps --only-shell chromium
+      - name: Playwright (api :8020 + vite build/preview :4173)
+        working-directory: frontend
+        run: pnpm e2e
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: playwright-report
+          path: |
+            frontend/playwright-report/
+            frontend/test-results/e2e/
+          retention-days: 7
+
+  docker:
+    runs-on: ubuntu-latest
+    needs: [backend, frontend]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/setup-buildx-action@v3
+      - name: Images bouwen
+        run: docker compose -f docker/compose/docker-compose.yml --env-file .env.ci build
+        env:
+          DOCKER_BUILDKIT: "1"
+      - name: Stack starten en rooktest
+        run: |
+          docker compose -f docker/compose/docker-compose.yml --env-file .env.ci up -d --no-build --wait --wait-timeout 180
+          curl -fsS http://localhost:8080/healthz
+          curl -fsS http://localhost:8080/readyz
+          curl -fsS http://localhost:8080/api/v1/meta
+          curl -fsS http://localhost:8080/ | grep -q '<div id="root">'
+          test "$(curl -s -o /dev/null -w '%{http_code}' http://localhost:8080/Bad_Slug.css)" = 404
+          # Dashboard en api alleen op DASHBOARD_HOST (standaard localhost); /host/ op elke host.
+          test "$(curl -s -o /dev/null -w '%{http_code}' -H 'Host: css.example.test' http://localhost:8080/api/v1/meta)" = 404
+          test "$(curl -s -o /dev/null -w '%{http_code}' -H 'Host: css.example.test' http://localhost:8080/)" = 404
+          curl -fsS -o /dev/null -w '%{content_type}' -H 'Host: css.example.test' 'http://localhost:8080/host/%2A.css' | grep -q '^text/css'
+          # Request-ID van de client komt via nginx terug van de api.
+          curl -fsS -D - -o /dev/null -H 'X-Request-ID: ci-smoke-1' http://localhost:8080/api/v1/meta \
+            | grep -qi '^x-request-id: ci-smoke-1'
+          # Het storage-volume is schrijfbaar voor de niet-root app-gebruiker.
+          docker compose -f docker/compose/docker-compose.yml --env-file .env.ci exec -T api touch /data/storage/.ci-write-test
+          docker compose -f docker/compose/docker-compose.yml --env-file .env.ci exec -T worker touch /data/storage/.ci-write-test
+      - name: Logs bij falen
+        if: failure()
+        run: docker compose -f docker/compose/docker-compose.yml --env-file .env.ci logs
+      - name: Opruimen
+        if: always()
+        run: docker compose -f docker/compose/docker-compose.yml --env-file .env.ci down -v
+
+  debian-install:
+    name: Installatie zonder Docker (Debian 13, ${{ matrix.scenario }})
+    runs-on: ubuntu-latest
+    needs: [backend, frontend]
+    strategy:
+      fail-fast: false
+      matrix:
+        # nieuw: een lege container. bijwerken: eerst de versie die op de server draait
+        # (OUDE_VERSIE, met een SQL_ASCII-database en data), dan deze versie erover.
+        scenario: [nieuw, bijwerken]
+    env:
+      OUDE_VERSIE: ab3b5b96a29376e5a30e01be230d3bb070de0026
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # OUDE_VERSIE moet in de geschiedenis zitten.
+          fetch-depth: 0
+      - name: Debian 13-container met systemd
+        run: |
+          docker run -d --name deb --privileged --cgroupns=private --tmpfs /run --tmpfs /run/lock \
+            debian:trixie bash -c 'apt-get update -qq && apt-get install -y -qq systemd systemd-sysv >/dev/null && exec /sbin/init'
+          for i in $(seq 1 90); do
+            docker exec deb systemctl is-system-running 2>/dev/null | grep -qE '^(running|degraded)$' && break
+            sleep 2
+          done
+          docker exec deb systemctl is-system-running || true
+          docker cp . deb:/opt/cssthema
+          # Zoals een `git clone` als root: git weigert anders een repo van een andere gebruiker.
+          docker exec deb chown -R root:root /opt/cssthema
+      - name: install.sh, eerste keer
+        if: matrix.scenario == 'nieuw'
+        run: docker exec -e TRUSTED_PROXIES=192.0.2.10 -e DASHBOARD_HOST="localhost 127.0.0.1" deb bash /opt/cssthema/deploy/debian/install.sh
+      - name: Oude versie installeren, met een SQL_ASCII-database en data
+        if: matrix.scenario == 'bijwerken'
+        run: |
+          docker exec -e OUDE_VERSIE deb bash -euxc '
+            apt-get install -y -qq git postgresql >/dev/null
+            systemctl start postgresql
+            # Zoals in een LXC zonder locale: de database staat in SQL_ASCII.
+            runuser -u postgres -- createuser cssthema
+            runuser -u postgres -- createdb -E SQL_ASCII -T template0 --locale=C -O cssthema cssthema
+            git -C /opt/cssthema rev-parse HEAD > /root/nieuwe-versie
+            git -C /opt/cssthema checkout -q --detach "$OUDE_VERSIE"
+            TRUSTED_PROXIES=192.0.2.10 bash /opt/cssthema/deploy/debian/install.sh
+            # Data via de api van de oude versie: een gepubliceerd thema (met é), een script en
+            # een handgemaakt bestand.
+            id=$(curl -fsS -H "Content-Type: application/json" -d "{\"name\":\"Oud thema\",\"slug\":\"oud-thema\",\"css\":\".oud{--naam:café;color:red}\"}" http://127.0.0.1/api/v1/themes | python3 -c "import json, sys; print(json.load(sys.stdin)[\"id\"])")
+            lock=$(curl -fsS "http://127.0.0.1/api/v1/themes/$id/draft" | python3 -c "import json, sys; print(json.load(sys.stdin)[\"lock_version\"])")
+            curl -fsS -H "Content-Type: application/json" -d "{\"expected_lock_version\":$lock}" "http://127.0.0.1/api/v1/themes/$id/publish" >/dev/null
+            printf "window.oud = 1;\n" > /root/oud.js
+            curl -fsS -F "file=@/root/oud.js" http://127.0.0.1/api/v1/scripts >/dev/null
+            printf ":root{}\n" > /var/lib/cssthema/css-files/oud-bestand.css
+            curl -fsS http://127.0.0.1/oud-thema.css | grep -qF "café"
+            test "$(runuser -u postgres -- psql -tAc "SELECT pg_encoding_to_char(encoding) FROM pg_database WHERE datname = '"'"'cssthema'"'"'")" = SQL_ASCII
+          '
+      - name: Bijwerken naar deze versie
+        if: matrix.scenario == 'bijwerken'
+        run: |
+          docker exec -e OUDE_VERSIE deb bash -euxc '
+            # Zonder DASHBOARD_HOST weigert install.sh, vóór er iets verandert.
+            git -C /opt/cssthema checkout -q --detach "$(cat /root/nieuwe-versie)"
+            if bash /opt/cssthema/deploy/debian/install.sh > /root/zonder-dashboard-host.log 2>&1; then exit 1; fi
+            grep -qF "DASHBOARD_HOST ontbreekt" /root/zonder-dashboard-host.log
+            test ! -e /usr/local/sbin/cssthema-backup
+            DASHBOARD_HOST="localhost 127.0.0.1" bash /opt/cssthema/deploy/debian/install.sh
+            # UTF8, de data van de oude versie staat er nog, de database op de laatste migratie.
+            test "$(runuser -u postgres -- psql -tAc "SELECT pg_encoding_to_char(encoding) FROM pg_database WHERE datname = '"'"'cssthema'"'"'")" = UTF8
+            curl -fsS http://127.0.0.1/oud-thema.css | grep -qF "café"
+            curl -fsS http://127.0.0.1/oud.js | grep -qF "window.oud = 1;"
+            curl -fsS -o /dev/null http://127.0.0.1/oud-bestand.css
+            curl -fsS http://127.0.0.1/api/v1/themes | grep -qF "\"slug\":\"oud-thema\""
+            head=$(cd /opt/cssthema/backend && /usr/local/lib/cssthema/venv/bin/alembic heads | cut -d" " -f1)
+            test "$(runuser -u postgres -- psql -d cssthema -tAc "SELECT version_num FROM alembic_version")" = "$head"
+            # De back-up vóór de update hoort bij de oude versie, ook al schreef die
+            # geinstalleerde-commit nooit (HEAD@{1}).
+            bk=$(ls -d /var/backups/cssthema/*-voor-update | tail -n1)
+            test "$(cat "$bk/commit")" = "$OUDE_VERSIE"
+            test "$(cat "$bk/revisie")" = 0002
+            # Terugzetten zet de data terug, maar start de api niet: de code is nieuwer. Het
+            # toont de checkout van de oude versie.
+            cssthema-backup terugzetten "$bk" -y | tee /root/terugzetten.log
+            grep -qF "git -C /opt/cssthema checkout --detach $OUDE_VERSIE" /root/terugzetten.log
+            if systemctl is-active -q cssthema-api; then exit 1; fi
+            test "$(runuser -u postgres -- psql -d cssthema -tAc "SELECT version_num FROM alembic_version")" = 0002
+            # De database hoort nu weer bij de oude versie: de volgende back-up moet dat noteren.
+            test "$(cat /var/lib/cssthema/geinstalleerde-commit)" = "$OUDE_VERSIE"
+          '
+      - name: Ongeldige DASHBOARD_HOST in cssthema.env
+        run: |
+          docker exec deb bash -euxc '
+            # Ook een waarde die alleen in de configuratie staat, weigert install.sh vóór de
+            # back-up en vóór nginx.
+            cp /etc/cssthema/cssthema.env /root/cssthema.env.goed
+            sed -i "s|^DASHBOARD_HOST=.*|DASHBOARD_HOST=https://localhost|" /etc/cssthema/cssthema.env
+            backups=$(ls /var/backups/cssthema 2>/dev/null | wc -l)
+            site=$(md5sum < /etc/nginx/sites-available/cssthema)
+            if bash /opt/cssthema/deploy/debian/install.sh > /root/ongeldig.log 2>&1; then exit 1; fi
+            grep -qF "ongeldige hostnaam in DASHBOARD_HOST" /root/ongeldig.log
+            grep -qF "nog niet aangepast" /root/ongeldig.log
+            test "$(ls /var/backups/cssthema 2>/dev/null | wc -l)" = "$backups"
+            test "$(md5sum < /etc/nginx/sites-available/cssthema)" = "$site"
+            # Een naam die alleen de backend weigert (label met een punt ervoor), ook vooraf.
+            cp /root/cssthema.env.goed /etc/cssthema/cssthema.env
+            sed -i "/^EXCLUDED_HOSTS=/d" /etc/cssthema/cssthema.env
+            echo "EXCLUDED_HOSTS=.authentik.example.be" >> /etc/cssthema/cssthema.env
+            if bash /opt/cssthema/deploy/debian/install.sh > /root/ongeldig.log 2>&1; then exit 1; fi
+            grep -qF "ongeldige hostnaam in EXCLUDED_HOSTS" /root/ongeldig.log
+            test "$(ls /var/backups/cssthema 2>/dev/null | wc -l)" = "$backups"
+            cp /root/cssthema.env.goed /etc/cssthema/cssthema.env
+          '
+      - name: install.sh, nog een keer (bijwerken)
+        run: docker exec -e PUBLIC_BASE_URL=https://css.example.test deb bash /opt/cssthema/deploy/debian/install.sh
+      - name: Capture-zip voor de rooktest
+        run: |
+          python3 - <<'PY'
+          import json, zipfile
+          info = {"titel": "CI", "dienst": "ci.example.test", "start_url": "https://ci.example.test/", "status": "ok"}
+          html = '<html><head><link rel="stylesheet" href="../../_css/0123456789abcdef.css"></head><body class="ci">x</body></html>'
+          with zipfile.ZipFile("cap.zip", "w") as z:
+              z.writestr("vastgelegd/_css/0123456789abcdef.css", ".ci{color:red}")
+              z.writestr("vastgelegd/ci-example-test/start/info.json", json.dumps(info))
+              z.writestr("vastgelegd/ci-example-test/start/snapshot.html", html)
+              z.writestr("vastgelegd/ci-example-test/start/origineel.jpg", b"\xff\xd8\xff\xe0ci")
+          PY
+          docker cp cap.zip deb:/root/cap.zip
+      - name: Rooktest
+        run: |
+          docker exec deb bash -euxc '
+            curl -fsS http://127.0.0.1/readyz
+            curl -fsS http://127.0.0.1/api/v1/meta | grep -q "\"public_base_url\":\"https://css.example.test\""
+            curl -fsS http://127.0.0.1/ | grep -q "<div id=\"root\">"
+            grep -q "set_real_ip_from 192.0.2.10;" /etc/nginx/conf.d/cssthema-real-ip.conf
+            # Dashboard en api alleen op DASHBOARD_HOST; publieke bestanden op elke host.
+            grep -q "^DASHBOARD_HOST=localhost,127.0.0.1$" /etc/cssthema/cssthema.env
+            grep -q "localhost 1;" /etc/nginx/conf.d/cssthema-dashboard-host.conf
+            test "$(curl -s -o /dev/null -w "%{http_code}" -H "Host: css.example.test" http://127.0.0.1/api/v1/meta)" = 404
+            test "$(curl -s -o /dev/null -w "%{http_code}" -H "Host: css.example.test" -X POST -H "Content-Type: application/json" -d "{}" http://127.0.0.1/api/v1/meta)" = 404
+            test "$(curl -s -o /dev/null -w "%{http_code}" -H "Host: css.example.test" http://127.0.0.1/)" = 404
+            curl -fsS -o /dev/null -w "%{content_type}" -H "Host: css.example.test" "http://127.0.0.1/host/%2A.css" | grep -q "^text/css"
+            curl -fsS -o /dev/null -H "Host: css.example.test" http://127.0.0.1/readyz
+            # Handgemaakte CSS-bestanden gaan voor, ook met een naam die geen slug is.
+            printf ":root{}\n" > /var/lib/cssthema/css-files/proxmox.css
+            printf ":root{}\n" > /var/lib/cssthema/css-files/Home_Assistant.css
+            curl -fsS -o /dev/null -w "%{content_type}" http://127.0.0.1/proxmox.css | grep -q "^text/css"
+            curl -fsS -o /dev/null http://127.0.0.1/Home_Assistant.css
+            test "$(curl -s -o /dev/null -w "%{http_code}" http://127.0.0.1/onbekend.css)" = 404
+            test "$(curl -s -o /dev/null -w "%{http_code}" http://127.0.0.1/Bad_Slug.css)" = 404
+            # Thema-scripts uit css-files; het eigen preview-script van het dashboard blijft werken.
+            printf "void 0;\n" > /var/lib/cssthema/css-files/algemeen.js
+            curl -fsS -o /dev/null -w "%{content_type}" http://127.0.0.1/algemeen.js | grep -q "javascript"
+            curl -fsS -o /dev/null -w "%{content_type}" http://127.0.0.1/preview-bridge.js | grep -q "javascript"
+            test "$(curl -s -o /dev/null -w "%{http_code}" http://127.0.0.1/onbekend.js)" = 404
+            # Scripts uploaden via de api (schrijft als cssthema) en via nginx (leest als
+            # www-data) ophalen: bewijst dat de rechten in css-files kloppen.
+            printf "console.log(\"ci-v1\");\n" > /root/ci-script.js
+            curl -fsS -F "file=@/root/ci-script.js" http://127.0.0.1/api/v1/scripts | grep -q "\"name\":\"ci-script\""
+            test "$(stat -c "%a %U" /var/lib/cssthema/css-files/ci-script.js)" = "644 cssthema"
+            curl -fsS -o /dev/null -w "%{content_type}" http://127.0.0.1/ci-script.js | grep -q "javascript"
+            curl -fsS http://127.0.0.1/ci-script.js | grep -qF "console.log(\"ci-v1\");"
+            # Vervangen: zonder replace 409, met replace staat de vorige versie in het archief.
+            printf "console.log(\"ci-v2\");\n" > /root/ci-script.js
+            test "$(curl -s -o /dev/null -w "%{http_code}" -F "file=@/root/ci-script.js" http://127.0.0.1/api/v1/scripts)" = 409
+            test "$(curl -s -o /dev/null -w "%{http_code}" -F "file=@/root/ci-script.js" -F replace=true http://127.0.0.1/api/v1/scripts)" = 200
+            curl -fsS http://127.0.0.1/ci-script.js | grep -qF "ci-v2"
+            archived=$(ls /var/lib/cssthema/css-files/.scripts-archief/ | grep "^ci-script\." | head -n1)
+            grep -qF "ci-v1" "/var/lib/cssthema/css-files/.scripts-archief/$archived"
+            # Het archief is nooit publiek (verborgen pad), ook niet als bestand.
+            test "$(curl -s -o /dev/null -w "%{http_code}" "http://127.0.0.1/.scripts-archief/$archived")" = 404
+            if curl -s "http://127.0.0.1/.scripts-archief/$archived" | grep -qF "ci-v1"; then exit 1; fi
+            test "$(curl -s -o /dev/null -w "%{http_code}" -X DELETE http://127.0.0.1/api/v1/scripts/ci-script)" = 204
+            test "$(curl -s -o /dev/null -w "%{http_code}" http://127.0.0.1/ci-script.js)" = 404
+            # De api alleen via de proxy (TRUSTED_PROXIES) of lokaal. Vanaf een ander adres (hier
+            # het eigen LAN-IP) 403 proxy_required, voor lezen en schrijven, ook met een
+            # verzonnen X-Forwarded-For.
+            grep -q "192.0.2.10 1;" /etc/nginx/conf.d/cssthema-real-ip.conf
+            lan=$(hostname -I | awk "{print \$1}")
+            test "$(curl -s -o /dev/null -w "%{http_code}" -H "Host: localhost" "http://$lan/api/v1/scripts")" = 403
+            test "$(curl -s -o /dev/null -w "%{http_code}" -H "Host: localhost" -F "file=@/root/ci-script.js" "http://$lan/api/v1/scripts")" = 403
+            curl -s -H "Host: localhost" -H "X-Forwarded-For: 192.0.2.10" -F "file=@/root/ci-script.js" "http://$lan/api/v1/scripts" | grep -qF "\"code\":\"proxy_required\""
+            test ! -e /var/lib/cssthema/css-files/ci-script.js
+            # CSRF: een upload vanaf een andere pagina weigert de api zelf (Sec-Fetch-Site/Origin).
+            curl -s -H "Origin: https://evil.example" -H "Sec-Fetch-Site: cross-site" -F "file=@/root/ci-script.js" http://127.0.0.1/api/v1/scripts | grep -qF "\"code\":\"csrf_failed\""
+            test ! -e /var/lib/cssthema/css-files/ci-script.js
+            # Database altijd UTF8; CORS op bestanden uit css-files; andere .js nooit de SPA.
+            test "$(runuser -u postgres -- psql -tAc "SELECT pg_encoding_to_char(encoding) FROM pg_database WHERE datname = '"'"'cssthema'"'"'")" = UTF8
+            curl -fsS http://127.0.0.1/readyz | grep -qF "\"database_encoding\":\"ok\""
+            curl -fsS -D - -o /dev/null http://127.0.0.1/proxmox.css | grep -qi "^access-control-allow-origin: \*"
+            test "$(curl -s -o /dev/null -w "%{http_code}" http://127.0.0.1/Foo.js)" = 404
+            # Eén regel voor alle hosts: /host/<hostnaam>.css|.js via nginx, met * als standaard.
+            curl -fsS -H "Content-Type: application/json" -d "{\"hostname\":\"*\",\"styles\":[\"proxmox\"],\"scripts\":[\"algemeen\"]}" http://127.0.0.1/api/v1/hosts | grep -qF "\"hostname\":\"*\""
+            curl -fsS -H "Content-Type: application/json" -d "{\"hostname\":\"ha.example.test\",\"styles\":[\"Home_Assistant\",\"ontbreekt\"]}" http://127.0.0.1/api/v1/hosts >/dev/null
+            # Een host zonder eigen koppeling krijgt een redirect naar de gedeelde bundel van *.
+            test "$(curl -s -o /dev/null -w "%{http_code}" http://127.0.0.1/host/app.example.test.css)" = 302
+            curl -fsSL http://127.0.0.1/host/app.example.test.css | grep -qF "proxmox (bestand)"
+            curl -fsS -D - -o /dev/null http://127.0.0.1/host/%2A.css | grep -qi "^access-control-allow-origin: \*"
+            # Browsers hervalideren de bundel bij elke paginalaad; de redirect blijft cachebaar.
+            curl -fsS -D - -o /dev/null http://127.0.0.1/host/%2A.css | grep -qi "^cache-control: public, no-cache"
+            curl -s -D - -o /dev/null http://127.0.0.1/host/app.example.test.css | grep -qi "^cache-control: public, max-age=60"
+            curl -fsSL -o /dev/null -w "%{content_type}" http://127.0.0.1/host/app.example.test.js | grep -q "javascript"
+            curl -fsSL http://127.0.0.1/host/app.example.test.js | grep -qF "void 0;"
+            # Gezondheid: de geladen host staat in de lijst; de controle start.
+            curl -fsS http://127.0.0.1/api/v1/hosts/health | grep -qF "\"hostname\":\"app.example.test\""
+            curl -fsS -X POST http://127.0.0.1/api/v1/hosts/check | grep -qF "\"started\""
+            curl -fsS http://127.0.0.1/host/ha.example.test.css | grep -qF "Home_Assistant (bestand)"
+            curl -fsS http://127.0.0.1/host/ha.example.test.css | grep -qF "\"ontbreekt\" niet gevonden"
+            test "$(curl -s -o /dev/null -w "%{http_code}" "http://127.0.0.1/host/Bad_Host.css")" = 404
+            # Capture-zip importeren: dienst, snapshot met CSS, screenshot in storage (D1).
+            curl -fsS -F "file=@/root/cap.zip" http://127.0.0.1/api/v1/captures | grep -qF "\"snapshots\":1"
+            curl -fsS http://127.0.0.1/api/v1/services | grep -qF "\"hostname\":\"ci.example.test\""
+            test -n "$(find /var/lib/cssthema/storage/assets -type f -user cssthema | head -n1)"
+            # Back-ups: één vóór de tweede run, de timer staat aan, en terugzetten werkt.
+            ls /var/backups/cssthema | grep -q -- "-voor-update$"
+            systemctl is-enabled cssthema-backup.timer
+            dir=$(cssthema-backup maak ci)
+            test "$(cat "$dir/commit")" = "$(git -C /opt/cssthema rev-parse HEAD)"
+            test -s /var/lib/cssthema/laatste-backup
+            rm /var/lib/cssthema/css-files/proxmox.css
+            cssthema-backup terugzetten "$dir" -y
+            test -f /var/lib/cssthema/css-files/proxmox.css
+            for i in $(seq 1 30); do curl -fsS http://127.0.0.1/readyz >/dev/null 2>&1 && break; sleep 2; done
+            curl -fsS http://127.0.0.1/readyz
+            systemctl is-active cssthema-api cssthema-worker nginx
+          '
+      - name: Logs bij falen
+        if: failure()
+        run: docker exec deb journalctl -u cssthema-api -u cssthema-worker -u nginx --no-pager -n 200 || true

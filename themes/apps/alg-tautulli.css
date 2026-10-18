@@ -1,0 +1,175 @@
+/* ==========================================================================
+   alg-tautulli.css - Tautulli (Bootstrap 3, eigen donker thema)
+   Host: tautulli.jbogaert.be
+   Laadt NA algemeen.css.
+
+   Tautulli is van zichzelf donker, met vaste grijze vlakken (#222/#282828/
+   #323232) en Plex-oranje/geel als accent. Wat het afwerkt:
+   - dialogen en de setupwizard: vaste vlakken worden glas (kop/voet als
+     paneel, inhoud doorzichtig); het wizardvenster omsluit nu de hele
+     inhoud (de inhoud stak 28px onder de rand uit)
+   - wizardstappen: actieve stap als opgelichte rij in plaats van oranje
+   - oranje/gele accenten (hoofdknop .btn-bright, actieve tabs en pillen,
+     paginering, hoverlinks, cijfers en titels in geel) worden grijs/wit
+   - bovenbalk (zwart) als glazen balk; voortgangsbalk van streams grijs
+
+   Beperkingen: vastgelegd is alleen de welkomstwizard (Tautulli was nog niet
+   ingesteld). De regels voor het hoofdscherm (dashboard, bibliotheken,
+   instellingen) volgen Tautulli's eigen CSS-klassen, maar zijn niet getest.
+   Platformkleuren (Plex, Android ...) en logo's blijven ongemoeid.
+   ========================================================================== */
+
+/* ---------- Dialogen en setupwizard -------------------------------------- */
+.modal-header,
+.wizard-header {
+  background-color: var(--alg-paneel) !important;
+  border-bottom-color: var(--alg-rand) !important;
+  border-radius: var(--alg-radius-groot) var(--alg-radius-groot) 0 0;
+}
+
+.modal-body {
+  background-color: transparent;
+}
+
+.modal-footer {
+  background-color: var(--alg-paneel);
+  border-top-color: var(--alg-rand);
+  border-radius: 0 0 var(--alg-radius-groot) var(--alg-radius-groot);
+}
+
+/* het script zet de hoogte vast (518px) terwijl kop + inhoud hoger zijn */
+.modal-content.wizard-content {
+  height: auto !important;
+}
+
+.wizard-steps {
+  background-color: var(--alg-paneel);
+  border-bottom-left-radius: var(--alg-radius-groot);
+}
+
+.wizard-nav-list > li > a {
+  color: var(--alg-gedempt);
+}
+
+.wizard-nav-list > li.active > a,
+.wizard-nav-list > li.active > a:hover {
+  background-color: var(--alg-rij-actief) !important;
+  color: var(--alg-tekst-sterk) !important;
+}
+
+.wizard-nav-list > li.already-visited > a.wizard-nav-link {
+  color: var(--alg-tekst);
+}
+
+/* oranje iconen en vetgedrukte tekst in dialogen */
+.modal-body i:not(.fa),
+.modal-body strong,
+.modal-body strong i.fa {
+  color: var(--alg-tekst-sterk);
+}
+
+/* ---------- Knoppen ------------------------------------------------------ */
+/* .btn-bright is de oranje hoofdknop (Next, Save, ...) */
+.btn-bright,
+.btn-bright:is(:focus, :active, .active),
+.open > .dropdown-toggle.btn-bright {
+  background-color: var(--alg-knop) !important;
+  border-color: transparent !important;
+  box-shadow: none !important;
+  color: var(--alg-knop-tekst) !important;
+  font-weight: 700;
+}
+
+.btn-bright:hover {
+  background-color: var(--alg-knop-hover) !important;
+  box-shadow: var(--alg-gloed) !important;
+}
+
+.btn-dark,
+.btn-form {
+  background-color: var(--alg-knop-zacht) !important;
+  border-color: var(--alg-rand-sterk) !important;
+  color: var(--alg-tekst) !important;
+}
+
+.btn-dark:hover,
+.btn-form:hover {
+  background-color: var(--alg-knop-zacht-hover) !important;
+  color: var(--alg-tekst-sterk) !important;
+}
+
+/* ---------- Navigatie, tabs, paginering (hoofdscherm, niet getest) ------- */
+.navbar {
+  background: var(--alg-glas-sterk) !important;
+  box-shadow: 0 1px 0 var(--alg-rand) !important;
+  -webkit-backdrop-filter: var(--alg-blur);
+  backdrop-filter: var(--alg-blur);
+}
+
+a:is(:hover, :focus) {
+  color: var(--alg-link-hover);
+}
+
+.nav > li.active > a,
+.nav-tabs > .active > a:is(:hover, :focus),
+.nav-settings > .active > a,
+.stacked-configs > li > span > :is(a, span).active,
+.accordion li.open .link,
+.accordion li.open .link i.fa {
+  color: var(--alg-tekst-sterk) !important;
+}
+
+.nav-pills > li.active > a,
+.pagination > .active > :is(a, span),
+.pagination > li > :is(a, span):hover,
+#menu_link_show_advanced_settings.active {
+  background-color: var(--alg-knop) !important;
+  color: var(--alg-knop-tekst) !important;
+}
+
+:is(div, li).advanced-setting {
+  border-left-color: var(--alg-rand-hover) !important;
+}
+
+.setting-message {
+  color: var(--alg-waarschuwing);
+}
+
+/* ---------- Dashboard en statistieken (niet getest) ---------------------- */
+/* gele cijfers en titels */
+.summary-content-title h1,
+.summary-content-title h1 a,
+.dashboard-stats-info-item .sub-count,
+.user-overview-stats-instance h3,
+.user-player-instance-playcount h3,
+.home-platforms-instance-playcount h3,
+.home-platforms-instance-list-playcount h3,
+#new_title h3 {
+  color: var(--alg-tekst-sterk) !important;
+}
+
+.home-platforms-instance-list-number {
+  background-color: var(--alg-knop) !important;
+  color: var(--alg-knop-tekst);
+}
+
+.table-card-header,
+.item-children-section-title,
+#updatebar,
+#token_error_bar {
+  background-color: var(--alg-paneel) !important;
+}
+
+/* voortgang van een stream: oranje verloop wordt grijs */
+.dashboard-activity-progress .progress-bar {
+  background-color: var(--alg-knop) !important;
+  background-image: none !important;
+}
+
+/* oranje hoverrand rond posters en hoesjes */
+a:hover :is(.dashboard-activity-poster, .dashboard-activity-cover,
+    .dashboard-stats-poster, .dashboard-stats-cover, .dashboard-recent-media-poster,
+    .dashboard-recent-media-cover, .item-children-poster),
+a :is(.poster-face, .cover-face, .users-poster-face, .library-user-instance-box):hover {
+  box-shadow: inset 0 0 0 2px var(--alg-rand-hover), var(--alg-gloed) !important;
+}

@@ -1,0 +1,241 @@
+/* ==========================================================================
+   alg-libretranslate.css - LibreTranslate 1.9 (Materialize + eigen --vars)
+   Host: libretranslate.jbogaert.be
+   Laadt na algemeen.css (sub_filter: eerst algemeen.css, dan dit bestand).
+
+   Werkt af: de eigen variabelen van LibreTranslate (--pri-bg-color,
+   --accent-color ...) op de algemeen-tokens; de blauwe navigatiebalk,
+   zijmenu, taalpaneel en voettekst worden glas; Materialize-kaarten (wit)
+   worden glazen panelen, de oranje kaartknop wordt grijs, het
+   waarschuwingsicoon krijgt de waarschuwingskleur; Materialize-knoppen
+   (groenblauw) grijs met gloed; het vertaalscherm: tekstvakken, knoppen
+   Tekst/Bestanden, actieknoppen, voortgangsbalk, bestandszone en de
+   codevoorbeelden (Prism, lichte kleuren naar leesbaar op donker).
+
+   Beperkingen: vastgelegd is alleen de startpagina met de melding over de
+   handelsmerkrichtlijnen; het vertaalscherm zelf verschijnt pas na JS en
+   is niet in beeld getest (regels uit de eigen stylesheet van de app). Het
+   ingebouwde donker thema (lampje) blijft werken maar valt nu samen met dit
+   thema. /docs (Swagger UI) is niet bekeken. Material Icons laden niet in
+   de render (geen netwerk), dus daar staan de ligatuurnamen als tekst.
+   ========================================================================== */
+
+/* ---------- Variabelen van LibreTranslate -------------------------------- */
+:root {
+  --pri-bg-color: transparent;
+  --sec-bg-color: var(--alg-paneel);
+  --code-bg-color: var(--alg-pre-vlak);
+  --border-color: var(--alg-rand-sterk);
+  --fg-color: var(--alg-tekst);
+  --nav-fg-color: var(--alg-tekst-sterk);
+  --accent-color: var(--alg-knop);
+}
+
+/* ---------- Navigatie, taalpaneel, zijmenu, voettekst -------------------- */
+nav,
+#nav-mobile,
+.locale-panel,
+.page-footer {
+  background-color: var(--alg-glas-sterk);
+  -webkit-backdrop-filter: var(--alg-blur);
+  backdrop-filter: var(--alg-blur);
+}
+
+nav {
+  box-shadow: inset 0 -1px 0 var(--alg-rand-sterk), var(--alg-schaduw-klein);
+}
+
+/* de menulijst krijgt van de app ook de accentkleur; binnen het glas van
+   nav geen tweede vlak */
+nav #nav {
+  background-color: transparent;
+}
+
+nav ul a {
+  color: var(--alg-tekst);
+}
+
+nav ul a:hover {
+  background-color: var(--alg-rij-hover);
+  color: var(--alg-tekst-sterk);
+}
+
+nav .brand-logo {
+  color: var(--alg-tekst-sterk);
+}
+
+.page-footer {
+  box-shadow: inset 0 1px 0 var(--alg-rand-sterk);
+}
+
+.page-footer .footer-copyright {
+  background-color: var(--alg-paneel);
+  color: var(--alg-gedempt);
+}
+
+/* ---------- Kaarten (Materialize) ---------------------------------------- */
+.card {
+  background-color: var(--alg-glas);
+  color: var(--alg-tekst);
+  border-radius: var(--alg-radius-groot);
+  box-shadow: inset 0 0 0 1px var(--alg-rand-sterk), var(--alg-schaduw-midden);
+  -webkit-backdrop-filter: var(--alg-blur);
+  backdrop-filter: var(--alg-blur);
+}
+
+.card-stacked,
+.card-stacked .card-content,
+.card-content {
+  background-color: transparent;
+}
+
+.card .card-action {
+  background-color: var(--alg-paneel);
+  border-top-color: var(--alg-rand-sterk);
+  border-radius: 0 0 var(--alg-radius-groot) var(--alg-radius-groot);
+}
+
+/* Materialize kleurt deze link oranje met een zeer specifieke selector */
+.card .card-action a {
+  color: var(--alg-tekst-sterk) !important;
+}
+
+.card .card-action a:hover {
+  color: var(--alg-link-hover) !important;
+}
+
+/* herstel: de lange URL in de melding liep op een telefoon uit de kaart */
+.card-content p {
+  overflow-wrap: anywhere;
+}
+
+.card-content > i.material-icons:first-child {
+  color: var(--alg-waarschuwing);
+}
+
+/* ---------- Knoppen (Materialize) ---------------------------------------- */
+.btn,
+.btn-large,
+.btn-small,
+.btn-floating {
+  background-color: var(--alg-knop);
+  color: var(--alg-knop-tekst);
+  border-radius: var(--alg-radius-midden);
+}
+
+.btn:hover,
+.btn-large:hover,
+.btn-small:hover,
+.btn-floating:hover,
+.btn:focus,
+.btn-large:focus {
+  background-color: var(--alg-knop-hover);
+  box-shadow: var(--alg-gloed);
+}
+
+.btn-switch-type {
+  border-radius: var(--alg-radius-midden);
+  box-shadow: inset 0 0 0 1px var(--alg-rand-sterk);
+}
+
+.btn-switch-type.active {
+  box-shadow: var(--alg-gloed);
+}
+
+.btn-switch-language {
+  color: var(--alg-tekst);
+}
+
+.btn-action,
+.btn-action:disabled,
+.btn-delete-text,
+.textarea-container .material-icons,
+.characters-limit-container {
+  color: var(--alg-gedempt);
+}
+
+.btn-action:hover:not(:disabled),
+.btn-blue {
+  color: var(--alg-tekst-sterk);
+}
+
+/* ---------- Vertaalvakken, bestandszone, voortgang ----------------------- */
+.textarea-container textarea,
+.file-dropzone {
+  border-radius: var(--alg-radius);
+}
+
+.textarea-container textarea:focus {
+  border-color: var(--alg-accent-kleur);
+  box-shadow: var(--alg-focus-ring);
+}
+
+.file-dropzone {
+  border-style: dashed;
+  color: var(--alg-gedempt);
+}
+
+/* Materialize: groenblauwe onderlijn bij focus */
+input:not(.browser-default):focus:not([readonly]),
+textarea.materialize-textarea:focus:not([readonly]) {
+  border-bottom-color: var(--alg-accent-kleur) !important;
+  box-shadow: 0 1px 0 0 var(--alg-accent-kleur) !important;
+}
+
+.progress {
+  background-color: var(--alg-rij);
+}
+
+.progress .indeterminate,
+.progress .determinate {
+  background-color: var(--alg-accent-kleur);
+}
+
+/* ---------- Keuzelijsten (Materialize dropdown) -------------------------- */
+.dropdown-content {
+  background-color: var(--alg-glas-sterk);
+  box-shadow: var(--alg-schaduw-midden);
+}
+
+.dropdown-content li > a,
+.dropdown-content li > span {
+  color: var(--alg-tekst);
+}
+
+.dropdown-content li:hover,
+.dropdown-content li.active {
+  background-color: var(--alg-rij-hover);
+}
+
+/* ---------- Codevoorbeelden (Prism, lichte kleuren) ---------------------- */
+.code {
+  border-radius: var(--alg-radius-midden);
+  color: var(--alg-code);
+}
+
+code[class*="language-"],
+pre[class*="language-"] {
+  color: var(--alg-code);
+  text-shadow: none;
+}
+
+:not(pre) > code[class*="language-"],
+pre[class*="language-"] {
+  background: var(--alg-pre-vlak);
+}
+
+.token.comment, .token.prolog, .token.doctype, .token.cdata { color: var(--alg-zwak); }
+.token.punctuation { color: var(--alg-gedempt); }
+.token.keyword, .token.atrule, .token.attr-value { color: var(--alg-info); }
+.token.string, .token.char, .token.attr-name, .token.builtin, .token.inserted, .token.selector { color: var(--alg-ok); }
+.token.number, .token.boolean, .token.constant, .token.property, .token.symbol, .token.tag, .token.deleted { color: var(--alg-waarschuwing); }
+.token.function, .token.class-name { color: var(--alg-tekst-sterk); }
+
+.token.operator,
+.token.entity,
+.token.url,
+.language-css .token.string,
+.style .token.string {
+  color: var(--alg-tekst);
+  background: none;
+}
