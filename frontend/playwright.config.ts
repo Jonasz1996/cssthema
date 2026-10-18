@@ -16,6 +16,7 @@ import { E2E } from "./tests/e2e/support/env";
 
 const external = Boolean(process.env.E2E_BASE_URL);
 mkdirSync(E2E.cssFilesDir, { recursive: true });
+mkdirSync(E2E.storageDir, { recursive: true });
 
 export default defineConfig({
   testDir: "./tests/e2e",
@@ -69,6 +70,7 @@ export default defineConfig({
             REDIS_URL: process.env.REDIS_URL ?? "redis://localhost:6379/0",
             PUBLIC_BASE_URL: E2E.baseURL,
             CSS_FILES_DIR: E2E.cssFilesDir,
+            STORAGE_DIR: E2E.storageDir,
             // Geen nginx voor de api: niets te verversen.
             CSS_REFRESH_URL: "",
             LOG_JSON: "false",

@@ -18,4 +18,6 @@ export const E2E = {
   cssFilesDir:
     process.env.E2E_CSS_FILES_DIR ??
     fileURLToPath(new URL("../../../test-results/css-files", import.meta.url)),
+  /** `STORAGE_DIR` van de api (snapshots en hun bestanden uit de upload-tests). */
+  storageDir: fileURLToPath(new URL("../../../test-results/storage", import.meta.url)),
 } as const;
