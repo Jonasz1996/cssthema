@@ -117,5 +117,5 @@
   "errorValidation": "Sommige velden zijn ongeldig.",
   "errorAuthExpired": "Je login is verlopen: laad de pagina opnieuw om opnieuw in te loggen.",
   "errorCsrf": "Geweigerd: wijzigingen kunnen alleen vanuit het dashboard zelf, niet vanaf een andere pagina.",
-  "errorProxyRequired": "Geweigerd: wijzigingen kunnen alleen via Nginx Proxy Manager (TRUSTED_PROXIES). Open het dashboard via je domein."
+  "errorProxyRequired": "Geweigerd: dit toestel staat niet in TRUSTED_PROXIES. Zet daar het netwerk van je pc (dashboard op het LAN) of het IP van Nginx Proxy Manager (dashboard via je domein)."
 }
