@@ -117,5 +117,5 @@
   "errorValidation": "Some fields are invalid.",
   "errorAuthExpired": "Your login has expired: reload the page to log in again.",
   "errorCsrf": "Refused: changes can only be made from the dashboard itself, not from another page.",
-  "errorProxyRequired": "Refused: changes are only accepted through Nginx Proxy Manager (TRUSTED_PROXIES). Open the dashboard through your domain."
+  "errorProxyRequired": "Refused: this device is not in TRUSTED_PROXIES. Put your PC's network there (dashboard on the LAN) or the IP of Nginx Proxy Manager (dashboard through your domain)."
 }

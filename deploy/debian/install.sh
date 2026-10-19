@@ -5,8 +5,13 @@
 # Eerste keer (als root, in een lege container):
 #   apt update && apt install -y git
 #   git clone https://github.com/Jonasz1996/cssthema.git /opt/cssthema
-#   DASHBOARD_HOST=cssthema.jouwdomein.be PUBLIC_BASE_URL=https://css.jouwdomein.be \
-#       TRUSTED_PROXIES=<ip-van-npm> bash /opt/cssthema/deploy/debian/install.sh
+# en dan een van deze twee (docs/ops/installatie-debian.md § 2):
+# - dashboard alleen op het LAN, op het IP van deze container (NPM serveert alleen de CSS):
+#   DASHBOARD_HOST=192.168.1.20 TRUSTED_PROXIES=192.168.1.0/24 \
+#       PUBLIC_BASE_URL=https://css.jouwdomein.be bash /opt/cssthema/deploy/debian/install.sh
+# - dashboard via NPM, achter Authentik:
+#   DASHBOARD_HOST=cssthema.jouwdomein.be TRUSTED_PROXIES=192.168.1.10 \
+#       PUBLIC_BASE_URL=https://css.jouwdomein.be bash /opt/cssthema/deploy/debian/install.sh
 #
 # Bijwerken: git -C /opt/cssthema pull && bash /opt/cssthema/deploy/debian/install.sh
 # Vóór elke update maakt het script een back-up (cssthema-backup lijst); terugzetten met
@@ -66,10 +71,11 @@ command -v apt-get >/dev/null || die "alleen Debian (of Ubuntu) met apt wordt on
 [ -f "$APP_DIR/backend/pyproject.toml" ] || die "repo niet gevonden in $APP_DIR"
 # Zonder DASHBOARD_HOST serveert nginx het dashboard nergens: stoppen vóór er iets verandert.
 if [ -z "$ARG_DASHBOARD_HOST" ] && ! grep -q '^DASHBOARD_HOST=.' "$ENV_FILE" 2>/dev/null; then
-    die "DASHBOARD_HOST ontbreekt: de hostnaam waarop je het dashboard opent (in NPM, achter
-Authentik). Alleen daar serveert nginx het dashboard en de api; op elke andere host alleen de
-publieke CSS en scripts. Er is nog niets aangepast. Draai het script opnieuw met die hostnaam, bv.:
-  DASHBOARD_HOST=cssthema.jbogaert.be bash $APP_DIR/deploy/debian/install.sh"
+    die "DASHBOARD_HOST ontbreekt: het adres waarop je het dashboard opent, het IP van deze
+container (alleen op het LAN) of een hostnaam in NPM achter Authentik. Alleen daar serveert nginx
+het dashboard en de api; op elke andere host alleen de publieke CSS en scripts. Er is nog niets
+aangepast. Draai het script opnieuw met dat adres, bv.:
+  DASHBOARD_HOST=192.168.10.154 TRUSTED_PROXIES=192.168.10.0/24 bash $APP_DIR/deploy/debian/install.sh"
 fi
 hostnamen_controleren DASHBOARD_HOST "$ARG_DASHBOARD_HOST"
 hostnamen_controleren EXCLUDED_HOSTS "$ARG_EXCLUDED_HOSTS"
@@ -108,16 +114,18 @@ ENVIRONMENT=production
 # Publiek CSS-domein (https, geen IP): de basis van de NPM-regel in elke proxy host.
 PUBLIC_BASE_URL=http://${ip:-localhost}
 
-# Hostna(a)m(en) van het dashboard (in NPM, achter Authentik), komma-gescheiden. Alleen
-# daar serveert nginx het dashboard en de api.
+# Waar je het dashboard opent, komma-gescheiden: het IP van deze container (alleen op het
+# LAN, zonder NPM) of een hostnaam in NPM achter Authentik. Alleen daar serveert nginx het
+# dashboard en de api; via elke andere naam (het CSS-domein) geeft dat een 404.
 DASHBOARD_HOST=
 # Hosts die nooit thema's of scripts krijgen, naast het dashboard en het CSS-domein
 # (bv. Authentik en NPM zelf), komma-gescheiden.
 EXCLUDED_HOSTS=
 
-# IP('s) van Nginx Proxy Manager, komma-gescheiden. nginx neemt het client-IP uit
-# X-Forwarded-For alleen van deze adressen over (rate limit, audit), en alleen zij mogen
-# de api gebruiken.
+# Wie de api mag gebruiken, komma-gescheiden IP's of netwerken: het netwerk van je pc als
+# je het dashboard op het LAN opent (bv. 192.168.10.0/24), of het IP van Nginx Proxy Manager
+# als het via NPM gaat. nginx neemt van deze adressen ook het client-IP uit X-Forwarded-For
+# over (rate limit, audit).
 TRUSTED_PROXIES=127.0.0.1
 
 POSTGRES_HOST=localhost
@@ -159,9 +167,29 @@ set +a
 # anders stopt het script pas bij nginx, na de back-up en de build, met een nginx-config die
 # naar een nog ontbrekende map verwijst.
 [ -n "${DASHBOARD_HOST:-}" ] ||
-    die "DASHBOARD_HOST is leeg in $ENV_FILE; zet daar de hostnaam van het dashboard (bv. DASHBOARD_HOST=cssthema.jbogaert.be) en draai het script opnieuw"
+    die "DASHBOARD_HOST is leeg in $ENV_FILE; zet daar het adres waarop je het dashboard opent: het IP van deze container (alleen op het LAN, bv. DASHBOARD_HOST=192.168.10.154) of een hostnaam in NPM achter Authentik (bv. DASHBOARD_HOST=cssthema.jbogaert.be), en draai het script opnieuw"
 hostnamen_controleren DASHBOARD_HOST "$DASHBOARD_HOST"
 hostnamen_controleren EXCLUDED_HOSTS "${EXCLUDED_HOSTS:-}"
+# PUBLIC_BASE_URL mag niet het IP van het dashboard zijn. Dat adres komt in de regel van elke
+# app, en de variant voor het eigen domein (/alg-thema/) zou dan via elke app rechtstreeks het
+# dashboard en de api doorgeven, langs NPM heen. Een domeinnaam gaat wel via NPM (zie "Eén
+# domein voor dashboard en CSS" in de docs), en localhost bereikt vanuit NPM deze machine niet.
+basis=${PUBLIC_BASE_URL:-}
+basis=${basis#*://}
+basis=${basis%%/*}
+basis=$(printf %s "${basis%:*}" | tr '[:upper:]' '[:lower:]')
+case ",$(printf %s "$DASHBOARD_HOST" | tr ' ' ',' | tr '[:upper:]' '[:lower:]')," in
+    *",$basis,"*)
+        case $basis in
+            127.0.0.1) ;;
+            *[0-9]) die "PUBLIC_BASE_URL=$PUBLIC_BASE_URL is het adres van het dashboard ($basis staat in DASHBOARD_HOST).
+Dat adres komt in de NPM-regel van elke app, en de variant voor het eigen domein zou dan het dashboard
+en de api via je apps doorgeven. Zet je publieke CSS-domein en draai het script opnieuw, bv.:
+  PUBLIC_BASE_URL=https://css.jbogaert.be bash $APP_DIR/deploy/debian/install.sh
+Database, code en nginx zijn nog niet aangepast." ;;
+        esac
+        ;;
+esac
 controle=$(mktemp -d)
 if ! { TRUSTED_PROXIES=$TRUSTED_PROXIES CSSTHEMA_REAL_IP_CONF=$controle/real-ip.conf \
     sh "$APP_DIR/docker/nginx/entrypoint/40-cssthema-real-ip.sh" &&
@@ -373,10 +401,16 @@ echo "$ready"
 git -C "$APP_DIR" rev-parse HEAD >"$DATA_DIR/geinstalleerde-commit" 2>/dev/null || true
 
 ip=$(hostname -I 2>/dev/null | awk '{print $1}' || true)
+case $DASHBOARD_HOST in
+    *,*) dashboard_url="$DASHBOARD_HOST (DASHBOARD_HOST)" ;;
+    # Een IP-adres eindigt op een cijfer, een domeinnaam nooit (HOSTNAAM_RE: geen [ ]).
+    *[0-9]) dashboard_url="http://$DASHBOARD_HOST/ (alleen op het LAN; via NPM geeft het een 404)" ;;
+    *) dashboard_url="https://$DASHBOARD_HOST/ via NPM (achter Authentik; niet op http://${ip:-<ip>}/)" ;;
+esac
 cat <<EOF
 
 cssthema draait.
-  Dashboard:        https://${DASHBOARD_HOST%%,*}/ via NPM (achter Authentik; niet op http://${ip:-<ip>}/)
+  Dashboard:        $dashboard_url
   Eigen CSS-files:  $DATA_DIR/css-files/<naam>.css  ->  http://${ip:-<ip>}/<naam>.css
   Thema-scripts:    dashboard > Import > Scripts     ->  http://${ip:-<ip>}/<naam>.js
   Configuratie:     $ENV_FILE
@@ -396,10 +430,30 @@ if [ -n "$branch" ] && [ "$branch" != main ] &&
         echo "op deze branch tot ze op main staan; dit script zegt dan hoe je overschakelt."
     fi
 fi
-if [ "$TRUSTED_PROXIES" = 127.0.0.1 ]; then
+# Alleen deze machine zelf in TRUSTED_PROXIES: dan geeft de api elke browser een 403.
+ander_adres=0
+for proxy in $(printf %s "${TRUSTED_PROXIES:-}" | tr ',' ' '); do
+    case " 127.0.0.1 ::1 $(hostname -I 2>/dev/null || true) " in
+        *" ${proxy%/32} "*) ;;
+        *) ander_adres=1 ;;
+    esac
+done
+if [ -n "${TRUSTED_PROXIES:-}" ] && [ "$ander_adres" = 0 ]; then
     echo
-    echo "Let op: zet het IP van Nginx Proxy Manager bij TRUSTED_PROXIES in $ENV_FILE en draai dit script opnieuw."
-    echo "Tot dan geeft de api via NPM 403: nginx laat /api/ alleen toe van TRUSTED_PROXIES."
+    echo "Let op: TRUSTED_PROXIES=$TRUSTED_PROXIES is alleen deze machine zelf. Tot je dat aanpast, geeft de"
+    echo "api (thema's, Hosts) elke browser een 403."
+    case $DASHBOARD_HOST in
+        *,* | *[0-9])
+            netwerk=192.168.1.0/24
+            case $ip in *.*.*.*) netwerk=${ip%.*}.0/24 ;; esac
+            echo "Dashboard op het LAN: zet het netwerk van je pc (kijk met ipconfig), bv.:"
+            echo "  TRUSTED_PROXIES=$netwerk bash $APP_DIR/deploy/debian/install.sh"
+            ;;
+        *)
+            echo "Dashboard via NPM: zet alleen het IP van Nginx Proxy Manager, nooit een heel netwerk (dan kan"
+            echo "elk toestel op het LAN om Authentik heen), bv. TRUSTED_PROXIES=192.168.1.10."
+            ;;
+    esac
 fi
 # PUBLIC_BASE_URL komt in de NPM-regel van elke proxy host: http of een IP werkt daar niet.
 base_host=${PUBLIC_BASE_URL#*://}

@@ -20,7 +20,7 @@ Komt de CSS nog van de oude server, dan laadt elke app na de regel een bestand d
 
    ```bash
    python3 regel.py --npm http://IP-VAN-NPM:81 \
-     --basis https://css.jbogaert.be --dashboard cssthema.jbogaert.be \
+     --basis https://css.jbogaert.be --dashboard 192.168.10.154 \
      --uitsluiten authentik.jbogaert.be,nginx.jbogaert.be,nginx105.jbogaert.be,allow.jbogaert.be,aiverslag.jbogaert.be,vaultwarden \
      --hosts-conf oude-links.conf
    ```
@@ -74,7 +74,7 @@ Erbij: de regel uit cssthema (pagina **Hosts**), op de plaats van de eerste oude
 | `--npm URL` | adres van de NPM-beheerpagina, bv. `http://192.168.1.10:81` |
 | `--npm-gebruiker` | je NPM-e-mailadres (anders gevraagd). Ook via `NPM_GEBRUIKER`, `NPM_WACHTWOORD` en `NPM_CODE`, zoals bij `vastleggen.py` |
 | `--basis URL` | `PUBLIC_BASE_URL` van cssthema |
-| `--dashboard HOSTS` | `DASHBOARD_HOST` van cssthema (komma's of spaties) |
+| `--dashboard HOSTS` | `DASHBOARD_HOST` van cssthema (komma's of spaties): het IP van de LXC als je het dashboard op het LAN opent, anders de hostnaam in NPM |
 | `--uitsluiten a,b` | hosts waarvan de naam dat bevat niet aanraken; zet daar dezelfde hosts in als in `EXCLUDED_HOSTS` |
 | `--oud-domein a,b` | extra domeinen waarvan links als oude thema-links tellen |
 | `--host NAAM` | alleen deze host |
