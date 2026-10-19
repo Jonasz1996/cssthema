@@ -181,7 +181,7 @@ Kies je liever iets anders eerst, zeg dan de nummers.
 | F5 | Klaar (PR #9): gezondheid ook voor hosts op `*` en voor diensten van **Services**, waarschuwing "nooit (recent) geladen", bulkwijzigingen op **Hosts**. |
 | F6 | Klaar (PR #9): een mislukte nieuwe vastlegging houdt de vorige snapshot, opruimen van ongebruikte bestanden, nette fout bij een kapotte zip, imports na elkaar. |
 | G (deel) | Dependabot: één PR per ecosysteem per maand, gegroepeerd. |
-| E8 | Klaar (2026-10-19): het dashboard alleen op het LAN als gewone keuze naast Authentik (`DASHBOARD_HOST` = IP van de LXC, `TRUSTED_PROXIES` = netwerk van je pc). Via NPM komt het dan onder geen enkele naam naar buiten; installer, foutmeldingen, [installatie-debian.md](ops/installatie-debian.md) en [uitrol.md](ops/uitrol.md) volgen dat model. |
+| E8 | Klaar (2026-10-19): het dashboard alleen op het LAN als gewone keuze naast Authentik (`DASHBOARD_HOST` = IP van de LXC, `TRUSTED_PROXIES` = netwerk van je pc). Via de proxy hosts van NPM komt het dan niet naar buiten; de installer stopt als `PUBLIC_BASE_URL` dat IP is. Installer, foutmeldingen, [installatie-debian.md](ops/installatie-debian.md) en [uitrol.md](ops/uitrol.md) volgen dat model. |
 
 ---
 

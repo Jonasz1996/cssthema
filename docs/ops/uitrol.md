@@ -12,7 +12,7 @@ Vertrekpunt was: `css.jbogaert.be` wijst nog naar de oude CSS-server, de LXC (19
 | cssthema (LXC) | `192.168.10.154`, poort 80 |
 | Krijgen nooit de regel | `css.jbogaert.be`, `authentik.jbogaert.be` en de beheerpagina's van NPM `nginx.jbogaert.be` en `nginx105.jbogaert.be` (die laatste drie in `EXCLUDED_HOSTS`), en `allow.jbogaert.be` en `aiverslag.jbogaert.be` (eigen netwerkachtergrond; krijgen ze de regel toch, zet hun koppeling op *Hosts* uit) |
 
-Zit je pc niet in `192.168.10.x` (kijk met `ipconfig`), vervang `192.168.10.0/24` dan overal door het netwerk van je pc, bv. `192.168.20.0/24`; meerdere mag, met komma's. Het IP van NPM heb je niet nodig.
+Zit je pc niet in `192.168.10.x` (kijk met `ipconfig`), vervang `192.168.10.0/24` dan overal door het netwerk van je pc, bv. `192.168.20.0/24`; meerdere mag, met komma's. Het IP van NPM hoeft niet in `TRUSTED_PROXIES` (zie [installatie-debian.md § 4, *Wie mag de api gebruiken*](installatie-debian.md#wie-mag-de-api-gebruiken)).
 
 ## 0. Staat het dashboard open?
 
@@ -20,10 +20,9 @@ Het dashboard staat alleen op het LAN (`DASHBOARD_HOST=192.168.10.154`, vanaf st
 
 ```bash
 curl -s -o /dev/null -w '%{http_code}\n' https://cssthema.jbogaert.be/api/v1/meta
-curl -s -o /dev/null -w '%{http_code}\n' https://css.jbogaert.be/api/v1/meta
 ```
 
-- **Controle:** `404`, of een fout van NPM als die proxy host niet (meer) bestaat; nooit JSON (curl: `200`). Krijg je JSON, dan kan iedereen op internet thema's en scripts in al je apps zetten: doe dan nu stap 2, met `DASHBOARD_HOST=192.168.10.154`.
+- **Controle:** `404`, een `302` naar Authentik (zolang die oude proxy host met het Authentik-blok bestaat), of een fout van NPM als hij niet meer bestaat; nooit JSON (curl: `200`). Hetzelfde voor `https://css.jbogaert.be/api/v1/meta` vanaf stap 5 (tot dan antwoordt de oude server). Krijg je JSON, dan kan iedereen op internet thema's en scripts in al je apps zetten: doe dan nu stap 2, met `DASHBOARD_HOST=192.168.10.154`.
 - Laat `css.jbogaert.be` naar de oude server wijzen tot stap 5.
 - **Weg terug:** niet nodig, je kijkt alleen.
 
@@ -64,7 +63,7 @@ DASHBOARD_HOST=192.168.10.154 TRUSTED_PROXIES=192.168.10.0/24 PUBLIC_BASE_URL=ht
   bash /opt/cssthema/deploy/debian/install.sh
 ```
 
-Draait de LXC al `main` met `DASHBOARD_HOST=cssthema.jbogaert.be` (de eerste versie van deze stap)? Dan volstaat de laatste regel: `DASHBOARD_HOST=192.168.10.154 TRUSTED_PROXIES=192.168.10.0/24 bash /opt/cssthema/deploy/debian/install.sh`. De andere waarden blijven staan in `/etc/cssthema/cssthema.env`.
+Draait de LXC al `main` met `DASHBOARD_HOST=cssthema.jbogaert.be` (de eerste versie van deze stap)? Dan volstaat `git -C /opt/cssthema pull && DASHBOARD_HOST=192.168.10.154 TRUSTED_PROXIES=192.168.10.0/24 bash /opt/cssthema/deploy/debian/install.sh`. De andere waarden blijven staan in `/etc/cssthema/cssthema.env`. De controle en de weg terug hieronder gaan dan over de eerste keer; terug naar het vorige adres gaat met hetzelfde commando en de oude waarden (een back-up terugzetten verandert `cssthema.env` niet).
 
 De eerste regel zorgt dat de back-up vóór de update weet dat hij bij `ab3b5b9` hoort (die versie schreef dat bestand nog niet). Het script maakt die back-up voor het de database, de code-omgeving of nginx aanraakt. Het zet de database om naar UTF8 als dat nodig is (de oude blijft staan als `cssthema_sql_ascii_<tijdstip>`), en stopt zonder iets te veranderen als `DASHBOARD_HOST` ontbreekt.
 
@@ -147,7 +146,7 @@ chmod -R u=rwX,go=rX /var/lib/cssthema/css-files/*
 
 Bewaar eerst de huidige instellingen van `css.jbogaert.be` (Forward IP en de tekst bij *Advanced*): dat is de weg terug.
 
-1. `cssthema.jbogaert.be`: niet meer nodig, het dashboard staat op het LAN. Verwijder die proxy host; hij geeft toch alleen nog een `404`.
+1. `cssthema.jbogaert.be`: niet meer nodig, het dashboard staat op het LAN. Verwijder die proxy host; hij geeft toch alleen nog een `404` (of de Authentik-login, als het Authentik-blok er nog in staat).
 2. `css.jbogaert.be`: Forward `http` / `192.168.10.154` / `80`, *Cache Assets* uit, *Advanced* leeg, *Custom locations* leeg. nginx van cssthema serveert op deze hostnaam alleen publieke bestanden.
 
 - **Controle** (via 4G of van buiten je netwerk):
@@ -165,7 +164,7 @@ Bewaar eerst de huidige instellingen van `css.jbogaert.be` (Forward IP en de tek
 
 Elke app krijgt dezelfde regel (de hoofdregel uit [installatie-debian.md § 4, *Eén regel voor alle hosts*](installatie-debian.md#eén-regel-voor-alle-hosts)); apps met een strenge CSP de variant voor het eigen domein. Nooit in de hosts uit de tabel bovenaan.
 
-- **Met het script** `scripts/npm/regel.py` (uitleg in [scripts/npm/README.md](../../scripts/npm/README.md)), met `--dashboard 192.168.10.154` (zoals `DASHBOARD_HOST`): eerst de droge run, die per host de diff toont; dan één host; dan de rest. Het script bewaart vooraf de Advanced-config van elke host.
+- **Met het script** `scripts/npm/regel.py` (uitleg in [scripts/npm/README.md](../../scripts/npm/README.md)), met bij `--npm` het adres van de beheerpagina van NPM (poort 81) en `--dashboard 192.168.10.154` (zoals `DASHBOARD_HOST`): eerst de droge run, die per host de diff toont; dan één host; dan de rest. Het script bewaart vooraf de Advanced-config van elke host.
 - **Met de hand:** vervang in *Advanced* de oude regels `sub_filter`, `sub_filter_once` en `proxy_set_header Accept-Encoding ""` door de regel. Staat er een eigen `location / { … }` (het oude snippet uit *Import* → *Scripts*), haal dat hele blok weg: dan komt de `location /` van NPM terug, met de Access List van die host. Een bestaande `location ^~ /alg-thema/` vervang je door die uit de variant.
 
 - **Controle:** in NPM staat de host *Online* (anders keurde NPM de config af en draait hij nog de vorige). Voor een app zonder Authentik, met compressie zoals een browser:

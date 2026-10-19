@@ -104,7 +104,7 @@ Eén proxy host wijst naar deze container, of twee als het dashboard via NPM gaa
 
 Open je het dashboard op het LAN, maak dan geen proxy host voor het dashboard. Bestaat er nog een, dan geeft die voortaan een `404`: verwijder hem.
 
-nginx van cssthema kijkt zelf naar de hostnaam. Het dashboard (de pagina's, `/assets/`, `/preview-bridge.js`) en de hele api staan alleen op `DASHBOARD_HOST`. Elke andere hostnaam krijgt daar een `404` en ziet alleen de publieke bestanden: het CSS-domein, het IP van de container, en ook een proxy host die je zou vergeten af te schermen. Daarom mag het CSS-domein een gewone proxy host zijn, zonder login en zonder Advanced-config.
+nginx van cssthema kijkt zelf naar de hostnaam. Het dashboard (de pagina's, `/assets/`, `/preview-bridge.js`) en de hele api staan alleen op `DASHBOARD_HOST`. Elk ander adres krijgt daar een `404` en ziet alleen de publieke bestanden: het CSS-domein, een proxy host die je zou vergeten af te schermen, en het IP van de container als het dashboard via NPM gaat. Daarom mag het CSS-domein een gewone proxy host zijn, zonder login en zonder Advanced-config.
 
 Voor beide hosts:
 
@@ -176,10 +176,10 @@ Van buiten je netwerk (bv. via 4G):
 curl -sI 'https://css.jouwdomein.be/host/*.css'                                       # 200, content-type: text/css
 curl -sI https://css.jouwdomein.be/proxmox.css                                       # 200 (een bestand of thema dat bestaat)
 curl -s -o /dev/null -w '%{http_code}\n' https://css.jouwdomein.be/api/v1/meta       # 404
-curl -s -o /dev/null -w '%{http_code}\n' https://cssthema.jouwdomein.be/api/v1/meta  # 302 (naar Authentik), nooit 200
+curl -s -o /dev/null -w '%{http_code}\n' https://cssthema.jouwdomein.be/api/v1/meta  # via NPM: 302 (naar Authentik); dashboard op het LAN: 404 of een fout van NPM; nooit 200
 ```
 
-`https://cssthema.jouwdomein.be/` in de browser stuurt je eerst naar Authentik en toont daarna het dashboard.
+Dashboard via NPM: `https://cssthema.jouwdomein.be/` in de browser stuurt je eerst naar Authentik en toont daarna het dashboard. Dashboard op het LAN: `http://<ip-van-de-container>/` toont op je pc het dashboard.
 
 Bewaking: `https://css.jouwdomein.be/readyz` is zonder login bereikbaar en geeft `200` met `"status":"ok"` als database en Redis werken (anders `503`). Zet die URL in Uptime Kuma (*HTTP(s) - Keyword*, keyword `"status":"ok"`).
 
@@ -311,12 +311,12 @@ Een host zonder eigen koppeling krijgt een redirect naar `/host/*.css` (en `.js`
 
 Tot fase 3 heeft cssthema geen eigen login. De bescherming is dus waar het dashboard staat: alleen op het LAN, of achter Authentik in NPM. nginx van cssthema zorgt dat niemand eromheen kan:
 
-- **Alleen op `DASHBOARD_HOST`.** Elke proxy host die niet in `DASHBOARD_HOST` staat (zoals het CSS-domein), krijgt voor het dashboard en `/api/` een `404`. Staat het dashboard op het LAN (`DASHBOARD_HOST` is het IP van de container), dan komt het dus via geen enkele proxy host naar buiten.
+- **Alleen op `DASHBOARD_HOST`.** Elke proxy host die niet in `DASHBOARD_HOST` staat (zoals het CSS-domein), krijgt voor het dashboard en `/api/` een `404`. Staat het dashboard op het LAN (`DASHBOARD_HOST` is het IP van de container), dan komt het via geen enkele proxy host van NPM naar buiten: NPM geeft altijd de eigen naam van de proxy host door als `Host`. Schrijf in NPM dan ook nooit zelf een `proxy_pass http://<ip-van-de-container>` zonder `proxy_set_header Host $host;`: zonder die regel stuurt nginx het IP als `Host`, en dat is het dashboard.
 - **Alleen van `TRUSTED_PROXIES`.** De hele api, lezen en schrijven, aanvaardt nginx alleen van de adressen in `TRUSTED_PROXIES` en van de container zelf. Van elders geeft dat `403` (*Alleen via de reverse proxy*), ook met een verzonnen `Host`- of `X-Forwarded-For`-header: nginx kijkt naar het adres van de verbinding zelf.
 
 Verder:
 
-- **Dashboard op het LAN:** iedereen in het netwerk uit `TRUSTED_PROXIES` kan zonder login thema's en scripts in al je apps zetten. Zet daar dus alleen het netwerk van je eigen pc (bv. je beheer-VLAN), geen gastnetwerk. Toestellen in dat netwerk kunnen hun IP in het auditlog verzinnen (`X-Forwarded-For`).
+- **Dashboard op het LAN:** iedereen in het netwerk uit `TRUSTED_PROXIES` kan zonder login thema's en scripts in al je apps zetten. Zet daar dus alleen het netwerk van je eigen pc (bv. je beheer-VLAN), geen gastnetwerk. Toestellen in dat netwerk kunnen hun IP in het auditlog verzinnen (`X-Forwarded-For`). NPM hoeft er niet in. Staat NPM in een ander netwerk, dan ziet nginx alle CSS-verzoeken als komend van NPM en delen je apps samen één limiet van 50 verzoeken per seconde; voor een thuisnetwerk is dat ruim.
 - **Dashboard via NPM:** zet alleen het IP van NPM in `TRUSTED_PROXIES` (§ 2), en niet meer dan dat.
 - Wie langs Authentik op het dashboard komt, kan thema's en scripts uitrollen naar al je apps. Beperk de applicatie van het dashboard in Authentik daarom tot jezelf of een admin-groep: *Applications* → de app → *Policy / Group / User Bindings* → bind je admin-groep (zonder binding mag elke Authentik-gebruiker erin). Het CSS-domein heeft geen Authentik nodig.
 - Docker: de standaardwaarde `172.16.0.0/12` vertrouwt elk Docker-netwerk op de host. Maak ze krapper, bv. alleen het subnet van het NPM-netwerk (`docker network inspect <netwerk>`).
@@ -334,7 +334,7 @@ Verder:
 
   Met het dashboard op het LAN zet je vóór de `DROP`-regel nog een regel met het netwerk van je pc, bv. `IN ACCEPT -source 192.168.1.0/24 -p tcp -dport 80 # mijn pc`.
 
-  `policy_in: ACCEPT` laat het andere verkeer (SSH, ping) gewoon door; alleen poort 80 is beperkt tot NPM. Dit werkt alleen als ook de firewall van het datacenter aan staat (*Datacenter* → *Firewall* → *Options* → *Firewall*: *Yes*) en *Firewall* aangevinkt is bij de netwerkkaart van de container (*Network* → `net0`). Zet je de datacenter-firewall voor het eerst aan: Proxmox laat de webinterface (8006) en SSH dan standaard alleen toe vanaf het netwerk van de host zelf. Controle vanaf een ander toestel op het LAN: `curl -m 3 http://<ip-van-de-container>/readyz` loopt in een timeout; via NPM werkt alles.
+  `policy_in: ACCEPT` laat het andere verkeer (SSH, ping) gewoon door; alleen poort 80 is beperkt, tot NPM (en je pc). Zit je pc in hetzelfde netwerk als de container, dan opent de extra regel poort 80 voor dat hele netwerk: zet dan liever alleen het IP van je pc. Dit werkt alleen als ook de firewall van het datacenter aan staat (*Datacenter* → *Firewall* → *Options* → *Firewall*: *Yes*) en *Firewall* aangevinkt is bij de netwerkkaart van de container (*Network* → `net0`). Zet je de datacenter-firewall voor het eerst aan: Proxmox laat de webinterface (8006) en SSH dan standaard alleen toe vanaf het netwerk van de host zelf. Controle vanaf een toestel dat niet in die regels staat: `curl -m 3 http://<ip-van-de-container>/readyz` loopt in een timeout; via NPM werkt alles.
 - Daarnaast weigert de api zelf wijzigingen die van een andere webpagina komen (CSRF), ook van een andere app op hetzelfde domein: alleen het dashboard zelf mag schrijven. curl en scripts op de server zelf werken gewoon.
 
 ## 5. Bijwerken
@@ -427,7 +427,7 @@ Een back-up van de hele container in Proxmox (vzdump) neemt ook alles mee.
 | Logs volgen | `journalctl -u cssthema-api -u cssthema-worker -f` |
 | Herstarten | `systemctl restart cssthema-api cssthema-worker` |
 | Gezondheid | `curl http://127.0.0.1/readyz` |
-| De api vanaf de server zelf | `curl -H 'Host: cssthema.jouwdomein.be' http://127.0.0.1/api/v1/meta` |
+| De api vanaf de server zelf | `curl -H 'Host: 192.168.1.20' http://127.0.0.1/api/v1/meta` (de waarde uit `DASHBOARD_HOST`: het IP van de container, of `cssthema.jouwdomein.be` via NPM) |
 
 | Symptoom | Oorzaak en oplossing |
 |---|---|

@@ -3,12 +3,13 @@
 Eén self-hosted platform om custom CSS-thema's te maken, versioneren en distribueren voor alle webapplicaties achter Nginx Proxy Manager (Proxmox, Nextcloud, Immich, Home Assistant, Grafana, UniFi, Jellyfin, Authentik, Uptime Kuma, Portainer, …).
 
 ```
-https://cssthema.domain.be/                      → dashboard en editor (in NPM achter Authentik)
+http://192.168.1.20/                             → dashboard en editor (alleen op het LAN)
+https://cssthema.domain.be/                      → of: dashboard en editor in NPM achter Authentik
 https://css.domain.be/proxmox.css                → gepubliceerd Proxmox-thema (publiek)
 https://css.domain.be/host/pve.domain.be.css     → alles wat die host krijgt (pagina Hosts)
 ```
 
-**Status:** fase 1 staat: thema's maken en bewerken met live preview, publiceren, versies en terugzetten, paletten, import van bestaande CSS en het beheer van thema-scripts (`.js`). Daarbij: **Hosts** (één NPM-regel voor alle proxy hosts; per host kies je in het dashboard welke thema's en scripts hij krijgt, met een gezondheidscontrole), **Services** (de vastgelegde pagina's van je apps als preview in de editor) en back-ups met terugzetten. De eigen login volgt in fase 3; tot dan hoort het dashboard achter Authentik. Zie [`docs/`](docs/README.md) voor het ontwerp en de [MVP-roadmap](docs/07-mvp-roadmap.md).
+**Status:** fase 1 staat: thema's maken en bewerken met live preview, publiceren, versies en terugzetten, paletten, import van bestaande CSS en het beheer van thema-scripts (`.js`). Daarbij: **Hosts** (één NPM-regel voor alle proxy hosts; per host kies je in het dashboard welke thema's en scripts hij krijgt, met een gezondheidscontrole), **Services** (de vastgelegde pagina's van je apps als preview in de editor) en back-ups met terugzetten. De eigen login volgt in fase 3; tot dan heeft het dashboard geen login: open het alleen op het LAN, of zet het in NPM achter Authentik. Zie [`docs/`](docs/README.md) voor het ontwerp en de [MVP-roadmap](docs/07-mvp-roadmap.md).
 
 ## Installeren
 
