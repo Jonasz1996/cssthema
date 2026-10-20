@@ -23,6 +23,8 @@ export function CodeEditor({
       reveal: () => {},
       revealCodePoint: (line, column) => revealCalls.push([line, column]),
       insert: (text) => session.edit(session.getSnapshot().css + text),
+      setContent: (text, mode) =>
+        session.edit(mode === "replace" ? text : `${session.getSnapshot().css}\n\n${text}`),
       focus: () => {},
     });
     return () => onReady?.(null);

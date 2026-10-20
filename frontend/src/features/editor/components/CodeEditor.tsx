@@ -28,6 +28,8 @@ export interface CodeEditorHandle {
   revealCodePoint: (line: number, column: number) => void;
   /** Tekst invoegen op de cursor (bv. `var(--ct-bg)` uit de verkenner). */
   insert: (text: string) => void;
+  /** De hele inhoud vervangen of tekst onderaan toevoegen (ongedaan te maken met Ctrl+Z). */
+  setContent: (text: string, mode: "replace" | "append") => void;
   focus: () => void;
 }
 
@@ -109,6 +111,28 @@ export function CodeEditor(props: CodeEditorProps) {
           { range: selection, text, forceMoveMarkers: true },
         ]);
         editor.pushUndoStop();
+        editor.focus();
+      },
+      setContent: (text, mode) => {
+        const model = editor.getModel();
+        if (!model) return;
+        const full = model.getFullModelRange();
+        const current = model.getValue();
+        const range =
+          mode === "replace"
+            ? full
+            : { ...full, startLineNumber: full.endLineNumber, startColumn: full.endColumn };
+        const value =
+          mode === "replace" || !current ? text : `${current.endsWith("\n") ? "" : "\n"}\n${text}`;
+        editor.pushUndoStop();
+        editor.executeEdits("cssthema-template", [{ range, text: value, forceMoveMarkers: true }]);
+        editor.pushUndoStop();
+        editor.setPosition(
+          mode === "replace"
+            ? { lineNumber: 1, column: 1 }
+            : model.getFullModelRange().getEndPosition(),
+        );
+        editor.revealPosition(editor.getPosition()!);
         editor.focus();
       },
       focus: () => editor.focus(),
