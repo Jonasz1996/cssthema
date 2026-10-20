@@ -27,6 +27,7 @@ import { PreviewError, previewErrorText } from "./errors";
 import { buildSnapshotDocument, type SnapshotStack } from "./snapshot-document";
 import { DEMO_SOURCE, type PreviewSourceTheme, type SnapshotOption } from "./source";
 import { buildPreviewDocument } from "./srcdoc";
+import { templateFromDocument } from "../template/render";
 import { useBridge } from "./use-bridge";
 import { type PreviewSource, usePreviewSource } from "./use-preview-source";
 
@@ -43,8 +44,19 @@ export interface PreviewPaneProps {
    * waar de keuze onthouden wordt. Zonder thema alleen de demo-pagina, zonder keuzelijst.
    */
   theme?: PreviewSourceTheme | null;
+  /**
+   * "CSS-template maken": de CSS die uit de pagina in de preview gemaakt is, vervangt de inhoud
+   * van de editor of komt eronder. Zonder deze functie geen knop.
+   */
+  onTemplate?: (css: string, mode: "replace" | "append") => void;
   className?: string;
 }
+
+type TemplateState =
+  | { status: "idle" }
+  | { status: "busy" }
+  | { status: "choose"; css: string }
+  | { status: "error"; message: string };
 
 /** Tekst van een snapshot in de keuzelijst (de dienst staat in de `optgroup`). */
 function snapshotLabel(snapshot: SnapshotOption): string {
@@ -77,6 +89,7 @@ export function PreviewPane({
   paletteTokens,
   onShortcut,
   theme,
+  onTemplate,
   className,
 }: PreviewPaneProps) {
   const i18n = useI18n();
@@ -90,6 +103,7 @@ export function PreviewPane({
   const channelRef = useRef<PreviewChannel | null>(null);
   const [frameKey, setFrameKey] = useState(0);
   const [uploadOpen, setUploadOpen] = useState(false);
+  const [template, setTemplate] = useState<TemplateState>({ status: "idle" });
   const [available, setAvailable] = useState(0);
   const [availableHeight, setAvailableHeight] = useState(0);
 
@@ -155,6 +169,42 @@ export function PreviewPane({
     docStack,
   ]);
   const srcdoc = built && "doc" in built ? built.doc : null;
+
+  // Het template komt uit de pagina zelf: een snapshot zonder de stapel van de host (die zou de
+  // kleuren van het huidige thema geven), de demo-pagina zoals hij is.
+  const makeTemplate = async () => {
+    if (bridgeState.status !== "ready" || !srcdoc) return;
+    setTemplate({ status: "busy" });
+    try {
+      const doc = snapshotDocument
+        ? buildSnapshotDocument({
+            bridgeSource: bridgeState.bridge.source,
+            bridgeHash: bridgeState.bridge.hash,
+            title: snapshotDocument.title ?? snapshotDocument.hostname,
+            html: snapshotDocument.html,
+            stylesheets: snapshotDocument.stylesheets,
+            stack: null,
+          })
+        : srcdoc;
+      const name = snapshotDocument
+        ? source.selected
+          ? `${snapshotDocument.hostname} · ${snapshotLabel(source.selected.snapshot)}`
+          : snapshotDocument.hostname
+        : t("editor.previewSourceDemo");
+      const css = await templateFromDocument(doc, name);
+      const current = session?.getSnapshot().css ?? "";
+      if (current.trim()) setTemplate({ status: "choose", css });
+      else {
+        onTemplate?.(css, "replace");
+        setTemplate({ status: "idle" });
+      }
+    } catch (error) {
+      setTemplate({
+        status: "error",
+        message: error instanceof Error ? error.message : String(error),
+      });
+    }
+  };
   const buildError = built && "error" in built ? built.error : null;
   const failure =
     bridgeState.status === "error"
@@ -271,6 +321,17 @@ export function PreviewPane({
             data-testid="preview-upload"
           >
             📄 {t("editor.previewUpload")}
+          </Button>
+        )}
+        {theme && onTemplate && (
+          <Button
+            variant="mini"
+            onClick={() => void makeTemplate()}
+            disabled={!srcdoc || !session || template.status === "busy"}
+            title={t("editor.templateHint")}
+            data-testid="preview-template"
+          >
+            🎨 {template.status === "busy" ? t("editor.templateBusy") : t("editor.template")}
           </Button>
         )}
         {source.snapshotId && stack && <StackInfo stack={stack} />}
@@ -436,6 +497,48 @@ export function PreviewPane({
           </div>
         )}
       </div>
+      <Dialog
+        open={template.status === "choose" || template.status === "error"}
+        onClose={() => setTemplate({ status: "idle" })}
+        size="sm"
+        title={t("editor.templateTitle")}
+        footer={
+          template.status === "choose" ? (
+            <>
+              <Button variant="alt" onClick={() => setTemplate({ status: "idle" })}>
+                {t("editor.templateCancel")}
+              </Button>
+              <Button
+                variant="alt"
+                data-testid="template-append"
+                onClick={() => {
+                  onTemplate?.(template.css, "append");
+                  setTemplate({ status: "idle" });
+                }}
+              >
+                {t("editor.templateAppend")}
+              </Button>
+              <Button
+                data-testid="template-replace"
+                onClick={() => {
+                  onTemplate?.(template.css, "replace");
+                  setTemplate({ status: "idle" });
+                }}
+              >
+                {t("editor.templateReplace")}
+              </Button>
+            </>
+          ) : undefined
+        }
+      >
+        {template.status === "error" ? (
+          <Callout tone="err" title={t("editor.templateFailed")}>
+            {template.message}
+          </Callout>
+        ) : (
+          <p className="text-[13px] text-muted">{t("editor.templateChoose")}</p>
+        )}
+      </Dialog>
       <Dialog
         open={uploadOpen}
         onClose={() => setUploadOpen(false)}

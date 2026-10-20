@@ -576,6 +576,11 @@ export function EditorPage() {
                   theme={theme}
                   paletteTokens={palette?.tokens}
                   onShortcut={runShortcut}
+                  onTemplate={
+                    readOnly
+                      ? undefined
+                      : (css, mode) => editorHandle.current?.setContent(css, mode)
+                  }
                 />
               </div>
             </>

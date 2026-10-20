@@ -5,7 +5,6 @@
   "paletteHover": "Palette {name}",
   "paletteName": "palette {name}",
   "noPalette": "no palette",
-
   "breadcrumbThemes": "Themes",
   "statusTags": "Theme status",
   "statusDeleted": "deleted",
@@ -39,11 +38,9 @@
   "closeTab": "Close tab",
   "retry": "Try again",
   "loadMore": "Load more",
-
   "tabsLabel": "Open themes",
   "tabClose": "Close {name}",
   "tabUnsaved": "Not saved yet",
-
   "explorerLabel": "Explorer",
   "explorerTitle": "Explorer",
   "explorerTitleShort": "Explorer",
@@ -60,11 +57,9 @@
   "insertToken": "Insert {text}",
   "resizeExplorer": "Explorer width",
   "resizePreview": "Preview size",
-
   "editorLabel": "CSS of {slug}",
   "monacoLoading": "Loading editor…",
   "monacoFailed": "The editor could not be loaded",
-
   "saveSaved": "Saved",
   "saveSavedAt": "Saved {time}",
   "saveSaving": "Saving…",
@@ -80,7 +75,6 @@
   "restoredFromBuffer": "Unsaved changes from this browser restored.",
   "syncedAfterOffline": "Back online: your changes are on the server.",
   "offlineError": "The server is unreachable. Try again in a moment.",
-
   "statusBarLabel": "Status bar",
   "errors_one": "{count} error",
   "errors_other": "{count} errors",
@@ -97,7 +91,6 @@
   "severityError": "error",
   "severityWarning": "warning",
   "lineColumn": "line {line}:{column}",
-
   "previewLabel": "Preview",
   "previewTitle": "Preview",
   "previewTitleShort": "Preview",
@@ -133,7 +126,6 @@
   "viewport_custom": "Custom",
   "viewportWidth": "Width in pixels",
   "viewportHeight": "Height in pixels",
-
   "publishTitle": "Publish {slug}",
   "publishButton": "Publish v{n}",
   "publishing": "Publishing…",
@@ -167,7 +159,6 @@
   "publishNothing": "Nothing to publish: the draft is the same as v{n}.",
   "publishBlockedErrors": "Fix the errors first.",
   "published": "v{n} of {slug} is live.",
-
   "conflictTitle": "Draft changed elsewhere",
   "conflictText": "Someone else saved this draft in the meantime.",
   "conflictTextBy": "{name} saved this draft at {time}.",
@@ -182,7 +173,6 @@
   "conflictDiffLabel": "Difference between the server draft and my version",
   "conflictReloaded": "Server draft loaded.",
   "conflictOverwritten": "Your version has been saved.",
-
   "demoBrand": "Northwind",
   "demoNavOverview": "Overview",
   "demoNavServices": "Services",
@@ -245,7 +235,6 @@
   "demoProgressLabel": "Progress",
   "demoCodeTitle": "Code and progress",
   "demoFooter": "© Northwind · Privacy · Contact",
-
   "previewStackParts_one": "+ {count} part from the host",
   "previewStackParts_other": "+ {count} parts from the host",
   "previewStackEmpty": "this theme only",
@@ -267,10 +256,8 @@
   "algemeenModulesTitle": "Module stacks do not follow this theme",
   "algemeenModulesText_one": "{count} host has a module stack (alg-kern, alg-fw-*, alg-app-*) and gets nothing of what you change in algemeen here: those modules are separate themes, made with scripts/themes/modules.py from themes/algemeen.css. Only hosts with algemeen in their binding (usually *) follow.",
   "algemeenModulesText_other": "{count} hosts have a module stack (alg-kern, alg-fw-*, alg-app-*) and get nothing of what you change in algemeen here: those modules are separate themes, made with scripts/themes/modules.py from themes/algemeen.css. Only hosts with algemeen in their binding (usually *) follow.",
-
   "saveSessionExpired": "Session expired, reload the page",
   "saveSessionExpiredHint": "Your login has expired. Reload: your text is kept safe in this browser and comes back after logging in.",
-
   "settings": "Settings",
   "settingsHint": "Change name, slug, description and palette",
   "settingsTitle": "Settings of {name}",
@@ -279,8 +266,16 @@
   "settingsSave": "Save",
   "settingsSaving": "Saving…",
   "settingsSaved": "Settings saved.",
-
   "previewUpload": "Upload page",
   "previewUploadHint": "Upload a saved web page (.html or .zip) and see the theme on it",
-  "previewUploadTitle": "Your own page as preview"
+  "previewUploadTitle": "Your own page as preview",
+  "template": "Make CSS template",
+  "templateBusy": "Making template…",
+  "templateHint": "Generate CSS with colour variables for the elements, classes and ids of the page in the preview: then you only change the colours",
+  "templateTitle": "Make CSS template",
+  "templateChoose": "The editor already contains CSS. Replace it with the template, or add the template at the bottom? Ctrl+Z undoes it.",
+  "templateReplace": "Replace",
+  "templateAppend": "Add at the bottom",
+  "templateCancel": "Cancel",
+  "templateFailed": "The template could not be made"
 }

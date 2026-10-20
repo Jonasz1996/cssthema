@@ -5,7 +5,6 @@
   "paletteHover": "Palet {name}",
   "paletteName": "palet {name}",
   "noPalette": "geen palet",
-
   "breadcrumbThemes": "Thema's",
   "statusTags": "Status van het thema",
   "statusDeleted": "verwijderd",
@@ -39,11 +38,9 @@
   "closeTab": "Tab sluiten",
   "retry": "Opnieuw proberen",
   "loadMore": "Meer laden",
-
   "tabsLabel": "Open thema's",
   "tabClose": "{name} sluiten",
   "tabUnsaved": "Nog niet opgeslagen",
-
   "explorerLabel": "Verkenner",
   "explorerTitle": "Verkenner",
   "explorerTitleShort": "Verkenner",
@@ -60,11 +57,9 @@
   "insertToken": "{text} invoegen",
   "resizeExplorer": "Breedte van de verkenner",
   "resizePreview": "Grootte van de preview",
-
   "editorLabel": "CSS van {slug}",
   "monacoLoading": "Editor laden…",
   "monacoFailed": "De editor kon niet geladen worden",
-
   "saveSaved": "Opgeslagen",
   "saveSavedAt": "Opgeslagen {time}",
   "saveSaving": "Opslaan…",
@@ -80,7 +75,6 @@
   "restoredFromBuffer": "Niet-opgeslagen wijzigingen uit deze browser teruggezet.",
   "syncedAfterOffline": "Weer online: je wijzigingen staan op de server.",
   "offlineError": "De server is onbereikbaar. Probeer het zo meteen opnieuw.",
-
   "statusBarLabel": "Statusbalk",
   "errors_one": "{count} fout",
   "errors_other": "{count} fouten",
@@ -97,7 +91,6 @@
   "severityError": "fout",
   "severityWarning": "waarschuwing",
   "lineColumn": "regel {line}:{column}",
-
   "previewLabel": "Preview",
   "previewTitle": "Preview",
   "previewTitleShort": "Preview",
@@ -133,7 +126,6 @@
   "viewport_custom": "Eigen",
   "viewportWidth": "Breedte in pixels",
   "viewportHeight": "Hoogte in pixels",
-
   "publishTitle": "{slug} publiceren",
   "publishButton": "v{n} publiceren",
   "publishing": "Publiceren…",
@@ -167,7 +159,6 @@
   "publishNothing": "Niets te publiceren: de draft is gelijk aan v{n}.",
   "publishBlockedErrors": "Los eerst de fouten op.",
   "published": "v{n} van {slug} staat live.",
-
   "conflictTitle": "Draft elders gewijzigd",
   "conflictText": "Iemand anders heeft deze draft intussen opgeslagen.",
   "conflictTextBy": "{name} heeft deze draft om {time} opgeslagen.",
@@ -182,7 +173,6 @@
   "conflictDiffLabel": "Verschil tussen de serverdraft en mijn versie",
   "conflictReloaded": "Serverdraft geladen.",
   "conflictOverwritten": "Jouw versie is opgeslagen.",
-
   "demoBrand": "Noordwind",
   "demoNavOverview": "Overzicht",
   "demoNavServices": "Diensten",
@@ -245,7 +235,6 @@
   "demoProgressLabel": "Voortgang",
   "demoCodeTitle": "Code en voortgang",
   "demoFooter": "© Noordwind · Privacy · Contact",
-
   "previewStackParts_one": "+ {count} onderdeel van de host",
   "previewStackParts_other": "+ {count} onderdelen van de host",
   "previewStackEmpty": "alleen dit thema",
@@ -267,10 +256,8 @@
   "algemeenModulesTitle": "Modulestapels volgen dit thema niet",
   "algemeenModulesText_one": "{count} host heeft een modulestapel (alg-kern, alg-fw-*, alg-app-*) en krijgt niets van wat je hier aan algemeen wijzigt: die modules zijn losse thema's, gemaakt met scripts/themes/modules.py uit themes/algemeen.css. Alleen hosts met algemeen in hun koppeling (meestal *) volgen.",
   "algemeenModulesText_other": "{count} hosts hebben een modulestapel (alg-kern, alg-fw-*, alg-app-*) en krijgen niets van wat je hier aan algemeen wijzigt: die modules zijn losse thema's, gemaakt met scripts/themes/modules.py uit themes/algemeen.css. Alleen hosts met algemeen in hun koppeling (meestal *) volgen.",
-
   "saveSessionExpired": "Sessie verlopen, laad de pagina opnieuw",
   "saveSessionExpiredHint": "Je login is verlopen. Herladen: je tekst staat veilig in deze browser en komt terug na het inloggen.",
-
   "settings": "Instellingen",
   "settingsHint": "Naam, slug, beschrijving en palet wijzigen",
   "settingsTitle": "Instellingen van {name}",
@@ -279,8 +266,16 @@
   "settingsSave": "Opslaan",
   "settingsSaving": "Opslaan…",
   "settingsSaved": "Instellingen opgeslagen.",
-
   "previewUpload": "Pagina uploaden",
   "previewUploadHint": "Een opgeslagen webpagina (.html of .zip) uploaden en het thema daarop zien",
-  "previewUploadTitle": "Eigen pagina als preview"
+  "previewUploadTitle": "Eigen pagina als preview",
+  "template": "CSS-template maken",
+  "templateBusy": "Template maken…",
+  "templateHint": "Maak CSS met kleurvariabelen voor de elementen, classes en id's van de pagina in de preview: daarna hoef je alleen de kleuren aan te passen",
+  "templateTitle": "CSS-template maken",
+  "templateChoose": "De editor bevat al CSS. Wil je die vervangen door het template, of het template onderaan toevoegen? Ctrl+Z zet het terug.",
+  "templateReplace": "Vervangen",
+  "templateAppend": "Onderaan toevoegen",
+  "templateCancel": "Annuleren",
+  "templateFailed": "Het template kon niet gemaakt worden"
 }
