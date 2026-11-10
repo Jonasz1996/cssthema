@@ -18,11 +18,11 @@ Op een lege Debian 13-container, zonder Docker (volledige uitleg en NPM-config i
 ```bash
 apt update && apt install -y git
 git clone https://github.com/Jonasz1996/cssthema.git /opt/cssthema
-DASHBOARD_HOST=192.168.1.20 TRUSTED_PROXIES=192.168.1.0/24 \
+TRUSTED_PROXIES=192.168.0.0/16 \
   PUBLIC_BASE_URL=https://css.domain.be bash /opt/cssthema/deploy/debian/install.sh
 ```
 
-`DASHBOARD_HOST` is waar je het dashboard opent: hier het IP van de container, alleen op het LAN (`http://192.168.1.20/`), of een hostnaam in NPM achter Authentik. Alleen daar serveert nginx het dashboard en de api. `TRUSTED_PROXIES` zegt wie de api mag gebruiken: het netwerk van je pc, of via NPM alleen het IP van NPM. `PUBLIC_BASE_URL` is het publieke CSS-domein (https) waar je apps de thema's vandaan halen. Bijwerken: `git -C /opt/cssthema pull && bash /opt/cssthema/deploy/debian/install.sh` (met eerst een back-up). Overstappen van een oude CSS-server of een oudere versie: volg [`docs/ops/uitrol.md`](docs/ops/uitrol.md), stap voor stap met controle en weg terug.
+Het dashboard staat op `http://<elk IP van de container>/`, alleen op het LAN, ook na een nieuw IP; via NPM geeft het onder elke naam een `404`. Wil je het (ook) via een naam in NPM achter Authentik openen, zet die naam dan in `DASHBOARD_HOST`. `TRUSTED_PROXIES` zegt wie de api mag gebruiken: het netwerk van je pc, of via NPM alleen het IP van NPM. `PUBLIC_BASE_URL` is het publieke CSS-domein (https) waar je apps de thema's vandaan halen. Bijwerken: `git -C /opt/cssthema pull && bash /opt/cssthema/deploy/debian/install.sh` (met eerst een back-up). Overstappen van een oude CSS-server of een oudere versie: volg [`docs/ops/uitrol.md`](docs/ops/uitrol.md), stap voor stap met controle en weg terug.
 
 Met Docker:
 

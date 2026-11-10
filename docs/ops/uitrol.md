@@ -6,7 +6,7 @@ Vertrekpunt was: `css.jbogaert.be` wijst nog naar de oude CSS-server, de LXC (19
 
 | | |
 |---|---|
-| Dashboard (`DASHBOARD_HOST`) | `192.168.10.154`: je opent het op `http://192.168.10.154/`, alleen op het LAN, zonder proxy host in NPM |
+| Dashboard | `http://<IP van de LXC>/` (nu `http://192.168.111.156/`), alleen op het LAN, zonder proxy host in NPM. Werkt op elk IP van de LXC, ook na een nieuw IP; `hostname -I` op de LXC toont het. `DASHBOARD_HOST` is niet meer nodig |
 | Wie de api mag gebruiken (`TRUSTED_PROXIES`) | `192.168.10.0/24`, het netwerk van je pc |
 | Publiek CSS-domein (`PUBLIC_BASE_URL`) | `https://css.jbogaert.be`, in NPM zonder login |
 | cssthema (LXC) | `192.168.10.154`, poort 80 |

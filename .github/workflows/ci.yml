@@ -109,7 +109,7 @@ jobs:
     name: E2E (Playwright)
     # Parallel met backend/frontend: de suite start zelf de api (:8020) en `vite preview`
     # (:4173) tegen de productiebuild (frontend/playwright.config.ts).
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04  # ubuntu-latest (26.04) heeft nog geen Playwright-browsers
     timeout-minutes: 15
     services:
       postgres:
@@ -259,11 +259,7 @@ jobs:
         if: matrix.scenario == 'bijwerken'
         run: |
           docker exec -e OUDE_VERSIE deb bash -euxc '
-            # Zonder DASHBOARD_HOST weigert install.sh, vóór er iets verandert.
             git -C /opt/cssthema checkout -q --detach "$(cat /root/nieuwe-versie)"
-            if bash /opt/cssthema/deploy/debian/install.sh > /root/zonder-dashboard-host.log 2>&1; then exit 1; fi
-            grep -qF "DASHBOARD_HOST ontbreekt" /root/zonder-dashboard-host.log
-            test ! -e /usr/local/sbin/cssthema-backup
             DASHBOARD_HOST="localhost 127.0.0.1" bash /opt/cssthema/deploy/debian/install.sh
             # UTF8, de data van de oude versie staat er nog, de database op de laatste migratie.
             test "$(runuser -u postgres -- psql -tAc "SELECT pg_encoding_to_char(encoding) FROM pg_database WHERE datname = '"'"'cssthema'"'"'")" = UTF8
@@ -348,6 +344,9 @@ jobs:
             test "$(curl -s -o /dev/null -w "%{http_code}" -H "Host: css.example.test" http://127.0.0.1/)" = 404
             curl -fsS -o /dev/null -w "%{content_type}" -H "Host: css.example.test" "http://127.0.0.1/host/%2A.css" | grep -q "^text/css"
             curl -fsS -o /dev/null -H "Host: css.example.test" http://127.0.0.1/readyz
+            # Het dashboard staat ook op elk IP, zonder dat IP in DASHBOARD_HOST (LAN, nieuw IP).
+            curl -fsS -H "Host: 192.0.2.55" http://127.0.0.1/ | grep -q "<div id=\"root\">"
+            curl -fsS -o /dev/null -H "Host: 192.0.2.55" http://127.0.0.1/api/v1/meta
             # Handgemaakte CSS-bestanden gaan voor, ook met een naam die geen slug is.
             printf ":root{}\n" > /var/lib/cssthema/css-files/proxmox.css
             printf ":root{}\n" > /var/lib/cssthema/css-files/Home_Assistant.css

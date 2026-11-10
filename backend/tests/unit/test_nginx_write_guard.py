@@ -88,13 +88,20 @@ def test_api_writes_need_a_trusted_peer() -> None:
 DASHBOARD_SCRIPT = ROOT / "docker/nginx/entrypoint/41-cssthema-dashboard-host.sh"
 
 
-def run_dashboard_script(tmp_path: Path, hosts: str | None) -> subprocess.CompletedProcess[str]:
+ANY_IPV4 = '"~^[0-9]{1,3}(\\.[0-9]{1,3}){3}$" 1;'
+
+
+def run_dashboard_script(
+    tmp_path: Path, hosts: str | None, public_base_url: str | None = None
+) -> subprocess.CompletedProcess[str]:
     env = {
         "PATH": os.environ.get("PATH", "/usr/bin:/bin"),
         "CSSTHEMA_DASHBOARD_HOST_CONF": str(tmp_path / "dashboard-host.conf"),
     }
     if hosts is not None:
         env["DASHBOARD_HOST"] = hosts
+    if public_base_url is not None:
+        env["PUBLIC_BASE_URL"] = public_base_url
     # Vast script uit de repo, geen invoer van buiten.
     return subprocess.run(  # noqa: S603
         ["/bin/sh", str(DASHBOARD_SCRIPT)], env=env, capture_output=True, text=True, check=False
@@ -111,7 +118,7 @@ def test_dashboard_hosts_map(tmp_path: Path) -> None:
     result = run_dashboard_script(tmp_path, "Cssthema.Example.be, localhost localhost")
     assert result.returncode == 0, result.stderr
     entries = map_entries((tmp_path / "dashboard-host.conf").read_text())
-    assert entries == ["default 0;", "cssthema.example.be 1;", "localhost 1;"]
+    assert entries == ["default 0;", "cssthema.example.be 1;", "localhost 1;", ANY_IPV4]
 
 
 def test_dashboard_host_defaults_to_localhost(tmp_path: Path) -> None:
@@ -119,7 +126,22 @@ def test_dashboard_host_defaults_to_localhost(tmp_path: Path) -> None:
         result = run_dashboard_script(tmp_path, hosts)
         assert result.returncode == 0, result.stderr
         entries = map_entries((tmp_path / "dashboard-host.conf").read_text())
-        assert entries == ["default 0;", "localhost 1;"]
+        assert entries == ["default 0;", "localhost 1;", ANY_IPV4]
+
+
+def test_dashboard_never_on_public_ip(tmp_path: Path) -> None:
+    # Het dashboard staat op elk IP, behalve op het IP uit PUBLIC_BASE_URL (de
+    # /alg-thema/-variant zou het anders via elke app doorgeven).
+    result = run_dashboard_script(tmp_path, "", "http://192.0.2.7:80/")
+    assert result.returncode == 0, result.stderr
+    entries = map_entries((tmp_path / "dashboard-host.conf").read_text())
+    assert entries == ["default 0;", "localhost 1;", "192.0.2.7 0;", ANY_IPV4]
+    # Een domein of een IP dat expliciet in DASHBOARD_HOST staat: geen uitzondering.
+    for hosts, base in (("", "https://css.example.be"), ("192.0.2.7", "http://192.0.2.7")):
+        result = run_dashboard_script(tmp_path, hosts, base)
+        assert result.returncode == 0, result.stderr
+        entries = map_entries((tmp_path / "dashboard-host.conf").read_text())
+        assert not any(entry.endswith(" 0;") and entry != "default 0;" for entry in entries)
 
 
 def test_invalid_dashboard_host_is_refused(tmp_path: Path) -> None:

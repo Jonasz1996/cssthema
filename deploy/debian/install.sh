@@ -6,8 +6,9 @@
 #   apt update && apt install -y git
 #   git clone https://github.com/Jonasz1996/cssthema.git /opt/cssthema
 # en dan een van deze twee (docs/ops/installatie-debian.md § 2):
-# - dashboard alleen op het LAN, op het IP van deze container (NPM serveert alleen de CSS):
-#   DASHBOARD_HOST=192.168.1.20 TRUSTED_PROXIES=192.168.1.0/24 \
+# - dashboard alleen op het LAN, op het IP van deze container (NPM serveert alleen de CSS).
+#   Het dashboard staat dan op http://<elk IP van deze machine>/, ook na een nieuw IP:
+#   TRUSTED_PROXIES=192.168.0.0/16 \
 #       PUBLIC_BASE_URL=https://css.jouwdomein.be bash /opt/cssthema/deploy/debian/install.sh
 # - dashboard via NPM, achter Authentik:
 #   DASHBOARD_HOST=cssthema.jouwdomein.be TRUSTED_PROXIES=192.168.1.10 \
@@ -69,14 +70,8 @@ trap afsluiten EXIT
 [ "$(id -u)" -eq 0 ] || die "draai dit script als root"
 command -v apt-get >/dev/null || die "alleen Debian (of Ubuntu) met apt wordt ondersteund"
 [ -f "$APP_DIR/backend/pyproject.toml" ] || die "repo niet gevonden in $APP_DIR"
-# Zonder DASHBOARD_HOST serveert nginx het dashboard nergens: stoppen vóór er iets verandert.
-if [ -z "$ARG_DASHBOARD_HOST" ] && ! grep -q '^DASHBOARD_HOST=.' "$ENV_FILE" 2>/dev/null; then
-    die "DASHBOARD_HOST ontbreekt: het adres waarop je het dashboard opent, het IP van deze
-container (alleen op het LAN) of een hostnaam in NPM achter Authentik. Alleen daar serveert nginx
-het dashboard en de api; op elke andere host alleen de publieke CSS en scripts. Er is nog niets
-aangepast. Draai het script opnieuw met dat adres, bv.:
-  DASHBOARD_HOST=192.168.10.154 TRUSTED_PROXIES=192.168.10.0/24 bash $APP_DIR/deploy/debian/install.sh"
-fi
+# DASHBOARD_HOST is optioneel: het dashboard staat altijd op elk IP van deze machine
+# (41-cssthema-dashboard-host.sh). Een naam is alleen nodig voor het dashboard via NPM.
 hostnamen_controleren DASHBOARD_HOST "$ARG_DASHBOARD_HOST"
 hostnamen_controleren EXCLUDED_HOSTS "$ARG_EXCLUDED_HOSTS"
 export DEBIAN_FRONTEND=noninteractive
@@ -112,11 +107,11 @@ if [ ! -f "$ENV_FILE" ]; then
 # cssthema-configuratie. Na een wijziging: bash $APP_DIR/deploy/debian/install.sh
 ENVIRONMENT=production
 # Publiek CSS-domein (https, geen IP): de basis van de NPM-regel in elke proxy host.
-PUBLIC_BASE_URL=http://${ip:-localhost}
+PUBLIC_BASE_URL=http://localhost
 
-# Waar je het dashboard opent, komma-gescheiden: het IP van deze container (alleen op het
-# LAN, zonder NPM) of een hostnaam in NPM achter Authentik. Alleen daar serveert nginx het
-# dashboard en de api; via elke andere naam (het CSS-domein) geeft dat een 404.
+# Het dashboard staat altijd op http://<elk IP van deze machine>/ (alleen op het LAN). Open
+# je het ook via een naam in NPM (achter Authentik), zet die naam hier, komma-gescheiden. Via
+# elke andere naam (het CSS-domein) geeft het dashboard een 404.
 DASHBOARD_HOST=
 # Hosts die nooit thema's of scripts krijgen, naast het dashboard en het CSS-domein
 # (bv. Authentik en NPM zelf), komma-gescheiden.
@@ -166,9 +161,7 @@ set +a
 # Ook wat alleen in de configuratie staat (bv. met de hand aangepast) nu al controleren:
 # anders stopt het script pas bij nginx, na de back-up en de build, met een nginx-config die
 # naar een nog ontbrekende map verwijst.
-[ -n "${DASHBOARD_HOST:-}" ] ||
-    die "DASHBOARD_HOST is leeg in $ENV_FILE; zet daar het adres waarop je het dashboard opent: het IP van deze container (alleen op het LAN, bv. DASHBOARD_HOST=192.168.10.154) of een hostnaam in NPM achter Authentik (bv. DASHBOARD_HOST=cssthema.jbogaert.be), en draai het script opnieuw"
-hostnamen_controleren DASHBOARD_HOST "$DASHBOARD_HOST"
+hostnamen_controleren DASHBOARD_HOST "${DASHBOARD_HOST:-}"
 hostnamen_controleren EXCLUDED_HOSTS "${EXCLUDED_HOSTS:-}"
 # PUBLIC_BASE_URL mag niet het IP van het dashboard zijn. Dat adres komt in de regel van elke
 # app, en de variant voor het eigen domein (/alg-thema/) zou dan via elke app rechtstreeks het
@@ -178,7 +171,7 @@ basis=${PUBLIC_BASE_URL:-}
 basis=${basis#*://}
 basis=${basis%%/*}
 basis=$(printf %s "${basis%:*}" | tr '[:upper:]' '[:lower:]')
-case ",$(printf %s "$DASHBOARD_HOST" | tr ' ' ',' | tr '[:upper:]' '[:lower:]')," in
+case ",$(printf %s "${DASHBOARD_HOST:-}" | tr ' ' ',' | tr '[:upper:]' '[:lower:]')," in
     *",$basis,"*)
         case $basis in
             127.0.0.1) ;;
@@ -193,7 +186,7 @@ esac
 controle=$(mktemp -d)
 if ! { TRUSTED_PROXIES=$TRUSTED_PROXIES CSSTHEMA_REAL_IP_CONF=$controle/real-ip.conf \
     sh "$APP_DIR/docker/nginx/entrypoint/40-cssthema-real-ip.sh" &&
-    DASHBOARD_HOST=$DASHBOARD_HOST CSSTHEMA_DASHBOARD_HOST_CONF=$controle/dashboard-host.conf \
+    DASHBOARD_HOST=${DASHBOARD_HOST:-} PUBLIC_BASE_URL=${PUBLIC_BASE_URL:-} CSSTHEMA_DASHBOARD_HOST_CONF=$controle/dashboard-host.conf \
         sh "$APP_DIR/docker/nginx/entrypoint/41-cssthema-dashboard-host.sh"; }; then
     rm -rf "$controle"
     die "pas $ENV_FILE aan (zie de melding hierboven) en draai het script opnieuw; database, code en nginx zijn nog niet aangepast"
@@ -332,7 +325,7 @@ ln -sf /etc/nginx/sites-available/cssthema /etc/nginx/sites-enabled/cssthema
 rm -f /etc/nginx/sites-enabled/default
 TRUSTED_PROXIES=$TRUSTED_PROXIES CSSTHEMA_REAL_IP_CONF=/etc/nginx/conf.d/cssthema-real-ip.conf \
     sh "$APP_DIR/docker/nginx/entrypoint/40-cssthema-real-ip.sh"
-DASHBOARD_HOST=$DASHBOARD_HOST CSSTHEMA_DASHBOARD_HOST_CONF=/etc/nginx/conf.d/cssthema-dashboard-host.conf \
+DASHBOARD_HOST=${DASHBOARD_HOST:-} PUBLIC_BASE_URL=${PUBLIC_BASE_URL:-} CSSTHEMA_DASHBOARD_HOST_CONF=/etc/nginx/conf.d/cssthema-dashboard-host.conf \
     sh "$APP_DIR/docker/nginx/entrypoint/41-cssthema-dashboard-host.sh"
 nginx -t -q
 systemctl -q enable nginx
@@ -401,11 +394,19 @@ echo "$ready"
 git -C "$APP_DIR" rev-parse HEAD >"$DATA_DIR/geinstalleerde-commit" 2>/dev/null || true
 
 ip=$(hostname -I 2>/dev/null | awk '{print $1}' || true)
-case $DASHBOARD_HOST in
-    *,*) dashboard_url="$DASHBOARD_HOST (DASHBOARD_HOST)" ;;
-    # Een IP-adres eindigt op een cijfer, een domeinnaam nooit (HOSTNAAM_RE: geen [ ]).
-    *[0-9]) dashboard_url="http://$DASHBOARD_HOST/ (alleen op het LAN; via NPM geeft het een 404)" ;;
-    *) dashboard_url="https://$DASHBOARD_HOST/ via NPM (achter Authentik; niet op http://${ip:-<ip>}/)" ;;
+dashboard_url="http://${ip:-<ip>}/ (elk IP van deze machine, alleen op het LAN; via NPM geeft het een 404)"
+# Het IP uit PUBLIC_BASE_URL krijgt het dashboard niet (41-cssthema-dashboard-host.sh).
+case " $(hostname -I 2>/dev/null || true) " in
+    *" $basis "*) case ",${DASHBOARD_HOST:-}," in
+        *",$basis,"*) ;;
+        *) dashboard_url="http://localhost/ op deze machine; op http://$basis/ niet zolang PUBLIC_BASE_URL dat IP is (zet daar je CSS-domein, zie hieronder)" ;;
+    esac ;;
+esac
+case ${DASHBOARD_HOST:-} in
+    "" | *[0-9]) ;;
+    # Een domeinnaam eindigt nooit op een cijfer (HOSTNAAM_RE).
+    *) dashboard_url="$dashboard_url
+                    en via NPM: https://${DASHBOARD_HOST%%,*}/ (achter Authentik)" ;;
 esac
 cat <<EOF
 
@@ -442,8 +443,8 @@ if [ -n "${TRUSTED_PROXIES:-}" ] && [ "$ander_adres" = 0 ]; then
     echo
     echo "Let op: TRUSTED_PROXIES=$TRUSTED_PROXIES is alleen deze machine zelf. Tot je dat aanpast, geeft de"
     echo "api (thema's, Hosts) elke browser een 403."
-    case $DASHBOARD_HOST in
-        *,* | *[0-9])
+    case ${DASHBOARD_HOST:-} in
+        "" | *,* | *[0-9])
             netwerk=192.168.1.0/24
             case $ip in *.*.*.*) netwerk=${ip%.*}.0/24 ;; esac
             echo "Dashboard op het LAN: zet het netwerk van je pc (kijk met ipconfig), bv.:"

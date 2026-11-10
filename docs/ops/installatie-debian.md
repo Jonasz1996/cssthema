@@ -23,23 +23,22 @@ Kies eerst waar je het dashboard opent:
 - **Alleen op het LAN** (het eenvoudigst): op `http://<ip-van-de-container>/`, zonder NPM en zonder login. NPM stuurt alleen het CSS-domein naar de container.
 - **Via NPM, achter Authentik**: op `https://cssthema.jouwdomein.be/`, ook van buiten je netwerk (§ 4, *Dashboard achter Authentik*).
 
-Als root in de container, met je eigen adressen. Dashboard op het LAN (container `192.168.1.20`, je pc in `192.168.1.0/24`):
+Als root in de container, met je eigen adressen. Dashboard op het LAN (je pc ergens in `192.168.x.x`); het dashboard staat dan op `http://<elk IP van de container>/`, ook als dat IP later verandert:
 
 ```bash
 apt update && apt install -y git
 git clone https://github.com/Jonasz1996/cssthema.git /opt/cssthema
-DASHBOARD_HOST=192.168.1.20 \
-TRUSTED_PROXIES=192.168.1.0/24 \
+TRUSTED_PROXIES=192.168.0.0/16 \
 PUBLIC_BASE_URL=https://css.jouwdomein.be \
 EXCLUDED_HOSTS=authentik.jouwdomein.be,npm.jouwdomein.be \
   bash /opt/cssthema/deploy/debian/install.sh
 ```
 
-Via NPM wordt dat `DASHBOARD_HOST=cssthema.jouwdomein.be` en `TRUSTED_PROXIES=192.168.1.10` (het IP van je NPM-host).
+Via NPM komt daar `DASHBOARD_HOST=cssthema.jouwdomein.be` bij, en wordt het `TRUSTED_PROXIES=192.168.1.10` (het IP van je NPM-host).
 
 | Instelling | Wat |
 |---|---|
-| `DASHBOARD_HOST` | **Verplicht.** Het adres waarop je het dashboard opent: het IP van de container (alleen op het LAN) of een hostnaam in NPM achter Authentik; meerdere mag, met spaties of komma's. Alleen daar serveert nginx het dashboard en de api. Elk ander adres (het CSS-domein, elke andere proxy host) krijgt alleen de publieke bestanden. Zonder deze waarde stopt het script voor het iets verandert. |
+| `DASHBOARD_HOST` | Optioneel. Het dashboard en de api staan altijd op elk IPv4-adres van de container (`http://<ip>/`, alleen op het LAN: NPM geeft altijd een naam door als `Host`), behalve op het IP uit `PUBLIC_BASE_URL`. Open je het dashboard ook via een hostnaam in NPM achter Authentik, zet die naam hier; meerdere mag, met spaties of komma's. Elke andere naam (het CSS-domein, elke andere proxy host) krijgt alleen de publieke bestanden. |
 | `PUBLIC_BASE_URL` | Je publieke CSS-domein, met `https` en een domeinnaam (geen IP): het begin van de NPM-regel in elke proxy host (§ 4). Het script waarschuwt bij `http` of een IP. |
 | `TRUSTED_PROXIES` | Wie de api mag gebruiken, lezen én schrijven (naast de container zelf); IP's of netwerken, met komma's. Dashboard op het LAN: het netwerk van je pc, bv. `192.168.1.0/24`. Via NPM: alleen het LAN-IP van de NPM-host. Van deze adressen neemt nginx ook het echte client-IP uit `X-Forwarded-For` over. Zie § 4, *Wie mag de api gebruiken*. |
 | `EXCLUDED_HOSTS` | Optioneel: hostnamen die nooit thema's of scripts krijgen, naast het dashboard en het CSS-domein. Zet hier Authentik en elke beheerpagina van NPM (§ 4, *Nooit de regel*). |
@@ -345,7 +344,6 @@ git -C /opt/cssthema pull && bash /opt/cssthema/deploy/debian/install.sh
 
 Configuratie, wachtwoorden, database en CSS-bestanden blijven staan; databasemigraties draaien vanzelf. Voor het script de database, de code-omgeving of nginx aanraakt, maakt het een back-up (`…-voor-update`, met de commit en de databasemigratie die toen draaiden; § 6). Het stopt nog daarvoor als:
 
-- `DASHBOARD_HOST` nergens staat (eerste update naar deze versie): geef het één keer mee, met het IP van de container of de hostnaam in NPM (§ 2), bv. `DASHBOARD_HOST=192.168.1.20 TRUSTED_PROXIES=192.168.1.0/24 bash /opt/cssthema/deploy/debian/install.sh`;
 - de database op een migratie staat die de code niet kent (de code is ouder dan de database, bv. na een `git checkout` van een oudere versie). De api blijft draaien; de melding zegt welke versie je moet uitchecken.
 
 Mislukt het bouwen van het dashboard, dan blijft het vorige dashboard draaien. Mislukt de back-up, dan stopt de update vóór de migraties; los de fout op, of sla de back-up bewust over met `SKIP_BACKUP=1` vóór `bash`.
@@ -355,7 +353,7 @@ Mislukt het bouwen van het dashboard, dan blijft het vorige dashboard draaien. M
 ```bash
 git -C /opt/cssthema rev-parse HEAD > /var/lib/cssthema/geinstalleerde-commit
 git -C /opt/cssthema fetch && git -C /opt/cssthema switch main
-DASHBOARD_HOST=192.168.1.20 TRUSTED_PROXIES=192.168.1.0/24 bash /opt/cssthema/deploy/debian/install.sh
+TRUSTED_PROXIES=192.168.0.0/16 bash /opt/cssthema/deploy/debian/install.sh
 ```
 
 (Via NPM: `DASHBOARD_HOST=cssthema.jouwdomein.be TRUSTED_PROXIES=<ip-van-npm>`, zie § 2.)
@@ -431,11 +429,10 @@ Een back-up van de hele container in Proxmox (vzdump) neemt ook alles mee.
 
 | Symptoom | Oorzaak en oplossing |
 |---|---|
-| `install.sh` stopt met *DASHBOARD_HOST ontbreekt* | Er is nog niets aangepast. Draai het opnieuw met het adres van je dashboard (§ 2): `DASHBOARD_HOST=192.168.1.20 TRUSTED_PROXIES=192.168.1.0/24 bash /opt/cssthema/deploy/debian/install.sh`. |
 | `install.sh` stopt met *de database staat op migratie …, die de code … niet kent* | De code in `/opt/cssthema` is ouder dan de database. Er is niets herstart; de api draait verder. Zet de versie uit de melding terug (of `git -C /opt/cssthema switch main && git -C /opt/cssthema pull`) en draai het script opnieuw. |
 | `install.sh` waarschuwt *PUBLIC_BASE_URL=… is geen https* of *een IP-adres* | Dat adres komt in de regel van elke proxy host, en apps op https laden niets van http of van een IP zonder geldig certificaat. Draai het opnieuw met `PUBLIC_BASE_URL=https://css.jouwdomein.be`. |
 | `cssthema-backup terugzetten` zegt *Data teruggezet, niet gestart* | De back-up hoort bij een andere versie van de code. Voer het commando uit de melding uit (`git … checkout --detach <commit> && bash …/install.sh`). |
-| Het dashboard of `/api/…` geeft `404` (*De api staat alleen op de host(s) uit DASHBOARD_HOST*) | Die hostnaam staat niet in `DASHBOARD_HOST`: `grep DASHBOARD_HOST /etc/cssthema/cssthema.env` en `cat /etc/nginx/conf.d/cssthema-dashboard-host.conf`. Pas aan met `DASHBOARD_HOST=… bash /opt/cssthema/deploy/debian/install.sh`. Op het CSS-domein staat het dashboard bewust niet, en op `http://<ip>/` alleen als dat IP in `DASHBOARD_HOST` staat. |
+| Het dashboard of `/api/…` geeft `404` (*De api staat alleen op de host(s) uit DASHBOARD_HOST*) | Die hostnaam staat niet in `DASHBOARD_HOST`: `grep DASHBOARD_HOST /etc/cssthema/cssthema.env` en `cat /etc/nginx/conf.d/cssthema-dashboard-host.conf`. Pas aan met `DASHBOARD_HOST=… bash /opt/cssthema/deploy/debian/install.sh`. Op het CSS-domein staat het dashboard bewust niet. Op `http://<ip>/` staat het altijd, behalve als dat IP in `PUBLIC_BASE_URL` staat (zet daar je CSS-domein). |
 | De api geeft `403` *Alleen via de reverse proxy* (of *Schrijven kan alleen via de reverse proxy*), of het dashboard toont geen thema's en geen Hosts | Het verzoek kwam niet van een adres in `TRUSTED_PROXIES`: `cat /etc/nginx/conf.d/cssthema-real-ip.conf`. Dashboard op het LAN: zet het netwerk van je pc erin (`ipconfig` op Windows), bv. `TRUSTED_PROXIES=192.168.1.0/24 bash /opt/cssthema/deploy/debian/install.sh`. Via NPM: het IP waarmee NPM aankomt (zie § 4, *Wie mag de api gebruiken*). Het IP van de container zelf helpt niet. |
 | Een app krijgt geen thema, en in de paginabron staat geen `/host/…` | `sub_filter` grijpt niet. Staat er nog een oude regel met `proxy_set_header Accept-Encoding ""`? Die werkt in NPM niet bij apps die hun HTML comprimeren: vervang hem door de regel uit § 4. Schrijft de app `</head>` anders (hoofdletters), dan vindt `sub_filter` het ook niet. |
 | NPM toont de proxy host als *Offline*, of de nieuwe Advanced-config doet niets | De configtest van NPM faalt: ga met de muis over *Offline* voor de fout. NPM blijft intussen de vorige config gebruiken. Bij `duplicate location "/"` staat er nog iets in de tab *Custom locations*: maak die leeg. Bij `duplicate location "/alg-thema/"` staat de oude `location ^~ /alg-thema/` er nog naast de regel. |
