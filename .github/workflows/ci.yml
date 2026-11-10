@@ -109,7 +109,7 @@ jobs:
     name: E2E (Playwright)
     # Parallel met backend/frontend: de suite start zelf de api (:8020) en `vite preview`
     # (:4173) tegen de productiebuild (frontend/playwright.config.ts).
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04  # ubuntu-latest (26.04) heeft nog geen Playwright-browsers
     timeout-minutes: 15
     services:
       postgres:
