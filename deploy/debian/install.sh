@@ -171,12 +171,11 @@ basis=${PUBLIC_BASE_URL:-}
 basis=${basis#*://}
 basis=${basis%%/*}
 basis=$(printf %s "${basis%:*}" | tr '[:upper:]' '[:lower:]')
-# Het dashboard staat op elk IP van deze machine, dus ook die IP's tellen mee.
-case ",$(printf %s "${DASHBOARD_HOST:-}" | tr ' ' ',' | tr '[:upper:]' '[:lower:]'),$(hostname -I 2>/dev/null | tr ' ' ',')," in
+case ",$(printf %s "${DASHBOARD_HOST:-}" | tr ' ' ',' | tr '[:upper:]' '[:lower:]')," in
     *",$basis,"*)
         case $basis in
             127.0.0.1) ;;
-            *[0-9]) die "PUBLIC_BASE_URL=$PUBLIC_BASE_URL is het adres van het dashboard ($basis is een IP van deze machine of staat in DASHBOARD_HOST).
+            *[0-9]) die "PUBLIC_BASE_URL=$PUBLIC_BASE_URL is het adres van het dashboard ($basis staat in DASHBOARD_HOST).
 Dat adres komt in de NPM-regel van elke app, en de variant voor het eigen domein zou dan het dashboard
 en de api via je apps doorgeven. Zet je publieke CSS-domein en draai het script opnieuw, bv.:
   PUBLIC_BASE_URL=https://css.jbogaert.be bash $APP_DIR/deploy/debian/install.sh
@@ -396,6 +395,13 @@ git -C "$APP_DIR" rev-parse HEAD >"$DATA_DIR/geinstalleerde-commit" 2>/dev/null 
 
 ip=$(hostname -I 2>/dev/null | awk '{print $1}' || true)
 dashboard_url="http://${ip:-<ip>}/ (elk IP van deze machine, alleen op het LAN; via NPM geeft het een 404)"
+# Het IP uit PUBLIC_BASE_URL krijgt het dashboard niet (41-cssthema-dashboard-host.sh).
+case " $(hostname -I 2>/dev/null || true) " in
+    *" $basis "*) case ",${DASHBOARD_HOST:-}," in
+        *",$basis,"*) ;;
+        *) dashboard_url="http://localhost/ op deze machine; op http://$basis/ niet zolang PUBLIC_BASE_URL dat IP is (zet daar je CSS-domein, zie hieronder)" ;;
+    esac ;;
+esac
 case ${DASHBOARD_HOST:-} in
     "" | *[0-9]) ;;
     # Een domeinnaam eindigt nooit op een cijfer (HOSTNAAM_RE).
