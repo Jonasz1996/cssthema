@@ -3,6 +3,12 @@
 # hostna(a)m(en) waarop het dashboard en de api staan, komma- of spatiegescheiden, bv.
 # DASHBOARD_HOST=cssthema.jbogaert.be (standaard localhost).
 #
+# Daarnaast staat het dashboard altijd op elk IPv4-adres (http://<ip-van-deze-machine>/): wie
+# het op het LAN opent, hoeft niets in te stellen, ook niet na een nieuw IP. NPM stuurt altijd
+# een naam als Host, dus via NPM blijft het dashboard dicht. Uitzondering: is de host van
+# PUBLIC_BASE_URL een IP, dan krijgt dat IP het dashboard niet (de /alg-thema/-variant zou het
+# anders via elke app doorgeven).
+#
 # cssthema.conf serveert de SPA, /assets/, /preview-bridge.js en /api/ alleen voor die
 # hosts; elke andere Host (bv. het publieke CSS-domein, of een NPM-host zonder Authentik)
 # krijgt daar een 404. Thema-CSS, /host/, scripts, lettertypes en /readyz blijven op elke
@@ -44,6 +50,17 @@ if [ -z "$entries" ]; then
     echo "41-cssthema-dashboard-host.sh: DASHBOARD_HOST is leeg" >&2
     exit 1
 fi
+# Host van PUBLIC_BASE_URL, als die een IPv4-adres is.
+publiek=${PUBLIC_BASE_URL:-}
+publiek=${publiek#*://}
+publiek=${publiek%%/*}
+publiek=$(printf %s "${publiek%:*}" | tr '[:upper:]' '[:lower:]')
+case "$publiek" in
+    *[!0-9.]* | "") publiek="" ;;
+esac
+case " $entries " in
+    *" $publiek "*) publiek="" ;; # staat expliciet in DASHBOARD_HOST: dat gaat voor
+esac
 {
     echo "# Gegenereerd door 41-cssthema-dashboard-host.sh uit DASHBOARD_HOST."
     # shellcheck disable=SC2016 # nginx-variabelen, geen shell
@@ -52,5 +69,8 @@ fi
     for host in $entries; do
         echo "    $host 1;"
     done
+    # Exacte namen gaan in een nginx-map voor op een regex.
+    [ -z "$publiek" ] || echo "    $publiek 0;"
+    echo '    "~^[0-9]{1,3}(\.[0-9]{1,3}){3}$" 1;'
     echo "}"
 } >"$out"
