@@ -8,7 +8,7 @@ import type { NetworkMode } from "@/lib/particles";
 import { isNavItemActive, isWideRoute, mainNav } from "./nav";
 import { SessionExpiredBanner } from "./SessionExpired";
 import { routeCommand } from "./shell-command";
-import { BackgroundToggle, LanguageToggle, SystemStatus } from "./ShellControls";
+import { BackgroundToggle, LanguageToggle, LogoutButton, SystemStatus } from "./ShellControls";
 import { useUiStore } from "./ui-store";
 
 function MainNav({ pathname }: { pathname: string }) {
@@ -66,6 +66,7 @@ export function AppShell() {
                 <SystemStatus />
                 <BackgroundToggle />
                 <LanguageToggle />
+                <LogoutButton />
               </div>
             </header>
             <SessionExpiredBanner />

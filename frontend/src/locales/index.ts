@@ -8,6 +8,7 @@
  * beide objecten opnemen. Engels is de bron van de sleutels (type `MessageKey`); de test
  * `i18n.test.ts` controleert dat het Nederlands dezelfde sleutels heeft.
  */
+import enAuth from "./en/auth.json";
 import enCommon from "./en/common.json";
 import enDashboard from "./en/dashboard.json";
 import enEditor from "./en/editor.json";
@@ -18,6 +19,7 @@ import enPalettes from "./en/palettes.json";
 import enServices from "./en/services.json";
 import enThemes from "./en/themes.json";
 import enVersions from "./en/versions.json";
+import nlAuth from "./nl/auth.json";
 import nlCommon from "./nl/common.json";
 import nlDashboard from "./nl/dashboard.json";
 import nlEditor from "./nl/editor.json";
@@ -40,6 +42,7 @@ export const en = {
   import: enImport,
   hosts: enHosts,
   services: enServices,
+  auth: enAuth,
 };
 
 export type Namespaces = typeof en;
@@ -57,4 +60,5 @@ export const nl: { [N in NamespaceName]: Partial<Record<keyof Namespaces[N], str
   import: nlImport,
   hosts: nlHosts,
   services: nlServices,
+  auth: nlAuth,
 };

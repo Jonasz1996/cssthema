@@ -1,4 +1,7 @@
+import { useQueryClient } from "@tanstack/react-query";
+import { api } from "@/api/client";
 import { useHealth } from "@/api/queries/health";
+import { AUTH_KEY, useAuthState } from "@/features/auth/queries";
 import { Button } from "@/components/ui";
 import { useI18n } from "@/lib/i18n";
 import { useReducedMotion } from "@/lib/motion";
@@ -75,6 +78,32 @@ export function LanguageToggle() {
       onClick={() => setLocale(next)}
     >
       {t("common.switchLanguageShort")}
+    </Button>
+  );
+}
+
+/** Afmelden, alleen met een eigen login (AUTH_MODE=lokaal). */
+export function LogoutButton() {
+  const { t } = useI18n();
+  const client = useQueryClient();
+  const { data } = useAuthState();
+  if (data?.mode !== "lokaal" || !data.user) return null;
+  return (
+    <Button
+      variant="mini"
+      title={t("auth.loggedInAs", { name: data.user.email ?? data.user.display_name })}
+      onClick={async () => {
+        await api.POST("/api/v1/auth/logout").catch(() => undefined);
+        client.removeQueries({ predicate: (query) => query.queryKey[0] !== "auth" });
+        client.setQueryData(AUTH_KEY, {
+          mode: "lokaal",
+          user: null,
+          must_change_password: false,
+          mfa_setup_required: false,
+        });
+      }}
+    >
+      {t("auth.logout")}
     </Button>
   );
 }

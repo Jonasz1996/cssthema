@@ -38,6 +38,15 @@ class Settings(BaseSettings):
     secret_key: SecretStr = SecretStr("change-me")
     encryption_key: SecretStr | None = None
 
+    # Aanmelden op het dashboard. `geen` (standaard): geen login, elke request is de beheerder
+    # (dashboard alleen op het LAN of achter Authentik). `lokaal`: eigen accounts met wachtwoord
+    # en verplichte MFA (TOTP), beheerd met `cssthema-account` op de server.
+    auth_mode: Literal["geen", "lokaal"] = "geen"
+    # Hoe lang een aanmelding geldig blijft.
+    session_hours: int = Field(default=12, gt=0, le=24 * 30)
+    # Hoe lang een tijdelijk wachtwoord van `cssthema-account reset` geldig is.
+    temp_password_hours: int = Field(default=24, gt=0, le=24 * 14)
+
     # CSS-levering en -validatie (fase 1). De standaardwaarden werken zonder extra
     # configuratie voor de installatie zonder Docker (deploy/debian); docker compose
     # zet CSS_REFRESH_URL op de nginx-container.
@@ -94,6 +103,22 @@ class Settings(BaseSettings):
     @classmethod
     def _upper_log_level(cls, value: object) -> object:
         return value.upper() if isinstance(value, str) else value
+
+    @field_validator("auth_mode", mode="before")
+    @classmethod
+    def _lower_auth_mode(cls, value: object) -> object:
+        return value.strip().lower() if isinstance(value, str) else value
+
+    @model_validator(mode="after")
+    def _check_secret_for_login(self) -> "Settings":
+        # Met de standaard-SECRET_KEY kan iedereen een sessiecookie namaken.
+        if (
+            self.auth_mode == "lokaal"
+            and self.environment == "production"
+            and self.secret_key.get_secret_value() in {"", "change-me"}
+        ):
+            raise ValueError("AUTH_MODE=lokaal vraagt een eigen SECRET_KEY (openssl rand -hex 32)")
+        return self
 
     @model_validator(mode="after")
     def _assemble_database_url(self) -> "Settings":
