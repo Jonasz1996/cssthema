@@ -17,8 +17,12 @@
 # Vóór elke update maakt het script een back-up (cssthema-backup lijst); terugzetten met
 # cssthema-backup terugzetten <map>. Daarnaast draait elke nacht een back-up (systemd-timer).
 # Opnieuw draaien is veilig: configuratie, geheimen en data blijven staan. Geef je
-# DASHBOARD_HOST, EXCLUDED_HOSTS, TRUSTED_PROXIES of PUBLIC_BASE_URL opnieuw mee, dan worden
-# die in de configuratie aangepast.
+# DASHBOARD_HOST, EXCLUDED_HOSTS, TRUSTED_PROXIES, PUBLIC_BASE_URL of AUTH_MODE opnieuw mee, dan
+# worden die in de configuratie aangepast.
+#
+# Aanmelden op het dashboard (standaard uit):
+#   AUTH_MODE=lokaal bash /opt/cssthema/deploy/debian/install.sh
+# en daarna een account maken met cssthema-account nieuw (docs/ops/accounts.md).
 set -euo pipefail
 
 # Meegegeven bij het aanroepen; gaan voor op wat in de configuratie staat. Hostnamen mogen
@@ -28,6 +32,14 @@ ARG_TRUSTED_PROXIES=${TRUSTED_PROXIES:-}
 ARG_PUBLIC_BASE_URL=${PUBLIC_BASE_URL:-}
 ARG_DASHBOARD_HOST=$(hostlijst "${DASHBOARD_HOST:-}")
 ARG_EXCLUDED_HOSTS=$(hostlijst "${EXCLUDED_HOSTS:-}")
+ARG_AUTH_MODE=${AUTH_MODE:-}
+case $ARG_AUTH_MODE in
+    '' | geen | lokaal) ;;
+    *)
+        printf 'cssthema-install: AUTH_MODE moet geen of lokaal zijn, niet %s\n' "$ARG_AUTH_MODE" >&2
+        exit 1
+        ;;
+esac
 
 APP_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)
 CONF_DIR=/etc/cssthema
@@ -137,6 +149,10 @@ REDIS_URL=redis://localhost:6379/0
 SECRET_KEY=$(openssl rand -hex 32)
 ENCRYPTION_KEY=
 
+# Aanmelden op het dashboard: geen (iedereen in TRUSTED_PROXIES mag alles) of lokaal (eigen
+# accounts met wachtwoord en MFA; beheren met cssthema-account, zie docs/ops/accounts.md).
+AUTH_MODE=geen
+
 LOG_LEVEL=INFO
 LOG_JSON=true
 EOF
@@ -157,6 +173,7 @@ set_conf() { # set_conf NAAM WAARDE: regel in de configuratie vervangen of toevo
 [ -z "$ARG_PUBLIC_BASE_URL" ] || set_conf PUBLIC_BASE_URL "$ARG_PUBLIC_BASE_URL"
 [ -z "$ARG_DASHBOARD_HOST" ] || set_conf DASHBOARD_HOST "$ARG_DASHBOARD_HOST"
 [ -z "$ARG_EXCLUDED_HOSTS" ] || set_conf EXCLUDED_HOSTS "$ARG_EXCLUDED_HOSTS"
+[ -z "$ARG_AUTH_MODE" ] || set_conf AUTH_MODE "$ARG_AUTH_MODE"
 chown root:cssthema "$ENV_FILE"
 chmod 0640 "$ENV_FILE"
 set -a
@@ -278,6 +295,8 @@ step "Backend: Python-venv in $VENV"
     UV_PROJECT_ENVIRONMENT=$VENV UV_PYTHON_DOWNLOADS=never \
         "$VENV/bin/uv" sync --frozen --no-dev --inexact --python "$VENV/bin/python"
 )
+sed -e "s|@VENV@|$VENV|g" "$APP_DIR/deploy/debian/cssthema-account.sh" >/usr/local/sbin/cssthema-account
+chmod 0755 /usr/local/sbin/cssthema-account
 
 step "Frontend bouwen (Node.js $NODE_MAJOR, alleen voor de build)"
 if [ "$("$NODE_DIR/bin/node" --version 2>/dev/null | cut -d. -f1)" != "v$NODE_MAJOR" ]; then
@@ -416,7 +435,18 @@ cssthema draait.
   Configuratie:     $ENV_FILE
   Back-ups:         ${BACKUP_DIR:-/var/backups/cssthema} (cssthema-backup lijst)
   Logs:             journalctl -u cssthema-api -u cssthema-worker -f
+  Aanmelden:        AUTH_MODE=${AUTH_MODE:-geen} (accounts: cssthema-account lijst)
 EOF
+if [ "${AUTH_MODE:-geen}" = lokaal ]; then
+    accounts=$(psql_admin -d "$POSTGRES_DB" -tAc "SELECT count(*) FROM users WHERE oidc_subject LIKE 'lokaal:%'" 2>/dev/null || echo "?")
+    if [ "$accounts" = 0 ]; then
+        echo
+        printf '\033[1;33mLet op: AUTH_MODE=lokaal, maar er is nog geen account: niemand kan zich aanmelden.\033[0m\n'
+        echo "Maak je eerste account. Zet op de eerste regel je eigen e-mailadres in plaats van het voorbeeld:"
+        echo "  EMAIL=naam@voorbeeld.be"
+        echo '  cssthema-account nieuw "$EMAIL"'
+    fi
+fi
 branch=$(git -C "$APP_DIR" branch --show-current 2>/dev/null || true)
 if [ -n "$branch" ] && [ "$branch" != main ] &&
     git -C "$APP_DIR" cat-file -e origin/main:backend/pyproject.toml 2>/dev/null; then

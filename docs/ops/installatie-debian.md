@@ -309,7 +309,7 @@ Een host zonder eigen koppeling krijgt een redirect naar `/host/*.css` (en `.js`
 
 ### Wie mag de api gebruiken
 
-Tot fase 3 heeft cssthema geen eigen login. De bescherming is dus waar het dashboard staat: alleen op het LAN, of achter Authentik in NPM. nginx van cssthema zorgt dat niemand eromheen kan:
+Standaard heeft cssthema geen eigen login. De bescherming is dan waar het dashboard staat: alleen op het LAN, of achter Authentik in NPM. Wil je toch aanmelden met een wachtwoord en MFA, zet dan `AUTH_MODE=lokaal` aan: zie [accounts.md](accounts.md) (accounts maken, en `cssthema-account reset` als iemand niet meer binnenkan). De regels hieronder blijven dan ook gelden. nginx van cssthema zorgt dat niemand eromheen kan:
 
 - **Alleen op `DASHBOARD_HOST`.** Elke proxy host die niet in `DASHBOARD_HOST` staat (zoals het CSS-domein), krijgt voor het dashboard en `/api/` een `404`. Staat het dashboard op het LAN (`DASHBOARD_HOST` is het IP van de container), dan komt het via geen enkele proxy host van NPM naar buiten: NPM geeft altijd de eigen naam van de proxy host door als `Host`. Schrijf in NPM dan ook nooit zelf een `proxy_pass http://<ip-van-de-container>` zonder `proxy_set_header Host $host;`: zonder die regel stuurt nginx het IP als `Host`, en dat is het dashboard.
 - **Alleen van `TRUSTED_PROXIES`.** De hele api, lezen en schrijven, aanvaardt nginx alleen van de adressen in `TRUSTED_PROXIES` en van de container zelf. Van elders geeft dat `403` (*Alleen via de reverse proxy*), ook met een verzonnen `Host`- of `X-Forwarded-For`-header: nginx kijkt naar het adres van de verbinding zelf.

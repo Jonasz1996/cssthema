@@ -78,6 +78,7 @@ describe("vertaalbestanden", () => {
         "import",
         "hosts",
         "services",
+        "auth",
       ]),
     );
   });

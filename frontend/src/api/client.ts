@@ -125,6 +125,26 @@ const sessionMiddleware: Middleware = {
 };
 api.use(sessionMiddleware);
 
+// --- eigen login (AUTH_MODE=lokaal) -------------------------------------------------------------
+
+const authListeners = new Set<() => void>();
+
+/** Wordt verwittigd als de api een JSON-401/403 geeft: dan de aanmeldtoestand opnieuw ophalen. */
+export function subscribeAuthChanged(listener: () => void): () => void {
+  authListeners.add(listener);
+  return () => authListeners.delete(listener);
+}
+
+const authMiddleware: Middleware = {
+  onResponse({ response, request }) {
+    if (response.status !== 401 && response.status !== 403) return undefined;
+    if (new URL(request.url).pathname.startsWith("/api/v1/auth/")) return undefined;
+    for (const listener of authListeners) listener();
+    return undefined;
+  },
+};
+api.use(authMiddleware);
+
 // --- ETag / If-Match ("lv-<n>") ----------------------------------------------------------------
 
 const LOCK_ETAG_RE = /^(?:W\/)?"lv-(\d{1,10})"$/;
