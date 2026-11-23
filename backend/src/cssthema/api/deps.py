@@ -11,7 +11,9 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from cssthema.api.errors import ProblemError
 from cssthema.config import Settings
 from cssthema.db.models import User
+from cssthema.domain.auth import session_token
 from cssthema.repositories import users as user_repo
+from cssthema.services import accounts
 from cssthema.services.context import Actor, ServiceContext
 from cssthema.services.errors import PreconditionRequiredError
 from cssthema.services.locking import LockExpectation
@@ -35,11 +37,28 @@ def get_app_settings(request: Request) -> Settings:
 AppSettings = Annotated[Settings, Depends(get_app_settings)]
 
 
-async def get_current_user(session: DbSession) -> User:
-    """Fase 1 heeft nog geen login: elke request is de geseede ontwikkelgebruiker (admin).
+async def get_session_user(request: Request, session: DbSession, settings: AppSettings) -> User:
+    """De aangemelde gebruiker, ook als die nog een wachtwoord of MFA moet instellen.
 
-    Fase 3 vervangt dit door de OIDC-sessie (docs/02 § 4.1).
+    AUTH_MODE=geen: geen login, elke request is de geseede ontwikkelgebruiker (admin).
+    AUTH_MODE=lokaal: de gebruiker uit de sessiecookie (services/accounts.py).
     """
+    if settings.auth_mode == "lokaal":
+        claims = session_token.read(
+            settings.secret_key.get_secret_value(), request.cookies.get(session_token.COOKIE_NAME)
+        )
+        user = await user_repo.get_user(session, claims.user_id) if claims else None
+        if (
+            claims is None
+            or user is None
+            or not user.is_active
+            or user.session_version != claims.version
+            or not accounts.is_local(user)
+        ):
+            raise ProblemError(
+                401, "unauthenticated", "Niet aangemeld", detail="Meld je aan op het dashboard."
+            )
+        return user
     user = await user_repo.get_user(session, user_repo.DEV_USER_ID)
     if user is None or not user.is_active:
         raise ProblemError(
@@ -51,7 +70,26 @@ async def get_current_user(session: DbSession) -> User:
     return user
 
 
+SessionUser = Annotated[User, Depends(get_session_user)]
+
+
+async def get_current_user(user: SessionUser, settings: AppSettings) -> User:
+    """Aangemeld én klaar: een nieuw wachtwoord gekozen en MFA ingesteld (AUTH_MODE=lokaal)."""
+    if settings.auth_mode == "lokaal" and accounts.setup_pending(user):
+        raise ProblemError(
+            403,
+            "account_setup_required",
+            "Account nog niet klaar",
+            detail="Kies eerst een nieuw wachtwoord en stel MFA in.",
+        )
+    return user
+
+
 CurrentUser = Annotated[User, Depends(get_current_user)]
+
+
+async def require_login(user: CurrentUser) -> None:
+    """Op elke api-router behalve /auth: met AUTH_MODE=lokaal alleen na aanmelden."""
 
 
 SAFE_METHODS = frozenset({"GET", "HEAD", "OPTIONS", "TRACE"})
